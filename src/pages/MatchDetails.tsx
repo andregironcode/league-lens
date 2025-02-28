@@ -184,6 +184,20 @@ const MatchDetails = () => {
           Back to highlights
         </button>
 
+        {/* Video first - at the top of the page */}
+        <div className="mb-8 w-full">
+          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
+            <iframe
+              className="w-full h-full"
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+              title={match.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+
         {/* Match details */}
         <section className="mb-4">
           <div className="mb-4">
@@ -212,14 +226,12 @@ const MatchDetails = () => {
           </div>
         </section>
 
-        {/* Score section - Moved above video with updated background color */}
+        {/* Score section with fixed logo display */}
         <section className="mb-6 bg-[#222222] rounded-xl p-6 shadow-sm">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex flex-col items-center mb-6 md:mb-0">
               <img 
-                src={match.homeTeam.logo !== '/teams/mancity.png' ? 
-                    `https://api.sofascore.app/api/v1/team/${match.homeTeam.id}/image` : 
-                    'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
+                src={match.homeTeam.logo} 
                 alt={match.homeTeam.name} 
                 className="w-16 h-16 object-contain"
                 onError={(e) => {
@@ -238,9 +250,7 @@ const MatchDetails = () => {
             
             <div className="flex flex-col items-center">
               <img 
-                src={match.awayTeam.logo !== '/teams/arsenal.png' ? 
-                    `https://api.sofascore.app/api/v1/team/${match.awayTeam.id}/image` : 
-                    'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
+                src={match.awayTeam.logo} 
                 alt={match.awayTeam.name} 
                 className="w-16 h-16 object-contain"
                 onError={(e) => {
@@ -253,78 +263,23 @@ const MatchDetails = () => {
           </div>
         </section>
 
-        {/* Main content area with video and comments */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left column - Video container */}
-          <div className={`${showComments ? 'md:w-3/5' : 'w-full'} transition-all duration-300 ease-in-out`} ref={videoContainerRef}>
-            <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
-              <iframe
-                className="w-full h-full"
-                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
-                title={match.title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-
-            {/* YouTube-style Comments Teaser - Only shown when comments aren't expanded */}
-            {!showComments && (
-              <section className="mt-4 bg-[#222222] rounded-xl overflow-hidden">
-                <div className="p-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center">
-                      <h3 className="text-xl font-semibold text-white">Comments</h3>
-                      <span className="ml-3 text-gray-400 text-sm">{comments.length}K</span>
-                    </div>
-                    <button 
-                      onClick={toggleComments}
-                      className="text-[#FFC30B] hover:text-[#FFC30B]/90 text-sm font-medium flex items-center"
-                    >
-                      Show all
-                      <ChevronDown className="ml-1 w-4 h-4" />
-                    </button>
-                  </div>
-                  
-                  {/* Top comment teaser - clickable to open drawer */}
-                  <div 
-                    className="bg-[#222222] rounded-lg cursor-pointer" 
-                    onClick={toggleComments}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
-                        {comments[0].user.initial}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center mb-1">
-                          <span className="text-white text-sm font-medium mr-2">{comments[0].user.name}</span>
-                          <span className="text-gray-400 text-xs">{comments[0].time}</span>
-                        </div>
-                        <p className="text-white text-sm">{comments[0].content}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            )}
+        {/* Comments section (can be toggled) */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-white flex items-center">
+              Comments
+            </h3>
+            <button 
+              onClick={toggleComments}
+              className="px-4 py-2 bg-[#222222] rounded-full text-sm font-medium text-white hover:bg-[#333333] transition-colors"
+            >
+              {showComments ? "Hide comments" : "Show comments"}
+            </button>
           </div>
-
-          {/* Right column - Comments section (only shown when expanded) */}
+          
           {showComments && (
-            <div className="md:w-2/5 bg-[#222222] rounded-xl overflow-hidden">
+            <div className="bg-[#222222] rounded-xl overflow-hidden">
               <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-white flex items-center">
-                    Comments
-                  </h2>
-                  <button 
-                    onClick={toggleComments}
-                    className="p-2 rounded-full hover:bg-[#333333]"
-                  >
-                    <X className="w-5 h-5 text-white" />
-                  </button>
-                </div>
-                
                 {/* Comment sort */}
                 <div className="mb-6 flex space-x-2">
                   <button 
@@ -412,7 +367,7 @@ const MatchDetails = () => {
         </div>
 
         {/* Custom Tabs for Stats and Lineups */}
-        <div className="mt-8 mb-8">
+        <div className="mb-8">
           <div className="grid grid-cols-2 gap-0 mb-4">
             <button 
               onClick={() => setActiveTab('stats')}
@@ -523,9 +478,7 @@ const MatchDetails = () => {
                 <div className="md:w-[48%] mb-6 md:mb-0">
                   <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
                     <img 
-                      src={match.homeTeam.logo !== '/teams/mancity.png' ? 
-                          `https://api.sofascore.app/api/v1/team/${match.homeTeam.id}/image` : 
-                          'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
+                      src={match.homeTeam.logo} 
                       alt={match.homeTeam.name} 
                       className="w-6 h-6 object-contain mr-2"
                       onError={(e) => {
@@ -560,9 +513,7 @@ const MatchDetails = () => {
                 <div className="md:w-[48%]">
                   <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
                     <img 
-                      src={match.awayTeam.logo !== '/teams/arsenal.png' ? 
-                          `https://api.sofascore.app/api/v1/team/${match.awayTeam.id}/image` : 
-                          'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
+                      src={match.awayTeam.logo}
                       alt={match.awayTeam.name} 
                       className="w-6 h-6 object-contain mr-2"
                       onError={(e) => {
