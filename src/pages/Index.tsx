@@ -52,7 +52,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#0c111b] text-white">
       <Header />
       
       <main className="pt-16 pb-10">
