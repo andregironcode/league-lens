@@ -56,7 +56,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   };
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[600px] border border-highlight-700/10">
+    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
       {/* Background gradient overlay */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/70 to-transparent z-10"></div>
@@ -70,7 +70,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
       </div>
 
       {/* Content Container - Vertically centered with flex */}
-      <div className="relative z-20 w-full h-full flex items-center justify-center py-8 px-6 md:px-12">
+      <div className="relative z-20 w-full h-full flex items-center justify-center py-6 pb-16 px-6 md:px-12">
         <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto">
           {/* Match Info Container - Left side */}
           <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
@@ -148,8 +148,8 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      {/* Carousel Controls - Now positioned at the edges outside of content */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
+      {/* Carousel Controls - Now positioned closer to the content */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
         {highlights.map((_, index) => (
           <button
             key={index}
