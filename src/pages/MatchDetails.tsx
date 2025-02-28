@@ -9,13 +9,16 @@ import {
   Share2,
   MessageCircle,
   Shirt,
-  BarChart4
+  BarChart4,
+  ChevronDown
 } from 'lucide-react';
 import Header from '@/components/Header';
 import { getMatchById } from '@/services/highlightService';
 import { MatchHighlight } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const MatchDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +27,9 @@ const MatchDetails = () => {
   const [loading, setLoading] = useState(true);
   const [formattedDate, setFormattedDate] = useState('');
   const [exactDate, setExactDate] = useState('');
-  const [activeTab, setActiveTab] = useState('comments');
+  const [activeTab, setActiveTab] = useState('stats');
+  const [showAllComments, setShowAllComments] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchMatch = async () => {
@@ -64,6 +69,61 @@ const MatchDetails = () => {
   const handleGoBack = () => {
     navigate(-1);
   };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => {
+        toast({
+          title: "Link copied!",
+          description: "Share this highlight with your friends",
+          variant: "default",
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to copy: ', error);
+      });
+  };
+
+  const toggleShowAllComments = () => {
+    setShowAllComments(!showAllComments);
+  };
+
+  // Example comments
+  const comments = [
+    {
+      id: 1,
+      user: { name: "John", initial: "J" },
+      time: "2 hours ago",
+      content: "What a goal by Robertson! Incredible finish."
+    },
+    {
+      id: 2,
+      user: { name: "Sarah", initial: "S" },
+      time: "1 hour ago",
+      content: "Liverpool deserved this win. Great team performance!"
+    },
+    {
+      id: 3,
+      user: { name: "Mike", initial: "M" },
+      time: "30 minutes ago",
+      content: "Arsenal's defense was all over the place today."
+    },
+    {
+      id: 4,
+      user: { name: "Jamie", initial: "J" },
+      time: "15 minutes ago",
+      content: "That referee decision was absolutely shocking."
+    },
+    {
+      id: 5,
+      user: { name: "Alex", initial: "A" },
+      time: "5 minutes ago",
+      content: "Can't wait for the next match. This was a thriller!"
+    }
+  ];
+
+  // Show only first 2 comments unless showAllComments is true
+  const displayedComments = showAllComments ? comments : comments.slice(0, 2);
 
   if (loading) {
     return (
@@ -111,22 +171,8 @@ const MatchDetails = () => {
           Back to highlights
         </button>
 
-        {/* Video section */}
-        <section className="mb-8">
-          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
-            <iframe
-              className="w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
-              title={match.title}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </section>
-
         {/* Match details */}
-        <section className="mb-8">
+        <section className="mb-4">
           <div className="mb-4">
             <span className="inline-block bg-[#1A1F2C] text-white text-sm px-3 py-1 rounded-full">
               {match.competition.name}
@@ -137,7 +183,7 @@ const MatchDetails = () => {
             {match.title}
           </h1>
           
-          <div className="flex flex-wrap items-center text-sm text-gray-400 mb-6 space-x-6">
+          <div className="flex flex-wrap items-center text-sm text-gray-400 mb-4 space-x-6">
             <div className="flex items-center">
               <Calendar size={16} className="mr-2" />
               <span>{exactDate}</span>
@@ -153,8 +199,8 @@ const MatchDetails = () => {
           </div>
         </section>
 
-        {/* Score section */}
-        <section className="mb-8 bg-[#1A1F2C] rounded-xl p-6 shadow-sm">
+        {/* Score section - Moved above video */}
+        <section className="mb-6 bg-[#1A1F2C] rounded-xl p-6 shadow-sm">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex flex-col items-center mb-6 md:mb-0">
               <img 
@@ -194,17 +240,69 @@ const MatchDetails = () => {
           </div>
         </section>
 
-        {/* Tabs for Comments, Stats, and Lineups */}
-        <section className="mb-8">
-          <Tabs defaultValue="comments" className="w-full">
-            <TabsList className="w-full bg-[#1A1F2C] mb-4">
-              <TabsTrigger 
-                value="comments" 
-                className="flex-1 data-[state=active]:bg-[#FFC30B] data-[state=active]:text-black"
+        {/* Video section */}
+        <section className="mb-6">
+          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+            <iframe
+              className="w-full h-full"
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+              title={match.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </section>
+
+        {/* Comments section - Now directly under the video */}
+        <section className="mb-8 bg-[#1A1F2C] rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-lg text-white flex items-center">
+              <MessageCircle className="mr-2 w-5 h-5" />
+              Comments
+            </h3>
+            {comments.length > 2 && (
+              <Button 
+                variant="ghost" 
+                onClick={toggleShowAllComments}
+                className="text-[#FFC30B] hover:text-[#FFC30B] hover:bg-white/5"
               >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Comments
-              </TabsTrigger>
+                {showAllComments ? "Show Less" : "View All"}
+                {!showAllComments && <ChevronDown className="ml-1 w-4 h-4" />}
+              </Button>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {displayedComments.map(comment => (
+              <div key={comment.id} className="bg-highlight-800 p-3 rounded">
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">
+                    {comment.user.initial}
+                  </div>
+                  <div className="ml-2">
+                    <div className="text-white font-medium">{comment.user.name}</div>
+                    <div className="text-gray-400 text-xs">{comment.time}</div>
+                  </div>
+                </div>
+                <p className="text-white text-sm">{comment.content}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4">
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              className="w-full bg-highlight-800 border border-highlight-700 text-white px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
+            />
+          </div>
+        </section>
+
+        {/* Tabs for Stats and Lineups */}
+        <section className="mb-8">
+          <Tabs defaultValue="stats" className="w-full">
+            <TabsList className="w-full bg-[#1A1F2C] mb-4">
               <TabsTrigger 
                 value="stats" 
                 className="flex-1 data-[state=active]:bg-[#FFC30B] data-[state=active]:text-black"
@@ -221,54 +319,6 @@ const MatchDetails = () => {
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="comments" className="mt-4">
-              <div className="bg-[#1A1F2C] rounded-lg p-4">
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    placeholder="Add a comment..."
-                    className="w-full bg-highlight-800 border border-highlight-700 text-white px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
-                  />
-                </div>
-                
-                <div className="space-y-4">
-                  {/* Example comments */}
-                  <div className="bg-highlight-800 p-3 rounded">
-                    <div className="flex items-center mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">J</div>
-                      <div className="ml-2">
-                        <div className="text-white font-medium">John</div>
-                        <div className="text-gray-400 text-xs">2 hours ago</div>
-                      </div>
-                    </div>
-                    <p className="text-white text-sm">What a goal by Robertson! Incredible finish.</p>
-                  </div>
-                  
-                  <div className="bg-highlight-800 p-3 rounded">
-                    <div className="flex items-center mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">S</div>
-                      <div className="ml-2">
-                        <div className="text-white font-medium">Sarah</div>
-                        <div className="text-gray-400 text-xs">1 hour ago</div>
-                      </div>
-                    </div>
-                    <p className="text-white text-sm">Liverpool deserved this win. Great team performance!</p>
-                  </div>
-                  
-                  <div className="bg-highlight-800 p-3 rounded">
-                    <div className="flex items-center mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">M</div>
-                      <div className="ml-2">
-                        <div className="text-white font-medium">Mike</div>
-                        <div className="text-gray-400 text-xs">30 minutes ago</div>
-                      </div>
-                    </div>
-                    <p className="text-white text-sm">Arsenal's defense was all over the place today.</p>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            
             <TabsContent value="stats" className="mt-4">
               <div className="bg-[#1A1F2C] rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-4 text-center text-white">Match Statistics</h3>
@@ -283,7 +333,7 @@ const MatchDetails = () => {
                   <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '55%' }}></div>
-                      <div className="bg-blue-500 h-full" style={{ width: '45%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '45%' }}></div>
                     </div>
                   </div>
                 </div>
@@ -298,7 +348,7 @@ const MatchDetails = () => {
                   <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '56%' }}></div>
-                      <div className="bg-blue-500 h-full" style={{ width: '44%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '44%' }}></div>
                     </div>
                   </div>
                 </div>
@@ -313,7 +363,7 @@ const MatchDetails = () => {
                   <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '60%' }}></div>
-                      <div className="bg-blue-500 h-full" style={{ width: '40%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '40%' }}></div>
                     </div>
                   </div>
                 </div>
@@ -328,7 +378,7 @@ const MatchDetails = () => {
                   <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '62%' }}></div>
-                      <div className="bg-blue-500 h-full" style={{ width: '38%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '38%' }}></div>
                     </div>
                   </div>
                 </div>
@@ -343,7 +393,7 @@ const MatchDetails = () => {
                   <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '45%' }}></div>
-                      <div className="bg-blue-500 h-full" style={{ width: '55%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '55%' }}></div>
                     </div>
                   </div>
                 </div>
@@ -434,7 +484,10 @@ const MatchDetails = () => {
 
         {/* Share button */}
         <div className="flex justify-center mb-8">
-          <button className="flex items-center px-4 py-2 rounded-md border border-highlight-800 hover:bg-highlight-800 transition-colors text-white">
+          <button 
+            onClick={handleShare}
+            className="flex items-center px-4 py-2 rounded-md border border-highlight-800 hover:bg-highlight-800 transition-colors text-white"
+          >
             <Share2 size={16} className="mr-2" />
             Share this highlight
           </button>
