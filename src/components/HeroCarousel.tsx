@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flag, Spain } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flag } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -27,7 +27,9 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   const getCompetitionFlag = (competitionName: string) => {
     const name = competitionName.toLowerCase();
     if (name.includes('la liga') || name.includes('spain')) {
-      return <Spain className="w-4 h-4 mr-2" />; // Spanish flag for La Liga
+      return <Flag className="w-4 h-4 mr-2" />; // Spanish flag for La Liga
+    } else if (name.includes('premier league') || name.includes('england')) {
+      return <Flag className="w-4 h-4 mr-2" />; // English flag for Premier League
     } else if (name.includes('champions league') || name.includes('europa') || name.includes('european')) {
       return <Flag className="w-4 h-4 mr-2" />; // European tournament flag
     } else if (name.includes('world') || name.includes('international') || name.includes('fifa')) {
@@ -64,10 +66,10 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
 
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
-      {/* Competition Badge - Top Left */}
+      {/* Highlights of the Week Badge - Top Left */}
       <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
-        {getCompetitionFlag(currentHighlight.competition.name)}
-        <span className="text-sm font-medium">{currentHighlight.competition.name}</span>
+        <Flag className="w-4 h-4 mr-2" />
+        <span className="text-sm font-medium">Highlights of the Week</span>
       </div>
       
       {/* Background gradient overlay */}

@@ -56,11 +56,9 @@ const Index = () => {
       <Header />
       
       <main className="pt-16 pb-10">
-        {/* Highlights of the Week Section */}
+        {/* Hero Carousel */}
         <section className="mb-12">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4">
-            <h2 className="text-2xl font-semibold tracking-tight mb-4">Highlights of the Week</h2>
-            
             {loading.recommended ? (
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
             ) : (
