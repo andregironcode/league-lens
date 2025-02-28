@@ -55,9 +55,10 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
         <div className="flex items-center justify-between flex-1">
           <div className="flex items-center space-x-3">
             <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
-            <span className="text-sm text-gray-400">
+            {/* Removed the following span that displayed the number of highlights */}
+            {/* <span className="text-sm text-gray-400">
               {league.highlights.length} highlights
-            </span>
+            </span> */}
           </div>
         </div>
       </div>
