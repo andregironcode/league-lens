@@ -22,13 +22,17 @@ const Header = () => {
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out px-6 py-3 md:px-10 ${
-        scrolled ? 'bg-[#1A1F2C]/95 backdrop-blur-md shadow-sm' : 'bg-[#1A1F2C]/80 backdrop-blur-sm'
+        scrolled ? 'bg-[#222222]/95 backdrop-blur-md shadow-sm' : 'bg-[#222222]/80 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center flex-1 space-x-6">
           <Link to="/" className="text-xl md:text-2xl font-semibold tracking-tight text-white hover:text-[#FFC30B] transition-colors">
-            Score<span className="font-bold text-[#FFC30B]">90</span>
+            <img 
+              src="/lovable-uploads/a7715eb2-ad4c-4b7a-b1be-4489b09804bd.png" 
+              alt="Score 90" 
+              className="h-8 md:h-10" 
+            />
           </Link>
 
           {/* Simplified search bar */}

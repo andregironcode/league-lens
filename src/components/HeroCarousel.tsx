@@ -49,7 +49,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   };
 
   return (
-    <div className="relative w-full overflow-hidden bg-black rounded-lg shadow-lg h-[55vh] max-h-[550px]">
+    <div className="relative w-full overflow-hidden bg-black rounded-lg shadow-lg h-[55vh] max-h-[550px] border border-highlight-700/30">
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-10"></div>
