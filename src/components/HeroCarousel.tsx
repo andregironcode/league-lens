@@ -69,11 +69,11 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         />
       </div>
 
-      {/* Content Container - Swapped order: info on left, video on right */}
-      <div className="relative z-20 w-full h-full py-8 px-6 md:px-12">
-        <div className="flex flex-col lg:flex-row h-full items-center gap-8">
-          {/* Match Info Container - Now on the left */}
-          <div className="w-full lg:w-[40%] self-center order-2 lg:order-1">
+      {/* Content Container - Vertically centered with flex */}
+      <div className="relative z-20 w-full h-full flex items-center justify-center py-8 px-6 md:px-12">
+        <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto">
+          {/* Match Info Container - Left side */}
+          <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
             <div className="flex items-center mb-4">
               <div className="flex items-center">
                 <img 
@@ -136,26 +136,19 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
             </div>
           </div>
 
-          {/* Video Container - Now on the right */}
-          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2">
+          {/* Video Container - Right side */}
+          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
             <iframe
-              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
+              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
               title={currentHighlight.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               className="w-full h-full"
             ></iframe>
-            
-            {/* Centered expand button overlay */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/10 transition-colors cursor-pointer" onClick={handleNavigateToMatch}>
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Expand className="w-8 h-8 text-white" />
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Carousel Controls */}
+      {/* Carousel Controls - Now positioned at the edges outside of content */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
         {highlights.map((_, index) => (
           <button
@@ -169,20 +162,20 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         ))}
       </div>
 
-      {/* Previous/Next buttons */}
+      {/* Previous/Next buttons - Moved further to edges with padding */}
       <button
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
+        className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
         onClick={handlePrevSlide}
         aria-label="Previous slide"
       >
-        <ChevronLeft className="w-7 h-7" />
+        <ChevronLeft className="w-6 h-6" />
       </button>
       <button
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
+        className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
         onClick={handleNextSlide}
         aria-label="Next slide"
       >
-        <ChevronRight className="w-7 h-7" />
+        <ChevronRight className="w-6 h-6" />
       </button>
 
       {/* Comments Dialog */}
