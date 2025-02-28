@@ -48,13 +48,6 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     setShowComments(false);
   };
 
-  // Function to generate a relative time string (e.g., "2 hours ago")
-  const getRelativeTimeString = () => {
-    // For now, using random times for demonstration
-    const times = ["2 hours ago", "5 hours ago", "Yesterday", "2 days ago"];
-    return times[Math.floor(Math.random() * times.length)];
-  };
-
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
       {/* Background gradient overlay */}
@@ -105,8 +98,6 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
               {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
             </h1>
-
-            <p className="text-white/70 mb-4">{getRelativeTimeString()}</p>
             
             <div className="flex flex-wrap items-center gap-3 mt-3">
               <button 
