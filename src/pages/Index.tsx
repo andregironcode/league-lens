@@ -2,18 +2,13 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
-import HighlightCard from '@/components/HighlightCard';
 import LeagueSection from '@/components/LeagueSection';
-import DayNavigation from '@/components/DayNavigation';
-import CategoryTabs from '@/components/CategoryTabs';
 import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
 import { MatchHighlight, League } from '@/types';
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
-  const [selectedDay, setSelectedDay] = useState(new Date());
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState({
     recommended: true,
     leagues: true
@@ -40,13 +35,6 @@ const Index = () => {
     fetchData();
   }, []);
 
-  // Simulate filtering by date and category
-  useEffect(() => {
-    console.log(`Filtering for date: ${selectedDay} and category: ${selectedCategory}`);
-    // In a real app, you'd make an API call with these filters
-    // For now, we'll just use our existing data
-  }, [selectedDay, selectedCategory]);
-
   // Helper function for skeleton loading
   const renderSkeleton = (count: number, featured = false) => {
     return Array(count)
@@ -68,36 +56,24 @@ const Index = () => {
       <Header />
       
       <main className="pt-16 pb-10">
-        {/* Hero Carousel */}
-        <section className="mb-8">
-          {loading.recommended ? (
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-              <div className="w-full h-[60vh] max-h-[650px] bg-highlight-800 rounded-lg animate-pulse"></div>
-            </div>
-          ) : (
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+        {/* Highlights of the Week Section */}
+        <section className="mb-12">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4">
+            <h2 className="text-2xl font-semibold tracking-tight mb-4">Highlights of the Week</h2>
+            
+            {loading.recommended ? (
+              <div className="w-full h-[65vh] max-h-[700px] bg-highlight-800 rounded-lg animate-pulse"></div>
+            ) : (
               <HeroCarousel highlights={recommendedHighlights} />
-            </div>
-          )}
-        </section>
-
-        {/* Day-based navigation */}
-        <section className="mb-8">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-            <DayNavigation onSelectDay={setSelectedDay} />
-          </div>
-        </section>
-
-        {/* Category Tabs */}
-        <section>
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-            <CategoryTabs onSelectCategory={setSelectedCategory} />
+            )}
           </div>
         </section>
 
         {/* Leagues Section */}
         <section id="leagues" className="mb-16">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+            <h2 className="text-2xl font-semibold tracking-tight mb-8">Latest Highlights by League</h2>
+            
             {loading.leagues 
               ? (
                 <div className="space-y-10">

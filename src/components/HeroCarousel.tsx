@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Play, Volume2, VolumeX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 
 interface HeroCarouselProps {
@@ -10,72 +10,9 @@ interface HeroCarouselProps {
 
 const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
   const currentHighlight = highlights[currentIndex];
-
-  useEffect(() => {
-    // Auto advance carousel every 20 seconds if not interacted with
-    timeoutRef.current = setTimeout(() => {
-      handleNextSlide();
-    }, 20000);
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [currentIndex, highlights.length]);
-
-  const resetTimeout = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        handleNextSlide();
-      }, 20000);
-    }
-  };
-
-  const handlePrevSlide = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? highlights.length - 1 : prevIndex - 1
-    );
-    resetTimeout();
-  };
-
-  const handleNextSlide = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === highlights.length - 1 ? 0 : prevIndex + 1
-    );
-    resetTimeout();
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-        setIsPlaying(true);
-      } else {
-        videoRef.current.pause();
-        setIsPlaying(false);
-      }
-    }
-  };
-
-  const handleNavigateToMatch = () => {
-    navigate(`/match/${currentHighlight.id}`);
-  };
 
   // Extract YouTube video ID
   const getYoutubeVideoId = (url: string): string => {
@@ -84,25 +21,37 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     return match ? match[1] : '';
   };
 
-  // For demonstration, we'll simulate a video with an image since we don't have actual video files
-  // In a real app, you would use the actual video URL
+  const handleNavigateToMatch = () => {
+    navigate(`/match/${currentHighlight.id}`);
+  };
+
+  const handlePrevSlide = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? highlights.length - 1 : prevIndex - 1
+    );
+  };
+
+  const handleNextSlide = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex === highlights.length - 1 ? 0 : prevIndex + 1
+    );
+  };
 
   return (
-    <div className="relative w-full overflow-hidden bg-black rounded-lg shadow-lg h-[60vh] max-h-[650px]">
-      {/* Background Image/Video */}
+    <div className="relative w-full overflow-hidden bg-black rounded-lg shadow-lg h-[65vh] max-h-[700px]">
+      {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-10"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 to-transparent z-10"></div>
         
-        {/* We're using an image as fallback, in a real implementation you'd use a video player */}
         <img
           src={currentHighlight.thumbnailUrl}
           alt={currentHighlight.title}
           className="w-full h-full object-cover opacity-80"
         />
 
-        {/* Right side video preview */}
-        <div className="absolute top-1/2 right-8 transform -translate-y-1/2 w-1/3 max-w-md aspect-video rounded-lg overflow-hidden shadow-2xl border-4 border-white/10 z-20">
+        {/* Video preview - larger now */}
+        <div className="absolute top-1/2 right-8 transform -translate-y-1/2 w-2/5 max-w-2xl aspect-video rounded-lg overflow-hidden shadow-2xl border-4 border-white/10 z-20">
           <iframe
             src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
             title={currentHighlight.title}
@@ -167,18 +116,15 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      {/* Carousel Controls */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
+      {/* Carousel Controls - Larger and more prominent */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
         {highlights.map((_, index) => (
           <button
             key={index}
-            className={`w-2 h-2 rounded-full transition-all ${
-              index === currentIndex ? "bg-white w-4" : "bg-white/50"
+            className={`h-3 rounded-full transition-all ${
+              index === currentIndex ? "bg-white w-8" : "bg-white/50 w-3"
             }`}
-            onClick={() => {
-              setCurrentIndex(index);
-              resetTimeout();
-            }}
+            onClick={() => setCurrentIndex(index)}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
@@ -186,18 +132,18 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
 
       {/* Previous/Next buttons */}
       <button
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
         onClick={handlePrevSlide}
         aria-label="Previous slide"
       >
-        <ChevronLeft className="w-6 h-6" />
+        <ChevronLeft className="w-7 h-7" />
       </button>
       <button
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
         onClick={handleNextSlide}
         aria-label="Next slide"
       >
-        <ChevronRight className="w-6 h-6" />
+        <ChevronRight className="w-7 h-7" />
       </button>
     </div>
   );
