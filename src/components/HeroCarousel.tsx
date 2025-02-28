@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -152,7 +153,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         
         <img
           src={currentHighlight.thumbnailUrl}
-          alt={currentHighlight.title}
+          alt=""
           className="w-full h-full object-cover opacity-40"
         />
       </div>
@@ -222,7 +223,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
           {/* Video Container - Right side */}
           <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
             <iframe
-              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
+              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=0&mute=1&controls=1&modestbranding=1`}
               title={currentHighlight.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               className="w-full h-full"
