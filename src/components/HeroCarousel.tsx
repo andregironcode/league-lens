@@ -163,37 +163,31 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
           {/* Match Info Container - Left side */}
           <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
-            {/* Score Section - Improved layout */}
+            {/* Score Section - Updated to match the image layout */}
             <div className="flex justify-center items-center mb-6">
-              <div className="flex flex-col items-center mr-4">
-                <img 
-                  src={currentHighlight.homeTeam.logo} 
-                  alt={currentHighlight.homeTeam.name} 
-                  className="w-16 h-16 object-contain mb-2"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                  }}
-                />
-                <span className="text-white text-sm font-medium text-center">{currentHighlight.homeTeam.name}</span>
-              </div>
+              <img 
+                src={currentHighlight.homeTeam.logo} 
+                alt={currentHighlight.homeTeam.name} 
+                className="w-16 h-16 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                }}
+              />
               
-              <div className="text-white text-4xl font-bold mx-6">
+              <div className="text-white text-4xl font-bold mx-8">
                 {currentHighlight.score.home} - {currentHighlight.score.away}
               </div>
               
-              <div className="flex flex-col items-center ml-4">
-                <img 
-                  src={currentHighlight.awayTeam.logo} 
-                  alt={currentHighlight.awayTeam.name} 
-                  className="w-16 h-16 object-contain mb-2"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                  }}
-                />
-                <span className="text-white text-sm font-medium text-center">{currentHighlight.awayTeam.name}</span>
-              </div>
+              <img 
+                src={currentHighlight.awayTeam.logo} 
+                alt={currentHighlight.awayTeam.name} 
+                className="w-16 h-16 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                }}
+              />
             </div>
             
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 text-center">
