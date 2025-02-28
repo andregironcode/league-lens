@@ -117,12 +117,6 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
                 <MessageCircle className="w-4 h-4 mr-1" />
                 +{Math.floor(Math.random() * 20) + 5}
               </button>
-              
-              <div className="flex flex-wrap gap-2 mt-2">
-                <span className="text-white/90 bg-black/30 px-3 py-1 rounded-md">
-                  {currentHighlight.duration}
-                </span>
-              </div>
             </div>
           </div>
 
