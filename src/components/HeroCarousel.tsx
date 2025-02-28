@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -66,10 +66,10 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
 
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
-      {/* Highlights of the Week Badge - Top Left */}
+      {/* Games of the Week Badge - Top Left */}
       <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
-        <Flag className="w-4 h-4 mr-2" />
-        <span className="text-sm font-medium">Highlights of the Week</span>
+        <Flame className="w-4 h-4 mr-2 text-[#FFC30B]" />
+        <span className="text-sm font-medium">Games of the Week</span>
       </div>
       
       {/* Background gradient overlay */}
