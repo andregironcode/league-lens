@@ -62,7 +62,7 @@ const Index = () => {
             <h2 className="text-2xl font-semibold tracking-tight mb-4">Highlights of the Week</h2>
             
             {loading.recommended ? (
-              <div className="w-full h-[65vh] max-h-[700px] bg-highlight-800 rounded-lg animate-pulse"></div>
+              <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
             ) : (
               <HeroCarousel highlights={recommendedHighlights} />
             )}
@@ -96,11 +96,11 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-highlight-900 py-8">
+      <footer className="bg-[#1A1F2C] py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center">
             <p className="text-sm text-gray-400">
-              © {new Date().getFullYear()} LeagueLens. All rights reserved.
+              © {new Date().getFullYear()} Score90. All rights reserved.
             </p>
             <p className="text-xs text-gray-500 mt-2">
               All videos are sourced from official channels and we do not host any content.

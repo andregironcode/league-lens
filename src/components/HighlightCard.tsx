@@ -54,14 +54,14 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
           </div>
         </div>
         
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-500 text-black">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FFC30B] text-black">
           <Play className="w-5 h-5" fill="black" />
         </div>
       </div>
       
       <div className="flex justify-between items-center">
         <div>
-          <div className="text-white font-medium">
+          <div className="text-white font-medium truncate pr-2">
             {highlight.homeTeam.name} vs {highlight.awayTeam.name}
           </div>
           <div className="flex items-center text-gray-400 text-xs mt-1">

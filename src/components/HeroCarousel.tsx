@@ -1,8 +1,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, MessageCircle } from 'lucide-react';
 import { MatchHighlight } from '@/types';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface HeroCarouselProps {
   highlights: MatchHighlight[];
@@ -10,6 +11,7 @@ interface HeroCarouselProps {
 
 const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showComments, setShowComments] = useState(false);
   const navigate = useNavigate();
 
   const currentHighlight = highlights[currentIndex];
@@ -37,8 +39,17 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     );
   };
 
+  const handleOpenComments = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowComments(true);
+  };
+
+  const handleCloseComments = () => {
+    setShowComments(false);
+  };
+
   return (
-    <div className="relative w-full overflow-hidden bg-black rounded-lg shadow-lg h-[50vh] max-h-[550px]">
+    <div className="relative w-full overflow-hidden bg-black rounded-lg shadow-lg h-[55vh] max-h-[550px]">
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-10"></div>
@@ -47,11 +58,11 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         <img
           src={currentHighlight.thumbnailUrl}
           alt={currentHighlight.title}
-          className="w-full h-full object-cover opacity-50"
+          className="w-full h-full object-cover opacity-30"
         />
 
-        {/* Video preview - larger now, positioned more centrally */}
-        <div className="absolute top-1/2 right-1/2 transform translate-x-1/2 -translate-y-1/2 w-[45%] max-w-3xl aspect-video rounded-lg overflow-hidden shadow-2xl border-4 border-white/10 z-20">
+        {/* Video preview - centered */}
+        <div className="absolute top-1/3 right-1/2 transform translate-x-1/2 -translate-y-1/3 w-[50%] max-w-3xl aspect-video rounded-lg overflow-hidden shadow-2xl border-4 border-[#FFC30B]/10 z-20">
           <iframe
             src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
             title={currentHighlight.title}
@@ -67,7 +78,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      {/* Content - Move this to bottom left more like your example */}
+      {/* Content - moved to below the video */}
       <div className="relative z-20 h-full flex flex-col justify-end p-6 md:p-8">
         <div className="flex items-center mb-2">
           <div className="flex items-center">
@@ -96,9 +107,13 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
             />
           </div>
         </div>
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-2xl">
-          {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
-        </h1>
+        
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 truncate max-w-xl">
+            {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
+          </h1>
+        </div>
+        
         <div className="flex items-center space-x-3">
           <button 
             onClick={handleNavigateToMatch}
@@ -107,6 +122,15 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
             <Play className="w-4 h-4 mr-2" />
             Play
           </button>
+          
+          <button
+            onClick={handleOpenComments}
+            className="bg-[#FFC30B] text-black px-4 py-2 rounded-full font-medium flex items-center hover:bg-[#FFC30B]/90 transition-colors"
+          >
+            <MessageCircle className="w-4 h-4 mr-1" />
+            +{Math.floor(Math.random() * 20) + 5}
+          </button>
+          
           <span className="text-white/90 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-md">
             {currentHighlight.competition.name}
           </span>
@@ -122,7 +146,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
           <button
             key={index}
             className={`h-3 rounded-full transition-all ${
-              index === currentIndex ? "bg-white w-8" : "bg-white/50 w-3"
+              index === currentIndex ? "bg-[#FFC30B] w-8" : "bg-white/50 w-3"
             }`}
             onClick={() => setCurrentIndex(index)}
             aria-label={`Go to slide ${index + 1}`}
@@ -145,6 +169,58 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
       >
         <ChevronRight className="w-7 h-7" />
       </button>
+
+      {/* Comments Dialog */}
+      <Dialog open={showComments} onOpenChange={handleCloseComments}>
+        <DialogContent className="sm:max-w-md bg-highlight-800 border-highlight-700">
+          <div className="p-4">
+            <h2 className="text-xl font-bold text-white mb-4">Comments</h2>
+            <div className="space-y-4">
+              {/* Example comments */}
+              <div className="bg-highlight-700 p-3 rounded">
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">J</div>
+                  <div className="ml-2">
+                    <div className="text-white font-medium">John</div>
+                    <div className="text-gray-400 text-xs">2 hours ago</div>
+                  </div>
+                </div>
+                <p className="text-white text-sm">What a goal by Robertson! Incredible finish.</p>
+              </div>
+              
+              <div className="bg-highlight-700 p-3 rounded">
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">S</div>
+                  <div className="ml-2">
+                    <div className="text-white font-medium">Sarah</div>
+                    <div className="text-gray-400 text-xs">1 hour ago</div>
+                  </div>
+                </div>
+                <p className="text-white text-sm">Liverpool deserved this win. Great team performance!</p>
+              </div>
+              
+              <div className="bg-highlight-700 p-3 rounded">
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">M</div>
+                  <div className="ml-2">
+                    <div className="text-white font-medium">Mike</div>
+                    <div className="text-gray-400 text-xs">30 minutes ago</div>
+                  </div>
+                </div>
+                <p className="text-white text-sm">Arsenal's defense was all over the place today.</p>
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                className="w-full bg-highlight-900 border border-highlight-700 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
