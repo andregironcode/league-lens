@@ -29,7 +29,7 @@ const Header = () => {
         <div className="flex items-center flex-1 space-x-6">
           <Link to="/" className="text-xl md:text-2xl font-semibold tracking-tight text-white hover:text-[#FFC30B] transition-colors">
             <img 
-              src="/lovable-uploads/a7715eb2-ad4c-4b7a-b1be-4489b09804bd.png" 
+              src="/lovable-uploads/3f69b4d3-7c25-4f74-a779-c3f73cd73d08.png" 
               alt="Score 90" 
               className="h-8 md:h-10" 
             />
