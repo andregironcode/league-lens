@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Play, MessageCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, MessageCircle } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -48,6 +48,13 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     setShowComments(false);
   };
 
+  // Function to generate a relative time string (e.g., "2 hours ago")
+  const getRelativeTimeString = () => {
+    // For now, using random times for demonstration
+    const times = ["2 hours ago", "5 hours ago", "Yesterday", "2 days ago"];
+    return times[Math.floor(Math.random() * times.length)];
+  };
+
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[600px] border border-highlight-700/10">
       {/* Background gradient overlay */}
@@ -62,28 +69,11 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         />
       </div>
 
-      {/* Content Container */}
+      {/* Content Container - Swapped order: info on left, video on right */}
       <div className="relative z-20 w-full h-full py-8 px-6 md:px-12">
         <div className="flex flex-col lg:flex-row h-full items-center gap-8">
-          {/* Video Container */}
-          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl">
-            <iframe
-              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
-              title={currentHighlight.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              className="w-full h-full"
-            ></iframe>
-            
-            {/* Centered play button overlay */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/10 transition-colors cursor-pointer" onClick={handleNavigateToMatch}>
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Play className="w-8 h-8 text-white" fill="white" />
-              </div>
-            </div>
-          </div>
-
-          {/* Match Info Container */}
-          <div className="w-full lg:w-[40%] self-center">
+          {/* Match Info Container - Now on the left */}
+          <div className="w-full lg:w-[40%] self-center order-2 lg:order-1">
             <div className="flex items-center mb-4">
               <div className="flex items-center">
                 <img 
@@ -115,14 +105,16 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
               {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
             </h1>
+
+            <p className="text-white/70 mb-4">{getRelativeTimeString()}</p>
             
             <div className="flex flex-wrap items-center gap-3 mt-3">
               <button 
                 onClick={handleNavigateToMatch}
                 className="bg-white text-black px-5 py-2 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
               >
-                <Play className="w-4 h-4 mr-2" />
-                Play
+                <Expand className="w-4 h-4 mr-2" />
+                Expand
               </button>
               
               <button
@@ -140,6 +132,23 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
                 <span className="text-white/90 bg-black/30 px-3 py-1 rounded-md">
                   {currentHighlight.duration}
                 </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Video Container - Now on the right */}
+          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2">
+            <iframe
+              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
+              title={currentHighlight.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              className="w-full h-full"
+            ></iframe>
+            
+            {/* Centered expand button overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/10 transition-colors cursor-pointer" onClick={handleNavigateToMatch}>
+              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Expand className="w-8 h-8 text-white" />
               </div>
             </div>
           </div>
