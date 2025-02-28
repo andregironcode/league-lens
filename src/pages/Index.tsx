@@ -1,15 +1,19 @@
 
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
+import HeroCarousel from '@/components/HeroCarousel';
 import HighlightCard from '@/components/HighlightCard';
 import LeagueSection from '@/components/LeagueSection';
+import DayNavigation from '@/components/DayNavigation';
+import CategoryTabs from '@/components/CategoryTabs';
 import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
 import { MatchHighlight, League } from '@/types';
-import { ChevronRight } from 'lucide-react';
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
+  const [selectedDay, setSelectedDay] = useState(new Date());
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState({
     recommended: true,
     leagues: true
@@ -36,6 +40,13 @@ const Index = () => {
     fetchData();
   }, []);
 
+  // Simulate filtering by date and category
+  useEffect(() => {
+    console.log(`Filtering for date: ${selectedDay} and category: ${selectedCategory}`);
+    // In a real app, you'd make an API call with these filters
+    // For now, we'll just use our existing data
+  }, [selectedDay, selectedCategory]);
+
   // Helper function for skeleton loading
   const renderSkeleton = (count: number, featured = false) => {
     return Array(count)
@@ -53,96 +64,69 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black text-white">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-10">
-        {/* Hero Section */}
-        <section className="mt-8 md:mt-16 mb-16">
-          <div className="text-center mb-8 animate-fade-in">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
-              Latest Football Highlights
-            </h1>
-            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-              Watch highlights from all major leagues and competitions, updated daily with the best quality.
-            </p>
+      <main className="pt-16 pb-10">
+        {/* Hero Carousel */}
+        <section className="mb-8">
+          {loading.recommended ? (
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+              <div className="w-full h-[60vh] max-h-[650px] bg-highlight-800 rounded-lg animate-pulse"></div>
+            </div>
+          ) : (
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+              <HeroCarousel highlights={recommendedHighlights} />
+            </div>
+          )}
+        </section>
+
+        {/* Day-based navigation */}
+        <section className="mb-8">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+            <DayNavigation onSelectDay={setSelectedDay} />
           </div>
         </section>
 
-        {/* Recommended Highlights */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Recommended</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Big matches from the last 7 days
-              </p>
-            </div>
-            <a 
-              href="#" 
-              className="flex items-center text-sm font-medium hover:underline"
-            >
-              View all
-              <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {loading.recommended 
-              ? renderSkeleton(3)
-              : recommendedHighlights.map((highlight, index) => (
-                <div 
-                  key={highlight.id}
-                  className={`transform transition-all duration-300 ${
-                    index === 0 
-                      ? 'lg:col-span-3 lg:row-span-2' 
-                      : ''
-                  }`}
-                >
-                  <HighlightCard 
-                    highlight={highlight} 
-                    featured={index === 0}
-                  />
-                </div>
-              ))
-            }
+        {/* Category Tabs */}
+        <section>
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+            <CategoryTabs onSelectCategory={setSelectedCategory} />
           </div>
         </section>
 
         {/* Leagues Section */}
         <section id="leagues" className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-semibold tracking-tight">Browse by League</h2>
-          </div>
-
-          {loading.leagues 
-            ? (
-              <div className="space-y-10">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-8 bg-highlight-200 rounded w-48 mb-6"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {renderSkeleton(3)}
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+            {loading.leagues 
+              ? (
+                <div className="space-y-10">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-8 bg-highlight-200 rounded w-48 mb-6"></div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {renderSkeleton(3)}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )
-            : leagues.map(league => (
-              <LeagueSection key={league.id} league={league} />
-            ))
-          }
+                  ))}
+                </div>
+              )
+              : leagues.map(league => (
+                <LeagueSection key={league.id} league={league} />
+              ))
+            }
+          </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-secondary py-8">
+      <footer className="bg-highlight-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-400">
               © {new Date().getFullYear()} LeagueLens. All rights reserved.
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               All videos are sourced from official channels and we do not host any content.
             </p>
           </div>

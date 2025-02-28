@@ -13,24 +13,40 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
 
   return (
     <div className="mb-10 animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <h2 className="text-xl font-semibold tracking-tight">{league.name}</h2>
-          <span className="text-sm text-muted-foreground">
-            {league.highlights.length} highlights
-          </span>
+      <div className="flex items-center space-x-3 mb-4">
+        {/* This would be a real league logo in production */}
+        <div className="w-8 h-8 rounded-full bg-highlight-800 flex items-center justify-center overflow-hidden">
+          <img 
+            src={league.logo !== '/leagues/premierleague.png' ? 
+                 `https://api.sofascore.app/api/v1/unique-tournament/${league.id}/image` : 
+                 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f2/Premier_League_Logo.svg/1200px-Premier_League_Logo.svg.png'} 
+            alt={league.name}
+            className="w-6 h-6 object-contain"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "https://www.sofascore.com/static/images/placeholders/tournament.svg";
+            }}
+          />
         </div>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="p-2 rounded-full hover:bg-secondary transition-colors"
-          aria-label={isExpanded ? "Collapse section" : "Expand section"}
-        >
-          {isExpanded ? (
-            <ChevronUp size={18} />
-          ) : (
-            <ChevronDown size={18} />
-          )}
-        </button>
+        <div className="flex items-center justify-between flex-1">
+          <div className="flex items-center space-x-3">
+            <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
+            <span className="text-sm text-gray-400">
+              {league.highlights.length} highlights
+            </span>
+          </div>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-2 rounded-full hover:bg-highlight-800 transition-colors"
+            aria-label={isExpanded ? "Collapse section" : "Expand section"}
+          >
+            {isExpanded ? (
+              <ChevronUp size={18} className="text-gray-400" />
+            ) : (
+              <ChevronDown size={18} className="text-gray-400" />
+            )}
+          </button>
+        </div>
       </div>
 
       {isExpanded && (
