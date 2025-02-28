@@ -98,6 +98,8 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
               {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
             </h1>
+
+            <p className="text-white/70 mb-4">2 hours ago</p>
             
             <div className="flex flex-wrap items-center gap-3 mt-3">
               <button 
