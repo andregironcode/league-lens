@@ -163,41 +163,50 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
           {/* Match Info Container - Left side */}
           <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
-            <div className="flex items-center mb-4">
-              <div className="flex items-center">
+            {/* Score Section - Improved layout */}
+            <div className="flex justify-center items-center mb-6">
+              <div className="flex flex-col items-center mr-4">
                 <img 
                   src={currentHighlight.homeTeam.logo} 
                   alt={currentHighlight.homeTeam.name} 
-                  className="w-10 h-10 object-contain"
+                  className="w-16 h-16 object-contain mb-2"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
                   }}
                 />
-                <span className="text-white text-2xl font-bold mx-3">{currentHighlight.score.home} - {currentHighlight.score.away}</span>
+                <span className="text-white text-sm font-medium text-center">{currentHighlight.homeTeam.name}</span>
+              </div>
+              
+              <div className="text-white text-4xl font-bold mx-6">
+                {currentHighlight.score.home} - {currentHighlight.score.away}
+              </div>
+              
+              <div className="flex flex-col items-center ml-4">
                 <img 
                   src={currentHighlight.awayTeam.logo} 
                   alt={currentHighlight.awayTeam.name} 
-                  className="w-10 h-10 object-contain"
+                  className="w-16 h-16 object-contain mb-2"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
                   }}
                 />
+                <span className="text-white text-sm font-medium text-center">{currentHighlight.awayTeam.name}</span>
               </div>
             </div>
             
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 text-center">
               {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
             </h1>
 
-            <div className="flex items-center mb-4">
+            <div className="flex items-center justify-center mb-4">
               <p className="text-white/70">2 hours ago</p>
               <span className="mx-2 text-white/40">•</span>
               <p className="text-white/70">{currentHighlight.competition.name}</p>
             </div>
             
-            <div className="flex flex-wrap items-center gap-3 mt-3">
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
               <button 
                 onClick={handleNavigateToMatch}
                 className="bg-white text-black px-5 py-2 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"

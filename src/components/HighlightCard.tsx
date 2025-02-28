@@ -26,27 +26,31 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-3 flex-1">
           <div className="flex items-center">
-            <img 
-              src={highlight.homeTeam.logo} 
-              alt={highlight.homeTeam.name} 
-              className="w-8 h-8 object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-              }}
-            />
+            <div className="flex flex-col items-center mr-2">
+              <img 
+                src={highlight.homeTeam.logo} 
+                alt={highlight.homeTeam.name} 
+                className="w-8 h-8 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                }}
+              />
+            </div>
             <span className="text-white font-bold mx-2 text-lg">
               {highlight.score.home}-{highlight.score.away}
             </span>
-            <img 
-              src={highlight.awayTeam.logo} 
-              alt={highlight.awayTeam.name} 
-              className="w-8 h-8 object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-              }}
-            />
+            <div className="flex flex-col items-center ml-2">
+              <img 
+                src={highlight.awayTeam.logo} 
+                alt={highlight.awayTeam.name} 
+                className="w-8 h-8 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                }}
+              />
+            </div>
           </div>
         </div>
         
