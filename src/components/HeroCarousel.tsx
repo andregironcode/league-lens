@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Expand, MessageCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flag } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -21,6 +21,18 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
     const match = url.match(regex);
     return match ? match[1] : '';
+  };
+
+  // Determine appropriate flag for competition
+  const getCompetitionFlag = (competitionName: string) => {
+    const name = competitionName.toLowerCase();
+    if (name.includes('champions league') || name.includes('europa') || name.includes('european')) {
+      return <Flag className="w-4 h-4 mr-2" />; // European tournament flag
+    } else if (name.includes('world') || name.includes('international') || name.includes('fifa')) {
+      return <Globe className="w-4 h-4 mr-2" />; // World tournament flag
+    } else {
+      return <Flag className="w-4 h-4 mr-2" />; // Default flag
+    }
   };
 
   const handleNavigateToMatch = () => {
@@ -50,6 +62,12 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
 
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
+      {/* Competition Badge - Top Left */}
+      <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
+        {getCompetitionFlag(currentHighlight.competition.name)}
+        <span className="text-sm font-medium">{currentHighlight.competition.name}</span>
+      </div>
+      
       {/* Background gradient overlay */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/70 to-transparent z-10"></div>
