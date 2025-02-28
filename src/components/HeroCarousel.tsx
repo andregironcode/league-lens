@@ -38,7 +38,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   };
 
   return (
-    <div className="relative w-full overflow-hidden bg-black rounded-lg shadow-lg h-[65vh] max-h-[700px]">
+    <div className="relative w-full overflow-hidden bg-black rounded-lg shadow-lg h-[50vh] max-h-[550px]">
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-10"></div>
@@ -47,11 +47,11 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         <img
           src={currentHighlight.thumbnailUrl}
           alt={currentHighlight.title}
-          className="w-full h-full object-cover opacity-80"
+          className="w-full h-full object-cover opacity-50"
         />
 
-        {/* Video preview - larger now */}
-        <div className="absolute top-1/2 right-8 transform -translate-y-1/2 w-2/5 max-w-2xl aspect-video rounded-lg overflow-hidden shadow-2xl border-4 border-white/10 z-20">
+        {/* Video preview - larger now, positioned more centrally */}
+        <div className="absolute top-1/2 right-1/2 transform translate-x-1/2 -translate-y-1/2 w-[45%] max-w-3xl aspect-video rounded-lg overflow-hidden shadow-2xl border-4 border-white/10 z-20">
           <iframe
             src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
             title={currentHighlight.title}
@@ -67,8 +67,8 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-12">
+      {/* Content - Move this to bottom left more like your example */}
+      <div className="relative z-20 h-full flex flex-col justify-end p-6 md:p-8">
         <div className="flex items-center mb-2">
           <div className="flex items-center">
             <img 
@@ -96,15 +96,15 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
             />
           </div>
         </div>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 max-w-2xl">
-          {currentHighlight.homeTeam.name} <span className="text-white/60">vs</span> {currentHighlight.awayTeam.name}
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 max-w-2xl">
+          {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
         </h1>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <button 
             onClick={handleNavigateToMatch}
-            className="bg-white text-black px-6 py-3 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
+            className="bg-white text-black px-5 py-2 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
           >
-            <Play className="w-5 h-5 mr-2" />
+            <Play className="w-4 h-4 mr-2" />
             Play
           </button>
           <span className="text-white/90 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-md">
@@ -117,7 +117,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
       </div>
 
       {/* Carousel Controls - Larger and more prominent */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
         {highlights.map((_, index) => (
           <button
             key={index}
