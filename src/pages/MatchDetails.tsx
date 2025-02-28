@@ -254,7 +254,7 @@ const MatchDetails = () => {
           </div>
         </section>
 
-        {/* Comments section - Now directly under the video */}
+        {/* Comments section - Now directly under the video with proper styling */}
         <section className="mb-8 bg-[#1A1F2C] rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg text-white flex items-center">
@@ -262,20 +262,19 @@ const MatchDetails = () => {
               Comments
             </h3>
             {comments.length > 2 && (
-              <Button 
-                variant="ghost" 
+              <button 
                 onClick={toggleShowAllComments}
-                className="text-[#FFC30B] hover:text-[#FFC30B] hover:bg-white/5"
+                className="text-[#FFC30B] hover:text-[#FFC30B]/90 text-sm font-medium flex items-center"
               >
-                {showAllComments ? "Show Less" : "View All"}
-                {!showAllComments && <ChevronDown className="ml-1 w-4 h-4" />}
-              </Button>
+                View All
+                <ChevronDown className="ml-1 w-4 h-4" />
+              </button>
             )}
           </div>
 
           <div className="space-y-4">
             {displayedComments.map(comment => (
-              <div key={comment.id} className="bg-highlight-800 p-3 rounded">
+              <div key={comment.id} className="bg-[#111827] p-4 rounded">
                 <div className="flex items-center mb-2">
                   <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">
                     {comment.user.initial}
@@ -290,38 +289,46 @@ const MatchDetails = () => {
             ))}
           </div>
 
-          <div className="mt-4">
+          <div className="mt-6">
             <input
               type="text"
               placeholder="Add a comment..."
-              className="w-full bg-highlight-800 border border-highlight-700 text-white px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
+              className="w-full bg-[#111827] border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
             />
           </div>
         </section>
 
-        {/* Tabs for Stats and Lineups */}
-        <section className="mb-8">
-          <Tabs defaultValue="stats" className="w-full">
-            <TabsList className="w-full bg-[#1A1F2C] mb-4">
-              <TabsTrigger 
-                value="stats" 
-                className="flex-1 data-[state=active]:bg-[#FFC30B] data-[state=active]:text-black"
-              >
-                <BarChart4 className="w-4 h-4 mr-2" />
-                Match Stats
-              </TabsTrigger>
-              <TabsTrigger 
-                value="lineups" 
-                className="flex-1 data-[state=active]:bg-[#FFC30B] data-[state=active]:text-black"
-              >
-                <Shirt className="w-4 h-4 mr-2" />
-                Lineups
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="stats" className="mt-4">
-              <div className="bg-[#1A1F2C] rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4 text-center text-white">Match Statistics</h3>
+        {/* Custom Tabs for Stats and Lineups */}
+        <div className="mb-8">
+          <div className="grid grid-cols-2 gap-0 mb-4">
+            <button 
+              onClick={() => setActiveTab('stats')}
+              className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
+                activeTab === 'stats' 
+                  ? 'bg-[#FFC30B] text-black rounded-tl-lg' 
+                  : 'bg-[#1A1F2C] text-white hover:bg-[#252c3b] rounded-tl-lg'
+              }`}
+            >
+              <BarChart4 className="w-4 h-4 mr-2" />
+              Match Stats
+            </button>
+            <button 
+              onClick={() => setActiveTab('lineups')}
+              className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
+                activeTab === 'lineups' 
+                  ? 'bg-[#1A1F2C] text-white rounded-tr-lg' 
+                  : 'bg-[#111827] text-white hover:bg-[#1a202c] rounded-tr-lg'
+              }`}
+            >
+              <Shirt className="w-4 h-4 mr-2" />
+              Lineups
+            </button>
+          </div>
+          
+          <div className="bg-[#1A1F2C] rounded-b-lg p-6">
+            {activeTab === 'stats' ? (
+              <>
+                <h3 className="text-lg font-semibold mb-6 text-center text-white">Match Statistics</h3>
                 
                 {/* Possession stat */}
                 <div className="mb-6">
@@ -330,7 +337,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Possession</span>
                     <span className="text-sm text-white">45%</span>
                   </div>
-                  <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '55%' }}></div>
                       <div className="bg-white h-full" style={{ width: '45%' }}></div>
@@ -345,7 +352,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Shots</span>
                     <span className="text-sm text-white">12</span>
                   </div>
-                  <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '56%' }}></div>
                       <div className="bg-white h-full" style={{ width: '44%' }}></div>
@@ -360,7 +367,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Shots on Target</span>
                     <span className="text-sm text-white">4</span>
                   </div>
-                  <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '60%' }}></div>
                       <div className="bg-white h-full" style={{ width: '40%' }}></div>
@@ -375,7 +382,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Corners</span>
                     <span className="text-sm text-white">5</span>
                   </div>
-                  <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '62%' }}></div>
                       <div className="bg-white h-full" style={{ width: '38%' }}></div>
@@ -384,109 +391,105 @@ const MatchDetails = () => {
                 </div>
 
                 {/* Fouls stat */}
-                <div className="mb-6">
+                <div className="mb-0">
                   <div className="flex justify-between mb-1">
                     <span className="text-sm text-white">10</span>
                     <span className="text-sm font-medium text-center text-white">Fouls</span>
                     <span className="text-sm text-white">12</span>
                   </div>
-                  <div className="w-full h-2 bg-highlight-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '45%' }}></div>
                       <div className="bg-white h-full" style={{ width: '55%' }}></div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="lineups" className="mt-4">
-              <div className="bg-[#1A1F2C] rounded-lg p-6">
-                <div className="flex flex-col md:flex-row justify-between">
-                  <div className="md:w-[48%] mb-6 md:mb-0">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
-                      <img 
-                        src={match.homeTeam.logo !== '/teams/mancity.png' ? 
-                            `https://api.sofascore.app/api/v1/team/${match.homeTeam.id}/image` : 
-                            'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
-                        alt={match.homeTeam.name} 
-                        className="w-6 h-6 object-contain mr-2"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                        }}
-                      />
-                      {match.homeTeam.name}
-                    </h3>
-                    <div className="space-y-2">
-                      {/* Example starting XI */}
-                      {[
-                        "1. Alisson",
-                        "66. Alexander-Arnold",
-                        "4. Van Dijk (C)",
-                        "32. Matip",
-                        "26. Robertson",
-                        "3. Fabinho",
-                        "6. Thiago",
-                        "14. Henderson",
-                        "11. Salah",
-                        "20. Jota",
-                        "10. Mané"
-                      ].map((player, index) => (
-                        <div key={index} className="flex items-center p-2 bg-highlight-800 rounded">
-                          <span className="text-white text-sm">{player}</span>
-                        </div>
-                      ))}
-                    </div>
+              </>
+            ) : (
+              <div className="flex flex-col md:flex-row justify-between">
+                <div className="md:w-[48%] mb-6 md:mb-0">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
+                    <img 
+                      src={match.homeTeam.logo !== '/teams/mancity.png' ? 
+                          `https://api.sofascore.app/api/v1/team/${match.homeTeam.id}/image` : 
+                          'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
+                      alt={match.homeTeam.name} 
+                      className="w-6 h-6 object-contain mr-2"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                      }}
+                    />
+                    {match.homeTeam.name}
+                  </h3>
+                  <div className="space-y-2">
+                    {/* Example starting XI */}
+                    {[
+                      "1. Alisson",
+                      "66. Alexander-Arnold",
+                      "4. Van Dijk (C)",
+                      "32. Matip",
+                      "26. Robertson",
+                      "3. Fabinho",
+                      "6. Thiago",
+                      "14. Henderson",
+                      "11. Salah",
+                      "20. Jota",
+                      "10. Mané"
+                    ].map((player, index) => (
+                      <div key={index} className="flex items-center p-2 bg-[#111827] rounded">
+                        <span className="text-white text-sm">{player}</span>
+                      </div>
+                    ))}
                   </div>
-                  
-                  <div className="md:w-[48%]">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
-                      <img 
-                        src={match.awayTeam.logo !== '/teams/arsenal.png' ? 
-                            `https://api.sofascore.app/api/v1/team/${match.awayTeam.id}/image` : 
-                            'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
-                        alt={match.awayTeam.name} 
-                        className="w-6 h-6 object-contain mr-2"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                        }}
-                      />
-                      {match.awayTeam.name}
-                    </h3>
-                    <div className="space-y-2">
-                      {/* Example starting XI */}
-                      {[
-                        "32. Ramsdale",
-                        "18. Tomiyasu",
-                        "4. White",
-                        "6. Gabriel",
-                        "3. Tierney",
-                        "5. Partey",
-                        "34. Xhaka",
-                        "7. Saka",
-                        "8. Ødegaard (C)",
-                        "35. Martinelli",
-                        "9. Lacazette"
-                      ].map((player, index) => (
-                        <div key={index} className="flex items-center p-2 bg-highlight-800 rounded">
-                          <span className="text-white text-sm">{player}</span>
-                        </div>
-                      ))}
-                    </div>
+                </div>
+                
+                <div className="md:w-[48%]">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
+                    <img 
+                      src={match.awayTeam.logo !== '/teams/arsenal.png' ? 
+                          `https://api.sofascore.app/api/v1/team/${match.awayTeam.id}/image` : 
+                          'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
+                      alt={match.awayTeam.name} 
+                      className="w-6 h-6 object-contain mr-2"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                      }}
+                    />
+                    {match.awayTeam.name}
+                  </h3>
+                  <div className="space-y-2">
+                    {/* Example starting XI */}
+                    {[
+                      "32. Ramsdale",
+                      "18. Tomiyasu",
+                      "4. White",
+                      "6. Gabriel",
+                      "3. Tierney",
+                      "5. Partey",
+                      "34. Xhaka",
+                      "7. Saka",
+                      "8. Ødegaard (C)",
+                      "35. Martinelli",
+                      "9. Lacazette"
+                    ].map((player, index) => (
+                      <div key={index} className="flex items-center p-2 bg-[#111827] rounded">
+                        <span className="text-white text-sm">{player}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
-        </section>
+            )}
+          </div>
+        </div>
 
         {/* Share button */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center">
           <button 
             onClick={handleShare}
-            className="flex items-center px-4 py-2 rounded-md border border-highlight-800 hover:bg-highlight-800 transition-colors text-white"
+            className="flex items-center px-4 py-2 rounded-md border border-gray-700 hover:bg-[#1A1F2C] transition-colors text-white"
           >
             <Share2 size={16} className="mr-2" />
             Share this highlight
