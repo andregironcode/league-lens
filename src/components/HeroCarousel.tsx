@@ -49,11 +49,11 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   };
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#141b29] rounded-xl shadow-lg h-[55vh] max-h-[550px] border border-highlight-700/10">
+    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg h-[55vh] max-h-[550px] border border-highlight-700/10">
       {/* Background Image with gradient overlay */}
       <div className="absolute inset-0 w-full h-full">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0c111b] via-[#0c111b]/70 to-transparent z-10"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0c111b]/80 to-transparent z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/70 to-transparent z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/80 to-transparent z-10"></div>
         
         <img
           src={currentHighlight.thumbnailUrl}
@@ -62,7 +62,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         />
 
         {/* Video preview - card-like appearance with shadow and border */}
-        <div className="absolute top-1/3 right-1/2 transform translate-x-1/2 -translate-y-1/3 w-[50%] max-w-3xl aspect-video rounded-lg overflow-hidden shadow-xl z-20 border-2 border-highlight-700/30">
+        <div className="absolute top-1/3 right-1/2 transform translate-x-1/2 -translate-y-1/3 w-[50%] max-w-3xl aspect-video rounded-lg overflow-hidden shadow-xl z-20 border-2 border-gray-700/30">
           <iframe
             src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
             title={currentHighlight.title}
@@ -80,7 +80,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
 
       {/* Content - moved to below the video */}
       <div className="relative z-20 h-full flex flex-col justify-end p-6 md:p-8">
-        <div className="bg-[#1a1f2c]/80 backdrop-blur-sm p-5 rounded-lg shadow-md border border-highlight-700/30">
+        <div className="bg-[#333333]/80 backdrop-blur-sm p-5 rounded-lg shadow-md border border-gray-700/30">
           <div className="flex items-center mb-2">
             <div className="flex items-center">
               <img 
@@ -174,12 +174,12 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
 
       {/* Comments Dialog */}
       <Dialog open={showComments} onOpenChange={handleCloseComments}>
-        <DialogContent className="sm:max-w-md bg-highlight-800 border-highlight-700">
+        <DialogContent className="sm:max-w-md bg-[#222222] border-gray-700">
           <div className="p-4">
             <h2 className="text-xl font-bold text-white mb-4">Comments</h2>
             <div className="space-y-4">
               {/* Example comments */}
-              <div className="bg-highlight-700 p-3 rounded">
+              <div className="bg-[#333333] p-3 rounded">
                 <div className="flex items-center mb-2">
                   <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">J</div>
                   <div className="ml-2">
@@ -190,7 +190,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
                 <p className="text-white text-sm">What a goal by Robertson! Incredible finish.</p>
               </div>
               
-              <div className="bg-highlight-700 p-3 rounded">
+              <div className="bg-[#333333] p-3 rounded">
                 <div className="flex items-center mb-2">
                   <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">S</div>
                   <div className="ml-2">
@@ -201,7 +201,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
                 <p className="text-white text-sm">Liverpool deserved this win. Great team performance!</p>
               </div>
               
-              <div className="bg-highlight-700 p-3 rounded">
+              <div className="bg-[#333333] p-3 rounded">
                 <div className="flex items-center mb-2">
                   <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">M</div>
                   <div className="ml-2">
@@ -217,7 +217,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
               <input
                 type="text"
                 placeholder="Add a comment..."
-                className="w-full bg-highlight-900 border border-highlight-700 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
+                className="w-full bg-[#111111] border border-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
               />
             </div>
           </div>

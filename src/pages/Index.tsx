@@ -52,7 +52,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c111b] text-white">
+    <div className="min-h-screen bg-[#111111] text-white">
       <Header />
       
       <main className="pt-16 pb-10">
@@ -94,7 +94,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#1A1F2C] py-8">
+      <footer className="bg-[#222222] py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center">
             <p className="text-sm text-gray-400">
