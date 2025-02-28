@@ -70,8 +70,8 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
       </div>
 
       {/* Content Container - Vertically centered with flex */}
-      <div className="relative z-20 w-full h-full flex items-center justify-center py-6 pb-16 px-6 md:px-12">
-        <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto">
+      <div className="relative z-20 w-full h-full flex items-center justify-center py-6 px-6 md:px-12">
+        <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
           {/* Match Info Container - Left side */}
           <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
             <div className="flex items-center mb-4">
