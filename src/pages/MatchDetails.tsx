@@ -174,7 +174,7 @@ const MatchDetails = () => {
         {/* Match details */}
         <section className="mb-4">
           <div className="mb-4">
-            <span className="inline-block bg-[#1A1F2C] text-white text-sm px-3 py-1 rounded-full">
+            <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
               {match.competition.name}
             </span>
           </div>
@@ -274,7 +274,7 @@ const MatchDetails = () => {
 
           <div className="space-y-4">
             {displayedComments.map(comment => (
-              <div key={comment.id} className="bg-[#111827] p-4 rounded">
+              <div key={comment.id} className="bg-[#191919] p-4 rounded">
                 <div className="flex items-center mb-2">
                   <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">
                     {comment.user.initial}
@@ -293,7 +293,7 @@ const MatchDetails = () => {
             <input
               type="text"
               placeholder="Add a comment..."
-              className="w-full bg-[#111827] border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
+              className="w-full bg-[#191919] border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-[#FFC30B]"
             />
           </div>
         </section>
@@ -317,7 +317,7 @@ const MatchDetails = () => {
               className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
                 activeTab === 'lineups' 
                   ? 'bg-[#FFC30B] text-black rounded-tr-lg' 
-                  : 'bg-[#111827] text-white hover:bg-[#1a202c] rounded-tr-lg'
+                  : 'bg-[#191919] text-white hover:bg-[#252525] rounded-tr-lg'
               }`}
             >
               <Shirt className="w-4 h-4 mr-2" />
@@ -337,7 +337,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Possession</span>
                     <span className="text-sm text-white">45%</span>
                   </div>
-                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '55%' }}></div>
                       <div className="bg-white h-full" style={{ width: '45%' }}></div>
@@ -352,7 +352,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Shots</span>
                     <span className="text-sm text-white">12</span>
                   </div>
-                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '56%' }}></div>
                       <div className="bg-white h-full" style={{ width: '44%' }}></div>
@@ -367,7 +367,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Shots on Target</span>
                     <span className="text-sm text-white">4</span>
                   </div>
-                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '60%' }}></div>
                       <div className="bg-white h-full" style={{ width: '40%' }}></div>
@@ -382,7 +382,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Corners</span>
                     <span className="text-sm text-white">5</span>
                   </div>
-                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '62%' }}></div>
                       <div className="bg-white h-full" style={{ width: '38%' }}></div>
@@ -397,7 +397,7 @@ const MatchDetails = () => {
                     <span className="text-sm font-medium text-center text-white">Fouls</span>
                     <span className="text-sm text-white">12</span>
                   </div>
-                  <div className="w-full h-2 bg-[#111827] rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
                     <div className="flex h-full">
                       <div className="bg-[#FFC30B] h-full" style={{ width: '45%' }}></div>
                       <div className="bg-white h-full" style={{ width: '55%' }}></div>
@@ -437,7 +437,7 @@ const MatchDetails = () => {
                       "20. Jota",
                       "10. Mané"
                     ].map((player, index) => (
-                      <div key={index} className="flex items-center p-2 bg-[#111827] rounded">
+                      <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
                         <span className="text-white text-sm">{player}</span>
                       </div>
                     ))}
@@ -474,7 +474,7 @@ const MatchDetails = () => {
                       "35. Martinelli",
                       "9. Lacazette"
                     ].map((player, index) => (
-                      <div key={index} className="flex items-center p-2 bg-[#111827] rounded">
+                      <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
                         <span className="text-white text-sm">{player}</span>
                       </div>
                     ))}
