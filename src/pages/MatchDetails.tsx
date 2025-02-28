@@ -35,7 +35,6 @@ const MatchDetails = () => {
   const [showCommentDrawer, setShowCommentDrawer] = useState(false);
   const [commentSortBy, setCommentSortBy] = useState<'top' | 'newest'>('top');
   const videoContainerRef = useRef<HTMLDivElement>(null);
-  const [minimizedVideo, setMinimizedVideo] = useState<HTMLIFrameElement | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -306,25 +305,23 @@ const MatchDetails = () => {
         {/* YouTube-style Comment Drawer */}
         {showCommentDrawer && (
           <div className="fixed inset-0 bg-black bg-opacity-80 z-50 backdrop-blur-sm overflow-hidden flex flex-col">
-            {/* Top video mini player */}
-            <div className="w-full bg-black py-3">
-              <div className="max-w-3xl mx-auto px-4">
-                <div className="aspect-video sm:h-56 rounded-lg overflow-hidden">
-                  <iframe
-                    className="w-full h-full"
-                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
-                    title={match.title}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                </div>
+            {/* Top video mini player - now full width to match reference image */}
+            <div className="w-full bg-black">
+              <div className="w-full max-w-3xl mx-auto">
+                <iframe
+                  className="w-full aspect-video"
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+                  title={match.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
               </div>
             </div>
             
             {/* Comments section */}
             <div className="flex-1 overflow-y-auto bg-black">
-              <div className="max-w-3xl mx-auto px-4 py-4">
+              <div className="w-full max-w-3xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold text-white flex items-center">
                     Comments
