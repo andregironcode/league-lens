@@ -32,7 +32,7 @@ const MatchDetails = () => {
   const [formattedDate, setFormattedDate] = useState('');
   const [exactDate, setExactDate] = useState('');
   const [activeTab, setActiveTab] = useState('stats');
-  const [showCommentDrawer, setShowCommentDrawer] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const [commentSortBy, setCommentSortBy] = useState<'top' | 'newest'>('top');
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -90,14 +90,8 @@ const MatchDetails = () => {
       });
   };
 
-  const openCommentDrawer = () => {
-    setShowCommentDrawer(true);
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeCommentDrawer = () => {
-    setShowCommentDrawer(false);
-    document.body.style.overflow = 'auto';
+  const toggleComments = () => {
+    setShowComments(!showComments);
   };
 
   // Example comments with more YouTube-like data
@@ -259,91 +253,88 @@ const MatchDetails = () => {
           </div>
         </section>
 
-        {/* Video section */}
-        <section className="mb-6" ref={videoContainerRef}>
-          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
-            <iframe
-              className="w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
-              title={match.title}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </section>
-
-        {/* YouTube-style Comments Teaser */}
-        <section className="mb-10 bg-[#222222] rounded-xl overflow-hidden">
-          <div className="p-5">
-            <div className="flex items-center mb-2">
-              <h3 className="text-xl font-semibold text-white">Comments</h3>
-              <span className="ml-3 text-gray-400 text-sm">{comments.length}K</span>
+        {/* Main content area with video and comments */}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left column - Video container */}
+          <div className={`${showComments ? 'md:w-3/5' : 'w-full'} transition-all duration-300 ease-in-out`} ref={videoContainerRef}>
+            <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+              <iframe
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+                title={match.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
             </div>
-            
-            {/* Top comment teaser - clickable to open drawer */}
-            <div 
-              className="bg-[#222222] rounded-lg cursor-pointer" 
-              onClick={openCommentDrawer}
-            >
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
-                  {comments[0].user.initial}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center mb-1">
-                    <span className="text-white text-sm font-medium mr-2">{comments[0].user.name}</span>
-                    <span className="text-gray-400 text-xs">{comments[0].time}</span>
+
+            {/* YouTube-style Comments Teaser - Only shown when comments aren't expanded */}
+            {!showComments && (
+              <section className="mt-4 bg-[#222222] rounded-xl overflow-hidden">
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <h3 className="text-xl font-semibold text-white">Comments</h3>
+                      <span className="ml-3 text-gray-400 text-sm">{comments.length}K</span>
+                    </div>
+                    <button 
+                      onClick={toggleComments}
+                      className="text-[#FFC30B] hover:text-[#FFC30B]/90 text-sm font-medium flex items-center"
+                    >
+                      Show all
+                      <ChevronDown className="ml-1 w-4 h-4" />
+                    </button>
                   </div>
-                  <p className="text-white text-sm">{comments[0].content}</p>
+                  
+                  {/* Top comment teaser - clickable to open drawer */}
+                  <div 
+                    className="bg-[#222222] rounded-lg cursor-pointer" 
+                    onClick={toggleComments}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
+                        {comments[0].user.initial}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center mb-1">
+                          <span className="text-white text-sm font-medium mr-2">{comments[0].user.name}</span>
+                          <span className="text-gray-400 text-xs">{comments[0].time}</span>
+                        </div>
+                        <p className="text-white text-sm">{comments[0].content}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </section>
+            )}
           </div>
-        </section>
 
-        {/* YouTube-style Comment Drawer */}
-        {showCommentDrawer && (
-          <div className="fixed inset-0 bg-black bg-opacity-80 z-50 backdrop-blur-sm overflow-hidden flex flex-col">
-            {/* Top video mini player - now full width to match reference image */}
-            <div className="w-full bg-black">
-              <div className="w-full max-w-3xl mx-auto">
-                <iframe
-                  className="w-full aspect-video"
-                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
-                  title={match.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              </div>
-            </div>
-            
-            {/* Comments section */}
-            <div className="flex-1 overflow-y-auto bg-black">
-              <div className="w-full max-w-3xl mx-auto px-4 py-4">
+          {/* Right column - Comments section (only shown when expanded) */}
+          {showComments && (
+            <div className="md:w-2/5 bg-[#222222] rounded-xl overflow-hidden">
+              <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-white flex items-center">
+                  <h2 className="text-xl font-bold text-white flex items-center">
                     Comments
                   </h2>
                   <button 
-                    onClick={closeCommentDrawer}
+                    onClick={toggleComments}
                     className="p-2 rounded-full hover:bg-[#333333]"
                   >
-                    <X className="w-6 h-6 text-white" />
+                    <X className="w-5 h-5 text-white" />
                   </button>
                 </div>
                 
                 {/* Comment sort */}
                 <div className="mb-6 flex space-x-2">
                   <button 
-                    className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'top' ? 'bg-white text-black' : 'bg-[#222222] text-white'}`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'top' ? 'bg-white text-black' : 'bg-[#191919] text-white'}`}
                     onClick={() => setCommentSortBy('top')}
                   >
                     Top
                   </button>
                   <button 
-                    className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'newest' ? 'bg-white text-black' : 'bg-[#222222] text-white'}`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'newest' ? 'bg-white text-black' : 'bg-[#191919] text-white'}`}
                     onClick={() => setCommentSortBy('newest')}
                   >
                     Newest
@@ -351,7 +342,7 @@ const MatchDetails = () => {
                 </div>
                 
                 {/* Comment guidelines banner */}
-                <div className="mb-6 py-3 px-4 bg-[#222222] rounded">
+                <div className="mb-6 py-3 px-4 bg-[#191919] rounded">
                   <p className="text-white text-sm">
                     Remember to keep comments respectful and to follow our
                     <span className="text-[#FFC30B] ml-1">Community Guidelines</span>
@@ -359,7 +350,7 @@ const MatchDetails = () => {
                 </div>
                 
                 {/* Comments List */}
-                <div className="space-y-6">
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
                   {comments.map(comment => (
                     <div key={comment.id} className="border-b border-gray-800 pb-6">
                       <div className="flex items-start space-x-3">
@@ -401,12 +392,12 @@ const MatchDetails = () => {
                 </div>
                 
                 {/* Comment input */}
-                <div className="sticky bottom-0 bg-black pt-4 pb-4">
+                <div className="sticky bottom-0 bg-[#222222] pt-4 pb-2">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
                       A
                     </div>
-                    <div className="flex-1 bg-[#222222] rounded-full px-4 py-2 flex items-center">
+                    <div className="flex-1 bg-[#191919] rounded-full px-4 py-2 flex items-center">
                       <input 
                         type="text" 
                         placeholder="Add a comment..." 
@@ -417,11 +408,11 @@ const MatchDetails = () => {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Custom Tabs for Stats and Lineups */}
-        <div className="mb-8">
+        <div className="mt-8 mb-8">
           <div className="grid grid-cols-2 gap-0 mb-4">
             <button 
               onClick={() => setActiveTab('stats')}
