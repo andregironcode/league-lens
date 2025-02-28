@@ -41,3 +41,11 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Add dark background to body and html */
+html, body {
+  background-color: #222222;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
