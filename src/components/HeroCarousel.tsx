@@ -16,18 +16,18 @@ const exampleGames: MatchHighlight[] = [
     title: "Manchester City vs Arsenal",
     date: new Date().toISOString(),
     thumbnailUrl: "https://e0.365dm.com/23/04/768x432/skysports-arsenal-manchester-city_6131683.jpg?20230426210634",
-    videoUrl: "https://www.youtube.com/watch?v=38qkI3jAl68",
+    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE",
     duration: "10:25",
     views: 1500000,
     homeTeam: {
       id: "65",
       name: "Manchester City",
-      logo: "/teams/mancity.png"
+      logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg"
     },
     awayTeam: {
       id: "57",
       name: "Arsenal",
-      logo: "/teams/arsenal.png"
+      logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg"
     },
     score: {
       home: 4,
@@ -72,7 +72,7 @@ const exampleGames: MatchHighlight[] = [
     title: "Borussia Dortmund vs Bayern Munich",
     date: new Date().toISOString(),
     thumbnailUrl: "https://e0.365dm.com/22/10/768x432/skysports-bundesliga-bayern-munich_5922057.jpg?20221008170713",
-    videoUrl: "https://www.youtube.com/watch?v=sApmPP5ku5k",
+    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE",
     duration: "9:15",
     views: 1800000,
     homeTeam: {
@@ -83,7 +83,7 @@ const exampleGames: MatchHighlight[] = [
     awayTeam: {
       id: "14",
       name: "Bayern Munich",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/1/1f/Logo_FC_Bayern_M%C3%BCnchen_%282002%E2%80%932017%29.svg"
+      logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg"
     },
     score: {
       home: 2,
@@ -166,9 +166,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             <div className="flex items-center mb-4">
               <div className="flex items-center">
                 <img 
-                  src={currentHighlight.homeTeam.logo !== '/teams/mancity.png' ? 
-                      currentHighlight.homeTeam.logo : 
-                      'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
+                  src={currentHighlight.homeTeam.logo} 
                   alt={currentHighlight.homeTeam.name} 
                   className="w-10 h-10 object-contain"
                   onError={(e) => {
@@ -178,9 +176,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
                 />
                 <span className="text-white text-2xl font-bold mx-3">{currentHighlight.score.home} - {currentHighlight.score.away}</span>
                 <img 
-                  src={currentHighlight.awayTeam.logo !== '/teams/arsenal.png' ? 
-                      currentHighlight.awayTeam.logo : 
-                      'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
+                  src={currentHighlight.awayTeam.logo} 
                   alt={currentHighlight.awayTeam.name} 
                   className="w-10 h-10 object-contain"
                   onError={(e) => {

@@ -27,9 +27,7 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
         <div className="flex items-center space-x-3 flex-1">
           <div className="flex items-center">
             <img 
-              src={highlight.homeTeam.logo !== '/teams/mancity.png' ? 
-                  `https://api.sofascore.app/api/v1/team/${highlight.homeTeam.id}/image` : 
-                  'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
+              src={highlight.homeTeam.logo} 
               alt={highlight.homeTeam.name} 
               className="w-8 h-8 object-contain"
               onError={(e) => {
@@ -41,9 +39,7 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
               {highlight.score.home}-{highlight.score.away}
             </span>
             <img 
-              src={highlight.awayTeam.logo !== '/teams/arsenal.png' ? 
-                  `https://api.sofascore.app/api/v1/team/${highlight.awayTeam.id}/image` : 
-                  'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
+              src={highlight.awayTeam.logo} 
               alt={highlight.awayTeam.name} 
               className="w-8 h-8 object-contain"
               onError={(e) => {
