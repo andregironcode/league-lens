@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -16,7 +15,7 @@ const exampleGames: MatchHighlight[] = [
     title: "Manchester City vs Arsenal",
     date: new Date().toISOString(),
     thumbnailUrl: "https://e0.365dm.com/23/04/768x432/skysports-arsenal-manchester-city_6131683.jpg?20230426210634",
-    videoUrl: "https://www.youtube.com/watch?v=4-H15-CeFQo",
+    videoUrl: "https://www.youtube.com/watch?v=38qkI3jAl68",
     duration: "10:25",
     views: 1500000,
     homeTeam: {
