@@ -120,9 +120,6 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
               
               <div className="flex flex-wrap gap-2 mt-2">
                 <span className="text-white/90 bg-black/30 px-3 py-1 rounded-md">
-                  {currentHighlight.competition.name}
-                </span>
-                <span className="text-white/90 bg-black/30 px-3 py-1 rounded-md">
                   {currentHighlight.duration}
                 </span>
               </div>
