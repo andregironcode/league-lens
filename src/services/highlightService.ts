@@ -14,7 +14,7 @@ export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
       title: 'Manchester City vs Arsenal',
       date: '2023-04-26T19:30:00Z',
       thumbnailUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-      videoUrl: 'https://www.youtube.com/watch?v=4-H15-CeFQo',
+      videoUrl: 'https://www.youtube.com/watch?v=38qkI3jAl68',
       duration: '10:24',
       views: 1243000,
       homeTeam: {
@@ -111,7 +111,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           title: 'Manchester City vs Arsenal',
           date: '2023-04-26T19:30:00Z',
           thumbnailUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-          videoUrl: 'https://www.youtube.com/watch?v=4-H15-CeFQo',
+          videoUrl: 'https://www.youtube.com/watch?v=38qkI3jAl68',
           duration: '10:24',
           views: 1243000,
           homeTeam: {

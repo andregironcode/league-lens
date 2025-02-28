@@ -16,7 +16,7 @@ const exampleGames: MatchHighlight[] = [
     title: "Manchester City vs Arsenal",
     date: new Date().toISOString(),
     thumbnailUrl: "https://e0.365dm.com/23/04/768x432/skysports-arsenal-manchester-city_6131683.jpg?20230426210634",
-    videoUrl: "https://www.youtube.com/watch?v=4-H15-CeFQo", // Updated Man City vs Arsenal
+    videoUrl: "https://www.youtube.com/watch?v=38qkI3jAl68", // Updated Man City vs Arsenal
     duration: "10:25",
     views: 1500000,
     homeTeam: {
@@ -44,7 +44,7 @@ const exampleGames: MatchHighlight[] = [
     title: "Real Madrid vs Barcelona",
     date: new Date().toISOString(),
     thumbnailUrl: "https://cdn.wearefanatics.com/resources/products/football/barcelona-vs-real-madrid.png",
-    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE", // Updated Real Madrid vs Barcelona
+    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE", // Real Madrid vs Barcelona
     duration: "11:40",
     views: 2300000,
     homeTeam: {
@@ -72,7 +72,7 @@ const exampleGames: MatchHighlight[] = [
     title: "Borussia Dortmund vs Bayern Munich",
     date: new Date().toISOString(),
     thumbnailUrl: "https://e0.365dm.com/22/10/768x432/skysports-bundesliga-bayern-munich_5922057.jpg?20221008170713",
-    videoUrl: "https://www.youtube.com/watch?v=sApmPP5ku5k", // Updated Dortmund vs Bayern
+    videoUrl: "https://www.youtube.com/watch?v=sApmPP5ku5k", // Dortmund vs Bayern
     duration: "9:15",
     views: 1800000,
     homeTeam: {
