@@ -9,11 +9,101 @@ interface HeroCarouselProps {
   highlights: MatchHighlight[];
 }
 
-const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
+// Example predefined games with working links
+const exampleGames: MatchHighlight[] = [
+  {
+    id: "1",
+    title: "Manchester City vs Arsenal",
+    date: new Date().toISOString(),
+    thumbnailUrl: "https://e0.365dm.com/23/04/768x432/skysports-arsenal-manchester-city_6131683.jpg?20230426210634",
+    videoUrl: "https://www.youtube.com/watch?v=f3POqcfPJZ8",
+    duration: "10:25",
+    views: 1500000,
+    homeTeam: {
+      id: "65",
+      name: "Manchester City",
+      logo: "/teams/mancity.png"
+    },
+    awayTeam: {
+      id: "57",
+      name: "Arsenal",
+      logo: "/teams/arsenal.png"
+    },
+    score: {
+      home: 4,
+      away: 1
+    },
+    competition: {
+      id: "1",
+      name: "Premier League",
+      logo: "/competitions/premier-league.png"
+    }
+  },
+  {
+    id: "2",
+    title: "Real Madrid vs Barcelona",
+    date: new Date().toISOString(),
+    thumbnailUrl: "https://cdn.wearefanatics.com/resources/products/football/barcelona-vs-real-madrid.png",
+    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE",
+    duration: "11:40",
+    views: 2300000,
+    homeTeam: {
+      id: "541",
+      name: "Real Madrid",
+      logo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg"
+    },
+    awayTeam: {
+      id: "529",
+      name: "Barcelona",
+      logo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg"
+    },
+    score: {
+      home: 3,
+      away: 2
+    },
+    competition: {
+      id: "2",
+      name: "La Liga",
+      logo: "/competitions/la-liga.png"
+    }
+  },
+  {
+    id: "3",
+    title: "Borussia Dortmund vs Bayern Munich",
+    date: new Date().toISOString(),
+    thumbnailUrl: "https://e0.365dm.com/22/10/768x432/skysports-bundesliga-bayern-munich_5922057.jpg?20221008170713",
+    videoUrl: "https://www.youtube.com/watch?v=sApmPP5ku5k",
+    duration: "9:15",
+    views: 1800000,
+    homeTeam: {
+      id: "16",
+      name: "Borussia Dortmund",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg"
+    },
+    awayTeam: {
+      id: "14",
+      name: "Bayern Munich",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/1/1f/Logo_FC_Bayern_M%C3%BCnchen_%282002%E2%80%932017%29.svg"
+    },
+    score: {
+      home: 2,
+      away: 2
+    },
+    competition: {
+      id: "3",
+      name: "Bundesliga",
+      logo: "/competitions/bundesliga.png"
+    }
+  }
+];
+
+const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const navigate = useNavigate();
 
+  // Use example games instead of the passed highlights for demonstration
+  const highlights = exampleGames; 
   const currentHighlight = highlights[currentIndex];
 
   // Extract YouTube video ID
@@ -77,7 +167,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
               <div className="flex items-center">
                 <img 
                   src={currentHighlight.homeTeam.logo !== '/teams/mancity.png' ? 
-                      `https://api.sofascore.app/api/v1/team/${currentHighlight.homeTeam.id}/image` : 
+                      currentHighlight.homeTeam.logo : 
                       'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
                   alt={currentHighlight.homeTeam.name} 
                   className="w-10 h-10 object-contain"
@@ -89,7 +179,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
                 <span className="text-white text-2xl font-bold mx-3">{currentHighlight.score.home} - {currentHighlight.score.away}</span>
                 <img 
                   src={currentHighlight.awayTeam.logo !== '/teams/arsenal.png' ? 
-                      `https://api.sofascore.app/api/v1/team/${currentHighlight.awayTeam.id}/image` : 
+                      currentHighlight.awayTeam.logo : 
                       'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
                   alt={currentHighlight.awayTeam.name} 
                   className="w-10 h-10 object-contain"
