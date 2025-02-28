@@ -1,8 +1,8 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { League } from "@/types";
 import HighlightCard from "./HighlightCard";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronRight } from "lucide-react";
 
 interface LeagueSectionProps {
   league: League;
@@ -27,6 +27,16 @@ const getCountryFlag = (leagueId: string): string => {
 
 const LeagueSection = ({ league }: LeagueSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: 300,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   return (
     <div className="mb-10 animate-fade-in">
@@ -65,12 +75,30 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
       </div>
 
       {isExpanded && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {league.highlights.map((highlight) => (
-            <div key={highlight.id} className="transform transition-all duration-300 hover:z-10">
-              <HighlightCard highlight={highlight} />
-            </div>
-          ))}
+        <div className="relative">
+          <div 
+            ref={scrollContainerRef}
+            className="flex overflow-x-auto scrollbar-hide gap-4 pb-2 -mx-1 px-1"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {league.highlights.map((highlight) => (
+              <div 
+                key={highlight.id} 
+                className="flex-shrink-0 w-[280px] md:w-[320px] transform transition-all duration-300 hover:z-10"
+              >
+                <HighlightCard highlight={highlight} />
+              </div>
+            ))}
+          </div>
+          
+          {/* Scroll button */}
+          <button 
+            onClick={scrollRight}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-highlight-800/80 hover:bg-highlight-700 p-2 rounded-full shadow-md z-10"
+            aria-label="See more highlights"
+          >
+            <ChevronRight size={24} className="text-white" />
+          </button>
         </div>
       )}
     </div>
