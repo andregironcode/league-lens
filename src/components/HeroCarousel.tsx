@@ -62,11 +62,11 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
         />
       </div>
 
-      {/* Content Container - Flex layout that changes direction on smaller screens */}
+      {/* Content Container */}
       <div className="relative z-20 w-full h-full py-8 px-6 md:px-12">
         <div className="flex flex-col lg:flex-row h-full items-center gap-8">
-          {/* Video Container - Takes full width on mobile, half on desktop */}
-          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl border-2 border-gray-700/30">
+          {/* Video Container */}
+          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl">
             <iframe
               src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${getYoutubeVideoId(currentHighlight.videoUrl)}`}
               title={currentHighlight.title}
@@ -74,6 +74,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
               className="w-full h-full"
             ></iframe>
             
+            {/* Centered play button overlay */}
             <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/10 transition-colors cursor-pointer" onClick={handleNavigateToMatch}>
               <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <Play className="w-8 h-8 text-white" fill="white" />
@@ -81,66 +82,64 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
             </div>
           </div>
 
-          {/* Match Info Container - Takes full width on mobile, 40% on desktop */}
+          {/* Match Info Container */}
           <div className="w-full lg:w-[40%] self-center">
-            <div className="bg-[#333333]/80 backdrop-blur-sm p-5 rounded-lg shadow-md border border-gray-700/30">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center">
-                  <img 
-                    src={currentHighlight.homeTeam.logo !== '/teams/mancity.png' ? 
-                        `https://api.sofascore.app/api/v1/team/${currentHighlight.homeTeam.id}/image` : 
-                        'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
-                    alt={currentHighlight.homeTeam.name} 
-                    className="w-10 h-10 object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                    }}
-                  />
-                  <span className="text-white text-2xl font-bold mx-3">{currentHighlight.score.home} - {currentHighlight.score.away}</span>
-                  <img 
-                    src={currentHighlight.awayTeam.logo !== '/teams/arsenal.png' ? 
-                        `https://api.sofascore.app/api/v1/team/${currentHighlight.awayTeam.id}/image` : 
-                        'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
-                    alt={currentHighlight.awayTeam.name} 
-                    className="w-10 h-10 object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                    }}
-                  />
-                </div>
+            <div className="flex items-center mb-4">
+              <div className="flex items-center">
+                <img 
+                  src={currentHighlight.homeTeam.logo !== '/teams/mancity.png' ? 
+                      `https://api.sofascore.app/api/v1/team/${currentHighlight.homeTeam.id}/image` : 
+                      'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'} 
+                  alt={currentHighlight.homeTeam.name} 
+                  className="w-10 h-10 object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                  }}
+                />
+                <span className="text-white text-2xl font-bold mx-3">{currentHighlight.score.home} - {currentHighlight.score.away}</span>
+                <img 
+                  src={currentHighlight.awayTeam.logo !== '/teams/arsenal.png' ? 
+                      `https://api.sofascore.app/api/v1/team/${currentHighlight.awayTeam.id}/image` : 
+                      'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'} 
+                  alt={currentHighlight.awayTeam.name} 
+                  className="w-10 h-10 object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                  }}
+                />
               </div>
+            </div>
+            
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
+            </h1>
+            
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              <button 
+                onClick={handleNavigateToMatch}
+                className="bg-white text-black px-5 py-2 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Play
+              </button>
               
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
-              </h1>
+              <button
+                onClick={handleOpenComments}
+                className="bg-[#FFC30B] text-black px-4 py-2 rounded-full font-medium flex items-center hover:bg-[#FFC30B]/90 transition-colors"
+              >
+                <MessageCircle className="w-4 h-4 mr-1" />
+                +{Math.floor(Math.random() * 20) + 5}
+              </button>
               
-              <div className="flex flex-wrap items-center gap-3 mt-3">
-                <button 
-                  onClick={handleNavigateToMatch}
-                  className="bg-white text-black px-5 py-2 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  Play
-                </button>
-                
-                <button
-                  onClick={handleOpenComments}
-                  className="bg-[#FFC30B] text-black px-4 py-2 rounded-full font-medium flex items-center hover:bg-[#FFC30B]/90 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  +{Math.floor(Math.random() * 20) + 5}
-                </button>
-                
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <span className="text-white/90 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-md">
-                    {currentHighlight.competition.name}
-                  </span>
-                  <span className="text-white/90 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-md">
-                    {currentHighlight.duration}
-                  </span>
-                </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="text-white/90 bg-black/30 px-3 py-1 rounded-md">
+                  {currentHighlight.competition.name}
+                </span>
+                <span className="text-white/90 bg-black/30 px-3 py-1 rounded-md">
+                  {currentHighlight.duration}
+                </span>
               </div>
             </div>
           </div>
