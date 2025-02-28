@@ -199,8 +199,8 @@ const MatchDetails = () => {
           </div>
         </section>
 
-        {/* Score section - Moved above video */}
-        <section className="mb-6 bg-[#1A1F2C] rounded-xl p-6 shadow-sm">
+        {/* Score section - Moved above video with updated background color */}
+        <section className="mb-6 bg-[#222222] rounded-xl p-6 shadow-sm">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex flex-col items-center mb-6 md:mb-0">
               <img 
@@ -255,7 +255,7 @@ const MatchDetails = () => {
         </section>
 
         {/* Comments section - Now directly under the video with proper styling */}
-        <section className="mb-8 bg-[#1A1F2C] rounded-xl p-6">
+        <section className="mb-8 bg-[#222222] rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg text-white flex items-center">
               <MessageCircle className="mr-2 w-5 h-5" />
@@ -306,7 +306,7 @@ const MatchDetails = () => {
               className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
                 activeTab === 'stats' 
                   ? 'bg-[#FFC30B] text-black rounded-tl-lg' 
-                  : 'bg-[#1A1F2C] text-white hover:bg-[#252c3b] rounded-tl-lg'
+                  : 'bg-[#222222] text-white hover:bg-[#333333] rounded-tl-lg'
               }`}
             >
               <BarChart4 className="w-4 h-4 mr-2" />
@@ -316,7 +316,7 @@ const MatchDetails = () => {
               onClick={() => setActiveTab('lineups')}
               className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
                 activeTab === 'lineups' 
-                  ? 'bg-[#1A1F2C] text-white rounded-tr-lg' 
+                  ? 'bg-[#FFC30B] text-black rounded-tr-lg' 
                   : 'bg-[#111827] text-white hover:bg-[#1a202c] rounded-tr-lg'
               }`}
             >
@@ -325,7 +325,7 @@ const MatchDetails = () => {
             </button>
           </div>
           
-          <div className="bg-[#1A1F2C] rounded-b-lg p-6">
+          <div className="bg-[#222222] rounded-b-lg p-6">
             {activeTab === 'stats' ? (
               <>
                 <h3 className="text-lg font-semibold mb-6 text-center text-white">Match Statistics</h3>
@@ -489,7 +489,7 @@ const MatchDetails = () => {
         <div className="flex justify-center">
           <button 
             onClick={handleShare}
-            className="flex items-center px-4 py-2 rounded-md border border-gray-700 hover:bg-[#1A1F2C] transition-colors text-white"
+            className="flex items-center px-4 py-2 rounded-md border border-gray-700 hover:bg-[#222222] transition-colors text-white"
           >
             <Share2 size={16} className="mr-2" />
             Share this highlight
