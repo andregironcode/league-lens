@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flag, Spain } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -26,7 +26,9 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   // Determine appropriate flag for competition
   const getCompetitionFlag = (competitionName: string) => {
     const name = competitionName.toLowerCase();
-    if (name.includes('champions league') || name.includes('europa') || name.includes('european')) {
+    if (name.includes('la liga') || name.includes('spain')) {
+      return <Spain className="w-4 h-4 mr-2" />; // Spanish flag for La Liga
+    } else if (name.includes('champions league') || name.includes('europa') || name.includes('european')) {
       return <Flag className="w-4 h-4 mr-2" />; // European tournament flag
     } else if (name.includes('world') || name.includes('international') || name.includes('fifa')) {
       return <Globe className="w-4 h-4 mr-2" />; // World tournament flag
