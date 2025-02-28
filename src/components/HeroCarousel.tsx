@@ -23,22 +23,6 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     return match ? match[1] : '';
   };
 
-  // Determine appropriate flag for competition
-  const getCompetitionFlag = (competitionName: string) => {
-    const name = competitionName.toLowerCase();
-    if (name.includes('la liga') || name.includes('spain')) {
-      return <Flag className="w-4 h-4 mr-2" />; // Spanish flag for La Liga
-    } else if (name.includes('premier league') || name.includes('england')) {
-      return <Flag className="w-4 h-4 mr-2" />; // English flag for Premier League
-    } else if (name.includes('champions league') || name.includes('europa') || name.includes('european')) {
-      return <Flag className="w-4 h-4 mr-2" />; // European tournament flag
-    } else if (name.includes('world') || name.includes('international') || name.includes('fifa')) {
-      return <Globe className="w-4 h-4 mr-2" />; // World tournament flag
-    } else {
-      return <Flag className="w-4 h-4 mr-2" />; // Default flag
-    }
-  };
-
   const handleNavigateToMatch = () => {
     navigate(`/match/${currentHighlight.id}`);
   };
@@ -121,7 +105,11 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
               {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
             </h1>
 
-            <p className="text-white/70 mb-4">2 hours ago</p>
+            <div className="flex items-center mb-4">
+              <p className="text-white/70">2 hours ago</p>
+              <span className="mx-2 text-white/40">•</span>
+              <p className="text-white/70">{currentHighlight.competition.name}</p>
+            </div>
             
             <div className="flex flex-wrap items-center gap-3 mt-3">
               <button 
