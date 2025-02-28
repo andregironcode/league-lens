@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PlayCircle, Clock, Eye } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,6 +12,7 @@ interface HighlightCardProps {
 
 const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const navigate = useNavigate();
   
   const formattedDate = formatDistanceToNow(new Date(highlight.date), { addSuffix: true });
   const formattedViews = new Intl.NumberFormat('en-US', { 
@@ -22,11 +24,16 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
     setImageLoaded(true);
   };
 
+  const handleCardClick = () => {
+    navigate(`/match/${highlight.id}`);
+  };
+
   return (
     <div 
       className={`highlight-card group ${
         featured ? 'aspect-video md:aspect-[16/9]' : 'aspect-video'
-      }`}
+      } cursor-pointer`}
+      onClick={handleCardClick}
     >
       <div className="absolute inset-0 z-0">
         {!imageLoaded && <div className="image-placeholder" />}

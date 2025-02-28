@@ -14,7 +14,7 @@ export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
       title: 'Manchester City vs Arsenal',
       date: '2023-04-26T19:30:00Z',
       thumbnailUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-      videoUrl: 'https://www.youtube.com/watch?v=example1',
+      videoUrl: 'https://www.youtube.com/watch?v=dXTW6wQjhLk',
       duration: '10:24',
       views: 1243000,
       homeTeam: {
@@ -42,7 +42,7 @@ export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
       title: 'Barcelona vs Real Madrid',
       date: '2023-04-25T19:00:00Z',
       thumbnailUrl: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-      videoUrl: 'https://www.youtube.com/watch?v=example2',
+      videoUrl: 'https://www.youtube.com/watch?v=aMJeik_3-t8',
       duration: '12:08',
       views: 3567000,
       homeTeam: {
@@ -70,7 +70,7 @@ export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
       title: 'Bayern Munich vs Borussia Dortmund',
       date: '2023-04-23T16:30:00Z',
       thumbnailUrl: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8Zm9vdGJhbGx8ZW58MHx8MHx8fDA%3D',
-      videoUrl: 'https://www.youtube.com/watch?v=example3',
+      videoUrl: 'https://www.youtube.com/watch?v=X3mYMMALvjU',
       duration: '9:45',
       views: 1876000,
       homeTeam: {
@@ -111,7 +111,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           title: 'Manchester City vs Arsenal',
           date: '2023-04-26T19:30:00Z',
           thumbnailUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-          videoUrl: 'https://www.youtube.com/watch?v=example1',
+          videoUrl: 'https://www.youtube.com/watch?v=dXTW6wQjhLk',
           duration: '10:24',
           views: 1243000,
           homeTeam: {
@@ -139,7 +139,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           title: 'Liverpool vs Manchester United',
           date: '2023-04-22T14:00:00Z',
           thumbnailUrl: 'https://images.unsplash.com/photo-1624526267942-d3a588c5f88d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTN8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-          videoUrl: 'https://www.youtube.com/watch?v=example4',
+          videoUrl: 'https://www.youtube.com/watch?v=QEq1S1_NAnQ',
           duration: '11:32',
           views: 2345000,
           homeTeam: {
@@ -167,7 +167,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           title: 'Chelsea vs Tottenham',
           date: '2023-04-20T19:45:00Z',
           thumbnailUrl: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjl8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-          videoUrl: 'https://www.youtube.com/watch?v=example7',
+          videoUrl: 'https://www.youtube.com/watch?v=5Vy8fPQRNW4',
           duration: '9:48',
           views: 1129000,
           homeTeam: {
@@ -202,7 +202,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           title: 'Barcelona vs Real Madrid',
           date: '2023-04-25T19:00:00Z',
           thumbnailUrl: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-          videoUrl: 'https://www.youtube.com/watch?v=example2',
+          videoUrl: 'https://www.youtube.com/watch?v=aMJeik_3-t8',
           duration: '12:08',
           views: 3567000,
           homeTeam: {
@@ -230,7 +230,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           title: 'Atletico Madrid vs Sevilla',
           date: '2023-04-23T18:15:00Z',
           thumbnailUrl: 'https://images.unsplash.com/photo-1602674535813-8c3b7a8bf481?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mzh8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-          videoUrl: 'https://www.youtube.com/watch?v=example5',
+          videoUrl: 'https://www.youtube.com/watch?v=mjR7q3kX8nI',
           duration: '8:56',
           views: 987000,
           homeTeam: {
@@ -265,7 +265,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           title: 'Bayern Munich vs Borussia Dortmund',
           date: '2023-04-23T16:30:00Z',
           thumbnailUrl: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8Zm9vdGJhbGx8ZW58MHx8MHx8fDA%3D',
-          videoUrl: 'https://www.youtube.com/watch?v=example3',
+          videoUrl: 'https://www.youtube.com/watch?v=X3mYMMALvjU',
           duration: '9:45',
           views: 1876000,
           homeTeam: {
@@ -293,7 +293,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           title: 'RB Leipzig vs Bayer Leverkusen',
           date: '2023-04-22T13:30:00Z',
           thumbnailUrl: 'https://images.unsplash.com/photo-1624644128945-212a5dc6eb12?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OTB8fGZvb3RiYWxsfGVufDB8fDB8fHww',
-          videoUrl: 'https://www.youtube.com/watch?v=example6',
+          videoUrl: 'https://www.youtube.com/watch?v=RU2GjjoCUZE',
           duration: '10:11',
           views: 765000,
           homeTeam: {
@@ -319,4 +319,25 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
       ]
     }
   ];
+};
+
+// Method to get a match by ID
+export const getMatchById = async (id: string): Promise<MatchHighlight | null> => {
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 600));
+  
+  // First, check recommended highlights
+  const recommendedHighlights = await getRecommendedHighlights();
+  const matchFromRecommended = recommendedHighlights.find(match => match.id === id);
+  if (matchFromRecommended) return matchFromRecommended;
+  
+  // Then check all league highlights
+  const leagues = await getLeagueHighlights();
+  for (const league of leagues) {
+    const matchFromLeague = league.highlights.find(match => match.id === id);
+    if (matchFromLeague) return matchFromLeague;
+  }
+  
+  // If not found in any list
+  return null;
 };
