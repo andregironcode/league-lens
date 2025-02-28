@@ -69,11 +69,9 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Leagues Section */}
+        {/* Leagues Section - removed heading as requested */}
         <section id="leagues" className="mb-16">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-            <h2 className="text-2xl font-semibold tracking-tight mb-8">Latest Highlights by League</h2>
-            
             {loading.leagues 
               ? (
                 <div className="space-y-10">
