@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, X, Bell, Settings, Bookmark, PencilIcon } from 'lucide-react';
+import { Search, User, X, Bell, Settings, Bookmark, Sun, Moon, PencilIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MatchHighlight } from '@/types';
 import { searchHighlights } from '@/services/highlightService';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { useTheme } from '@/contexts/ThemeContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,17 +16,16 @@ import {
 
 const Header = () => {
   const navigate = useNavigate();
-  const { theme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MatchHighlight[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [username, setUsername] = useState('User Name');
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
-  const isDarkMode = theme === 'dark';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -96,6 +94,10 @@ const Header = () => {
     setShowResults(false);
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   const handleEditUsername = () => {
     setIsEditingUsername(true);
     setTimeout(() => {
@@ -119,9 +121,7 @@ const Header = () => {
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out px-4 py-4 md:py-3 ${
-        scrolled 
-          ? 'bg-[#222222]/95 backdrop-blur-md shadow-sm'
-          : 'bg-[#222222]/80 backdrop-blur-sm'
+        scrolled ? 'bg-[#222222]/95 backdrop-blur-md shadow-sm' : 'bg-[#222222]/80 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -250,7 +250,7 @@ const Header = () => {
                       ref={usernameInputRef}
                       type="text"
                       defaultValue={username}
-                      className="text-base bg-[#444444] text-white px-2 py-1 rounded text-center focus:outline-none focus:ring-1 focus:ring-[#FFC30B]"
+                      className="text-base bg-[#444444] px-2 py-1 rounded text-center focus:outline-none focus:ring-1 focus:ring-[#FFC30B]"
                       onBlur={handleUsernameChange}
                     />
                   </form>
@@ -280,6 +280,26 @@ const Header = () => {
               <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
                 <Bookmark className="mr-2 h-4 w-4" />
                 <span>Saved Games</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-[#444444]" />
+              <DropdownMenuItem 
+                className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]"
+                onClick={toggleTheme}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center">
+                    {isDarkMode ? 
+                      <Sun className="mr-2 h-4 w-4" /> : 
+                      <Moon className="mr-2 h-4 w-4" />
+                    }
+                    <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  </div>
+                  <div className={`w-8 h-4 rounded-full relative ${isDarkMode ? 'bg-[#FFC30B]' : 'bg-[#555555]'}`}>
+                    <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${
+                      isDarkMode ? 'bg-white right-0.5' : 'bg-white left-0.5'
+                    }`}></div>
+                  </div>
+                </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

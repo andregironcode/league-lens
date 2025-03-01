@@ -42,14 +42,10 @@
   color: #888;
 }
 
-/* Dark mode */
-html, 
-body {
+/* Add dark background to body and html */
+html, body {
   background-color: #222222;
-  color: #f7f7f7;
-}
-
-/* Theme transitions */
-html, body, * {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
 }
