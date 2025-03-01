@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
-import { getRecommendedHighlights, getLeagues } from '@/services/highlightService';
+import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
 import { MatchHighlight, League } from '@/types';
 
 const Index = () => {
@@ -23,7 +23,7 @@ const Index = () => {
         setLoading(prev => ({ ...prev, recommended: false }));
 
         // Fetch league highlights
-        const leaguesData = await getLeagues();
+        const leaguesData = await getLeagueHighlights();
         setLeagues(leaguesData);
         setLoading(prev => ({ ...prev, leagues: false }));
       } catch (error) {
