@@ -140,10 +140,10 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
 
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
-      {/* Games of the Week Badge - Top Left */}
+      {/* For You Badge - Top Left */}
       <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
         <Flame className="w-4 h-4 mr-2 text-[#FFC30B]" />
-        <span className="text-sm font-medium">Games of the Week</span>
+        <span className="text-sm font-medium">For You</span>
       </div>
       
       {/* Background gradient overlay */}
