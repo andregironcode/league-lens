@@ -23,6 +23,15 @@ import { formatDistanceToNow } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 const MatchDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +43,7 @@ const MatchDetails = () => {
   const [activeTab, setActiveTab] = useState('stats');
   const [showComments, setShowComments] = useState(false);
   const [commentSortBy, setCommentSortBy] = useState<'top' | 'newest'>('top');
+  const [showTopCommentDialog, setShowTopCommentDialog] = useState(false);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -137,6 +147,9 @@ const MatchDetails = () => {
       replies: 12
     }
   ];
+
+  // Get top comment based on likes
+  const topComment = [...comments].sort((a, b) => b.likes - a.likes)[0];
 
   if (loading) {
     return (
@@ -262,6 +275,84 @@ const MatchDetails = () => {
             </div>
           </div>
         </section>
+
+        {/* Top Comment Teaser */}
+        {topComment && (
+          <section className="mb-6 bg-[#292929] rounded-xl p-4 border border-[#FFC30B] shadow-md">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold text-white flex items-center">
+                <MessageCircle size={18} className="mr-2 text-[#FFC30B]" />
+                Top Comment
+              </h3>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="px-3 py-1 bg-[#333333] rounded-full text-xs font-medium text-white hover:bg-[#444444] transition-colors">
+                    View All
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#222222] text-white border-[#333333] max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl text-white">Comments</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                      Join the conversation about this match
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="max-h-[60vh] overflow-y-auto mt-4 pr-2">
+                    {comments.map(comment => (
+                      <div key={comment.id} className="border-b border-gray-700 py-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
+                            {comment.user.initial}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center">
+                              <span className="text-white text-sm font-medium">{comment.user.username}</span>
+                              <span className="text-gray-400 text-xs ml-2">{comment.time}</span>
+                            </div>
+                            <p className="text-white text-sm mt-1">{comment.content}</p>
+                            <div className="flex items-center mt-2 space-x-4">
+                              <button className="flex items-center text-gray-400 hover:text-white">
+                                <ThumbsUp size={14} className="mr-1" />
+                                <span className="text-xs">{comment.likes}</span>
+                              </button>
+                              <button className="flex items-center text-gray-400 hover:text-white">
+                                <MessageSquare size={14} className="mr-1" />
+                                <span className="text-xs">{comment.replies}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
+                {topComment.user.initial}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center">
+                  <span className="text-white text-sm font-medium">{topComment.user.username}</span>
+                  <span className="text-gray-400 text-xs ml-2">{topComment.time}</span>
+                </div>
+                <p className="text-white text-sm mt-1">{topComment.content}</p>
+                <div className="flex items-center mt-2 space-x-4">
+                  <span className="flex items-center text-gray-300">
+                    <ThumbsUp size={14} className="mr-1 text-[#FFC30B]" />
+                    <span className="text-xs">{new Intl.NumberFormat('en-US').format(topComment.likes)}</span>
+                  </span>
+                  <span className="flex items-center text-gray-300">
+                    <MessageSquare size={14} className="mr-1" />
+                    <span className="text-xs">{topComment.replies} replies</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Comments section (can be toggled) */}
         <div className="mb-8">
