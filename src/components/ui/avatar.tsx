@@ -67,4 +67,7 @@ const AvatarFallback = React.forwardRef<
 ))
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
 
+// Default exported profile image
+export const DefaultProfileImage = "/lovable-uploads/ac6298d0-43ac-4a0f-81dd-365461281e5b.png"
+
 export { Avatar, AvatarImage, AvatarFallback }

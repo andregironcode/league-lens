@@ -1,10 +1,11 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Search, User, X, Bell, Settings, Bookmark, Sun, Moon, PencilIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MatchHighlight } from '@/types';
 import { searchHighlights } from '@/services/highlightService';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback, DefaultProfileImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -224,7 +225,11 @@ const Header = () => {
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="https://github.com/shadcn.png" alt="User" />
                   <AvatarFallback outlineStyle>
-                    <User size={20} className="text-white" />
+                    <img 
+                      src={DefaultProfileImage} 
+                      alt="User" 
+                      className="h-full w-full object-cover"
+                    />
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -239,7 +244,11 @@ const Header = () => {
                   >
                     <AvatarImage src="https://github.com/shadcn.png" alt="User" />
                     <AvatarFallback outlineStyle>
-                      <User size={24} className="text-white" />
+                      <img 
+                        src={DefaultProfileImage} 
+                        alt="User" 
+                        className="h-full w-full object-cover"
+                      />
                     </AvatarFallback>
                   </Avatar>
                 </div>
