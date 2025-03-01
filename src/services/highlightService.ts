@@ -1,4 +1,4 @@
-import { MatchHighlight, League, Team, TableRow, Fixture } from '@/types';
+import { MatchHighlight, League, Team, TableRow, Fixture, TeamDetails } from '@/types';
 
 // In a real application, this would be fetched from an actual API
 // For now, we'll use mock data to simulate the API response
