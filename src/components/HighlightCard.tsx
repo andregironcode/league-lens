@@ -18,6 +18,11 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
     navigate(`/match/${highlight.id}`);
   };
 
+  const handleTeamClick = (teamId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    navigate(`/team/${teamId}`);
+  };
+
   return (
     <div 
       className="bg-highlight-800 rounded-lg p-3 cursor-pointer hover:bg-highlight-700 transition-colors"
@@ -29,7 +34,8 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
             <img 
               src={highlight.homeTeam.logo} 
               alt={highlight.homeTeam.name} 
-              className="w-8 h-8 object-contain"
+              className="w-8 h-8 object-contain cursor-pointer hover:scale-110 transition-transform"
+              onClick={(e) => handleTeamClick(highlight.homeTeam.id, e)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
@@ -41,7 +47,8 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
             <img 
               src={highlight.awayTeam.logo} 
               alt={highlight.awayTeam.name} 
-              className="w-8 h-8 object-contain"
+              className="w-8 h-8 object-contain cursor-pointer hover:scale-110 transition-transform"
+              onClick={(e) => handleTeamClick(highlight.awayTeam.id, e)}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
@@ -58,7 +65,19 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
       <div className="flex justify-between items-center">
         <div>
           <div className="text-white font-medium truncate pr-2">
-            {highlight.homeTeam.name} vs {highlight.awayTeam.name}
+            <span 
+              className="cursor-pointer hover:text-[#FFC30B] transition-colors"
+              onClick={(e) => handleTeamClick(highlight.homeTeam.id, e)}
+            >
+              {highlight.homeTeam.name}
+            </span>
+            {" vs "}
+            <span 
+              className="cursor-pointer hover:text-[#FFC30B] transition-colors"
+              onClick={(e) => handleTeamClick(highlight.awayTeam.id, e)}
+            >
+              {highlight.awayTeam.name}
+            </span>
           </div>
           <div className="flex items-center text-gray-400 text-xs mt-1">
             <Clock size={12} className="mr-1" />

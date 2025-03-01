@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -75,7 +74,6 @@ const MatchDetails = () => {
     fetchMatch();
   }, [id]);
 
-  // Helper function to get YouTube video ID from URL
   const getYoutubeVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
     const match = url.match(regex);
@@ -104,7 +102,10 @@ const MatchDetails = () => {
     setShowComments(!showComments);
   };
 
-  // Example comments with more YouTube-like data
+  const handleTeamClick = (teamId: string) => {
+    navigate(`/team/${teamId}`);
+  };
+
   const comments = [
     {
       id: 1,
@@ -148,7 +149,6 @@ const MatchDetails = () => {
     }
   ];
 
-  // Get top comment based on likes
   const topComment = [...comments].sort((a, b) => b.likes - a.likes)[0];
 
   if (loading) {
@@ -197,7 +197,6 @@ const MatchDetails = () => {
           Back to Home
         </button>
 
-        {/* Video first - at the top of the page */}
         <div className="mb-8 w-full">
           <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
             <iframe
@@ -211,7 +210,6 @@ const MatchDetails = () => {
           </div>
         </div>
 
-        {/* Match details */}
         <section className="mb-4">
           <div className="mb-4">
             <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
@@ -239,10 +237,12 @@ const MatchDetails = () => {
           </div>
         </section>
 
-        {/* Score section with fixed logo display */}
         <section className="mb-6 bg-[#222222] rounded-xl p-6 shadow-sm">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex flex-col items-center mb-6 md:mb-0">
+            <div 
+              className="flex flex-col items-center mb-6 md:mb-0 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleTeamClick(match.homeTeam.id)}
+            >
               <img 
                 src={match.homeTeam.logo} 
                 alt={match.homeTeam.name} 
@@ -252,7 +252,9 @@ const MatchDetails = () => {
                   target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
                 }}
               />
-              <span className="font-semibold text-lg mt-2 text-white">{match.homeTeam.name}</span>
+              <span className="font-semibold text-lg mt-2 text-white hover:text-[#FFC30B] transition-colors">
+                {match.homeTeam.name}
+              </span>
             </div>
             
             <div className="flex items-center mb-6 md:mb-0">
@@ -261,7 +263,10 @@ const MatchDetails = () => {
               </span>
             </div>
             
-            <div className="flex flex-col items-center">
+            <div 
+              className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleTeamClick(match.awayTeam.id)}
+            >
               <img 
                 src={match.awayTeam.logo} 
                 alt={match.awayTeam.name} 
@@ -271,12 +276,13 @@ const MatchDetails = () => {
                   target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
                 }}
               />
-              <span className="font-semibold text-lg mt-2 text-white">{match.awayTeam.name}</span>
+              <span className="font-semibold text-lg mt-2 text-white hover:text-[#FFC30B] transition-colors">
+                {match.awayTeam.name}
+              </span>
             </div>
           </div>
         </section>
 
-        {/* Top Comment Teaser */}
         {topComment && (
           <section className="mb-6 bg-[#292929] rounded-xl p-4 border border-[#FFC30B] shadow-md">
             <div className="flex justify-between items-center mb-3">
@@ -354,7 +360,6 @@ const MatchDetails = () => {
           </section>
         )}
 
-        {/* Comments section (can be toggled) */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-white flex items-center">
@@ -371,7 +376,6 @@ const MatchDetails = () => {
           {showComments && (
             <div className="bg-[#222222] rounded-xl overflow-hidden">
               <div className="p-4">
-                {/* Comment sort */}
                 <div className="mb-6 flex space-x-2">
                   <button 
                     className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'top' ? 'bg-white text-black' : 'bg-[#191919] text-white'}`}
@@ -387,7 +391,6 @@ const MatchDetails = () => {
                   </button>
                 </div>
                 
-                {/* Comment guidelines banner */}
                 <div className="mb-6 py-3 px-4 bg-[#191919] rounded">
                   <p className="text-white text-sm">
                     Remember to keep comments respectful and to follow our
@@ -395,7 +398,6 @@ const MatchDetails = () => {
                   </p>
                 </div>
                 
-                {/* Comments List */}
                 <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
                   {comments.map(comment => (
                     <div key={comment.id} className="border-b border-gray-800 pb-6">
@@ -417,7 +419,6 @@ const MatchDetails = () => {
                             </button>
                           </div>
                           
-                          {/* Comment actions */}
                           <div className="flex items-center mt-3 space-x-4">
                             <button className="flex items-center text-gray-400 hover:text-white">
                               <ThumbsUp size={16} className="mr-1" />
@@ -437,7 +438,6 @@ const MatchDetails = () => {
                   ))}
                 </div>
                 
-                {/* Comment input */}
                 <div className="sticky bottom-0 bg-[#222222] pt-4 pb-2">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
@@ -457,7 +457,6 @@ const MatchDetails = () => {
           )}
         </div>
 
-        {/* Custom Tabs for Stats and Lineups */}
         <div className="mb-8">
           <div className="grid grid-cols-2 gap-0 mb-4">
             <button 
@@ -489,7 +488,6 @@ const MatchDetails = () => {
               <>
                 <h3 className="text-lg font-semibold mb-6 text-center text-white">Match Statistics</h3>
                 
-                {/* Possession stat */}
                 <div className="mb-6">
                   <div className="flex justify-between mb-1">
                     <span className="text-sm text-white">55%</span>
@@ -504,7 +502,6 @@ const MatchDetails = () => {
                   </div>
                 </div>
 
-                {/* Shots stat */}
                 <div className="mb-6">
                   <div className="flex justify-between mb-1">
                     <span className="text-sm text-white">15</span>
@@ -519,7 +516,6 @@ const MatchDetails = () => {
                   </div>
                 </div>
 
-                {/* Shots on target stat */}
                 <div className="mb-6">
                   <div className="flex justify-between mb-1">
                     <span className="text-sm text-white">6</span>
@@ -534,7 +530,6 @@ const MatchDetails = () => {
                   </div>
                 </div>
 
-                {/* Corner stat */}
                 <div className="mb-6">
                   <div className="flex justify-between mb-1">
                     <span className="text-sm text-white">8</span>
@@ -549,7 +544,6 @@ const MatchDetails = () => {
                   </div>
                 </div>
 
-                {/* Fouls stat */}
                 <div className="mb-0">
                   <div className="flex justify-between mb-1">
                     <span className="text-sm text-white">10</span>
@@ -580,7 +574,6 @@ const MatchDetails = () => {
                     {match.homeTeam.name}
                   </h3>
                   <div className="space-y-2">
-                    {/* Example starting XI */}
                     {[
                       "1. Alisson",
                       "66. Alexander-Arnold",
@@ -615,7 +608,6 @@ const MatchDetails = () => {
                     {match.awayTeam.name}
                   </h3>
                   <div className="space-y-2">
-                    {/* Example starting XI */}
                     {[
                       "32. Ramsdale",
                       "18. Tomiyasu",
@@ -640,7 +632,6 @@ const MatchDetails = () => {
           </div>
         </div>
 
-        {/* Share button */}
         <div className="flex justify-center">
           <button 
             onClick={handleShare}

@@ -32,3 +32,35 @@ export interface League {
   logo: string;
   highlights: MatchHighlight[];
 }
+
+export interface TableRow {
+  position: number;
+  team: Team;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+}
+
+export interface Fixture {
+  id: string;
+  homeTeam: Team;
+  awayTeam: Team;
+  date: string;
+  competition: string;
+  venue?: string;
+}
+
+export interface TeamDetails {
+  team: Team;
+  leagueStanding: string;
+  europeanCompetition: string | null;
+  europeanStanding: string | null;
+  leagueTable: TableRow[];
+  europeanTable: TableRow[];
+  fixtures: Fixture[];
+}
