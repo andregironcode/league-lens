@@ -96,10 +96,6 @@ const Header = () => {
     setShowResults(false);
   };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
   const handleEditUsername = () => {
     setIsEditingUsername(true);
     setTimeout(() => {
