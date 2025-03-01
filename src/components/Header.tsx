@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, X, Bell, Settings, Bookmark, Sun, Moon } from 'lucide-react';
+import { Search, User, X, Bell, Settings, Bookmark, Sun, Moon, PencilIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MatchHighlight } from '@/types';
 import { searchHighlights } from '@/services/highlightService';
@@ -22,8 +22,11 @@ const Header = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [username, setUsername] = useState('User Name');
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  
+  const usernameInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
@@ -93,6 +96,26 @@ const Header = () => {
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
+  };
+
+  const handleEditUsername = () => {
+    setIsEditingUsername(true);
+    setTimeout(() => {
+      usernameInputRef.current?.focus();
+      usernameInputRef.current?.select();
+    }, 100);
+  };
+
+  const handleUsernameChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (usernameInputRef.current?.value.trim()) {
+      setUsername(usernameInputRef.current.value);
+    }
+    setIsEditingUsername(false);
+  };
+
+  const handleEditProfilePicture = () => {
+    console.log('Opening profile picture edit dialog');
   };
 
   return (
@@ -200,7 +223,7 @@ const Header = () => {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="https://github.com/shadcn.png" alt="User" />
-                  <AvatarFallback>
+                  <AvatarFallback outlineStyle>
                     <User size={20} className="text-white" />
                   </AvatarFallback>
                 </Avatar>
@@ -208,13 +231,41 @@ const Header = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#333333] border-[#444444] text-white">
               <DropdownMenuLabel className="flex flex-col items-center py-4">
-                <Avatar className="h-16 w-16 mb-2 cursor-pointer hover:opacity-80 transition-opacity">
-                  <AvatarImage src="https://github.com/shadcn.png" alt="User" />
-                  <AvatarFallback>
-                    <User size={24} className="text-white" />
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-base font-medium">User Name</span>
+                <div className="relative mb-2">
+                  <Avatar 
+                    className="h-16 w-16 cursor-pointer hover:opacity-90 transition-opacity"
+                    showEditButton
+                    onEditClick={handleEditProfilePicture}
+                  >
+                    <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+                    <AvatarFallback outlineStyle>
+                      <User size={24} className="text-white" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                
+                {isEditingUsername ? (
+                  <form onSubmit={handleUsernameChange} className="flex items-center mb-1">
+                    <input
+                      ref={usernameInputRef}
+                      type="text"
+                      defaultValue={username}
+                      className="text-base bg-[#444444] px-2 py-1 rounded text-center focus:outline-none focus:ring-1 focus:ring-[#FFC30B]"
+                      onBlur={handleUsernameChange}
+                    />
+                  </form>
+                ) : (
+                  <div className="flex items-center mb-1">
+                    <span className="text-base font-medium">{username}</span>
+                    <button 
+                      onClick={handleEditUsername}
+                      className="ml-2 p-1 hover:bg-[#444444] rounded-full transition-colors"
+                    >
+                      <PencilIcon size={12} className="text-gray-400" />
+                    </button>
+                  </div>
+                )}
+                
                 <span className="text-xs text-gray-400">user@example.com</span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-[#444444]" />
