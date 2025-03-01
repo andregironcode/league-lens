@@ -1,9 +1,18 @@
-
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, X } from 'lucide-react';
+import { Search, User, X, Bell, Settings, Bookmark, Sun, Moon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MatchHighlight } from '@/types';
 import { searchHighlights } from '@/services/highlightService';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -12,6 +21,7 @@ const Header = () => {
   const [searchResults, setSearchResults] = useState<MatchHighlight[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -27,7 +37,6 @@ const Header = () => {
   }, [scrolled]);
 
   useEffect(() => {
-    // Add click outside listener
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false);
@@ -38,7 +47,6 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery) {
@@ -83,6 +91,10 @@ const Header = () => {
     setShowResults(false);
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out px-4 py-4 md:py-3 ${
@@ -91,7 +103,6 @@ const Header = () => {
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center flex-1 space-x-4 md:space-x-6">
-          {/* Logo - sized similar to FotMob */}
           <Link to="/" className="flex-shrink-0">
             <img 
               src="/lovable-uploads/3f69b4d3-7c25-4f74-a779-c3f73cd73d08.png" 
@@ -100,7 +111,6 @@ const Header = () => {
             />
           </Link>
 
-          {/* Search bar - styled similar to FotMob */}
           <div ref={searchRef} className="relative flex-1 max-w-xl">
             <div className="flex items-center bg-[#333333] rounded-full w-full">
               <Search size={20} className={`ml-4 ${isSearching ? 'text-[#FFC30B]' : 'text-gray-400'} flex-shrink-0`} />
@@ -126,7 +136,6 @@ const Header = () => {
               )}
             </div>
 
-            {/* Search Results Dropdown */}
             {showResults && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-[#333333] rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50">
                 {isSearching ? (
@@ -182,12 +191,67 @@ const Header = () => {
         </div>
 
         <div className="flex items-center pl-4">
-          <button 
-            className="p-2 rounded-full bg-highlight-800/50 hover:bg-highlight-700/50 transition-colors"
-            aria-label="User profile"
-          >
-            <User size={20} className="text-white" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="p-2 rounded-full bg-highlight-800/50 hover:bg-highlight-700/50 transition-colors"
+                aria-label="User profile"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+                  <AvatarFallback>
+                    <User size={20} className="text-white" />
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-[#333333] border-[#444444] text-white">
+              <DropdownMenuLabel className="flex flex-col items-center py-4">
+                <Avatar className="h-16 w-16 mb-2 cursor-pointer hover:opacity-80 transition-opacity">
+                  <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+                  <AvatarFallback>
+                    <User size={24} className="text-white" />
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-base font-medium">User Name</span>
+                <span className="text-xs text-gray-400">user@example.com</span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-[#444444]" />
+              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
+                <Bell className="mr-2 h-4 w-4" />
+                <span>Notifications</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
+                <Bookmark className="mr-2 h-4 w-4" />
+                <span>Saved Games</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-[#444444]" />
+              <DropdownMenuItem 
+                className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]"
+                onClick={toggleTheme}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center">
+                    {isDarkMode ? 
+                      <Sun className="mr-2 h-4 w-4" /> : 
+                      <Moon className="mr-2 h-4 w-4" />
+                    }
+                    <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  </div>
+                  <div className={`w-8 h-4 rounded-full relative ${isDarkMode ? 'bg-[#FFC30B]' : 'bg-[#555555]'}`}>
+                    <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${
+                      isDarkMode ? 'bg-white right-0.5' : 'bg-white left-0.5'
+                    }`}></div>
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
