@@ -8,14 +8,13 @@ interface HeroCarouselProps {
   highlights: MatchHighlight[];
 }
 
-// Example predefined games with working links and correct videos
 const exampleGames: MatchHighlight[] = [
   {
     id: "1",
     title: "Manchester City vs Arsenal",
     date: new Date().toISOString(),
     thumbnailUrl: "https://e0.365dm.com/23/04/768x432/skysports-arsenal-manchester-city_6131683.jpg?20230426210634",
-    videoUrl: "https://www.youtube.com/watch?v=38qkI3jAl68", // Updated Man City vs Arsenal
+    videoUrl: "https://www.youtube.com/watch?v=38qkI3jAl68",
     duration: "10:25",
     views: 1500000,
     homeTeam: {
@@ -43,7 +42,7 @@ const exampleGames: MatchHighlight[] = [
     title: "Real Madrid vs Barcelona",
     date: new Date().toISOString(),
     thumbnailUrl: "https://cdn.wearefanatics.com/resources/products/football/barcelona-vs-real-madrid.png",
-    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE", // Real Madrid vs Barcelona
+    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE",
     duration: "11:40",
     views: 2300000,
     homeTeam: {
@@ -71,7 +70,7 @@ const exampleGames: MatchHighlight[] = [
     title: "Borussia Dortmund vs Bayern Munich",
     date: new Date().toISOString(),
     thumbnailUrl: "https://e0.365dm.com/22/10/768x432/skysports-bundesliga-bayern-munich_5922057.jpg?20221008170713",
-    videoUrl: "https://www.youtube.com/watch?v=sApmPP5ku5k", // Dortmund vs Bayern
+    videoUrl: "https://www.youtube.com/watch?v=sApmPP5ku5k",
     duration: "9:15",
     views: 1800000,
     homeTeam: {
@@ -96,22 +95,42 @@ const exampleGames: MatchHighlight[] = [
   }
 ];
 
+const getShortTeamName = (fullName: string): string => {
+  const teamMappings: Record<string, string> = {
+    'Manchester City': 'Man City',
+    'Manchester United': 'Man United',
+    'Tottenham Hotspur': 'Spurs',
+    'Wolverhampton Wanderers': 'Wolves',
+    'Newcastle United': 'Newcastle',
+    'Borussia Dortmund': 'Dortmund',
+    'Bayern Munich': 'Bayern',
+    'RB Leipzig': 'Leipzig',
+    'Bayer Leverkusen': 'Leverkusen',
+    'Barcelona': 'Barça',
+    'Real Madrid': 'Madrid',
+    'Atletico Madrid': 'Atletico',
+    'Inter Milan': 'Inter',
+    'AC Milan': 'Milan',
+    'Juventus': 'Juve',
+    'Paris Saint-Germain': 'PSG',
+    'Ajax Amsterdam': 'Ajax'
+  };
+
+  return teamMappings[fullName] || fullName;
+};
+
 const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const navigate = useNavigate();
 
-  // Use example games instead of the passed highlights for demonstration
-  const highlights = exampleGames; 
+  const highlights = exampleGames;
   const currentHighlight = highlights[currentIndex];
 
-  // Add effect to toggle scrolling animation
   useEffect(() => {
-    // Reset scrolling state on highlight change
     setIsScrolling(false);
     
-    // Check if title might need scrolling (wait a bit to ensure DOM is updated)
     const timer = setTimeout(() => {
       const titleElement = document.getElementById('match-title');
       if (titleElement) {
@@ -123,7 +142,6 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
     return () => clearTimeout(timer);
   }, [currentIndex]);
 
-  // Extract YouTube video ID
   const getYoutubeVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
     const match = url.match(regex);
@@ -157,13 +175,11 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
 
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
-      {/* For You Badge - Top Left */}
       <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
         <Flame className="w-4 h-4 mr-2 text-[#FFC30B]" />
         <span className="text-sm font-medium">For You</span>
       </div>
       
-      {/* Background gradient overlay */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/70 to-transparent z-10"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/80 to-transparent z-10"></div>
@@ -175,12 +191,9 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         />
       </div>
 
-      {/* Content Container - Vertically centered with flex */}
       <div className="relative z-20 w-full h-full flex items-center justify-center py-6 px-6 md:px-12">
         <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
-          {/* Match Info Container - Left side */}
           <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
-            {/* Score Section - Updated to match the image layout */}
             <div className="flex justify-center items-center mb-6">
               <img 
                 src={currentHighlight.homeTeam.logo} 
@@ -214,7 +227,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
                   isScrolling ? 'animate-marquee' : ''
                 }`}
               >
-                {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
+                {getShortTeamName(currentHighlight.homeTeam.name)} vs {getShortTeamName(currentHighlight.awayTeam.name)}
               </h1>
             </div>
 
@@ -243,7 +256,6 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </div>
           </div>
 
-          {/* Video Container - Right side */}
           <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
             <iframe
               src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
@@ -255,7 +267,6 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      {/* Carousel Controls */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
         {highlights.map((_, index) => (
           <button
@@ -269,7 +280,6 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         ))}
       </div>
 
-      {/* Previous/Next buttons */}
       <button
         className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
         onClick={handlePrevSlide}
@@ -285,13 +295,11 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         <ChevronRight className="w-6 h-6" />
       </button>
 
-      {/* Comments Dialog */}
       <Dialog open={showComments} onOpenChange={handleCloseComments}>
         <DialogContent className="sm:max-w-md bg-[#222222] border-gray-700">
           <div className="p-4">
             <h2 className="text-xl font-bold text-white mb-4">Comments</h2>
             <div className="space-y-4">
-              {/* Example comments */}
               <div className="bg-[#333333] p-3 rounded">
                 <div className="flex items-center mb-2">
                   <div className="w-8 h-8 rounded-full bg-[#FFC30B] flex items-center justify-center text-black font-bold">J</div>

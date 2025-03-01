@@ -10,6 +10,32 @@ interface HighlightCardProps {
   featured?: boolean;
 }
 
+// Helper function to get short team names
+const getShortTeamName = (fullName: string): string => {
+  // Common mappings for popular teams
+  const teamMappings: Record<string, string> = {
+    'Manchester City': 'Man City',
+    'Manchester United': 'Man United',
+    'Tottenham Hotspur': 'Spurs',
+    'Wolverhampton Wanderers': 'Wolves',
+    'Newcastle United': 'Newcastle',
+    'Borussia Dortmund': 'Dortmund',
+    'Bayern Munich': 'Bayern',
+    'RB Leipzig': 'Leipzig',
+    'Bayer Leverkusen': 'Leverkusen',
+    'Barcelona': 'Barça',
+    'Real Madrid': 'Madrid',
+    'Atletico Madrid': 'Atletico',
+    'Inter Milan': 'Inter',
+    'AC Milan': 'Milan',
+    'Juventus': 'Juve',
+    'Paris Saint-Germain': 'PSG',
+    'Ajax Amsterdam': 'Ajax'
+  };
+
+  return teamMappings[fullName] || fullName;
+};
+
 const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
   const navigate = useNavigate();
   const formattedDate = formatDistanceToNow(new Date(highlight.date), { addSuffix: true });
@@ -69,14 +95,14 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
               className="cursor-pointer hover:text-[#FFC30B] transition-colors"
               onClick={(e) => handleTeamClick(highlight.homeTeam.id, e)}
             >
-              {highlight.homeTeam.name}
+              {getShortTeamName(highlight.homeTeam.name)}
             </span>
             {" vs "}
             <span 
               className="cursor-pointer hover:text-[#FFC30B] transition-colors"
               onClick={(e) => handleTeamClick(highlight.awayTeam.id, e)}
             >
-              {highlight.awayTeam.name}
+              {getShortTeamName(highlight.awayTeam.name)}
             </span>
           </div>
           <div className="flex items-center text-gray-400 text-xs mt-1">
