@@ -64,3 +64,9 @@ export interface TeamDetails {
   europeanTable: TableRow[];
   fixtures: Fixture[];
 }
+
+export interface UserPreferences {
+  followedTeams: string[];
+  followedLeagues: string[];
+  savedMatches: string[];
+}
