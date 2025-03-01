@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -190,7 +189,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
               />
             </div>
             
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 text-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 text-center whitespace-nowrap overflow-hidden text-ellipsis px-4">
               {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
             </h1>
 
@@ -231,7 +230,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      {/* Carousel Controls - Now positioned closer to the content */}
+      {/* Carousel Controls */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
         {highlights.map((_, index) => (
           <button
@@ -245,7 +244,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         ))}
       </div>
 
-      {/* Previous/Next buttons - Moved further to edges with padding */}
+      {/* Previous/Next buttons */}
       <button
         className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
         onClick={handlePrevSlide}
