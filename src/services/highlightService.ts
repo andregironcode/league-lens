@@ -316,6 +316,134 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           }
         }
       ]
+    },
+    // Adding Serie A
+    {
+      id: 'seriea',
+      name: 'Serie A',
+      logo: '/leagues/seriea.png',
+      highlights: [
+        {
+          id: '8',
+          title: 'Inter Milan vs AC Milan',
+          date: '2023-04-18T19:00:00Z',
+          thumbnailUrl: 'https://images.unsplash.com/photo-1559579313-021b6ec9f6d6?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjd8fHNvY2NlciUyMGl0YWx5fGVufDB8fDB8fHww',
+          videoUrl: 'https://www.youtube.com/watch?v=sApmPP5ku5k',
+          duration: '10:15',
+          views: 1543000,
+          homeTeam: {
+            id: 'int',
+            name: 'Inter Milan',
+            logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg'
+          },
+          awayTeam: {
+            id: 'acm',
+            name: 'AC Milan',
+            logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg'
+          },
+          score: {
+            home: 2,
+            away: 1
+          },
+          competition: {
+            id: 'seriea',
+            name: 'Serie A',
+            logo: '/leagues/seriea.png'
+          }
+        },
+        {
+          id: '9',
+          title: 'Juventus vs Napoli',
+          date: '2023-04-16T14:00:00Z',
+          thumbnailUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDB8fHNvY2NlciUyMGl0YWx5fGVufDB8fDB8fHww',
+          videoUrl: 'https://www.youtube.com/watch?v=MFb7LCqm6FE',
+          duration: '9:45',
+          views: 1354000,
+          homeTeam: {
+            id: 'juv',
+            name: 'Juventus',
+            logo: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Juventus_FC_2017_logo.svg'
+          },
+          awayTeam: {
+            id: 'nap',
+            name: 'Napoli',
+            logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2d/SSC_Napoli_logo.svg'
+          },
+          score: {
+            home: 1,
+            away: 1
+          },
+          competition: {
+            id: 'seriea',
+            name: 'Serie A',
+            logo: '/leagues/seriea.png'
+          }
+        }
+      ]
+    },
+    // Adding Ligue 1
+    {
+      id: 'ligue1',
+      name: 'Ligue 1',
+      logo: '/leagues/ligue1.png',
+      highlights: [
+        {
+          id: '10',
+          title: 'PSG vs Marseille',
+          date: '2023-04-17T20:00:00Z',
+          thumbnailUrl: 'https://images.unsplash.com/photo-1522778034537-20a2486be803?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzR8fHNvY2NlciUyMGZyYW5jZXxlbnwwfHwwfHx8MA%3D%3D',
+          videoUrl: 'https://www.youtube.com/watch?v=MFb7LCqm6FE',
+          duration: '11:32',
+          views: 2135000,
+          homeTeam: {
+            id: 'psg',
+            name: 'Paris Saint-Germain',
+            logo: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg'
+          },
+          awayTeam: {
+            id: 'mar',
+            name: 'Marseille',
+            logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg'
+          },
+          score: {
+            home: 3,
+            away: 0
+          },
+          competition: {
+            id: 'ligue1',
+            name: 'Ligue 1',
+            logo: '/leagues/ligue1.png'
+          }
+        },
+        {
+          id: '11',
+          title: 'Lyon vs Monaco',
+          date: '2023-04-15T16:00:00Z',
+          thumbnailUrl: 'https://images.unsplash.com/photo-1504016798967-59a258e9386d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fHNvY2NlciUyMGZyYW5jZXxlbnwwfHwwfHx8MA%3D%3D',
+          videoUrl: 'https://www.youtube.com/watch?v=MFb7LCqm6FE',
+          duration: '9:12',
+          views: 982000,
+          homeTeam: {
+            id: 'lyo',
+            name: 'Lyon',
+            logo: 'https://upload.wikimedia.org/wikipedia/en/c/c6/Olympique_Lyonnais.svg'
+          },
+          awayTeam: {
+            id: 'mon',
+            name: 'Monaco',
+            logo: 'https://upload.wikimedia.org/wikipedia/en/b/ba/AS_Monaco_FC.svg'
+          },
+          score: {
+            home: 2,
+            away: 2
+          },
+          competition: {
+            id: 'ligue1',
+            name: 'Ligue 1',
+            logo: '/leagues/ligue1.png'
+          }
+        }
+      ]
     }
   ];
 };
@@ -794,4 +922,35 @@ const generateFixtures = (teamId: string, league: string, europeanCompetition: s
   
   // Sort by date
   return fixtures.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+};
+
+// Add a search functionality to the service
+export const searchHighlights = async (query: string): Promise<MatchHighlight[]> => {
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 400));
+  
+  if (!query.trim()) return [];
+  
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  const highlights: MatchHighlight[] = [];
+  
+  // Get all highlights from all leagues
+  const leagues = await getLeagueHighlights();
+  for (const league of leagues) {
+    for (const highlight of league.highlights) {
+      // Search in team names, match title, competition name
+      if (
+        highlight.homeTeam.name.toLowerCase().includes(normalizedQuery) ||
+        highlight.awayTeam.name.toLowerCase().includes(normalizedQuery) ||
+        highlight.title.toLowerCase().includes(normalizedQuery) ||
+        highlight.competition.name.toLowerCase().includes(normalizedQuery)
+      ) {
+        highlights.push(highlight);
+      }
+    }
+  }
+  
+  // Sort by date, most recent first
+  return highlights.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 };
