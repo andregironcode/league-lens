@@ -42,20 +42,11 @@
   color: #888;
 }
 
-/* Dark mode (default) */
-html.dark-mode, 
-body.dark-mode,
-html:not(.light-mode), 
-body:not(.light-mode) {
+/* Dark mode */
+html, 
+body {
   background-color: #222222;
   color: #f7f7f7;
-}
-
-/* Light mode */
-html.light-mode, 
-body.light-mode {
-  background-color: #ffffff;
-  color: #222222;
 }
 
 /* Theme transitions */
