@@ -194,7 +194,7 @@ const MatchDetails = () => {
           className="flex items-center mb-6 text-sm font-medium hover:underline transition-colors text-white"
         >
           <ArrowLeft size={16} className="mr-2" />
-          Back to highlights
+          Back to Home
         </button>
 
         {/* Video first - at the top of the page */}
