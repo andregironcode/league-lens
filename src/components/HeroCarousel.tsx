@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
 import { MatchHighlight } from '@/types';
@@ -99,11 +99,29 @@ const exampleGames: MatchHighlight[] = [
 const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showComments, setShowComments] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
   const navigate = useNavigate();
 
   // Use example games instead of the passed highlights for demonstration
   const highlights = exampleGames; 
   const currentHighlight = highlights[currentIndex];
+
+  // Add effect to toggle scrolling animation
+  useEffect(() => {
+    // Reset scrolling state on highlight change
+    setIsScrolling(false);
+    
+    // Check if title might need scrolling (wait a bit to ensure DOM is updated)
+    const timer = setTimeout(() => {
+      const titleElement = document.getElementById('match-title');
+      if (titleElement) {
+        const isOverflowing = titleElement.scrollWidth > titleElement.clientWidth;
+        setIsScrolling(isOverflowing);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [currentIndex]);
 
   // Extract YouTube video ID
   const getYoutubeVideoId = (url: string): string => {
@@ -189,9 +207,16 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
               />
             </div>
             
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 text-center whitespace-nowrap overflow-hidden text-ellipsis px-4">
-              {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
-            </h1>
+            <div className="relative overflow-hidden max-w-full px-4">
+              <h1 
+                id="match-title"
+                className={`text-xl md:text-2xl font-bold text-white mb-4 text-center whitespace-nowrap overflow-hidden text-ellipsis ${
+                  isScrolling ? 'animate-marquee' : ''
+                }`}
+              >
+                {currentHighlight.homeTeam.name} vs {currentHighlight.awayTeam.name}
+              </h1>
+            </div>
 
             <div className="flex items-center justify-center mb-4">
               <p className="text-white/70">2 hours ago</p>

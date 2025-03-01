@@ -49,3 +49,25 @@ html, body {
   padding: 0;
   min-height: 100vh;
 }
+
+/* Add marquee animation for scrolling text */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(0);
+  }
+  80% {
+    transform: translateX(calc(-100% + 100%));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 8s linear infinite;
+  animation-delay: 2s;
+}
