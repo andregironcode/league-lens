@@ -5,8 +5,11 @@ import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
 import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
 import { MatchHighlight, League } from '@/types';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const Index = () => {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState({
@@ -52,7 +55,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[#111111]' : 'bg-white'} ${isDarkMode ? 'text-white' : 'text-black'}`}>
       <Header />
       
       <main className="pt-16 pb-10">
@@ -60,7 +63,7 @@ const Index = () => {
         <section className="mb-12">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4">
             {loading.recommended ? (
-              <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
+              <div className={`w-full h-[50vh] max-h-[550px] ${isDarkMode ? 'bg-highlight-800' : 'bg-gray-200'} rounded-lg animate-pulse`}></div>
             ) : (
               <HeroCarousel highlights={recommendedHighlights} />
             )}
@@ -75,9 +78,16 @@ const Index = () => {
                 <div className="space-y-10">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="h-8 bg-highlight-200 rounded w-48 mb-6"></div>
+                      <div className={`h-8 ${isDarkMode ? 'bg-highlight-200' : 'bg-gray-200'} rounded w-48 mb-6`}></div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {renderSkeleton(3)}
+                        {Array(3).fill(0).map((_, i) => (
+                          <div
+                            key={i}
+                            className="highlight-card aspect-video"
+                          >
+                            <div className={`absolute inset-0 ${isDarkMode ? 'bg-highlight-200' : 'bg-gray-200'} animate-image-shimmer bg-shimmer bg-[length:200%_100%]`}></div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -92,13 +102,13 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#222222] py-8">
+      <footer className={`${isDarkMode ? 'bg-[#222222]' : 'bg-gray-100'} py-8`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center">
-            <p className="text-sm text-gray-400">
+            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               © {new Date().getFullYear()} Score90. All rights reserved.
             </p>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} mt-2`}>
               All videos are sourced from official channels and we do not host any content.
             </p>
           </div>

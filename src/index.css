@@ -10,6 +10,7 @@
 }
 
 :root {
+  /* Default dark theme variables */
   --primary: 45 100% 52%;
   --primary-foreground: 0 0% 100%;
   
@@ -50,7 +51,47 @@
   --popover-foreground: 0 0% 100%;
 }
 
+html.light-mode {
+  --primary: 45 100% 52%;
+  --primary-foreground: 0 0% 0%;
+  
+  --secondary: 215 25% 75%;
+  --secondary-foreground: 0 0% 0%;
+  
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  
+  --muted: 215 16% 47%;
+  --muted-foreground: 215 16% 47%;
+  
+  --accent: 215 25% 75%;
+  --accent-foreground: 0 0% 0%;
+  
+  --destructive: 0 62.8% 50.6%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --sidebar-background: 0 0% 95%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-primary: 45 100% 52%;
+  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-accent: 215 25% 75%;
+  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-border: 215 27.9% 86.9%;
+  --sidebar-ring: 45 100% 52%;
+  
+  --border: 222 47% 11%;
+  --input: 222 47% 11%;
+  --ring: 45 100% 52%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+}
+
+/* Body styles */
 body {
-  background-color: #111111;
-  color: #f7f7f7;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }

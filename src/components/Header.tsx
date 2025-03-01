@@ -5,6 +5,7 @@ import { MatchHighlight } from '@/types';
 import { searchHighlights } from '@/services/highlightService';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useTheme } from '@/contexts/ThemeContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,16 +17,17 @@ import {
 
 const Header = () => {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MatchHighlight[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [username, setUsername] = useState('User Name');
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
+  const isDarkMode = theme === 'dark';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -121,7 +123,13 @@ const Header = () => {
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out px-4 py-4 md:py-3 ${
-        scrolled ? 'bg-[#222222]/95 backdrop-blur-md shadow-sm' : 'bg-[#222222]/80 backdrop-blur-sm'
+        scrolled 
+          ? isDarkMode 
+            ? 'bg-[#222222]/95 backdrop-blur-md shadow-sm' 
+            : 'bg-white/95 backdrop-blur-md shadow-sm'
+          : isDarkMode
+            ? 'bg-[#222222]/80 backdrop-blur-sm'
+            : 'bg-white/80 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -135,14 +143,14 @@ const Header = () => {
           </Link>
 
           <div ref={searchRef} className="relative flex-1 max-w-xl">
-            <div className="flex items-center bg-[#333333] rounded-full w-full">
-              <Search size={20} className={`ml-4 ${isSearching ? 'text-[#FFC30B]' : 'text-gray-400'} flex-shrink-0`} />
+            <div className={`flex items-center ${isDarkMode ? 'bg-[#333333]' : 'bg-gray-100'} rounded-full w-full`}>
+              <Search size={20} className={`ml-4 ${isSearching ? 'text-[#FFC30B]' : isDarkMode ? 'text-gray-400' : 'text-gray-500'} flex-shrink-0`} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for teams or matches"
-                className="bg-transparent text-white placeholder:text-gray-400 w-full pl-3 pr-4 py-2 rounded-full focus:outline-none"
+                className={`bg-transparent ${isDarkMode ? 'text-white placeholder:text-gray-400' : 'text-black placeholder:text-gray-500'} w-full pl-3 pr-4 py-2 rounded-full focus:outline-none`}
                 onFocus={() => {
                   if (searchResults.length > 0) {
                     setShowResults(true);
@@ -152,7 +160,7 @@ const Header = () => {
               {searchQuery && (
                 <button 
                   onClick={clearSearch}
-                  className="mr-4 text-gray-400 hover:text-white"
+                  className={`mr-4 ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-black'}`}
                 >
                   <X size={16} />
                 </button>
@@ -160,13 +168,13 @@ const Header = () => {
             </div>
 
             {showResults && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#333333] rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50">
+              <div className={`absolute top-full left-0 right-0 mt-1 ${isDarkMode ? 'bg-[#333333]' : 'bg-white'} rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50`}>
                 {isSearching ? (
-                  <div className="p-4 text-center text-gray-300">
+                  <div className={`p-4 text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Searching...
                   </div>
                 ) : searchResults.length === 0 ? (
-                  <div className="p-4 text-center text-gray-300">
+                  <div className={`p-4 text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     No results found
                   </div>
                 ) : (
@@ -175,7 +183,7 @@ const Header = () => {
                       <div 
                         key={result.id}
                         onClick={() => handleResultClick(result.id)}
-                        className="px-4 py-2 hover:bg-[#444444] cursor-pointer"
+                        className={`px-4 py-2 ${isDarkMode ? 'hover:bg-[#444444]' : 'hover:bg-gray-100'} cursor-pointer`}
                       >
                         <div className="flex items-center">
                           <div className="flex items-center space-x-2 flex-1">
@@ -188,7 +196,7 @@ const Header = () => {
                                 target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
                               }}
                             />
-                            <span className="text-white text-sm">{result.score.home} - {result.score.away}</span>
+                            <span className={`${isDarkMode ? 'text-white' : 'text-black'} text-sm`}>{result.score.home} - {result.score.away}</span>
                             <img 
                               src={result.awayTeam.logo} 
                               alt={result.awayTeam.name}
@@ -199,11 +207,11 @@ const Header = () => {
                               }}
                             />
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} text-xs`}>
                             {result.competition.name}
                           </div>
                         </div>
-                        <div className="text-white text-sm mt-1">{result.title}</div>
+                        <div className={`${isDarkMode ? 'text-white' : 'text-black'} text-sm mt-1`}>{result.title}</div>
                       </div>
                     ))}
                   </div>
@@ -218,18 +226,18 @@ const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="p-2 rounded-full bg-highlight-800/50 hover:bg-highlight-700/50 transition-colors"
+                className={`p-2 rounded-full ${isDarkMode ? 'bg-highlight-800/50 hover:bg-highlight-700/50' : 'bg-gray-200/70 hover:bg-gray-300/70'} transition-colors`}
                 aria-label="User profile"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="https://github.com/shadcn.png" alt="User" />
                   <AvatarFallback outlineStyle>
-                    <User size={20} className="text-white" />
+                    <User size={20} className={isDarkMode ? 'text-white' : 'text-black'} />
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#333333] border-[#444444] text-white">
+            <DropdownMenuContent align="end" className={`w-56 ${isDarkMode ? 'bg-[#333333] border-[#444444] text-white' : 'bg-white border-gray-200 text-black'}`}>
               <DropdownMenuLabel className="flex flex-col items-center py-4">
                 <div className="relative mb-2">
                   <Avatar 
@@ -239,7 +247,7 @@ const Header = () => {
                   >
                     <AvatarImage src="https://github.com/shadcn.png" alt="User" />
                     <AvatarFallback outlineStyle>
-                      <User size={24} className="text-white" />
+                      <User size={24} className={isDarkMode ? 'text-white' : 'text-black'} />
                     </AvatarFallback>
                   </Avatar>
                 </div>
@@ -250,7 +258,7 @@ const Header = () => {
                       ref={usernameInputRef}
                       type="text"
                       defaultValue={username}
-                      className="text-base bg-[#444444] px-2 py-1 rounded text-center focus:outline-none focus:ring-1 focus:ring-[#FFC30B]"
+                      className={`text-base ${isDarkMode ? 'bg-[#444444] text-white' : 'bg-gray-100 text-black'} px-2 py-1 rounded text-center focus:outline-none focus:ring-1 focus:ring-[#FFC30B]`}
                       onBlur={handleUsernameChange}
                     />
                   </form>
@@ -259,31 +267,31 @@ const Header = () => {
                     <span className="text-base font-medium">{username}</span>
                     <button 
                       onClick={handleEditUsername}
-                      className="ml-2 p-1 hover:bg-[#444444] rounded-full transition-colors"
+                      className={`ml-2 p-1 ${isDarkMode ? 'hover:bg-[#444444]' : 'hover:bg-gray-100'} rounded-full transition-colors`}
                     >
-                      <PencilIcon size={12} className="text-gray-400" />
+                      <PencilIcon size={12} className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} />
                     </button>
                   </div>
                 )}
                 
-                <span className="text-xs text-gray-400">user@example.com</span>
+                <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>user@example.com</span>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-[#444444]" />
-              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
+              <DropdownMenuSeparator className={isDarkMode ? 'bg-[#444444]' : 'bg-gray-200'} />
+              <DropdownMenuItem className={`cursor-pointer ${isDarkMode ? 'hover:bg-[#444444] focus:bg-[#444444]' : 'hover:bg-gray-100 focus:bg-gray-100'}`}>
                 <Bell className="mr-2 h-4 w-4" />
                 <span>Notifications</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
+              <DropdownMenuItem className={`cursor-pointer ${isDarkMode ? 'hover:bg-[#444444] focus:bg-[#444444]' : 'hover:bg-gray-100 focus:bg-gray-100'}`}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
+              <DropdownMenuItem className={`cursor-pointer ${isDarkMode ? 'hover:bg-[#444444] focus:bg-[#444444]' : 'hover:bg-gray-100 focus:bg-gray-100'}`}>
                 <Bookmark className="mr-2 h-4 w-4" />
                 <span>Saved Games</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-[#444444]" />
+              <DropdownMenuSeparator className={isDarkMode ? 'bg-[#444444]' : 'bg-gray-200'} />
               <DropdownMenuItem 
-                className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]"
+                className={`cursor-pointer ${isDarkMode ? 'hover:bg-[#444444] focus:bg-[#444444]' : 'hover:bg-gray-100 focus:bg-gray-100'}`}
                 onClick={toggleTheme}
               >
                 <div className="flex items-center justify-between w-full">
