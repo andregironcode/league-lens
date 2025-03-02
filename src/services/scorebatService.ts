@@ -159,13 +159,14 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     
     console.log('Using Scorebat API token for authenticated access');
     
-    // Use the CORS proxy with the official v3 API and your token
+    // Use the CORS proxy with the official v3 API
     const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_API_URL}?token=${API_TOKEN}`)}`;
-    console.log('Fetching from Scorebat API v3 with CORS Proxy');
+    console.log('Fetching from Scorebat API v3:', proxyUrl);
     
     const response = await fetch(proxyUrl, {
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${API_TOKEN}`
       }
     });
     
@@ -187,7 +188,7 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     
     try {
       data = JSON.parse(text);
-      console.log('Successfully parsed JSON response from API v3');
+      console.log('Successfully parsed JSON response from API v3:', data);
     } catch (e) {
       console.error('Failed to parse API v3 response as JSON:', e);
       console.error('Raw response:', text);
@@ -201,7 +202,7 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     
     console.log(`Received ${data.response.length} videos from API v3`);
     
-    // Check if the response is empty
+    // Check if the response is empty or has no videos
     if (data.response.length === 0) {
       console.error('No videos found in API v3 response');
       throw new Error('No videos found in API response');

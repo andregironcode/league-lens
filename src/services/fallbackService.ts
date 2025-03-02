@@ -61,7 +61,7 @@ export const getFallbackData = async <T>(
       console.log('Successfully received live data from Scorebat API');
       apiStateTracker.recordSuccess();
       
-      // Only show success toast if we actually got data and haven't shown an error
+      // Only show success toast if we got data and haven't shown an error
       if (showToast && !hasShownAPIError.value) {
         toast.success('Connected to Scorebat API', {
           description: 'Successfully fetched live football highlights.',
@@ -76,7 +76,7 @@ export const getFallbackData = async <T>(
     console.warn('API data did not meet threshold requirements, using fallback data');
     if (showToast && !hasShownAPIError.value) {
       toast.warning('No Videos Available - Using demo data', {
-        description: 'The Scorebat API did not return any videos. This might be a temporary issue. Using demo data for now.',
+        description: 'The Scorebat API is connected but returned no videos. This might be a temporary issue. Using demo data for now.',
         duration: 5000,
       });
       hasShownAPIError.value = true;
@@ -142,6 +142,7 @@ export const isValidTokenFormat = (): boolean => {
   const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
   if (!token) return false;
   
+  // Add better token validation logic - most API tokens are at least 20 chars
   return token.length > 20;
 };
 
