@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League } from '@/types';
 import { getRecommendedHighlights as getMockRecommendedHighlights, 
          getLeagueHighlights as getMockLeagueHighlights,
@@ -28,8 +27,8 @@ export const getFallbackData = async <T>(
     // If not, fall back to mock data
     console.warn('API data did not meet threshold requirements, using fallback data');
     if (showToast && !hasShownAPIError.value) {
-      toast.warning('Using demo data - API is not available', {
-        description: 'The Scorebat API requires a paid plan. Using demo data for now.',
+      toast.warning('Using demo data - API returned insufficient data', {
+        description: 'The Scorebat API returned insufficient data. Using demo data for now.',
         duration: 5000,
       });
       hasShownAPIError.value = true;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
@@ -18,12 +17,10 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch recommended highlights with fallback
         const recommendedData = await getRecommendedHighlightsWithFallback();
         setRecommendedHighlights(recommendedData);
         setLoading(prev => ({ ...prev, recommended: false }));
 
-        // Fetch league highlights with fallback
         const leaguesData = await getLeagueHighlightsWithFallback();
         setLeagues(leaguesData);
         setLoading(prev => ({ ...prev, leagues: false }));
@@ -36,7 +33,6 @@ const Index = () => {
     fetchData();
   }, []);
 
-  // Helper function for skeleton loading
   const renderSkeleton = (count: number, featured = false) => {
     return Array(count)
       .fill(0)
@@ -58,7 +54,6 @@ const Index = () => {
       <Toaster position="top-center" />
       
       <main className="pt-16 pb-10">
-        {/* Hero Carousel */}
         <section className="mb-12">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4">
             {loading.recommended ? (
@@ -69,7 +64,6 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Leagues Section */}
         <section id="leagues" className="mb-16">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
             {loading.leagues 
@@ -93,7 +87,6 @@ const Index = () => {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-[#222222] py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center">
@@ -102,7 +95,7 @@ const Index = () => {
             </p>
             <p className="text-xs text-gray-500 mt-2">
               All videos are sourced from official channels and we do not host any content.
-              Highlights powered by Scorebat API.
+              Highlights powered by Scorebat API (Developer - Hobby Plan).
             </p>
           </div>
         </div>

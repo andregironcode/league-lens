@@ -1,9 +1,11 @@
-
 import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper, Team } from '@/types';
 
 // API constants
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
 const SCOREBAT_API_TOKEN = 'MTk1NDQ4XzE3MDA1MzIwOTRfZDA4MTZlZjJiZjhjM2YwYmJlOGM0NjIzNmM4YjNlOWJlZjgwMzkzOA==';
+
+// Update to the paid API token
+const SCOREBAT_PAID_API_TOKEN = 'MTk1NDQ4X1AyOTg4MDg0MzFfOWNkNWI1YzAxYmE0OTc5YTk0NTFkNTEyNGJiYjdjYWJkMDgwMzIyNQ==';
 
 // Create a map of competition names to league IDs
 const competitionToLeagueMap: Record<string, { id: string, logo: string }> = {
@@ -113,7 +115,8 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     // Add a small delay to simulate network request
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    const response = await fetch(`${SCOREBAT_API_URL}/feed?token=${SCOREBAT_API_TOKEN}`);
+    // Use the paid API token instead of the free one
+    const response = await fetch(`${SCOREBAT_API_URL}/feed?token=${SCOREBAT_PAID_API_TOKEN}`);
     
     if (!response.ok) {
       throw new Error(`Scorebat API error: ${response.status}`);
