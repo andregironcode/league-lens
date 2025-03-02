@@ -1,3 +1,4 @@
+
 import { MatchHighlight, League } from '@/types';
 import { getRecommendedHighlights as getMockRecommendedHighlights, 
          getLeagueHighlights as getMockLeagueHighlights,
@@ -17,10 +18,15 @@ export const getFallbackData = async <T>(
   showToast: boolean = true
 ): Promise<T> => {
   try {
+    console.log('Attempting to fetch data from Scorebat API...');
     const apiData = await apiCall();
+    console.log('API response:', apiData);
     
     // Check if the API data meets minimum requirements
     if (Array.isArray(apiData) && apiData.length >= threshold) {
+      console.log('Successfully received live data from Scorebat API');
+      // Reset the error flag if we get successful data
+      hasShownAPIError.value = false;
       return apiData;
     }
     
@@ -38,7 +44,7 @@ export const getFallbackData = async <T>(
     console.error('Error in API call, using fallback data:', error);
     if (showToast && !hasShownAPIError.value) {
       toast.error('API Error - Using demo data', {
-        description: 'The Scorebat API returned an error. Using demo data for now.',
+        description: 'There was an error accessing the Scorebat API. Check that your API token is valid.',
         duration: 5000,
       });
       hasShownAPIError.value = true;

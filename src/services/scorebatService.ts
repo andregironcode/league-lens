@@ -1,11 +1,11 @@
+
 import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper, Team } from '@/types';
 
 // API constants
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
-const SCOREBAT_API_TOKEN = 'MTk1NDQ4XzE3MDA1MzIwOTRfZDA4MTZlZjJiZjhjM2YwYmJlOGM0NjIzNmM4YjNlOWJlZjgwMzkzOA==';
 
-// Update to the paid API token
-const SCOREBAT_PAID_API_TOKEN = 'MTk1NDQ4X1AyOTg4MDg0MzFfOWNkNWI1YzAxYmE0OTc5YTk0NTFkNTEyNGJiYjdjYWJkMDgwMzIyNQ==';
+// Use only the paid API token
+const SCOREBAT_API_TOKEN = 'MTk1NDQ4X1AyOTg4MDg0MzFfOWNkNWI1YzAxYmE0OTc5YTk0NTFkNTEyNGJiYjdjYWJkMDgwMzIyNQ==';
 
 // Create a map of competition names to league IDs
 const competitionToLeagueMap: Record<string, { id: string, logo: string }> = {
@@ -44,6 +44,25 @@ const generateViews = (): number => {
   return Math.floor(Math.random() * 900000) + 100000; // Random between 100k and 1M
 };
 
+// Helper to extract score from title (approximate, as Scorebat doesn't provide structured score data)
+const extractScoreFromTitle = (title: string): { home: number, away: number } => {
+  // Try to find patterns like "Team1 3-2 Team2" or "Team1 3 - 2 Team2"
+  const scoreRegex = /(\d+)\s*-\s*(\d+)/;
+  const match = title.match(scoreRegex);
+  
+  if (match && match.length >= 3) {
+    return {
+      home: parseInt(match[1], 10),
+      away: parseInt(match[2], 10)
+    };
+  }
+  
+  return {
+    home: 0,
+    away: 0
+  };
+};
+
 // Mapper to convert Scorebat data to our application format
 const scorebatMapper: ScorebatMapper = {
   mapToMatchHighlight: (video: ScorebatVideo): MatchHighlight => {
@@ -53,6 +72,9 @@ const scorebatMapper: ScorebatMapper = {
     // Extract competition info
     const competitionInfo = competitionToLeagueMap[video.competition.name] || 
                             { id: 'other', logo: '/leagues/other.png' };
+    
+    // Try to extract score from title
+    const score = extractScoreFromTitle(video.title);
     
     return {
       id: video.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -64,10 +86,7 @@ const scorebatMapper: ScorebatMapper = {
       views: generateViews(),
       homeTeam,
       awayTeam,
-      score: {
-        home: 0, // Scorebat doesn't provide scores, would need to be parsed from title
-        away: 0
-      },
+      score,
       competition: {
         id: competitionInfo.id,
         name: video.competition.name,
@@ -112,108 +131,84 @@ const scorebatMapper: ScorebatMapper = {
 // Fetch data from Scorebat API
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   try {
-    // Add a small delay to simulate network request
-    await new Promise(resolve => setTimeout(resolve, 800));
+    console.log('Fetching from Scorebat API:', `${SCOREBAT_API_URL}/feed?token=${SCOREBAT_API_TOKEN}`);
     
-    // Use the paid API token instead of the free one
-    const response = await fetch(`${SCOREBAT_API_URL}/feed?token=${SCOREBAT_PAID_API_TOKEN}`);
+    const response = await fetch(`${SCOREBAT_API_URL}/feed?token=${SCOREBAT_API_TOKEN}`);
     
     if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      console.error('Scorebat API error response:', errorData);
       throw new Error(`Scorebat API error: ${response.status}`);
     }
     
     const data: ScorebatResponse = await response.json();
+    console.log('Scorebat API response data count:', data.data?.length || 0);
     return data.data || [];
   } catch (error) {
     console.error('Error fetching from Scorebat API:', error);
-    return [];
+    throw error; // Re-throw to let fallback service handle it
   }
 };
 
 // Get recommended highlights (latest videos)
 export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
-  try {
-    const videos = await fetchScorebatVideos();
-    
-    // Take the first 5 videos as recommended
-    const recommendedVideos = videos.slice(0, 5);
-    
-    return recommendedVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
-  } catch (error) {
-    console.error('Error getting recommended highlights:', error);
-    return [];
-  }
+  const videos = await fetchScorebatVideos();
+  
+  // Take the first 5 videos as recommended
+  const recommendedVideos = videos.slice(0, 5);
+  
+  return recommendedVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };
 
 // Get all highlights grouped by league
 export const getLeagueHighlights = async (): Promise<League[]> => {
-  try {
-    const videos = await fetchScorebatVideos();
-    return scorebatMapper.mapToLeagues(videos);
-  } catch (error) {
-    console.error('Error getting league highlights:', error);
-    return [];
-  }
+  const videos = await fetchScorebatVideos();
+  return scorebatMapper.mapToLeagues(videos);
 };
 
 // Get a specific match by ID
 export const getMatchById = async (id: string): Promise<MatchHighlight | null> => {
-  try {
-    const videos = await fetchScorebatVideos();
-    const video = videos.find(v => v.id === id);
-    
-    if (!video) return null;
-    
-    return scorebatMapper.mapToMatchHighlight(video);
-  } catch (error) {
-    console.error('Error getting match by ID:', error);
-    return null;
-  }
+  const videos = await fetchScorebatVideos();
+  const video = videos.find(v => v.id === id);
+  
+  if (!video) return null;
+  
+  return scorebatMapper.mapToMatchHighlight(video);
 };
 
 // Get highlights for a specific team
 export const getTeamHighlights = async (teamId: string): Promise<MatchHighlight[]> => {
-  try {
-    const videos = await fetchScorebatVideos();
-    
-    // Convert team ID back to team name format (dashes to spaces)
-    const teamName = teamId.replace(/-/g, ' ');
-    
-    // Find videos featuring this team
-    const teamVideos = videos.filter(video => {
-      const team1Lower = video.team1.name.toLowerCase();
-      const team2Lower = video.team2.name.toLowerCase();
-      return team1Lower.includes(teamName) || team2Lower.includes(teamName);
-    });
-    
-    return teamVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
-  } catch (error) {
-    console.error('Error getting team highlights:', error);
-    return [];
-  }
+  const videos = await fetchScorebatVideos();
+  
+  // Convert team ID back to team name format (dashes to spaces)
+  const teamName = teamId.replace(/-/g, ' ');
+  
+  // Find videos featuring this team
+  const teamVideos = videos.filter(video => {
+    const team1Lower = video.team1.name.toLowerCase();
+    const team2Lower = video.team2.name.toLowerCase();
+    return team1Lower.includes(teamName) || team2Lower.includes(teamName);
+  });
+  
+  return teamVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };
 
 // Search for highlights
 export const searchHighlights = async (query: string): Promise<MatchHighlight[]> => {
   if (!query.trim()) return [];
   
-  try {
-    const videos = await fetchScorebatVideos();
-    const normalizedQuery = query.toLowerCase().trim();
-    
-    // Search in title, team names, and competition name
-    const matchingVideos = videos.filter(video => {
-      return (
-        video.title.toLowerCase().includes(normalizedQuery) ||
-        video.team1.name.toLowerCase().includes(normalizedQuery) ||
-        video.team2.name.toLowerCase().includes(normalizedQuery) ||
-        video.competition.name.toLowerCase().includes(normalizedQuery)
-      );
-    });
-    
-    return matchingVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
-  } catch (error) {
-    console.error('Error searching highlights:', error);
-    return [];
-  }
+  const videos = await fetchScorebatVideos();
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  // Search in title, team names, and competition name
+  const matchingVideos = videos.filter(video => {
+    return (
+      video.title.toLowerCase().includes(normalizedQuery) ||
+      video.team1.name.toLowerCase().includes(normalizedQuery) ||
+      video.team2.name.toLowerCase().includes(normalizedQuery) ||
+      video.competition.name.toLowerCase().includes(normalizedQuery)
+    );
+  });
+  
+  return matchingVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
@@ -13,19 +14,31 @@ const Index = () => {
     recommended: true,
     leagues: true
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Fetching recommended highlights...');
         const recommendedData = await getRecommendedHighlightsWithFallback();
+        console.log('Received recommended highlights:', recommendedData.length);
         setRecommendedHighlights(recommendedData);
         setLoading(prev => ({ ...prev, recommended: false }));
 
+        console.log('Fetching league highlights...');
         const leaguesData = await getLeagueHighlightsWithFallback();
-        setLeagues(leaguesData);
+        console.log('Received league highlights:', leaguesData.length);
+        
+        // Sort leagues by number of highlights (most highlights first)
+        const sortedLeagues = [...leaguesData].sort(
+          (a, b) => b.highlights.length - a.highlights.length
+        );
+        
+        setLeagues(sortedLeagues);
         setLoading(prev => ({ ...prev, leagues: false }));
       } catch (error) {
         console.error('Error fetching highlights:', error);
+        setError('Failed to load highlights. Please refresh the page.');
         setLoading({ recommended: false, leagues: false });
       }
     };
@@ -58,6 +71,10 @@ const Index = () => {
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4">
             {loading.recommended ? (
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
+            ) : error ? (
+              <div className="w-full h-[30vh] flex items-center justify-center bg-highlight-800/50 rounded-lg">
+                <p className="text-white">{error}</p>
+              </div>
             ) : (
               <HeroCarousel highlights={recommendedHighlights} />
             )}
@@ -79,9 +96,16 @@ const Index = () => {
                   ))}
                 </div>
               )
-              : leagues.map(league => (
-                <LeagueSection key={league.id} league={league} />
-              ))
+              : leagues.length > 0 ? (
+                leagues.map(league => (
+                  <LeagueSection key={league.id} league={league} />
+                ))
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-xl text-gray-400">No leagues available at the moment.</p>
+                  <p className="text-sm text-gray-500 mt-2">Try refreshing the page or check back later.</p>
+                </div>
+              )
             }
           </div>
         </section>

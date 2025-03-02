@@ -20,6 +20,8 @@ const getCountryFlag = (leagueId: string): string => {
     'portugal': 'https://flagcdn.com/w40/pt.png', // Portuguese flag
     'brazil': 'https://flagcdn.com/w40/br.png', // Brazilian flag
     'argentina': 'https://flagcdn.com/w40/ar.png', // Argentine flag
+    'ucl': 'https://flagcdn.com/w40/eu.png', // EU flag for Champions League
+    'uel': 'https://flagcdn.com/w40/eu.png', // EU flag for Europa League
   };
   
   return flagMap[leagueId] || 'https://www.sofascore.com/static/images/placeholders/tournament.svg';
@@ -36,6 +38,11 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
       });
     }
   };
+
+  // If no highlights, don't render the section
+  if (!league.highlights || league.highlights.length === 0) {
+    return null;
+  }
 
   return (
     <div className="mb-10 animate-fade-in">
@@ -55,10 +62,9 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
         <div className="flex items-center justify-between flex-1">
           <div className="flex items-center space-x-3">
             <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
-            {/* Removed the following span that displayed the number of highlights */}
-            {/* <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-400">
               {league.highlights.length} highlights
-            </span> */}
+            </span>
           </div>
         </div>
       </div>
@@ -79,14 +85,16 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
           ))}
         </div>
         
-        {/* Scroll button */}
-        <button 
-          onClick={scrollRight}
-          className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-highlight-800/80 hover:bg-highlight-700 p-2 rounded-full shadow-md z-10"
-          aria-label="See more highlights"
-        >
-          <ChevronRight size={24} className="text-white" />
-        </button>
+        {/* Only show scroll button if there are enough highlights */}
+        {league.highlights.length > 3 && (
+          <button 
+            onClick={scrollRight}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-highlight-800/80 hover:bg-highlight-700 p-2 rounded-full shadow-md z-10"
+            aria-label="See more highlights"
+          >
+            <ChevronRight size={24} className="text-white" />
+          </button>
+        )}
       </div>
     </div>
   );
