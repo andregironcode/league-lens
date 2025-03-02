@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper, Team } from '@/types';
 
 // API constants
@@ -437,7 +436,7 @@ const transformVideoArray = (videoArray: any[]): ScorebatVideo[] => {
       url: item.competitionUrl || '',
     },
     matchviewUrl: item.matchviewUrl || item.url || '',
-    competitionUrl: item.competitionUrl || '',
+    competitionUrl: item.competitionUrl || item.competition?.url || '',
     team1: {
       name: item.side1?.name || 'Unknown',
       url: item.side1?.url || '',
@@ -596,8 +595,8 @@ const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
 // Fetch data for a specific competition using the CORS proxy
 export const fetchCompetitionVideos = async (competitionId: string): Promise<ScorebatVideo[]> => {
   try {
-    // Use the CORS proxy with the competition endpoint
-    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}competition/${competitionId}?json=1`)}`;
+    // Use the first CORS proxy with the competition endpoint
+    const proxyUrl = `${CORS_PROXIES[0]}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}competition/${competitionId}?json=1`)}`;
     console.log(`Fetching competition ${competitionId} highlights...`);
     
     const response = await fetch(proxyUrl);
@@ -643,8 +642,8 @@ export const fetchCompetitionVideos = async (competitionId: string): Promise<Sco
 // Fetch data for a specific team using the CORS proxy
 export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> => {
   try {
-    // Use the CORS proxy with the team endpoint
-    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}team/${teamId}?json=1`)}`;
+    // Use the first CORS proxy with the team endpoint
+    const proxyUrl = `${CORS_PROXIES[0]}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}team/${teamId}?json=1`)}`;
     console.log(`Fetching from Scorebat Widget API (team ${teamId}) with CORS Proxy:`, proxyUrl);
     
     const response = await fetch(proxyUrl);

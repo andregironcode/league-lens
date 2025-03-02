@@ -141,15 +141,17 @@ export const resetApiCooldown = () => {
 };
 
 export const hasApiToken = (): boolean => {
-  return !!import.meta.env.VITE_SCOREBAT_API_TOKEN;
+  const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
+  return !!token && token.length > 0;
 };
 
 export const isValidTokenFormat = (): boolean => {
   const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
   if (!token) return false;
   
-  // Check for reasonable token length
-  return token.length > 10;
+  // Check for reasonable token length and correct format
+  // Scorebat tokens usually start with "MTk" (base64 encoded)
+  return token.length > 10 && token.startsWith('MTk');
 };
 
 // Helper functions to get different types of football highlights with fallback to demo data

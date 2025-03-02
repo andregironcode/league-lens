@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { Toaster } from '@/components/ui/sonner';
@@ -25,6 +24,10 @@ const SettingsPage = () => {
       message: 'Checking widget access...'
     }
   ]);
+  
+  const [apiToken, setApiToken] = useState<string>(() => {
+    return import.meta.env.VITE_SCOREBAT_API_TOKEN || '';
+  });
 
   const checkApiStatus = async () => {
     setApiStatuses(prev => prev.map(api => ({
@@ -35,7 +38,9 @@ const SettingsPage = () => {
     
     // Check the main API status
     try {
-      const apiResponse = await fetch('https://www.scorebat.com/video-api/v3/feed?token=MTk1NDQ4X01UazFORFF4WDFBeU9UZzRNRGcwTXpGZk9XTmtOV0kxWXpBeFlXRTBPVGM1WVRrME5URmtOVEV5TkdKaVlqZGpZV0prTURnd016SXlOUT09');
+      // Use the token from environment if available, otherwise use the one from state
+      const token = import.meta.env.VITE_SCOREBAT_API_TOKEN || apiToken;
+      const apiResponse = await fetch(`https://www.scorebat.com/video-api/v3/feed?token=${token}`);
       const apiData = await apiResponse.json();
       
       if (apiResponse.ok && !apiData.error) {
@@ -51,7 +56,7 @@ const SettingsPage = () => {
           api.url.includes('video-api') ? {
             ...api,
             status: 'error',
-            message: `API error: ${apiData.error?.text || 'Unknown error'}`
+            message: `API error: ${apiData.error?.text || apiData.error || 'Invalid token or access denied'}`
           } : api
         ));
       }
@@ -124,7 +129,47 @@ const SettingsPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-4 mb-6">
+                <div className="p-4 rounded-lg bg-[#333333]">
+                  <div className="font-medium text-white mb-2">Scorebat API Token</div>
+                  <div className="text-sm text-gray-400 mb-3">
+                    Enter your Scorebat API token below. You can get one by subscribing to their API service.
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      value={apiToken}
+                      onChange={(e) => setApiToken(e.target.value)}
+                      placeholder="Enter your Scorebat API token"
+                      className="flex-1 bg-[#1A1A1A] border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-[#FFC30B]"
+                    />
+                    <Button
+                      className="bg-[#FFC30B] hover:bg-[#E5AF09] text-black"
+                      onClick={() => {
+                        // Store in localStorage for persistence
+                        localStorage.setItem('scorebat-api-token', apiToken);
+                        // Inform the app that the token has been updated
+                        window.dispatchEvent(new CustomEvent('scorebat-token-updated', { 
+                          detail: { status: 'checking', refresh: true } 
+                        }));
+                        // Check the API status with the new token
+                        checkApiStatus();
+                        toast.success('API Token Saved', {
+                          description: 'Your Scorebat API token has been saved. Testing connection...',
+                          duration: 3000
+                        });
+                      }}
+                    >
+                      Save Token
+                    </Button>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">
+                    {import.meta.env.VITE_SCOREBAT_API_TOKEN ? 
+                      '✓ API token is set in environment variables' : 
+                      'Note: For best security, set this as VITE_SCOREBAT_API_TOKEN in your environment'}
+                  </div>
+                </div>
+              
                 {apiStatuses.map((api, index) => (
                   <div key={index} className="p-4 rounded-lg bg-[#333333] flex items-start justify-between">
                     <div>
@@ -193,6 +238,10 @@ const SettingsPage = () => {
               <p>
                 If you're seeing errors with the premium API but success with the widget API, the app will automatically 
                 use widget data. The application falls back to demo data if no APIs are available.
+              </p>
+              <p className="font-semibold">
+                Important: Scorebat API tokens typically start with "MTk" and are quite long. If your token doesn't work, 
+                make sure it's copied correctly and includes the full string without any extra spaces.
               </p>
             </CardContent>
             <CardFooter>
