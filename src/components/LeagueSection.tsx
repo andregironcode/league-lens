@@ -49,18 +49,20 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
     <div className="mb-10 animate-fade-in">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          {/* Country flag instead of league logo */}
-          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
-            <img 
-              src={getCountryFlag(league.id)}
-              alt={league.name}
-              className="w-8 h-8 object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "https://www.sofascore.com/static/images/placeholders/tournament.svg";
-              }}
-            />
-          </div>
+          {/* Country flag instead of league logo with added hover effect */}
+          <Link to={`/competition/${league.id}`} className="block">
+            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
+              <img 
+                src={getCountryFlag(league.id)}
+                alt={league.name}
+                className="w-8 h-8 object-cover league-flag"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/tournament.svg";
+                }}
+              />
+            </div>
+          </Link>
           <div className="flex items-center space-x-3">
             <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
             <span className="text-sm text-gray-400">
@@ -71,7 +73,7 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
         
         <Link 
           to={`/competition/${league.id}`} 
-          className="text-sm text-highlight-500 hover:text-highlight-400 flex items-center"
+          className="text-sm text-highlight-500 hover:text-highlight-400 flex items-center clickable"
         >
           <span>View all</span>
           <ExternalLink size={14} className="ml-1" />
@@ -98,7 +100,7 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
         {league.highlights.length > 3 && (
           <button 
             onClick={scrollRight}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-highlight-800/80 hover:bg-highlight-700 p-2 rounded-full shadow-md z-10"
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-highlight-800/80 hover:bg-highlight-700 p-2 rounded-full shadow-md z-10 clickable"
             aria-label="See more highlights"
           >
             <ChevronRight size={24} className="text-white" />

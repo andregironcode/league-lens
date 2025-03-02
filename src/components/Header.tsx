@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Search, User, X, Bell, Settings, Bookmark, Sun, Moon, PencilIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -130,7 +131,7 @@ const Header = () => {
             <img 
               src="/lovable-uploads/3f69b4d3-7c25-4f74-a779-c3f73cd73d08.png" 
               alt="Score 90" 
-              className="h-7 md:h-8" 
+              className="h-7 md:h-8 clickable" 
             />
           </Link>
 
