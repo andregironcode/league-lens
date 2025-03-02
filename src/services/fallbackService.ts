@@ -5,11 +5,17 @@ import { getRecommendedHighlights as getMockRecommendedHighlights,
          getMatchById as getMockMatchById,
          getTeamHighlights as getMockTeamHighlights,
          searchHighlights as mockSearchHighlights } from './highlightService';
+import { toast } from 'sonner';
+
+const hasShownAPIError = {
+  value: false
+};
 
 export const getFallbackData = async <T>(
   apiCall: () => Promise<T>,
   mockCall: () => Promise<T>,
-  threshold: number = 1 // Minimum number of items expected
+  threshold: number = 1, // Minimum number of items expected
+  showToast: boolean = true
 ): Promise<T> => {
   try {
     const apiData = await apiCall();
@@ -21,9 +27,23 @@ export const getFallbackData = async <T>(
     
     // If not, fall back to mock data
     console.warn('API data did not meet threshold requirements, using fallback data');
+    if (showToast && !hasShownAPIError.value) {
+      toast.warning('Using demo data - API is not available', {
+        description: 'The Scorebat API requires a paid plan. Using demo data for now.',
+        duration: 5000,
+      });
+      hasShownAPIError.value = true;
+    }
     return await mockCall();
   } catch (error) {
     console.error('Error in API call, using fallback data:', error);
+    if (showToast && !hasShownAPIError.value) {
+      toast.error('API Error - Using demo data', {
+        description: 'The Scorebat API returned an error. Using demo data for now.',
+        duration: 5000,
+      });
+      hasShownAPIError.value = true;
+    }
     return await mockCall();
   }
 };

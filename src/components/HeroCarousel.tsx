@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -7,93 +8,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 interface HeroCarouselProps {
   highlights: MatchHighlight[];
 }
-
-const exampleGames: MatchHighlight[] = [
-  {
-    id: "1",
-    title: "Manchester City vs Arsenal",
-    date: new Date().toISOString(),
-    thumbnailUrl: "https://e0.365dm.com/23/04/768x432/skysports-arsenal-manchester-city_6131683.jpg?20230426210634",
-    videoUrl: "https://www.youtube.com/watch?v=38qkI3jAl68",
-    duration: "10:25",
-    views: 1500000,
-    homeTeam: {
-      id: "65",
-      name: "Manchester City",
-      logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg"
-    },
-    awayTeam: {
-      id: "57",
-      name: "Arsenal",
-      logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg"
-    },
-    score: {
-      home: 4,
-      away: 1
-    },
-    competition: {
-      id: "1",
-      name: "Premier League",
-      logo: "/competitions/premier-league.png"
-    }
-  },
-  {
-    id: "2",
-    title: "Real Madrid vs Barcelona",
-    date: new Date().toISOString(),
-    thumbnailUrl: "https://cdn.wearefanatics.com/resources/products/football/barcelona-vs-real-madrid.png",
-    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE",
-    duration: "11:40",
-    views: 2300000,
-    homeTeam: {
-      id: "541",
-      name: "Real Madrid",
-      logo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg"
-    },
-    awayTeam: {
-      id: "529",
-      name: "Barcelona",
-      logo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg"
-    },
-    score: {
-      home: 3,
-      away: 2
-    },
-    competition: {
-      id: "2",
-      name: "La Liga",
-      logo: "/competitions/la-liga.png"
-    }
-  },
-  {
-    id: "3",
-    title: "Borussia Dortmund vs Bayern Munich",
-    date: new Date().toISOString(),
-    thumbnailUrl: "https://e0.365dm.com/22/10/768x432/skysports-bundesliga-bayern-munich_5922057.jpg?20221008170713",
-    videoUrl: "https://www.youtube.com/watch?v=sApmPP5ku5k",
-    duration: "9:15",
-    views: 1800000,
-    homeTeam: {
-      id: "16",
-      name: "Borussia Dortmund",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg"
-    },
-    awayTeam: {
-      id: "14",
-      name: "Bayern Munich",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg"
-    },
-    score: {
-      home: 2,
-      away: 2
-    },
-    competition: {
-      id: "3",
-      name: "Bundesliga",
-      logo: "/competitions/bundesliga.png"
-    }
-  }
-];
 
 const getShortTeamName = (fullName: string): string => {
   const teamMappings: Record<string, string> = {
@@ -119,16 +33,19 @@ const getShortTeamName = (fullName: string): string => {
   return teamMappings[fullName] || fullName;
 };
 
-const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
+const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const navigate = useNavigate();
 
-  const highlights = exampleGames;
-  const currentHighlight = highlights[currentIndex];
+  // Make sure we have highlights and select a safe index
+  const validHighlights = highlights && highlights.length > 0 ? highlights : [];
+  const currentHighlight = validHighlights[currentIndex] || null;
 
   useEffect(() => {
+    if (!currentHighlight) return;
+    
     setIsScrolling(false);
     
     const timer = setTimeout(() => {
@@ -140,7 +57,16 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
     }, 500);
     
     return () => clearTimeout(timer);
-  }, [currentIndex]);
+  }, [currentIndex, currentHighlight]);
+
+  // If no highlights are available, show a placeholder
+  if (validHighlights.length === 0) {
+    return (
+      <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10 flex items-center justify-center">
+        <p className="text-white text-xl">Loading highlights...</p>
+      </div>
+    );
+  }
 
   const getYoutubeVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
@@ -154,13 +80,13 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
 
   const handlePrevSlide = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? highlights.length - 1 : prevIndex - 1
+      prevIndex === 0 ? validHighlights.length - 1 : prevIndex - 1
     );
   };
 
   const handleNextSlide = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === highlights.length - 1 ? 0 : prevIndex + 1
+      prevIndex === validHighlights.length - 1 ? 0 : prevIndex + 1
     );
   };
 
@@ -171,6 +97,26 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
 
   const handleCloseComments = () => {
     setShowComments(false);
+  };
+
+  // Format date relative to now
+  const formatRelativeTime = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+      
+      if (diffInHours < 1) return 'Just now';
+      if (diffInHours < 24) return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
+      
+      const diffInDays = Math.floor(diffInHours / 24);
+      if (diffInDays < 30) return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
+      
+      const diffInMonths = Math.floor(diffInDays / 30);
+      return `${diffInMonths} ${diffInMonths === 1 ? 'month' : 'months'} ago`;
+    } catch (e) {
+      return 'Recently';
+    }
   };
 
   return (
@@ -188,6 +134,10 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
           src={currentHighlight.thumbnailUrl}
           alt=""
           className="w-full h-full object-cover opacity-40"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/placeholder.svg";
+          }}
         />
       </div>
 
@@ -232,7 +182,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </div>
 
             <div className="flex items-center justify-center mb-4">
-              <p className="text-white/70">2 hours ago</p>
+              <p className="text-white/70">{formatRelativeTime(currentHighlight.date)}</p>
               <span className="mx-2 text-white/40">•</span>
               <p className="text-white/70">{currentHighlight.competition.name}</p>
             </div>
@@ -258,7 +208,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
 
           <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
             <iframe
-              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
+              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=0&mute=1&controls=1&modestbranding=1`}
               title={currentHighlight.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               className="w-full h-full"
@@ -268,7 +218,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
       </div>
 
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
-        {highlights.map((_, index) => (
+        {validHighlights.map((_, index) => (
           <button
             key={index}
             className={`h-3 rounded-full transition-all ${
@@ -349,3 +299,4 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
 };
 
 export default HeroCarousel;
+

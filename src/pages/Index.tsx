@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
+import { Toaster } from '@/components/ui/sonner';
 import { getRecommendedHighlightsWithFallback, getLeagueHighlightsWithFallback } from '@/services/fallbackService';
 import { MatchHighlight, League } from '@/types';
 
@@ -54,6 +55,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[#111111] text-white">
       <Header />
+      <Toaster position="top-center" />
       
       <main className="pt-16 pb-10">
         {/* Hero Carousel */}
