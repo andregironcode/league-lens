@@ -1,13 +1,14 @@
+
 import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper, Team } from '@/types';
 
 // API constants
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
 
-// Updated API token from the paid developer plan
-const SCOREBAT_API_TOKEN = 'MTk1NDQ4X01UazFORFF4WDFBeU9UZzRNRGcwTXpGZk9XTmtOV0kxWXpBeFlXRTBPVGM1WVRrME5URmtOVEV5TkdKaVlqZGpZV0prTURnd016SXlOUT09';
-
 // Widget access (free) doesn't require a token
 const SCOREBAT_WIDGET_URL = 'https://www.scorebat.com/embed/';
+
+// CORS proxy to bypass cross-origin restrictions
+const CORS_PROXY = 'https://corsproxy.io/?';
 
 // Create a map of competition names to league IDs
 const competitionToLeagueMap: Record<string, { id: string, logo: string }> = {
@@ -144,13 +145,14 @@ const scorebatMapper: ScorebatMapper = {
   }
 };
 
-// Fetch data from Scorebat API using widget endpoints that don't require a paid plan
+// Fetch data from Scorebat API using the CORS proxy
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   try {
-    // Use the widget live feed endpoint which doesn't require authentication
-    console.log('Fetching from Scorebat Widget API (feed):', `${SCOREBAT_WIDGET_URL}livescore`);
+    // Use the CORS proxy with the widget feed endpoint
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}livescore?json=1`)}`;
+    console.log('Fetching from Scorebat Widget API with CORS Proxy:', proxyUrl);
     
-    const response = await fetch(`${SCOREBAT_WIDGET_URL}livescore?json=1`);
+    const response = await fetch(proxyUrl);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
@@ -189,19 +191,19 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     console.log('Transformed video data count:', transformedData.length);
     return transformedData;
   } catch (error) {
-    console.error('Error fetching from Scorebat Widget API (feed):', error);
+    console.error('Error fetching from Scorebat Widget API with CORS Proxy:', error);
     throw error; // Re-throw to let fallback service handle it
   }
 };
 
-// Fetch data for a specific competition using widget API
+// Fetch data for a specific competition using the CORS proxy
 export const fetchCompetitionVideos = async (competitionId: string): Promise<ScorebatVideo[]> => {
   try {
-    // Use the competitionId directly with the widget endpoint
-    console.log(`Fetching from Scorebat Widget API (competition ${competitionId}):`, 
-      `${SCOREBAT_WIDGET_URL}competition/${competitionId}`);
+    // Use the CORS proxy with the competition endpoint
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}competition/${competitionId}?json=1`)}`;
+    console.log(`Fetching from Scorebat Widget API (competition ${competitionId}) with CORS Proxy:`, proxyUrl);
     
-    const response = await fetch(`${SCOREBAT_WIDGET_URL}competition/${competitionId}?json=1`);
+    const response = await fetch(proxyUrl);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
@@ -240,19 +242,19 @@ export const fetchCompetitionVideos = async (competitionId: string): Promise<Sco
     console.log(`Transformed competition video data count:`, transformedData.length);
     return transformedData;
   } catch (error) {
-    console.error(`Error fetching from Scorebat Widget API (competition ${competitionId}):`, error);
+    console.error(`Error fetching from Scorebat Widget API (competition ${competitionId}) with CORS Proxy:`, error);
     throw error; // Re-throw to let fallback service handle it
   }
 };
 
-// Fetch data for a specific team using widget API
+// Fetch data for a specific team using the CORS proxy
 export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> => {
   try {
-    // Use the teamId directly with the widget endpoint
-    console.log(`Fetching from Scorebat Widget API (team ${teamId}):`, 
-      `${SCOREBAT_WIDGET_URL}team/${teamId}`);
+    // Use the CORS proxy with the team endpoint
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}team/${teamId}?json=1`)}`;
+    console.log(`Fetching from Scorebat Widget API (team ${teamId}) with CORS Proxy:`, proxyUrl);
     
-    const response = await fetch(`${SCOREBAT_WIDGET_URL}team/${teamId}?json=1`);
+    const response = await fetch(proxyUrl);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
@@ -291,7 +293,7 @@ export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> 
     console.log(`Transformed team video data count:`, transformedData.length);
     return transformedData;
   } catch (error) {
-    console.error(`Error fetching from Scorebat Widget API (team ${teamId}):`, error);
+    console.error(`Error fetching from Scorebat Widget API (team ${teamId}) with CORS Proxy:`, error);
     throw error; // Re-throw to let fallback service handle it
   }
 };
@@ -300,8 +302,13 @@ export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> 
 export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
   const videos = await fetchScorebatVideos();
   
-  // Take the first 5 videos as recommended
-  const recommendedVideos = videos.slice(0, 5);
+  // Sort videos by date (newest first)
+  const sortedVideos = [...videos].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  // Take the first 5 videos as recommended (newest)
+  const recommendedVideos = sortedVideos.slice(0, 5);
   
   return recommendedVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };
@@ -309,13 +316,30 @@ export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
 // Use widget API to get all highlights grouped by league
 export const getLeagueHighlights = async (): Promise<League[]> => {
   const videos = await fetchScorebatVideos();
-  return scorebatMapper.mapToLeagues(videos);
+  
+  // Sort videos within each league by date (newest first)
+  const leagues = scorebatMapper.mapToLeagues(videos);
+  
+  // Sort highlights within each league by date (newest first)
+  leagues.forEach(league => {
+    league.highlights.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  });
+  
+  return leagues;
 };
 
 // Use widget API to get highlights for a specific competition
 export const getCompetitionHighlights = async (competitionId: string): Promise<MatchHighlight[]> => {
   const videos = await fetchCompetitionVideos(competitionId);
-  return videos.map(video => scorebatMapper.mapToMatchHighlight(video));
+  
+  // Sort by date (newest first)
+  const sortedVideos = [...videos].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  return sortedVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };
 
 // Use widget API to get a specific match by ID
@@ -333,7 +357,13 @@ export const getMatchById = async (id: string): Promise<MatchHighlight | null> =
 // Use widget API to get highlights for a specific team
 export const getTeamHighlights = async (teamId: string): Promise<MatchHighlight[]> => {
   const videos = await fetchTeamVideos(teamId);
-  return videos.map(video => scorebatMapper.mapToMatchHighlight(video));
+  
+  // Sort by date (newest first)
+  const sortedVideos = [...videos].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  return sortedVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };
 
 // Search highlights using widget API data
@@ -353,5 +383,10 @@ export const searchHighlights = async (query: string): Promise<MatchHighlight[]>
     );
   });
   
-  return matchingVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
+  // Sort by date (newest first)
+  const sortedVideos = [...matchingVideos].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  return sortedVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };

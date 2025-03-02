@@ -11,6 +11,9 @@ const hasShownAPIError = {
   value: false
 };
 
+// We're using a proxy to bypass CORS issues
+const CORS_PROXY = 'https://corsproxy.io/?';
+
 export const getFallbackData = async <T>(
   apiCall: () => Promise<T>,
   mockCall: () => Promise<T>,
@@ -50,6 +53,11 @@ export const getFallbackData = async <T>(
         toast.error('API Authentication Error', {
           description: 'Your Scorebat API token may be invalid or expired. Please check your subscription. Displaying demo data instead.',
           duration: 7000,
+        });
+      } else if (errorMessage.includes('Failed to fetch')) {
+        toast.error('Network Error - Using demo data', {
+          description: 'Failed to connect to the Scorebat API. This may be due to CORS restrictions or network issues.',
+          duration: 5000,
         });
       } else {
         toast.error('API Error - Using demo data', {
