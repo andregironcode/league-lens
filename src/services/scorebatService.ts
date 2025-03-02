@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper, Team } from '@/types';
 
 // API constants
@@ -6,6 +5,9 @@ const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
 
 // Updated API token from the paid developer plan
 const SCOREBAT_API_TOKEN = 'MTk1NDQ4X01UazFORFF4WDFBeU9UZzRNRGcwTXpGZk9XTmtOV0kxWXpBeFlXRTBPVGM1WVRrME5URmtOVEV5TkdKaVlqZGpZV0prTURnd016SXlOUT09';
+
+// Widget access (free) doesn't require a token
+const SCOREBAT_WIDGET_URL = 'https://www.scorebat.com/embed/';
 
 // Create a map of competition names to league IDs
 const competitionToLeagueMap: Record<string, { id: string, logo: string }> = {
@@ -142,75 +144,159 @@ const scorebatMapper: ScorebatMapper = {
   }
 };
 
-// Fetch data from Scorebat API - general feed endpoint
+// Fetch data from Scorebat API using widget endpoints that don't require a paid plan
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   try {
-    console.log('Fetching from Scorebat API (feed):', `${SCOREBAT_API_URL}/feed?token=${SCOREBAT_API_TOKEN}`);
+    // Use the widget live feed endpoint which doesn't require authentication
+    console.log('Fetching from Scorebat Widget API (feed):', `${SCOREBAT_WIDGET_URL}livescore`);
     
-    const response = await fetch(`${SCOREBAT_API_URL}/feed?token=${SCOREBAT_API_TOKEN}`);
+    const response = await fetch(`${SCOREBAT_WIDGET_URL}livescore?json=1`);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      console.error('Scorebat API error response:', errorData);
-      throw new Error(`Scorebat API error: ${response.status} ${response.statusText}`);
+      console.error('Scorebat Widget API error response:', errorData);
+      throw new Error(`Scorebat Widget API error: ${response.status} ${response.statusText}`);
     }
     
-    const data: ScorebatResponse = await response.json();
-    console.log('Scorebat API response data count:', data.data?.length || 0);
-    return data.data || [];
+    const data = await response.json();
+    console.log('Scorebat Widget API response data:', data);
+    
+    // Transform the data format from widget to match our expected ScorebatVideo format
+    const transformedData: ScorebatVideo[] = Array.isArray(data) ? data.map(item => ({
+      id: item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      title: item.title,
+      embed: item.embed || '',
+      url: item.url,
+      thumbnail: item.thumbnail,
+      date: item.date,
+      competition: {
+        id: item.competition?.id || '',
+        name: item.competition?.name || 'Unknown',
+        url: item.competition?.url || '',
+      },
+      matchviewUrl: item.matchviewUrl || '',
+      competitionUrl: item.competitionUrl || '',
+      team1: {
+        name: item.side1?.name || 'Unknown',
+        url: item.side1?.url || '',
+      },
+      team2: {
+        name: item.side2?.name || 'Unknown',
+        url: item.side2?.url || '',
+      }
+    })) : [];
+    
+    console.log('Transformed video data count:', transformedData.length);
+    return transformedData;
   } catch (error) {
-    console.error('Error fetching from Scorebat API (feed):', error);
+    console.error('Error fetching from Scorebat Widget API (feed):', error);
     throw error; // Re-throw to let fallback service handle it
   }
 };
 
-// Fetch data from Scorebat API - competition endpoint
+// Fetch data for a specific competition using widget API
 export const fetchCompetitionVideos = async (competitionId: string): Promise<ScorebatVideo[]> => {
   try {
-    console.log(`Fetching from Scorebat API (competition ${competitionId}):`, 
-      `${SCOREBAT_API_URL}/competition/${competitionId}?token=${SCOREBAT_API_TOKEN}`);
+    // Use the competitionId directly with the widget endpoint
+    console.log(`Fetching from Scorebat Widget API (competition ${competitionId}):`, 
+      `${SCOREBAT_WIDGET_URL}competition/${competitionId}`);
     
-    const response = await fetch(`${SCOREBAT_API_URL}/competition/${competitionId}?token=${SCOREBAT_API_TOKEN}`);
+    const response = await fetch(`${SCOREBAT_WIDGET_URL}competition/${competitionId}?json=1`);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      console.error('Scorebat API error response (competition):', errorData);
-      throw new Error(`Scorebat API competition error: ${response.status} ${response.statusText}`);
+      console.error('Scorebat Widget API error response (competition):', errorData);
+      throw new Error(`Scorebat Widget API competition error: ${response.status} ${response.statusText}`);
     }
     
-    const data: ScorebatResponse = await response.json();
-    console.log(`Scorebat API competition ${competitionId} response data count:`, data.data?.length || 0);
-    return data.data || [];
+    const data = await response.json();
+    console.log(`Scorebat Widget API competition ${competitionId} response data:`, data);
+    
+    // Transform the data format from widget to match our expected ScorebatVideo format
+    const transformedData: ScorebatVideo[] = Array.isArray(data) ? data.map(item => ({
+      id: item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      title: item.title,
+      embed: item.embed || '',
+      url: item.url,
+      thumbnail: item.thumbnail,
+      date: item.date,
+      competition: {
+        id: item.competition?.id || '',
+        name: item.competition?.name || 'Unknown',
+        url: item.competition?.url || '',
+      },
+      matchviewUrl: item.matchviewUrl || '',
+      competitionUrl: item.competitionUrl || '',
+      team1: {
+        name: item.side1?.name || 'Unknown',
+        url: item.side1?.url || '',
+      },
+      team2: {
+        name: item.side2?.name || 'Unknown',
+        url: item.side2?.url || '',
+      }
+    })) : [];
+    
+    console.log(`Transformed competition video data count:`, transformedData.length);
+    return transformedData;
   } catch (error) {
-    console.error(`Error fetching from Scorebat API (competition ${competitionId}):`, error);
+    console.error(`Error fetching from Scorebat Widget API (competition ${competitionId}):`, error);
     throw error; // Re-throw to let fallback service handle it
   }
 };
 
-// Fetch data from Scorebat API - team endpoint
+// Fetch data for a specific team using widget API
 export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> => {
   try {
-    console.log(`Fetching from Scorebat API (team ${teamId}):`, 
-      `${SCOREBAT_API_URL}/team/${teamId}?token=${SCOREBAT_API_TOKEN}`);
+    // Use the teamId directly with the widget endpoint
+    console.log(`Fetching from Scorebat Widget API (team ${teamId}):`, 
+      `${SCOREBAT_WIDGET_URL}team/${teamId}`);
     
-    const response = await fetch(`${SCOREBAT_API_URL}/team/${teamId}?token=${SCOREBAT_API_TOKEN}`);
+    const response = await fetch(`${SCOREBAT_WIDGET_URL}team/${teamId}?json=1`);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      console.error('Scorebat API error response (team):', errorData);
-      throw new Error(`Scorebat API team error: ${response.status} ${response.statusText}`);
+      console.error('Scorebat Widget API error response (team):', errorData);
+      throw new Error(`Scorebat Widget API team error: ${response.status} ${response.statusText}`);
     }
     
-    const data: ScorebatResponse = await response.json();
-    console.log(`Scorebat API team ${teamId} response data count:`, data.data?.length || 0);
-    return data.data || [];
+    const data = await response.json();
+    console.log(`Scorebat Widget API team ${teamId} response data:`, data);
+    
+    // Transform the data format from widget to match our expected ScorebatVideo format
+    const transformedData: ScorebatVideo[] = Array.isArray(data) ? data.map(item => ({
+      id: item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      title: item.title,
+      embed: item.embed || '',
+      url: item.url,
+      thumbnail: item.thumbnail,
+      date: item.date,
+      competition: {
+        id: item.competition?.id || '',
+        name: item.competition?.name || 'Unknown',
+        url: item.competition?.url || '',
+      },
+      matchviewUrl: item.matchviewUrl || '',
+      competitionUrl: item.competitionUrl || '',
+      team1: {
+        name: item.side1?.name || 'Unknown',
+        url: item.side1?.url || '',
+      },
+      team2: {
+        name: item.side2?.name || 'Unknown',
+        url: item.side2?.url || '',
+      }
+    })) : [];
+    
+    console.log(`Transformed team video data count:`, transformedData.length);
+    return transformedData;
   } catch (error) {
-    console.error(`Error fetching from Scorebat API (team ${teamId}):`, error);
+    console.error(`Error fetching from Scorebat Widget API (team ${teamId}):`, error);
     throw error; // Re-throw to let fallback service handle it
   }
 };
 
-// Get recommended highlights (latest videos)
+// Get recommended highlights (latest videos from widget API)
 export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
   const videos = await fetchScorebatVideos();
   
@@ -220,20 +306,22 @@ export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
   return recommendedVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };
 
-// Get all highlights grouped by league
+// Use widget API to get all highlights grouped by league
 export const getLeagueHighlights = async (): Promise<League[]> => {
   const videos = await fetchScorebatVideos();
   return scorebatMapper.mapToLeagues(videos);
 };
 
-// Get highlights for a specific competition
+// Use widget API to get highlights for a specific competition
 export const getCompetitionHighlights = async (competitionId: string): Promise<MatchHighlight[]> => {
   const videos = await fetchCompetitionVideos(competitionId);
   return videos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };
 
-// Get a specific match by ID
+// Use widget API to get a specific match by ID
 export const getMatchById = async (id: string): Promise<MatchHighlight | null> => {
+  // For a specific match, we currently don't have a direct widget API endpoint
+  // So we'll get all videos and find the matching one
   const videos = await fetchScorebatVideos();
   const video = videos.find(v => v.id === id);
   
@@ -242,33 +330,13 @@ export const getMatchById = async (id: string): Promise<MatchHighlight | null> =
   return scorebatMapper.mapToMatchHighlight(video);
 };
 
-// Get highlights for a specific team
+// Use widget API to get highlights for a specific team
 export const getTeamHighlights = async (teamId: string): Promise<MatchHighlight[]> => {
-  // First try the direct team API endpoint
-  try {
-    const videos = await fetchTeamVideos(teamId);
-    return videos.map(video => scorebatMapper.mapToMatchHighlight(video));
-  } catch (error) {
-    console.error(`Team endpoint failed for ${teamId}, falling back to search in general feed`);
-    
-    // Fallback to searching in the general feed
-    const videos = await fetchScorebatVideos();
-    
-    // Convert team ID back to team name format (dashes to spaces)
-    const teamName = teamId.replace(/-/g, ' ');
-    
-    // Find videos featuring this team
-    const teamVideos = videos.filter(video => {
-      const team1Lower = video.team1.name.toLowerCase();
-      const team2Lower = video.team2.name.toLowerCase();
-      return team1Lower.includes(teamName) || team2Lower.includes(teamName);
-    });
-    
-    return teamVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
-  }
+  const videos = await fetchTeamVideos(teamId);
+  return videos.map(video => scorebatMapper.mapToMatchHighlight(video));
 };
 
-// Search for highlights
+// Search highlights using widget API data
 export const searchHighlights = async (query: string): Promise<MatchHighlight[]> => {
   if (!query.trim()) return [];
   

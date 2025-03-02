@@ -4,8 +4,7 @@ import { getRecommendedHighlights as getMockRecommendedHighlights,
          getLeagueHighlights as getMockLeagueHighlights,
          getMatchById as getMockMatchById,
          getTeamHighlights as getMockTeamHighlights,
-         searchHighlights as mockSearchHighlights,
-         getCompetitionHighlights as getMockCompetitionHighlights } from './highlightService';
+         searchHighlights as mockSearchHighlights } from './highlightService';
 import { toast } from 'sonner';
 
 const hasShownAPIError = {
@@ -75,15 +74,6 @@ export const getLeagueHighlightsWithFallback = async (): Promise<League[]> => {
   return getFallbackData(getLeagueHighlights, getMockLeagueHighlights, 2);
 };
 
-export const getCompetitionHighlightsWithFallback = async (competitionId: string): Promise<MatchHighlight[]> => {
-  const { getCompetitionHighlights } = await import('./scorebatService');
-  return getFallbackData(
-    () => getCompetitionHighlights(competitionId), 
-    () => getMockCompetitionHighlights(competitionId), 
-    1
-  );
-};
-
 export const getMatchByIdWithFallback = async (id: string): Promise<MatchHighlight | null> => {
   const { getMatchById } = await import('./scorebatService');
   return getFallbackData(
@@ -107,6 +97,24 @@ export const searchHighlightsWithFallback = async (query: string): Promise<Match
   return getFallbackData(
     () => searchHighlights(query), 
     () => mockSearchHighlights(query), 
+    1
+  );
+};
+
+// We need this function to get competition highlights
+export const getCompetitionHighlightsWithFallback = async (competitionId: string): Promise<MatchHighlight[]> => {
+  const { getCompetitionHighlights } = await import('./scorebatService');
+  
+  // For the mock data, we'll filter the league highlights to find the right competition
+  const mockCompetitionHighlights = async (id: string) => {
+    const leagues = await getMockLeagueHighlights();
+    const league = leagues.find(l => l.id === id);
+    return league ? league.highlights : [];
+  };
+  
+  return getFallbackData(
+    () => getCompetitionHighlights(competitionId), 
+    () => mockCompetitionHighlights(competitionId), 
     1
   );
 };
