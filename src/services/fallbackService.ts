@@ -134,8 +134,8 @@ export const isValidTokenFormat = (): boolean => {
   const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
   if (!token) return false;
   
-  // Add better token validation logic - most API tokens are at least 20 chars
-  return token.length > 20;
+  // Better token validation - Scorebat tokens start with MTk1NDQ prefix
+  return token.length > 20 && token.startsWith('MTk');
 };
 
 // Helper functions to get different types of football highlights with fallback to demo data

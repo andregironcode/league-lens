@@ -135,8 +135,29 @@ const Index = () => {
       <Toaster position="top-center" />
       
       <main className="pt-16 pb-10">
-        {/* Simple refresh button - admin info moved to settings page */}
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-end items-center">
+        {/* Simple refresh button with status indicator */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center">
+            {apiStatus === 'live' && (
+              <span className="text-sm text-green-500 flex items-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                Live Data
+              </span>
+            )}
+            {apiStatus === 'demo' && (
+              <span className="text-sm text-amber-500 flex items-center">
+                <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
+                Demo Data
+              </span>
+            )}
+            {apiStatus === 'checking' && (
+              <span className="text-sm text-gray-400 flex items-center">
+                <span className="w-2 h-2 bg-gray-400 rounded-full mr-2 animate-pulse"></span>
+                Checking...
+              </span>
+            )}
+          </div>
+          
           <Button 
             onClick={handleRefresh} 
             variant="outline" 

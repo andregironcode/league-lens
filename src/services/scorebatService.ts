@@ -151,14 +151,14 @@ const scorebatMapper: ScorebatMapper = {
 // Try multiple endpoints to fetch data from Scorebat
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   try {
-    // First try widget API which doesn't require a token
-    console.log('Attempting to fetch highlights from Scorebat widget API...');
-    return await fetchFromWidgetAPI();
+    // First try premium API with token
+    console.log('Attempting to fetch highlights from Scorebat premium API...');
+    return await fetchFromPremiumAPI();
   } catch (error) {
-    console.error('Error fetching from widget API, trying premium API as fallback:', error);
+    console.error('Error fetching from premium API, trying widget API as fallback:', error);
     try {
-      // Try premium API as fallback
-      return await fetchFromPremiumAPI();
+      // Try widget API as fallback
+      return await fetchFromWidgetAPI();
     } catch (secondError) {
       console.error('All API attempts failed:', secondError);
       throw secondError; // Re-throw to trigger fallback to demo data
@@ -179,60 +179,97 @@ const fetchFromPremiumAPI = async (): Promise<ScorebatVideo[]> => {
     
     console.log('Using Scorebat premium API with token');
     
-    // Use the CORS proxy with the premium API endpoint
-    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_API_URL}/feed?token=${API_TOKEN}`)}`;
+    // Directly use the API endpoint with token - avoiding CORS proxy when possible
+    const apiUrl = `${SCOREBAT_API_URL}/feed?token=${API_TOKEN}`;
     
-    const response = await fetch(proxyUrl, {
-      headers: {
-        'Accept': 'application/json',
+    try {
+      // First try without CORS proxy
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Direct API call failed: ${response.status}`);
       }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Premium API error: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data || !data.response || !Array.isArray(data.response)) {
-      throw new Error('Unexpected API response format');
-    }
-    
-    // Check if the response is empty or has no videos
-    if (data.response.length === 0) {
-      throw new Error('No videos found in API response');
-    }
-    
-    // Transform the v3 API data format to match our expected ScorebatVideo format
-    const transformedData: ScorebatVideo[] = data.response.map(item => ({
-      id: item.matchId || item.title,
-      title: item.title,
-      embed: item.embed || '',
-      url: item.matchviewUrl || '',
-      thumbnail: item.thumbnail,
-      date: item.date,
-      competition: {
-        id: item.competitionId || '',
-        name: item.competition || 'Unknown',
-        url: item.competitionUrl || '',
-      },
-      matchviewUrl: item.matchviewUrl || '',
-      competitionUrl: item.competitionUrl || '',
-      team1: {
-        name: item.side1?.name || 'Unknown',
-        url: item.side1?.url || '',
-      },
-      team2: {
-        name: item.side2?.name || 'Unknown',
-        url: item.side2?.url || '',
+      
+      const data = await response.json();
+      
+      // Check if the response has the expected structure
+      if (!data || !data.response) {
+        throw new Error('Unexpected API response format');
       }
-    }));
-    
-    return transformedData;
+      
+      // Transform the data
+      return transformPremiumApiResponse(data);
+      
+    } catch (directError) {
+      console.warn('Direct API call failed, trying with CORS proxy:', directError);
+      
+      // Fall back to using CORS proxy
+      const proxyUrl = `${CORS_PROXY}${encodeURIComponent(apiUrl)}`;
+      
+      const proxyResponse = await fetch(proxyUrl, {
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      
+      if (!proxyResponse.ok) {
+        throw new Error(`Premium API error: ${proxyResponse.status} ${proxyResponse.statusText}`);
+      }
+      
+      const proxyData = await proxyResponse.json();
+      
+      // Check if the response has the expected structure
+      if (!proxyData || !proxyData.response) {
+        throw new Error('Unexpected API response format from proxy');
+      }
+      
+      // Transform the data
+      return transformPremiumApiResponse(proxyData);
+    }
   } catch (error) {
     console.error('Premium API error:', error);
     throw error;
   }
+};
+
+// Helper to transform premium API response
+const transformPremiumApiResponse = (data: any): ScorebatVideo[] => {
+  if (!data.response || !Array.isArray(data.response) || data.response.length === 0) {
+    throw new Error('No videos found in API response');
+  }
+  
+  console.log(`Found ${data.response.length} videos from premium API`);
+  
+  // Transform the v3 API data format to match our expected ScorebatVideo format
+  const transformedData: ScorebatVideo[] = data.response.map((item: any) => ({
+    id: item.matchId || item.title,
+    title: item.title,
+    embed: item.embed || '',
+    url: item.matchviewUrl || '',
+    thumbnail: item.thumbnail,
+    date: item.date,
+    competition: {
+      id: item.competitionId || '',
+      name: item.competition || 'Unknown',
+      url: item.competitionUrl || '',
+    },
+    matchviewUrl: item.matchviewUrl || '',
+    competitionUrl: item.competitionUrl || '',
+    team1: {
+      name: item.side1?.name || 'Unknown',
+      url: item.side1?.url || '',
+    },
+    team2: {
+      name: item.side2?.name || 'Unknown',
+      url: item.side2?.url || '',
+    }
+  }));
+  
+  return transformedData;
 };
 
 // Fetch from the widget API endpoint (no token required)
@@ -327,11 +364,11 @@ const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
           matchviewUrl: item.matchviewUrl || item.url || '',
           competitionUrl: item.competitionUrl || item.competition?.url || '',
           team1: {
-            name: item.side1?.name || item.team1 || 'Unknown',
+            name: item.side1?.name || 'Unknown',
             url: item.side1?.url || '',
           },
           team2: {
-            name: item.side2?.name || item.team2 || 'Unknown',
+            name: item.side2?.name || 'Unknown',
             url: item.side2?.url || '',
           }
         }));
