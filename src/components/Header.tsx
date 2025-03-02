@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Search, User, X, Bell, Settings, Bookmark, Sun, Moon, PencilIcon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MatchHighlight } from '@/types';
-import { searchHighlights } from '@/services/highlightService';
+import { searchHighlightsWithFallback } from '@/services/fallbackService';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback, DefaultProfileImage } from '@/components/ui/avatar';
 import {
@@ -73,7 +72,7 @@ const Header = () => {
 
     setIsSearching(true);
     try {
-      const results = await searchHighlights(searchQuery);
+      const results = await searchHighlightsWithFallback(searchQuery);
       setSearchResults(results);
       setShowResults(true);
     } catch (error) {

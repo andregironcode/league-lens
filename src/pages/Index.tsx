@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
-import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
+import { getRecommendedHighlightsWithFallback, getLeagueHighlightsWithFallback } from '@/services/fallbackService';
 import { MatchHighlight, League } from '@/types';
 
 const Index = () => {
@@ -17,13 +17,13 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch recommended highlights
-        const recommendedData = await getRecommendedHighlights();
+        // Fetch recommended highlights with fallback
+        const recommendedData = await getRecommendedHighlightsWithFallback();
         setRecommendedHighlights(recommendedData);
         setLoading(prev => ({ ...prev, recommended: false }));
 
-        // Fetch league highlights
-        const leaguesData = await getLeagueHighlights();
+        // Fetch league highlights with fallback
+        const leaguesData = await getLeagueHighlightsWithFallback();
         setLeagues(leaguesData);
         setLoading(prev => ({ ...prev, leagues: false }));
       } catch (error) {
@@ -67,7 +67,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Leagues Section - removed heading as requested */}
+        {/* Leagues Section */}
         <section id="leagues" className="mb-16">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
             {loading.leagues 
@@ -100,6 +100,7 @@ const Index = () => {
             </p>
             <p className="text-xs text-gray-500 mt-2">
               All videos are sourced from official channels and we do not host any content.
+              Highlights powered by Scorebat API.
             </p>
           </div>
         </div>

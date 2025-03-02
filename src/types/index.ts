@@ -1,4 +1,3 @@
-
 export interface Team {
   id: string;
   name: string;
@@ -63,4 +62,39 @@ export interface TeamDetails {
   leagueTable: TableRow[];
   europeanTable: TableRow[];
   fixtures: Fixture[];
+}
+
+// New types for Scorebat API
+export interface ScorebatVideo {
+  id: string;
+  title: string;
+  embed: string;
+  url: string;
+  thumbnail: string;
+  date: string;
+  competition: {
+    id: string;
+    name: string;
+    url: string;
+  };
+  matchviewUrl: string;
+  competitionUrl: string;
+  team1: {
+    name: string;
+    url: string;
+  };
+  team2: {
+    name: string;
+    url: string;
+  };
+}
+
+export interface ScorebatResponse {
+  data: ScorebatVideo[];
+}
+
+// Helper interface to convert Scorebat data to our format
+export interface ScorebatMapper {
+  mapToMatchHighlight: (video: ScorebatVideo) => MatchHighlight;
+  mapToLeagues: (videos: ScorebatVideo[]) => League[];
 }
