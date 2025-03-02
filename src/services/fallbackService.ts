@@ -7,7 +7,36 @@ import { getRecommendedHighlights as getMockRecommendedHighlights,
 import { toast } from 'sonner';
 
 const hasShownAPIError = {
-  value: false
+  value: false,
+  reset: () => { hasShownAPIError.value = false; }
+};
+
+const apiStateTracker = {
+  lastSuccessTime: 0,
+  retryCount: 0,
+  maxRetries: 3,
+  cooldownPeriod: 5 * 60 * 1000, // 5 minutes
+  
+  recordSuccess: () => {
+    apiStateTracker.lastSuccessTime = Date.now();
+    apiStateTracker.retryCount = 0;
+    hasShownAPIError.reset();
+    
+    window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
+      detail: { status: 'connected' } 
+    }));
+  },
+  
+  shouldRetryApi: () => {
+    if (
+      (Date.now() - apiStateTracker.lastSuccessTime < apiStateTracker.cooldownPeriod) ||
+      (apiStateTracker.retryCount < apiStateTracker.maxRetries)
+    ) {
+      apiStateTracker.retryCount++;
+      return true;
+    }
+    return false;
+  }
 };
 
 export const getFallbackData = async <T>(
@@ -16,20 +45,22 @@ export const getFallbackData = async <T>(
   threshold: number = 1, // Minimum number of items expected
   showToast: boolean = true
 ): Promise<T> => {
+  if (!apiStateTracker.shouldRetryApi()) {
+    console.warn('Skipping API call due to previous failures, using fallback data');
+    return await mockCall();
+  }
+  
   try {
     console.log('Attempting to fetch data from Scorebat API...');
     const apiData = await apiCall();
     console.log('API response received');
     
-    // Check if the API data meets minimum requirements
     if (Array.isArray(apiData) && apiData.length >= threshold) {
       console.log('Successfully received live data from Scorebat API');
-      // Reset the error flag if we get successful data
-      hasShownAPIError.value = false;
+      apiStateTracker.recordSuccess();
       return apiData;
     }
     
-    // If not, fall back to mock data
     console.warn('API data did not meet threshold requirements, using fallback data');
     if (showToast && !hasShownAPIError.value) {
       toast.warning('Using demo data - API returned insufficient data', {
@@ -42,7 +73,6 @@ export const getFallbackData = async <T>(
   } catch (error) {
     console.error('Error in API call, using fallback data:', error);
     if (showToast && !hasShownAPIError.value) {
-      // Check if it's a specific 403 error related to permissions
       const errorMessage = error instanceof Error ? error.message : String(error);
       
       if (errorMessage.includes('403')) {
@@ -72,12 +102,33 @@ export const getFallbackData = async <T>(
         });
       }
       hasShownAPIError.value = true;
+      
+      window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
+        detail: { status: 'error', error: errorMessage } 
+      }));
     }
     return await mockCall();
   }
 };
 
-// Fallback functions that try the real API first, then fall back to mock data
+export const forceRetryAPI = () => {
+  apiStateTracker.retryCount = 0;
+  hasShownAPIError.reset();
+  window.dispatchEvent(new CustomEvent('scorebat-force-refresh'));
+  return true;
+};
+
+export const hasApiToken = (): boolean => {
+  return !!import.meta.env.VITE_SCOREBAT_API_TOKEN;
+};
+
+export const isValidTokenFormat = (): boolean => {
+  const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
+  if (!token) return false;
+  
+  return token.length > 20;
+};
+
 export const getRecommendedHighlightsWithFallback = async (): Promise<MatchHighlight[]> => {
   const { getRecommendedHighlights } = await import('./scorebatService');
   return getFallbackData(getRecommendedHighlights, getMockRecommendedHighlights, 3);
@@ -115,11 +166,9 @@ export const searchHighlightsWithFallback = async (query: string): Promise<Match
   );
 };
 
-// We need this function to get competition highlights
 export const getCompetitionHighlightsWithFallback = async (competitionId: string): Promise<MatchHighlight[]> => {
   const { getCompetitionHighlights } = await import('./scorebatService');
   
-  // For the mock data, we'll filter the league highlights to find the right competition
   const mockCompetitionHighlights = async (id: string) => {
     const leagues = await getMockLeagueHighlights();
     const league = leagues.find(l => l.id === id);

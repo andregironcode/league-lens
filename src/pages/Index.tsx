@@ -4,9 +4,15 @@ import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
 import { Toaster } from '@/components/ui/sonner';
-import { getRecommendedHighlightsWithFallback, getLeagueHighlightsWithFallback } from '@/services/fallbackService';
+import { 
+  getRecommendedHighlightsWithFallback, 
+  getLeagueHighlightsWithFallback,
+  forceRetryAPI,
+  hasApiToken,
+  isValidTokenFormat
+} from '@/services/fallbackService';
 import { MatchHighlight, League } from '@/types';
-import { AlertCircle, RefreshCw, Info } from 'lucide-react';
+import { AlertCircle, RefreshCw, Info, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -19,7 +25,7 @@ const Index = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [apiStatus, setApiStatus] = useState<'live' | 'demo' | 'unknown'>('unknown');
+  const [apiStatus, setApiStatus] = useState<'live' | 'demo' | 'checking'>('checking');
 
   const fetchData = async () => {
     try {
@@ -45,9 +51,11 @@ const Index = () => {
       setError(null);
       
       // Check if we're using live data or demo data
+      // More robust detection of live data
       const isUsingLiveData = recommendedData.some(h => 
         h.title.includes('2025') || 
-        new Date(h.date).getTime() > new Date('2022-01-01').getTime()
+        h.title.includes('2024') ||
+        new Date(h.date).getTime() > new Date('2023-01-01').getTime()
       );
       
       setApiStatus(isUsingLiveData ? 'live' : 'demo');
@@ -73,20 +81,34 @@ const Index = () => {
   useEffect(() => {
     fetchData();
     
-    // Add listener for token updates
-    const tokenUpdateHandler = () => {
+    // Listen for API status changes
+    const apiStatusChangeHandler = () => {
       fetchData();
     };
     
-    window.addEventListener('scorebat-token-updated', tokenUpdateHandler);
+    // Listen for force refresh events
+    const forceRefreshHandler = () => {
+      handleRefresh();
+    };
+    
+    // Add listeners
+    window.addEventListener('scorebat-api-status-change', apiStatusChangeHandler);
+    window.addEventListener('scorebat-force-refresh', forceRefreshHandler);
+    window.addEventListener('scorebat-token-updated', apiStatusChangeHandler);
     
     return () => {
-      window.removeEventListener('scorebat-token-updated', tokenUpdateHandler);
+      // Clean up listeners
+      window.removeEventListener('scorebat-api-status-change', apiStatusChangeHandler);
+      window.removeEventListener('scorebat-force-refresh', forceRefreshHandler);
+      window.removeEventListener('scorebat-token-updated', apiStatusChangeHandler);
     };
   }, []);
 
   const handleRefresh = () => {
     setLoading({ recommended: true, leagues: true });
+    setApiStatus('checking');
+    // Force a retry of the API even if we're in cooldown
+    forceRetryAPI();
     fetchData();
   };
 
@@ -122,9 +144,41 @@ const Index = () => {
               {apiStatus === 'live' ? 'Live API' : 
                apiStatus === 'demo' ? 'Demo Data' : 'Checking API...'}
             </span>
+            
+            {/* API status indicator with more info */}
             {apiStatus === 'demo' && (
-              <div className="ml-2 cursor-help" title="Using demo data because the API connection failed">
-                <Info size={14} className="text-amber-500" />
+              <div className="ml-2 flex items-center">
+                {!hasApiToken() ? (
+                  <div className="cursor-help group relative" title="No API token configured">
+                    <AlertTriangle size={14} className="text-amber-500" />
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded w-48">
+                      No Scorebat API token configured. Visit Settings to set up your API token.
+                    </div>
+                  </div>
+                ) : !isValidTokenFormat() ? (
+                  <div className="cursor-help group relative" title="API token may be invalid">
+                    <AlertCircle size={14} className="text-amber-500" />
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded w-48">
+                      Your Scorebat API token format appears invalid. Check your token in Settings.
+                    </div>
+                  </div>
+                ) : (
+                  <div className="cursor-help group relative" title="Using demo data because API connection failed">
+                    <Info size={14} className="text-amber-500" />
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-black/80 text-white text-xs p-2 rounded w-48">
+                      Using demo data because the Scorebat API connection failed. Try refreshing or check your token.
+                    </div>
+                  </div>
+                )}
+                
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-amber-500 p-0 h-auto ml-1"
+                  onClick={() => window.location.href = '/settings'}
+                >
+                  Fix
+                </Button>
               </div>
             )}
           </div>
@@ -141,6 +195,7 @@ const Index = () => {
           </Button>
         </div>
         
+        {/* Hero section with recommended highlights */}
         <section className="mb-12">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
             {loading.recommended ? (
@@ -160,6 +215,7 @@ const Index = () => {
           </div>
         </section>
 
+        {/* League sections */}
         <section id="leagues" className="mb-16">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
             {loading.leagues 
