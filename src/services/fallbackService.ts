@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League } from '@/types';
 import { getRecommendedHighlights as getMockRecommendedHighlights, 
          getLeagueHighlights as getMockLeagueHighlights,
@@ -17,8 +16,8 @@ const hasShownAPIError = {
 const apiStateTracker = {
   lastSuccessTime: 0,
   retryCount: 0,
-  maxRetries: 3,
-  cooldownPeriod: 5 * 60 * 1000, // 5 minutes
+  maxRetries: 5, // Increased from 3 to 5
+  cooldownPeriod: 2 * 60 * 1000, // Reduced from 5 minutes to 2 minutes
   
   recordSuccess: () => {
     apiStateTracker.lastSuccessTime = Date.now();
@@ -31,8 +30,9 @@ const apiStateTracker = {
   },
   
   shouldRetryApi: () => {
+    // Always retry if the cooldown period has passed or we haven't reached max retries
     if (
-      (Date.now() - apiStateTracker.lastSuccessTime < apiStateTracker.cooldownPeriod) ||
+      (Date.now() - apiStateTracker.lastSuccessTime > apiStateTracker.cooldownPeriod) ||
       (apiStateTracker.retryCount < apiStateTracker.maxRetries)
     ) {
       apiStateTracker.retryCount++;
@@ -48,81 +48,95 @@ export const getFallbackData = async <T>(
   threshold: number = 1, // Minimum number of items expected
   showToast: boolean = true
 ): Promise<T> => {
-  if (!apiStateTracker.shouldRetryApi()) {
+  // Always retry API calls on page load or manual refreshes
+  if (apiStateTracker.shouldRetryApi()) {
+    try {
+      console.log('Attempting to fetch highlights from Scorebat...');
+      const apiData = await apiCall();
+      console.log('API response received', apiData);
+      
+      // Check if the response is an array and has sufficient items
+      if (Array.isArray(apiData) && apiData.length >= threshold) {
+        console.log('Successfully received live data from Scorebat');
+        apiStateTracker.recordSuccess();
+        
+        // Only show success toast if we previously showed an error
+        if (showToast && hasShownAPIError.value) {
+          toast.success('Live highlights available', {
+            description: 'Score90 is now showing the latest football highlights.',
+            duration: 3000,
+            id: 'api-status-success' // Prevent duplicate toasts
+          });
+        }
+        
+        return apiData;
+      }
+      
+      console.warn('No highlights found in API response, using demo highlights');
+      if (showToast && !hasShownAPIError.value) {
+        toast.warning('No new highlights available', {
+          description: 'No recent football highlights found. Showing demo highlights for now.',
+          duration: 5000,
+        });
+        hasShownAPIError.value = true;
+        
+        window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
+          detail: { status: 'error', error: 'No videos found' } 
+        }));
+      }
+      return await mockCall();
+    } catch (error) {
+      console.error('Error fetching highlights, using demo data:', error);
+      if (showToast && !hasShownAPIError.value) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        if (errorMessage.includes('403')) {
+          toast.error('API Connection Error', {
+            description: 'Score90 is having trouble accessing fresh highlights. Showing demo content for now.',
+            duration: 5000,
+          });
+        } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Failed to parse')) {
+          toast.error('Network Error', {
+            description: 'Unable to connect to highlights service. Check your internet connection.',
+            duration: 5000,
+          });
+        } else {
+          toast.error('Highlights Temporarily Unavailable', {
+            description: 'We\'re having trouble getting the latest highlights. Showing demo content for now.',
+            duration: 5000,
+          });
+        }
+        hasShownAPIError.value = true;
+        
+        window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
+          detail: { status: 'error', error: errorMessage } 
+        }));
+      }
+      return await mockCall();
+    }
+  } else {
     console.warn('Using demo highlights - API calls temporarily disabled due to previous failures');
-    return await mockCall();
-  }
-  
-  try {
-    console.log('Attempting to fetch highlights from Scorebat...');
-    const apiData = await apiCall();
-    console.log('API response received', apiData);
-    
-    // Check if the response is an array and has sufficient items
-    if (Array.isArray(apiData) && apiData.length >= threshold) {
-      console.log('Successfully received live data from Scorebat');
-      apiStateTracker.recordSuccess();
-      
-      // Only show success toast if we haven't shown an error
-      if (showToast && hasShownAPIError.value) {
-        toast.success('Live highlights available', {
-          description: 'Score90 is now showing the latest football highlights.',
-          duration: 3000,
-          id: 'api-status-success' // Prevent duplicate toasts
-        });
-      }
-      
-      return apiData;
-    }
-    
-    console.warn('No highlights found in API response, using demo highlights');
-    if (showToast && !hasShownAPIError.value) {
-      toast.warning('No new highlights available', {
-        description: 'No recent football highlights found. Showing demo highlights for now.',
-        duration: 5000,
-      });
-      hasShownAPIError.value = true;
-      
-      window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
-        detail: { status: 'error', error: 'No videos found' } 
-      }));
-    }
-    return await mockCall();
-  } catch (error) {
-    console.error('Error fetching highlights, using demo data:', error);
-    if (showToast && !hasShownAPIError.value) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      if (errorMessage.includes('403')) {
-        toast.error('API Connection Error', {
-          description: 'Score90 is having trouble accessing fresh highlights. Showing demo content for now.',
-          duration: 5000,
-        });
-      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Failed to parse')) {
-        toast.error('Network Error', {
-          description: 'Unable to connect to highlights service. Check your internet connection.',
-          duration: 5000,
-        });
-      } else {
-        toast.error('Highlights Temporarily Unavailable', {
-          description: 'We\'re having trouble getting the latest highlights. Showing demo content for now.',
-          duration: 5000,
-        });
-      }
-      hasShownAPIError.value = true;
-      
-      window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
-        detail: { status: 'error', error: errorMessage } 
-      }));
-    }
     return await mockCall();
   }
 };
 
 export const forceRetryAPI = () => {
+  // Reset all API state tracking
+  apiStateTracker.retryCount = 0;
+  apiStateTracker.lastSuccessTime = 0; // Reset the last success time to force retry
+  hasShownAPIError.reset();
+  
+  console.log('Forcing API refresh and reconnection');
+  window.dispatchEvent(new CustomEvent('scorebat-force-refresh'));
+  return true;
+};
+
+// Additional helper to reset API cooldown on demand
+export const resetApiCooldown = () => {
+  apiStateTracker.lastSuccessTime = 0;
   apiStateTracker.retryCount = 0;
   hasShownAPIError.reset();
-  window.dispatchEvent(new CustomEvent('scorebat-force-refresh'));
+  console.log('API cooldown reset - will attempt fresh connections');
   return true;
 };
 
@@ -134,14 +148,14 @@ export const isValidTokenFormat = (): boolean => {
   const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
   if (!token) return false;
   
-  // Better token validation - Scorebat tokens start with MTk1NDQ prefix
-  return token.length > 20 && token.startsWith('MTk');
+  // Check for reasonable token length
+  return token.length > 10;
 };
 
 // Helper functions to get different types of football highlights with fallback to demo data
 export const getRecommendedHighlightsWithFallback = async (): Promise<MatchHighlight[]> => {
   const { getRecommendedHighlights } = await import('./scorebatService');
-  return getFallbackData(getRecommendedHighlights, getMockRecommendedHighlights, 3);
+  return getFallbackData(getRecommendedHighlights, getMockRecommendedHighlights, 1); // Lower threshold to 1
 };
 
 export const getLeagueHighlightsWithFallback = async (): Promise<League[]> => {

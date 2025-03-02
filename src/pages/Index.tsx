@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
@@ -8,7 +7,8 @@ import { toast } from 'sonner';
 import { 
   getRecommendedHighlightsWithFallback, 
   getLeagueHighlightsWithFallback,
-  forceRetryAPI
+  forceRetryAPI,
+  resetApiCooldown // New helper to reset API cooldown
 } from '@/services/fallbackService';
 import { MatchHighlight, League } from '@/types';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -25,9 +25,14 @@ const Index = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [apiStatus, setApiStatus] = useState<'live' | 'demo' | 'checking'>('checking');
 
-  const fetchData = async () => {
+  const fetchData = async (forceRefresh = false) => {
     try {
       setIsRefreshing(true);
+      
+      // If we're forcing a refresh, reset the API cooldown
+      if (forceRefresh) {
+        resetApiCooldown();
+      }
       
       console.log('Fetching recommended highlights...');
       const recommendedData = await getRecommendedHighlightsWithFallback();
@@ -52,10 +57,18 @@ const Index = () => {
       // More robust detection of live data
       const isUsingLiveData = recommendedData.some(h => 
         h.title.includes('2024') ||
+        h.title.includes('2023') ||
         new Date(h.date).getTime() > new Date('2023-06-01').getTime()
       );
       
       setApiStatus(isUsingLiveData ? 'live' : 'demo');
+      
+      if (!isUsingLiveData && forceRefresh) {
+        toast.warning('Still using demo data', {
+          description: 'Unable to connect to live data source. Check your API configuration.',
+          duration: 4000
+        });
+      }
       
     } catch (error) {
       console.error('Error fetching highlights:', error);
@@ -110,7 +123,7 @@ const Index = () => {
     setApiStatus('checking');
     // Force a retry of the API even if we're in cooldown
     forceRetryAPI();
-    fetchData();
+    fetchData(true); // Pass true to force a refresh
   };
 
   // Show skeleton loaders when content is loading
@@ -135,7 +148,7 @@ const Index = () => {
       <Toaster position="top-center" />
       
       <main className="pt-16 pb-10">
-        {/* Simple refresh button with status indicator */}
+        {/* Improved refresh button with status indicator */}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <div className="flex items-center">
             {apiStatus === 'live' && (
@@ -147,7 +160,7 @@ const Index = () => {
             {apiStatus === 'demo' && (
               <span className="text-sm text-amber-500 flex items-center">
                 <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                Demo Data
+                Demo Data (API Issue)
               </span>
             )}
             {apiStatus === 'checking' && (
@@ -166,7 +179,7 @@ const Index = () => {
             disabled={isRefreshing}
           >
             <RefreshCw size={16} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            {isRefreshing ? 'Refreshing...' : 'Force Refresh'}
           </Button>
         </div>
         
