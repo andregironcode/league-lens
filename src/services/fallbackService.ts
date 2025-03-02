@@ -19,7 +19,7 @@ export const getFallbackData = async <T>(
   try {
     console.log('Attempting to fetch data from Scorebat API...');
     const apiData = await apiCall();
-    console.log('API response:', apiData);
+    console.log('API response received');
     
     // Check if the API data meets minimum requirements
     if (Array.isArray(apiData) && apiData.length >= threshold) {
@@ -51,13 +51,23 @@ export const getFallbackData = async <T>(
           duration: 7000,
         });
       } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Failed to parse')) {
-        toast.error('Network Error - Using demo data', {
-          description: 'Failed to connect to the Scorebat API. This may be due to CORS restrictions or changes in the API structure.',
+        toast.error('API Format Changed - Using demo data', {
+          description: 'The Scorebat API response format has changed. We\'re working on updating our integration. Using demo data for now.',
+          duration: 5000,
+        });
+      } else if (errorMessage.includes('No videos found')) {
+        toast.error('No Videos Available - Using demo data', {
+          description: 'The Scorebat API did not return any videos. This might be a temporary issue. Using demo data for now.',
+          duration: 5000,
+        });
+      } else if (errorMessage.includes('HTML')) {
+        toast.error('API Format Error - Using demo data', {
+          description: 'The Scorebat API returned HTML instead of JSON. We\'re working to fix this issue. Using demo data for now.',
           duration: 5000,
         });
       } else {
         toast.error('API Error - Using demo data', {
-          description: 'There was an error accessing the Scorebat API. Check your network connection.',
+          description: 'There was an error accessing the Scorebat API. Check your network connection or try again later.',
           duration: 5000,
         });
       }

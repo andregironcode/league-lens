@@ -149,18 +149,19 @@ const scorebatMapper: ScorebatMapper = {
 // Fetch data from Scorebat API using the CORS proxy and the official v3 API
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   try {
-    // Try the official API v3 with your token
+    // Get the API token from environment variables
     const API_TOKEN = import.meta.env.VITE_SCOREBAT_API_TOKEN || '';
     
-    // If no token, use the free widget API (though this is less reliable)
     if (!API_TOKEN) {
       console.warn('No Scorebat API token found. Using free widget access instead.');
       return fetchFromWidgetAPI();
     }
     
+    console.log('Using Scorebat API token for authenticated access');
+    
     // Use the CORS proxy with the official v3 API and your token
     const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_API_URL}?token=${API_TOKEN}`)}`;
-    console.log('Fetching from Scorebat API v3 with CORS Proxy:', proxyUrl);
+    console.log('Fetching from Scorebat API v3 with CORS Proxy');
     
     const response = await fetch(proxyUrl, {
       headers: {
@@ -170,20 +171,30 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Scorebat API v3 error response:', errorText);
+      console.error(`Scorebat API v3 error response: ${response.status} ${response.statusText}`);
+      console.error('Error details:', errorText);
       
-      // If official API fails, fall back to widget API
-      console.warn('Falling back to free widget access');
-      return fetchFromWidgetAPI();
+      throw new Error(`API responded with status ${response.status}: ${errorText}`);
     }
     
-    const data = await response.json();
-    console.log('Scorebat API v3 response data:', data);
+    const text = await response.text();
+    let data;
+    
+    try {
+      data = JSON.parse(text);
+      console.log('Successfully parsed JSON response from API v3');
+    } catch (e) {
+      console.error('Failed to parse API v3 response as JSON:', e);
+      console.error('Raw response:', text);
+      throw new Error('Failed to parse API v3 response');
+    }
     
     if (!data || !data.response || !Array.isArray(data.response)) {
       console.error('Unexpected API response format:', data);
-      return fetchFromWidgetAPI();
+      throw new Error('Unexpected API response format');
     }
+    
+    console.log(`Received ${data.response.length} videos from API v3`);
     
     // Transform the v3 API data format to match our expected ScorebatVideo format
     const transformedData: ScorebatVideo[] = data.response.map(item => ({
@@ -214,6 +225,7 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     return transformedData;
   } catch (error) {
     console.error('Error fetching from Scorebat API v3 with CORS Proxy:', error);
+    console.log('Falling back to widget API due to error with v3 API');
     // If any errors occur with the official API, fall back to the widget API
     return fetchFromWidgetAPI();
   }
@@ -226,7 +238,7 @@ const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
     const widgetUrl = `${SCOREBAT_WIDGET_URL}videopage?_=js`;
     const proxyUrl = `${CORS_PROXY}${encodeURIComponent(widgetUrl)}`;
     
-    console.log('Fetching from Scorebat Widget Videopage API with CORS Proxy:', proxyUrl);
+    console.log('Fetching from Scorebat Widget Videopage API with CORS Proxy');
     
     const response = await fetch(proxyUrl, {
       headers: {
@@ -235,59 +247,80 @@ const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Scorebat Widget API error response:', errorText);
-      throw new Error(`Scorebat Widget API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Widget API error: ${response.status} ${response.statusText}`);
     }
     
-    // Try to parse the response as JSON
+    const text = await response.text();
     let data;
-    try {
-      const text = await response.text();
-      // Check if it's actually HTML with JSON embedded
-      if (text.includes('<!doctype html>') || text.includes('<html')) {
-        console.error('Received HTML instead of JSON. Widget API has changed format.');
-        // Extract JSON from HTML if it exists (look for the __PRELOADED_STATE__ variable)
-        const match = text.match(/__PRELOADED_STATE__\s*=\s*({.+?});/s);
-        if (match && match[1]) {
-          try {
-            data = JSON.parse(match[1]);
-            console.log('Successfully extracted data from HTML response');
-          } catch (e) {
-            console.error('Failed to parse extracted JSON from HTML', e);
-            throw new Error('Failed to parse widget API response');
-          }
-        } else {
-          throw new Error('Could not extract data from HTML response');
+    
+    // Check if it's actually HTML with JSON embedded
+    if (text.includes('<!doctype html>') || text.includes('<html')) {
+      console.warn('Received HTML instead of JSON. Attempting to extract data from HTML.');
+      
+      // Look for the __PRELOADED_STATE__ variable in the HTML
+      const stateMatch = text.match(/__PRELOADED_STATE__\s*=\s*({.+?});/s);
+      
+      if (stateMatch && stateMatch[1]) {
+        try {
+          data = JSON.parse(stateMatch[1]);
+          console.log('Successfully extracted data from HTML response');
+        } catch (e) {
+          console.error('Failed to parse extracted JSON from HTML', e);
+          throw new Error('Failed to parse widget API response');
         }
       } else {
-        // If it's already JSON, parse it directly
-        data = JSON.parse(text);
+        // Try another approach - look for a JSON object anywhere in the response
+        const jsonMatch = text.match(/({".+})/);
+        if (jsonMatch && jsonMatch[1]) {
+          try {
+            data = JSON.parse(jsonMatch[1]);
+            console.log('Found and extracted JSON object from response');
+          } catch (e) {
+            console.error('Failed to parse JSON object from response', e);
+            throw new Error('Could not extract data from HTML response');
+          }
+        } else {
+          console.error('No usable data found in HTML response');
+          throw new Error('Could not extract data from HTML response');
+        }
       }
-    } catch (e) {
-      console.error('JSON parse error:', e);
-      throw new Error('Failed to parse widget API response');
+    } else {
+      // If it's already JSON, parse it directly
+      try {
+        data = JSON.parse(text);
+        console.log('Successfully parsed JSON response from widget API');
+      } catch (e) {
+        console.error('JSON parse error:', e);
+        throw new Error('Failed to parse widget API response');
+      }
     }
-    
-    console.log('Widget API response data format:', data);
     
     // Check for valid data structure
-    if (!data || (!data.videos && !data.matches)) {
-      console.error('Unexpected widget API data format:', data);
-      return [];
+    if (!data) {
+      console.error('No data found in response');
+      throw new Error('No data found in response');
     }
     
-    // Use the videos array if it exists, otherwise try the matches array
-    const videoArray = data.videos || data.matches || [];
+    // Use the videos array if it exists, otherwise try the matches array or response array
+    let videoArray = [];
     
-    if (!Array.isArray(videoArray)) {
-      console.error('Expected array of videos but got:', typeof videoArray);
-      return [];
+    if (data.videos && Array.isArray(data.videos)) {
+      videoArray = data.videos;
+      console.log('Using videos array from response');
+    } else if (data.matches && Array.isArray(data.matches)) {
+      videoArray = data.matches;
+      console.log('Using matches array from response');
+    } else if (data.response && Array.isArray(data.response)) {
+      videoArray = data.response;
+      console.log('Using response array from data');
+    } else {
+      console.error('No usable video array found in data:', data);
+      throw new Error('No videos found in API response');
     }
     
     // Transform the data format from widget to match our expected ScorebatVideo format
     const transformedData: ScorebatVideo[] = videoArray.map(item => ({
-      id: item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      id: item.id || item.matchId || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: item.title,
       embed: item.embed || '',
       url: item.url || item.matchviewUrl || '',

@@ -6,8 +6,9 @@ import LeagueSection from '@/components/LeagueSection';
 import { Toaster } from '@/components/ui/sonner';
 import { getRecommendedHighlightsWithFallback, getLeagueHighlightsWithFallback } from '@/services/fallbackService';
 import { MatchHighlight, League } from '@/types';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
@@ -18,6 +19,7 @@ const Index = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'live' | 'demo' | 'unknown'>('unknown');
 
   const fetchData = async () => {
     try {
@@ -41,10 +43,28 @@ const Index = () => {
       setLeagues(sortedLeagues);
       setLoading(prev => ({ ...prev, leagues: false }));
       setError(null);
+      
+      // Check if we're using live data or demo data
+      const isUsingLiveData = recommendedData.some(h => 
+        h.title.includes('2025') || 
+        new Date(h.date).getTime() > new Date('2022-01-01').getTime()
+      );
+      
+      setApiStatus(isUsingLiveData ? 'live' : 'demo');
+      
+      if (isUsingLiveData) {
+        toast.success('Connected to Scorebat API', { 
+          description: 'Successfully fetched live football highlights.',
+          duration: 3000,
+          id: 'api-status-success' // Prevent duplicate toasts
+        });
+      }
+      
     } catch (error) {
       console.error('Error fetching highlights:', error);
       setError('Failed to load highlights. Please refresh the page.');
       setLoading({ recommended: false, leagues: false });
+      setApiStatus('demo');
     } finally {
       setIsRefreshing(false);
     }
@@ -52,6 +72,17 @@ const Index = () => {
 
   useEffect(() => {
     fetchData();
+    
+    // Add listener for token updates
+    const tokenUpdateHandler = () => {
+      fetchData();
+    };
+    
+    window.addEventListener('scorebat-token-updated', tokenUpdateHandler);
+    
+    return () => {
+      window.removeEventListener('scorebat-token-updated', tokenUpdateHandler);
+    };
   }, []);
 
   const handleRefresh = () => {
@@ -80,8 +111,24 @@ const Index = () => {
       <Toaster position="top-center" />
       
       <main className="pt-16 pb-10">
-        {/* Action bar with refresh button */}
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-end">
+        {/* Action bar with refresh button and API status */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <div className={`h-2 w-2 rounded-full mr-2 ${
+              apiStatus === 'live' ? 'bg-green-500' : 
+              apiStatus === 'demo' ? 'bg-amber-500' : 'bg-gray-500'
+            }`}></div>
+            <span className="text-xs text-gray-400">
+              {apiStatus === 'live' ? 'Live API' : 
+               apiStatus === 'demo' ? 'Demo Data' : 'Checking API...'}
+            </span>
+            {apiStatus === 'demo' && (
+              <div className="ml-2 cursor-help" title="Using demo data because the API connection failed">
+                <Info size={14} className="text-amber-500" />
+              </div>
+            )}
+          </div>
+          
           <Button 
             onClick={handleRefresh} 
             variant="outline" 
