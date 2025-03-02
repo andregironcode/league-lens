@@ -4,11 +4,19 @@ import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
 import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import { searchHighlightsWithFallback } from '@/services/fallbackService';
 import { MatchHighlight } from '@/types';
-import { AlertCircle, RefreshCw, Search } from 'lucide-react';
+import { AlertCircle, RefreshCw, Search, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -18,6 +26,27 @@ const SearchPage = () => {
   const [searchResults, setSearchResults] = useState<MatchHighlight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'available' | 'error'>('checking');
+
+  // Check if the API is available when the component mounts
+  useEffect(() => {
+    const checkApiStatus = async () => {
+      try {
+        setApiStatus('checking');
+        // Make a small test query to see if the API is responsive
+        const testResults = await searchHighlightsWithFallback('test');
+        // If we got any results (even empty array is fine), the API is working
+        setApiStatus('available');
+        return true;
+      } catch (error) {
+        console.error('API status check failed:', error);
+        setApiStatus('error');
+        return false;
+      }
+    };
+
+    checkApiStatus();
+  }, []);
 
   const searchHighlights = async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -33,10 +62,29 @@ const SearchPage = () => {
       const results = await searchHighlightsWithFallback(searchQuery);
       console.log('Search results:', results.length);
       
-      setSearchResults(results);
+      // Sort results by date (newest first)
+      const sortedResults = [...results].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      
+      setSearchResults(sortedResults);
+      
+      if (sortedResults.length === 0) {
+        toast.info(`No highlights found for "${searchQuery}"`, {
+          description: "Try searching for different teams or competitions",
+          duration: 3000,
+        });
+      } else {
+        toast.success(`Found ${sortedResults.length} results for "${searchQuery}"`, {
+          duration: 2000,
+        });
+      }
     } catch (error) {
       console.error('Error searching highlights:', error);
       setError('Failed to search highlights. Please try again.');
+      toast.error('Search failed', {
+        description: 'Unable to connect to the highlights service',
+      });
     } finally {
       setLoading(false);
     }
@@ -62,6 +110,29 @@ const SearchPage = () => {
       <main className="pt-20 pb-16">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <h1 className="text-2xl md:text-3xl font-bold mb-6">Search Highlights</h1>
+          
+          {apiStatus === 'error' && (
+            <Card className="bg-amber-950/30 border-amber-800 mb-6">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-amber-300 flex items-center text-lg">
+                  <Info className="h-5 w-5 mr-2" />
+                  API Connection Issue
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-amber-200 text-sm">
+                  We're having trouble connecting to the Scorebat API. Search results will use our fallback data.
+                  <Button 
+                    variant="link" 
+                    className="text-amber-300 p-0 h-auto font-normal text-sm ml-2"
+                    onClick={() => window.location.href = '/settings'}
+                  >
+                    Check API Status
+                  </Button>
+                </p>
+              </CardContent>
+            </Card>
+          )}
           
           <form onSubmit={handleSearch} className="mb-8">
             <div className="flex gap-2">
