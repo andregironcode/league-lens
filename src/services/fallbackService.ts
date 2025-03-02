@@ -1,3 +1,4 @@
+
 import { MatchHighlight, League } from '@/types';
 import { getRecommendedHighlights as getMockRecommendedHighlights, 
          getLeagueHighlights as getMockLeagueHighlights,
@@ -53,21 +54,36 @@ export const getFallbackData = async <T>(
   try {
     console.log('Attempting to fetch data from Scorebat API...');
     const apiData = await apiCall();
-    console.log('API response received');
+    console.log('API response received', apiData);
     
+    // Check if the response is an array and has sufficient items
     if (Array.isArray(apiData) && apiData.length >= threshold) {
       console.log('Successfully received live data from Scorebat API');
       apiStateTracker.recordSuccess();
+      
+      // Only show success toast if we actually got data and haven't shown an error
+      if (showToast && !hasShownAPIError.value) {
+        toast.success('Connected to Scorebat API', {
+          description: 'Successfully fetched live football highlights.',
+          duration: 3000,
+          id: 'api-status-success' // Prevent duplicate toasts
+        });
+      }
+      
       return apiData;
     }
     
     console.warn('API data did not meet threshold requirements, using fallback data');
     if (showToast && !hasShownAPIError.value) {
-      toast.warning('Using demo data - API returned insufficient data', {
-        description: 'The Scorebat API returned insufficient data. Using demo data for now.',
+      toast.warning('No Videos Available - Using demo data', {
+        description: 'The Scorebat API did not return any videos. This might be a temporary issue. Using demo data for now.',
         duration: 5000,
       });
       hasShownAPIError.value = true;
+      
+      window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
+        detail: { status: 'error', error: 'No videos found' } 
+      }));
     }
     return await mockCall();
   } catch (error) {
@@ -85,7 +101,7 @@ export const getFallbackData = async <T>(
           description: 'The Scorebat API response format has changed. We\'re working on updating our integration. Using demo data for now.',
           duration: 5000,
         });
-      } else if (errorMessage.includes('No videos found')) {
+      } else if (errorMessage.includes('No videos found') || errorMessage.includes('Empty response')) {
         toast.error('No Videos Available - Using demo data', {
           description: 'The Scorebat API did not return any videos. This might be a temporary issue. Using demo data for now.',
           duration: 5000,

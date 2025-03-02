@@ -178,6 +178,11 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     }
     
     const text = await response.text();
+    if (!text || text.trim() === '') {
+      console.error('Empty response from Scorebat API v3');
+      throw new Error('Empty response from API');
+    }
+    
     let data;
     
     try {
@@ -195,6 +200,12 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     }
     
     console.log(`Received ${data.response.length} videos from API v3`);
+    
+    // Check if the response is empty
+    if (data.response.length === 0) {
+      console.error('No videos found in API v3 response');
+      throw new Error('No videos found in API response');
+    }
     
     // Transform the v3 API data format to match our expected ScorebatVideo format
     const transformedData: ScorebatVideo[] = data.response.map(item => ({
@@ -222,6 +233,11 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     }));
     
     console.log('Transformed video data count from v3 API:', transformedData.length);
+    
+    if (transformedData.length === 0) {
+      throw new Error('No videos found after transformation');
+    }
+    
     return transformedData;
   } catch (error) {
     console.error('Error fetching from Scorebat API v3 with CORS Proxy:', error);
@@ -251,6 +267,11 @@ const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
     }
     
     const text = await response.text();
+    if (!text || text.trim() === '') {
+      console.error('Empty response from Scorebat Widget API');
+      throw new Error('Empty response from Widget API');
+    }
+    
     let data;
     
     // Check if it's actually HTML with JSON embedded
@@ -318,6 +339,12 @@ const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
       throw new Error('No videos found in API response');
     }
     
+    // Check if the video array is empty
+    if (videoArray.length === 0) {
+      console.error('Widget API returned empty video array');
+      throw new Error('No videos found in Widget API response');
+    }
+    
     // Transform the data format from widget to match our expected ScorebatVideo format
     const transformedData: ScorebatVideo[] = videoArray.map(item => ({
       id: item.id || item.matchId || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -344,6 +371,11 @@ const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
     }));
     
     console.log('Transformed widget video data count:', transformedData.length);
+    
+    if (transformedData.length === 0) {
+      throw new Error('No videos found after transformation');
+    }
+    
     return transformedData;
   } catch (error) {
     console.error('Error fetching from Scorebat Widget API with CORS Proxy:', error);

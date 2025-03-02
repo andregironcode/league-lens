@@ -55,18 +55,10 @@ const Index = () => {
       const isUsingLiveData = recommendedData.some(h => 
         h.title.includes('2025') || 
         h.title.includes('2024') ||
-        new Date(h.date).getTime() > new Date('2023-01-01').getTime()
+        new Date(h.date).getTime() > new Date('2023-06-01').getTime()
       );
       
       setApiStatus(isUsingLiveData ? 'live' : 'demo');
-      
-      if (isUsingLiveData) {
-        toast.success('Connected to Scorebat API', { 
-          description: 'Successfully fetched live football highlights.',
-          duration: 3000,
-          id: 'api-status-success' // Prevent duplicate toasts
-        });
-      }
       
     } catch (error) {
       console.error('Error fetching highlights:', error);
@@ -82,8 +74,20 @@ const Index = () => {
     fetchData();
     
     // Listen for API status changes
-    const apiStatusChangeHandler = () => {
-      fetchData();
+    const apiStatusChangeHandler = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      console.log('API status changed:', customEvent.detail);
+      
+      if (customEvent.detail?.status === 'connected') {
+        setApiStatus('live');
+      } else if (customEvent.detail?.status === 'error') {
+        setApiStatus('demo');
+      }
+      
+      // Only refresh data if there was a status change to avoid duplicate fetches
+      if (customEvent.detail?.refresh !== false) {
+        fetchData();
+      }
     };
     
     // Listen for force refresh events
