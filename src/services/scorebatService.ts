@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper, Team } from '@/types';
 
 // API constants
@@ -35,6 +34,8 @@ const competitionIdMap: Record<string, string> = {
   'champions-league': 'CHAMPIONS LEAGUE',
   'europa-league': 'EUROPA LEAGUE',
 };
+
+// Helper functions and mappers
 
 // Helper to extract team info from Scorebat data
 const extractTeamInfo = (teamData: { name: string, url: string }): Team => {
@@ -145,36 +146,57 @@ const scorebatMapper: ScorebatMapper = {
   }
 };
 
-// Fetch data from Scorebat API using the CORS proxy
+// Fetch data from Scorebat API using the CORS proxy and the official v3 API
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   try {
-    // Use the CORS proxy with the widget feed endpoint
-    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}livescore?json=1`)}`;
-    console.log('Fetching from Scorebat Widget API with CORS Proxy:', proxyUrl);
+    // Try the official API v3 with your token
+    const API_TOKEN = import.meta.env.VITE_SCOREBAT_API_TOKEN || '';
     
-    const response = await fetch(proxyUrl);
+    // If no token, use the free widget API (though this is less reliable)
+    if (!API_TOKEN) {
+      console.warn('No Scorebat API token found. Using free widget access instead.');
+      return fetchFromWidgetAPI();
+    }
+    
+    // Use the CORS proxy with the official v3 API and your token
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_API_URL}?token=${API_TOKEN}`)}`;
+    console.log('Fetching from Scorebat API v3 with CORS Proxy:', proxyUrl);
+    
+    const response = await fetch(proxyUrl, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      console.error('Scorebat Widget API error response:', errorData);
-      throw new Error(`Scorebat Widget API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Scorebat API v3 error response:', errorText);
+      
+      // If official API fails, fall back to widget API
+      console.warn('Falling back to free widget access');
+      return fetchFromWidgetAPI();
     }
     
     const data = await response.json();
-    console.log('Scorebat Widget API response data:', data);
+    console.log('Scorebat API v3 response data:', data);
     
-    // Transform the data format from widget to match our expected ScorebatVideo format
-    const transformedData: ScorebatVideo[] = Array.isArray(data) ? data.map(item => ({
-      id: item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    if (!data || !data.response || !Array.isArray(data.response)) {
+      console.error('Unexpected API response format:', data);
+      return fetchFromWidgetAPI();
+    }
+    
+    // Transform the v3 API data format to match our expected ScorebatVideo format
+    const transformedData: ScorebatVideo[] = data.response.map(item => ({
+      id: item.matchId || item.title,
       title: item.title,
       embed: item.embed || '',
-      url: item.url,
+      url: item.matchviewUrl || '',
       thumbnail: item.thumbnail,
       date: item.date,
       competition: {
-        id: item.competition?.id || '',
-        name: item.competition?.name || 'Unknown',
-        url: item.competition?.url || '',
+        id: item.competitionId || '',
+        name: item.competition || 'Unknown',
+        url: item.competitionUrl || '',
       },
       matchviewUrl: item.matchviewUrl || '',
       competitionUrl: item.competitionUrl || '',
@@ -186,13 +208,113 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
         name: item.side2?.name || 'Unknown',
         url: item.side2?.url || '',
       }
-    })) : [];
+    }));
     
-    console.log('Transformed video data count:', transformedData.length);
+    console.log('Transformed video data count from v3 API:', transformedData.length);
+    return transformedData;
+  } catch (error) {
+    console.error('Error fetching from Scorebat API v3 with CORS Proxy:', error);
+    // If any errors occur with the official API, fall back to the widget API
+    return fetchFromWidgetAPI();
+  }
+};
+
+// Fallback function to fetch data from the widget API
+const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
+  try {
+    // New direct video highlights API with explicit JSON parameter
+    const widgetUrl = `${SCOREBAT_WIDGET_URL}videopage?_=js`;
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(widgetUrl)}`;
+    
+    console.log('Fetching from Scorebat Widget Videopage API with CORS Proxy:', proxyUrl);
+    
+    const response = await fetch(proxyUrl, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Scorebat Widget API error response:', errorText);
+      throw new Error(`Scorebat Widget API error: ${response.status} ${response.statusText}`);
+    }
+    
+    // Try to parse the response as JSON
+    let data;
+    try {
+      const text = await response.text();
+      // Check if it's actually HTML with JSON embedded
+      if (text.includes('<!doctype html>') || text.includes('<html')) {
+        console.error('Received HTML instead of JSON. Widget API has changed format.');
+        // Extract JSON from HTML if it exists (look for the __PRELOADED_STATE__ variable)
+        const match = text.match(/__PRELOADED_STATE__\s*=\s*({.+?});/s);
+        if (match && match[1]) {
+          try {
+            data = JSON.parse(match[1]);
+            console.log('Successfully extracted data from HTML response');
+          } catch (e) {
+            console.error('Failed to parse extracted JSON from HTML', e);
+            throw new Error('Failed to parse widget API response');
+          }
+        } else {
+          throw new Error('Could not extract data from HTML response');
+        }
+      } else {
+        // If it's already JSON, parse it directly
+        data = JSON.parse(text);
+      }
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      throw new Error('Failed to parse widget API response');
+    }
+    
+    console.log('Widget API response data format:', data);
+    
+    // Check for valid data structure
+    if (!data || (!data.videos && !data.matches)) {
+      console.error('Unexpected widget API data format:', data);
+      return [];
+    }
+    
+    // Use the videos array if it exists, otherwise try the matches array
+    const videoArray = data.videos || data.matches || [];
+    
+    if (!Array.isArray(videoArray)) {
+      console.error('Expected array of videos but got:', typeof videoArray);
+      return [];
+    }
+    
+    // Transform the data format from widget to match our expected ScorebatVideo format
+    const transformedData: ScorebatVideo[] = videoArray.map(item => ({
+      id: item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      title: item.title,
+      embed: item.embed || '',
+      url: item.url || item.matchviewUrl || '',
+      thumbnail: item.thumbnail || item.image || '',
+      date: item.date,
+      competition: {
+        id: item.competition?.id || '',
+        name: item.competition?.name || item.competition || 'Unknown',
+        url: item.competition?.url || item.competitionUrl || '',
+      },
+      matchviewUrl: item.matchviewUrl || item.url || '',
+      competitionUrl: item.competitionUrl || item.competition?.url || '',
+      team1: {
+        name: item.side1?.name || item.team1 || 'Unknown',
+        url: item.side1?.url || '',
+      },
+      team2: {
+        name: item.side2?.name || item.team2 || 'Unknown',
+        url: item.side2?.url || '',
+      }
+    }));
+    
+    console.log('Transformed widget video data count:', transformedData.length);
     return transformedData;
   } catch (error) {
     console.error('Error fetching from Scorebat Widget API with CORS Proxy:', error);
-    throw error; // Re-throw to let fallback service handle it
+    throw error;
   }
 };
 
@@ -298,7 +420,7 @@ export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> 
   }
 };
 
-// Get recommended highlights (latest videos from widget API)
+// Get recommended highlights (latest videos from API)
 export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
   const videos = await fetchScorebatVideos();
   

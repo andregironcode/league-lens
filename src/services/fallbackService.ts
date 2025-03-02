@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League } from '@/types';
 import { getRecommendedHighlights as getMockRecommendedHighlights, 
          getLeagueHighlights as getMockLeagueHighlights,
@@ -10,9 +9,6 @@ import { toast } from 'sonner';
 const hasShownAPIError = {
   value: false
 };
-
-// We're using a proxy to bypass CORS issues
-const CORS_PROXY = 'https://corsproxy.io/?';
 
 export const getFallbackData = async <T>(
   apiCall: () => Promise<T>,
@@ -54,9 +50,9 @@ export const getFallbackData = async <T>(
           description: 'Your Scorebat API token may be invalid or expired. Please check your subscription. Displaying demo data instead.',
           duration: 7000,
         });
-      } else if (errorMessage.includes('Failed to fetch')) {
+      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Failed to parse')) {
         toast.error('Network Error - Using demo data', {
-          description: 'Failed to connect to the Scorebat API. This may be due to CORS restrictions or network issues.',
+          description: 'Failed to connect to the Scorebat API. This may be due to CORS restrictions or changes in the API structure.',
           duration: 5000,
         });
       } else {
