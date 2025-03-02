@@ -9,15 +9,28 @@ const SCOREBAT_API_TOKEN = 'MTk1NDQ4X01UazFORFF4WDFBeU9UZzRNRGcwTXpGZk9XTmtOV0kx
 
 // Create a map of competition names to league IDs
 const competitionToLeagueMap: Record<string, { id: string, logo: string }> = {
-  'ENGLAND: Premier League': { id: 'pl', logo: '/leagues/premierleague.png' },
-  'SPAIN: La Liga': { id: 'laliga', logo: '/leagues/laliga.png' },
-  'GERMANY: Bundesliga': { id: 'bundesliga', logo: '/leagues/bundesliga.png' },
-  'ITALY: Serie A': { id: 'seriea', logo: '/leagues/seriea.png' },
-  'FRANCE: Ligue 1': { id: 'ligue1', logo: '/leagues/ligue1.png' },
-  'NETHERLANDS: Eredivisie': { id: 'eredivisie', logo: '/leagues/eredivisie.png' },
-  'PORTUGAL: Liga Portugal': { id: 'portugal', logo: '/leagues/portugal.png' },
-  'CHAMPIONS LEAGUE': { id: 'ucl', logo: '/leagues/ucl.png' },
-  'EUROPA LEAGUE': { id: 'uel', logo: '/leagues/uel.png' },
+  'ENGLAND: Premier League': { id: 'england-premier-league', logo: '/leagues/premierleague.png' },
+  'SPAIN: La Liga': { id: 'spain-la-liga', logo: '/leagues/laliga.png' },
+  'GERMANY: Bundesliga': { id: 'germany-bundesliga', logo: '/leagues/bundesliga.png' },
+  'ITALY: Serie A': { id: 'italy-serie-a', logo: '/leagues/seriea.png' },
+  'FRANCE: Ligue 1': { id: 'france-ligue-1', logo: '/leagues/ligue1.png' },
+  'NETHERLANDS: Eredivisie': { id: 'netherlands-eredivisie', logo: '/leagues/eredivisie.png' },
+  'PORTUGAL: Liga Portugal': { id: 'portugal-liga-portugal', logo: '/leagues/portugal.png' },
+  'CHAMPIONS LEAGUE': { id: 'champions-league', logo: '/leagues/ucl.png' },
+  'EUROPA LEAGUE': { id: 'europa-league', logo: '/leagues/uel.png' },
+};
+
+// Common map for conversion between competition names and IDs
+const competitionIdMap: Record<string, string> = {
+  'england-premier-league': 'ENGLAND: Premier League',
+  'spain-la-liga': 'SPAIN: La Liga',
+  'germany-bundesliga': 'GERMANY: Bundesliga',
+  'italy-serie-a': 'ITALY: Serie A',
+  'france-ligue-1': 'FRANCE: Ligue 1',
+  'netherlands-eredivisie': 'NETHERLANDS: Eredivisie',
+  'portugal-liga-portugal': 'PORTUGAL: Liga Portugal',
+  'champions-league': 'CHAMPIONS LEAGUE',
+  'europa-league': 'EUROPA LEAGUE',
 };
 
 // Helper to extract team info from Scorebat data
@@ -70,8 +83,9 @@ const scorebatMapper: ScorebatMapper = {
     const awayTeam = extractTeamInfo(video.team2);
     
     // Extract competition info
-    const competitionInfo = competitionToLeagueMap[video.competition.name] || 
-                            { id: 'other', logo: '/leagues/other.png' };
+    const competitionName = video.competition.name;
+    const competitionInfo = competitionToLeagueMap[competitionName] || 
+                            { id: competitionName.toLowerCase().replace(/[\s:]+/g, '-'), logo: '/leagues/other.png' };
     
     // Try to extract score from title
     const score = extractScoreFromTitle(video.title);
@@ -89,7 +103,7 @@ const scorebatMapper: ScorebatMapper = {
       score,
       competition: {
         id: competitionInfo.id,
-        name: video.competition.name,
+        name: competitionName,
         logo: competitionInfo.logo
       }
     };
@@ -112,7 +126,7 @@ const scorebatMapper: ScorebatMapper = {
     
     leagueMap.forEach((videos, competitionName) => {
       const competitionInfo = competitionToLeagueMap[competitionName] || 
-                              { id: competitionName.toLowerCase().replace(/\s+/g, '-'), logo: '/leagues/other.png' };
+                              { id: competitionName.toLowerCase().replace(/[\s:]+/g, '-'), logo: '/leagues/other.png' };
       
       const highlights = videos.map(video => scorebatMapper.mapToMatchHighlight(video));
       
@@ -128,24 +142,70 @@ const scorebatMapper: ScorebatMapper = {
   }
 };
 
-// Fetch data from Scorebat API
+// Fetch data from Scorebat API - general feed endpoint
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   try {
-    console.log('Fetching from Scorebat API:', `${SCOREBAT_API_URL}/feed?token=${SCOREBAT_API_TOKEN}`);
+    console.log('Fetching from Scorebat API (feed):', `${SCOREBAT_API_URL}/feed?token=${SCOREBAT_API_TOKEN}`);
     
     const response = await fetch(`${SCOREBAT_API_URL}/feed?token=${SCOREBAT_API_TOKEN}`);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
       console.error('Scorebat API error response:', errorData);
-      throw new Error(`Scorebat API error: ${response.status}`);
+      throw new Error(`Scorebat API error: ${response.status} ${response.statusText}`);
     }
     
     const data: ScorebatResponse = await response.json();
     console.log('Scorebat API response data count:', data.data?.length || 0);
     return data.data || [];
   } catch (error) {
-    console.error('Error fetching from Scorebat API:', error);
+    console.error('Error fetching from Scorebat API (feed):', error);
+    throw error; // Re-throw to let fallback service handle it
+  }
+};
+
+// Fetch data from Scorebat API - competition endpoint
+export const fetchCompetitionVideos = async (competitionId: string): Promise<ScorebatVideo[]> => {
+  try {
+    console.log(`Fetching from Scorebat API (competition ${competitionId}):`, 
+      `${SCOREBAT_API_URL}/competition/${competitionId}?token=${SCOREBAT_API_TOKEN}`);
+    
+    const response = await fetch(`${SCOREBAT_API_URL}/competition/${competitionId}?token=${SCOREBAT_API_TOKEN}`);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      console.error('Scorebat API error response (competition):', errorData);
+      throw new Error(`Scorebat API competition error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data: ScorebatResponse = await response.json();
+    console.log(`Scorebat API competition ${competitionId} response data count:`, data.data?.length || 0);
+    return data.data || [];
+  } catch (error) {
+    console.error(`Error fetching from Scorebat API (competition ${competitionId}):`, error);
+    throw error; // Re-throw to let fallback service handle it
+  }
+};
+
+// Fetch data from Scorebat API - team endpoint
+export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> => {
+  try {
+    console.log(`Fetching from Scorebat API (team ${teamId}):`, 
+      `${SCOREBAT_API_URL}/team/${teamId}?token=${SCOREBAT_API_TOKEN}`);
+    
+    const response = await fetch(`${SCOREBAT_API_URL}/team/${teamId}?token=${SCOREBAT_API_TOKEN}`);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      console.error('Scorebat API error response (team):', errorData);
+      throw new Error(`Scorebat API team error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data: ScorebatResponse = await response.json();
+    console.log(`Scorebat API team ${teamId} response data count:`, data.data?.length || 0);
+    return data.data || [];
+  } catch (error) {
+    console.error(`Error fetching from Scorebat API (team ${teamId}):`, error);
     throw error; // Re-throw to let fallback service handle it
   }
 };
@@ -166,6 +226,12 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
   return scorebatMapper.mapToLeagues(videos);
 };
 
+// Get highlights for a specific competition
+export const getCompetitionHighlights = async (competitionId: string): Promise<MatchHighlight[]> => {
+  const videos = await fetchCompetitionVideos(competitionId);
+  return videos.map(video => scorebatMapper.mapToMatchHighlight(video));
+};
+
 // Get a specific match by ID
 export const getMatchById = async (id: string): Promise<MatchHighlight | null> => {
   const videos = await fetchScorebatVideos();
@@ -178,19 +244,28 @@ export const getMatchById = async (id: string): Promise<MatchHighlight | null> =
 
 // Get highlights for a specific team
 export const getTeamHighlights = async (teamId: string): Promise<MatchHighlight[]> => {
-  const videos = await fetchScorebatVideos();
-  
-  // Convert team ID back to team name format (dashes to spaces)
-  const teamName = teamId.replace(/-/g, ' ');
-  
-  // Find videos featuring this team
-  const teamVideos = videos.filter(video => {
-    const team1Lower = video.team1.name.toLowerCase();
-    const team2Lower = video.team2.name.toLowerCase();
-    return team1Lower.includes(teamName) || team2Lower.includes(teamName);
-  });
-  
-  return teamVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
+  // First try the direct team API endpoint
+  try {
+    const videos = await fetchTeamVideos(teamId);
+    return videos.map(video => scorebatMapper.mapToMatchHighlight(video));
+  } catch (error) {
+    console.error(`Team endpoint failed for ${teamId}, falling back to search in general feed`);
+    
+    // Fallback to searching in the general feed
+    const videos = await fetchScorebatVideos();
+    
+    // Convert team ID back to team name format (dashes to spaces)
+    const teamName = teamId.replace(/-/g, ' ');
+    
+    // Find videos featuring this team
+    const teamVideos = videos.filter(video => {
+      const team1Lower = video.team1.name.toLowerCase();
+      const team2Lower = video.team2.name.toLowerCase();
+      return team1Lower.includes(teamName) || team2Lower.includes(teamName);
+    });
+    
+    return teamVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
+  }
 };
 
 // Search for highlights

@@ -2,7 +2,8 @@
 import { useRef } from "react";
 import { League } from "@/types";
 import HighlightCard from "./HighlightCard";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface LeagueSectionProps {
   league: League;
@@ -11,17 +12,17 @@ interface LeagueSectionProps {
 // Helper function to get country flag based on league ID
 const getCountryFlag = (leagueId: string): string => {
   const flagMap: Record<string, string> = {
-    'pl': 'https://flagcdn.com/w40/gb-eng.png', // English flag
-    'laliga': 'https://flagcdn.com/w40/es.png', // Spanish flag
-    'bundesliga': 'https://flagcdn.com/w40/de.png', // German flag
-    'seriea': 'https://flagcdn.com/w40/it.png', // Italian flag
-    'ligue1': 'https://flagcdn.com/w40/fr.png', // French flag
-    'eredivisie': 'https://flagcdn.com/w40/nl.png', // Dutch flag
-    'portugal': 'https://flagcdn.com/w40/pt.png', // Portuguese flag
+    'england-premier-league': 'https://flagcdn.com/w40/gb-eng.png', // English flag
+    'spain-la-liga': 'https://flagcdn.com/w40/es.png', // Spanish flag
+    'germany-bundesliga': 'https://flagcdn.com/w40/de.png', // German flag
+    'italy-serie-a': 'https://flagcdn.com/w40/it.png', // Italian flag
+    'france-ligue-1': 'https://flagcdn.com/w40/fr.png', // French flag
+    'netherlands-eredivisie': 'https://flagcdn.com/w40/nl.png', // Dutch flag
+    'portugal-liga-portugal': 'https://flagcdn.com/w40/pt.png', // Portuguese flag
     'brazil': 'https://flagcdn.com/w40/br.png', // Brazilian flag
     'argentina': 'https://flagcdn.com/w40/ar.png', // Argentine flag
-    'ucl': 'https://flagcdn.com/w40/eu.png', // EU flag for Champions League
-    'uel': 'https://flagcdn.com/w40/eu.png', // EU flag for Europa League
+    'champions-league': 'https://flagcdn.com/w40/eu.png', // EU flag for Champions League
+    'europa-league': 'https://flagcdn.com/w40/eu.png', // EU flag for Europa League
   };
   
   return flagMap[leagueId] || 'https://www.sofascore.com/static/images/placeholders/tournament.svg';
@@ -46,20 +47,20 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
 
   return (
     <div className="mb-10 animate-fade-in">
-      <div className="flex items-center space-x-3 mb-4">
-        {/* Country flag instead of league logo */}
-        <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
-          <img 
-            src={getCountryFlag(league.id)}
-            alt={league.name}
-            className="w-8 h-8 object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "https://www.sofascore.com/static/images/placeholders/tournament.svg";
-            }}
-          />
-        </div>
-        <div className="flex items-center justify-between flex-1">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          {/* Country flag instead of league logo */}
+          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
+            <img 
+              src={getCountryFlag(league.id)}
+              alt={league.name}
+              className="w-8 h-8 object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = "https://www.sofascore.com/static/images/placeholders/tournament.svg";
+              }}
+            />
+          </div>
           <div className="flex items-center space-x-3">
             <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
             <span className="text-sm text-gray-400">
@@ -67,6 +68,14 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
             </span>
           </div>
         </div>
+        
+        <Link 
+          to={`/competition/${league.id}`} 
+          className="text-sm text-highlight-500 hover:text-highlight-400 flex items-center"
+        >
+          <span>View all</span>
+          <ExternalLink size={14} className="ml-1" />
+        </Link>
       </div>
 
       <div className="relative">

@@ -4,7 +4,8 @@ import { getRecommendedHighlights as getMockRecommendedHighlights,
          getLeagueHighlights as getMockLeagueHighlights,
          getMatchById as getMockMatchById,
          getTeamHighlights as getMockTeamHighlights,
-         searchHighlights as mockSearchHighlights } from './highlightService';
+         searchHighlights as mockSearchHighlights,
+         getCompetitionHighlights as getMockCompetitionHighlights } from './highlightService';
 import { toast } from 'sonner';
 
 const hasShownAPIError = {
@@ -48,7 +49,7 @@ export const getFallbackData = async <T>(
       
       if (errorMessage.includes('403')) {
         toast.error('API Authentication Error', {
-          description: 'Your Scorebat API token may be invalid or expired. Displaying demo data instead.',
+          description: 'Your Scorebat API token may be invalid or expired. Please check your subscription. Displaying demo data instead.',
           duration: 7000,
         });
       } else {
@@ -72,6 +73,15 @@ export const getRecommendedHighlightsWithFallback = async (): Promise<MatchHighl
 export const getLeagueHighlightsWithFallback = async (): Promise<League[]> => {
   const { getLeagueHighlights } = await import('./scorebatService');
   return getFallbackData(getLeagueHighlights, getMockLeagueHighlights, 2);
+};
+
+export const getCompetitionHighlightsWithFallback = async (competitionId: string): Promise<MatchHighlight[]> => {
+  const { getCompetitionHighlights } = await import('./scorebatService');
+  return getFallbackData(
+    () => getCompetitionHighlights(competitionId), 
+    () => getMockCompetitionHighlights(competitionId), 
+    1
+  );
 };
 
 export const getMatchByIdWithFallback = async (id: string): Promise<MatchHighlight | null> => {
