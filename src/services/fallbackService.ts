@@ -43,10 +43,20 @@ export const getFallbackData = async <T>(
   } catch (error) {
     console.error('Error in API call, using fallback data:', error);
     if (showToast && !hasShownAPIError.value) {
-      toast.error('API Error - Using demo data', {
-        description: 'There was an error accessing the Scorebat API. Check that your API token is valid.',
-        duration: 5000,
-      });
+      // Check if it's a specific 403 error related to permissions
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes('403')) {
+        toast.error('API Authentication Error', {
+          description: 'Your Scorebat API token may be invalid or expired. Displaying demo data instead.',
+          duration: 7000,
+        });
+      } else {
+        toast.error('API Error - Using demo data', {
+          description: 'There was an error accessing the Scorebat API. Check your network connection.',
+          duration: 5000,
+        });
+      }
       hasShownAPIError.value = true;
     }
     return await mockCall();

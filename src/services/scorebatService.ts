@@ -4,8 +4,8 @@ import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper
 // API constants
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
 
-// Use only the paid API token
-const SCOREBAT_API_TOKEN = 'MTk1NDQ4X1AyOTg4MDg0MzFfOWNkNWI1YzAxYmE0OTc5YTk0NTFkNTEyNGJiYjdjYWJkMDgwMzIyNQ==';
+// Updated API token from the paid developer plan
+const SCOREBAT_API_TOKEN = 'MTk1NDQ4X01UazFORFF4WDFBeU9UZzRNRGcwTXpGZk9XTmtOV0kxWXpBeFlXRTBPVGM1WVRrME5URmtOVEV5TkdKaVlqZGpZV0prTURnd016SXlOUT09';
 
 // Create a map of competition names to league IDs
 const competitionToLeagueMap: Record<string, { id: string, logo: string }> = {
