@@ -7,11 +7,13 @@ import { getRecommendedHighlights as getMockRecommendedHighlights,
          searchHighlights as mockSearchHighlights } from './highlightService';
 import { toast } from 'sonner';
 
+// Track when we've shown error messages to prevent duplicates
 const hasShownAPIError = {
   value: false,
   reset: () => { hasShownAPIError.value = false; }
 };
 
+// Manager for API connection state
 const apiStateTracker = {
   lastSuccessTime: 0,
   retryCount: 0,
@@ -47,24 +49,24 @@ export const getFallbackData = async <T>(
   showToast: boolean = true
 ): Promise<T> => {
   if (!apiStateTracker.shouldRetryApi()) {
-    console.warn('Skipping API call due to previous failures, using fallback data');
+    console.warn('Using demo highlights - API calls temporarily disabled due to previous failures');
     return await mockCall();
   }
   
   try {
-    console.log('Attempting to fetch data from Scorebat API...');
+    console.log('Attempting to fetch highlights from Scorebat...');
     const apiData = await apiCall();
     console.log('API response received', apiData);
     
     // Check if the response is an array and has sufficient items
     if (Array.isArray(apiData) && apiData.length >= threshold) {
-      console.log('Successfully received live data from Scorebat API');
+      console.log('Successfully received live data from Scorebat');
       apiStateTracker.recordSuccess();
       
-      // Only show success toast if we got data and haven't shown an error
-      if (showToast && !hasShownAPIError.value) {
-        toast.success('Connected to Scorebat API', {
-          description: 'Successfully fetched live football highlights.',
+      // Only show success toast if we haven't shown an error
+      if (showToast && hasShownAPIError.value) {
+        toast.success('Live highlights available', {
+          description: 'Score90 is now showing the latest football highlights.',
           duration: 3000,
           id: 'api-status-success' // Prevent duplicate toasts
         });
@@ -73,10 +75,10 @@ export const getFallbackData = async <T>(
       return apiData;
     }
     
-    console.warn('API data did not meet threshold requirements, using fallback data');
+    console.warn('No highlights found in API response, using demo highlights');
     if (showToast && !hasShownAPIError.value) {
-      toast.warning('No Videos Available - Using demo data', {
-        description: 'The Scorebat API is connected but returned no videos. This might be a temporary issue. Using demo data for now.',
+      toast.warning('No new highlights available', {
+        description: 'No recent football highlights found. Showing demo highlights for now.',
         duration: 5000,
       });
       hasShownAPIError.value = true;
@@ -87,33 +89,23 @@ export const getFallbackData = async <T>(
     }
     return await mockCall();
   } catch (error) {
-    console.error('Error in API call, using fallback data:', error);
+    console.error('Error fetching highlights, using demo data:', error);
     if (showToast && !hasShownAPIError.value) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       
       if (errorMessage.includes('403')) {
-        toast.error('API Authentication Error', {
-          description: 'Your Scorebat API token may be invalid or expired. Please check your subscription. Displaying demo data instead.',
-          duration: 7000,
+        toast.error('API Connection Error', {
+          description: 'Score90 is having trouble accessing fresh highlights. Showing demo content for now.',
+          duration: 5000,
         });
       } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Failed to parse')) {
-        toast.error('API Format Changed - Using demo data', {
-          description: 'The Scorebat API response format has changed. We\'re working on updating our integration. Using demo data for now.',
-          duration: 5000,
-        });
-      } else if (errorMessage.includes('No videos found') || errorMessage.includes('Empty response')) {
-        toast.error('No Videos Available - Using demo data', {
-          description: 'The Scorebat API did not return any videos. This might be a temporary issue. Using demo data for now.',
-          duration: 5000,
-        });
-      } else if (errorMessage.includes('HTML')) {
-        toast.error('API Format Error - Using demo data', {
-          description: 'The Scorebat API returned HTML instead of JSON. We\'re working to fix this issue. Using demo data for now.',
+        toast.error('Network Error', {
+          description: 'Unable to connect to highlights service. Check your internet connection.',
           duration: 5000,
         });
       } else {
-        toast.error('API Error - Using demo data', {
-          description: 'There was an error accessing the Scorebat API. Check your network connection or try again later.',
+        toast.error('Highlights Temporarily Unavailable', {
+          description: 'We\'re having trouble getting the latest highlights. Showing demo content for now.',
           duration: 5000,
         });
       }
@@ -146,6 +138,7 @@ export const isValidTokenFormat = (): boolean => {
   return token.length > 20;
 };
 
+// Helper functions to get different types of football highlights with fallback to demo data
 export const getRecommendedHighlightsWithFallback = async (): Promise<MatchHighlight[]> => {
   const { getRecommendedHighlights } = await import('./scorebatService');
   return getFallbackData(getRecommendedHighlights, getMockRecommendedHighlights, 3);

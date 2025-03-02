@@ -3,10 +3,12 @@ import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper
 // API constants
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
 
-// Widget access (free) doesn't require a token
+// Widget access (free) alternative endpoints
 const SCOREBAT_WIDGET_URL = 'https://www.scorebat.com/embed/';
+const SCOREBAT_VIDEO_URL = 'https://www.scorebat.com/embed/videopage';
 
 // CORS proxy to bypass cross-origin restrictions
+// Using corsproxy.io which is more reliable than many other proxies
 const CORS_PROXY = 'https://corsproxy.io/?';
 
 // Create a map of competition names to league IDs
@@ -146,65 +148,58 @@ const scorebatMapper: ScorebatMapper = {
   }
 };
 
-// Fetch data from Scorebat API using the CORS proxy and the official v3 API
+// Try multiple endpoints to fetch data from Scorebat
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
+  try {
+    // First try widget API which doesn't require a token
+    console.log('Attempting to fetch highlights from Scorebat widget API...');
+    return await fetchFromWidgetAPI();
+  } catch (error) {
+    console.error('Error fetching from widget API, trying premium API as fallback:', error);
+    try {
+      // Try premium API as fallback
+      return await fetchFromPremiumAPI();
+    } catch (secondError) {
+      console.error('All API attempts failed:', secondError);
+      throw secondError; // Re-throw to trigger fallback to demo data
+    }
+  }
+};
+
+// Fetch from the premium API endpoint (requires token)
+const fetchFromPremiumAPI = async (): Promise<ScorebatVideo[]> => {
   try {
     // Get the API token from environment variables
     const API_TOKEN = import.meta.env.VITE_SCOREBAT_API_TOKEN || '';
     
     if (!API_TOKEN) {
-      console.warn('No Scorebat API token found. Using free widget access instead.');
-      return fetchFromWidgetAPI();
+      console.warn('No Scorebat API token found. Cannot use premium API.');
+      throw new Error('No API token configured');
     }
     
-    console.log('Using Scorebat API token for authenticated access');
+    console.log('Using Scorebat premium API with token');
     
-    // Use the CORS proxy with the official v3 API
-    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_API_URL}?token=${API_TOKEN}`)}`;
-    console.log('Fetching from Scorebat API v3:', proxyUrl);
+    // Use the CORS proxy with the premium API endpoint
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_API_URL}/feed?token=${API_TOKEN}`)}`;
     
     const response = await fetch(proxyUrl, {
       headers: {
         'Accept': 'application/json',
-        'Authorization': `Bearer ${API_TOKEN}`
       }
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Scorebat API v3 error response: ${response.status} ${response.statusText}`);
-      console.error('Error details:', errorText);
-      
-      throw new Error(`API responded with status ${response.status}: ${errorText}`);
+      throw new Error(`Premium API error: ${response.status} ${response.statusText}`);
     }
     
-    const text = await response.text();
-    if (!text || text.trim() === '') {
-      console.error('Empty response from Scorebat API v3');
-      throw new Error('Empty response from API');
-    }
-    
-    let data;
-    
-    try {
-      data = JSON.parse(text);
-      console.log('Successfully parsed JSON response from API v3:', data);
-    } catch (e) {
-      console.error('Failed to parse API v3 response as JSON:', e);
-      console.error('Raw response:', text);
-      throw new Error('Failed to parse API v3 response');
-    }
+    const data = await response.json();
     
     if (!data || !data.response || !Array.isArray(data.response)) {
-      console.error('Unexpected API response format:', data);
       throw new Error('Unexpected API response format');
     }
     
-    console.log(`Received ${data.response.length} videos from API v3`);
-    
     // Check if the response is empty or has no videos
     if (data.response.length === 0) {
-      console.error('No videos found in API v3 response');
       throw new Error('No videos found in API response');
     }
     
@@ -233,153 +228,127 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
       }
     }));
     
-    console.log('Transformed video data count from v3 API:', transformedData.length);
-    
-    if (transformedData.length === 0) {
-      throw new Error('No videos found after transformation');
-    }
-    
     return transformedData;
   } catch (error) {
-    console.error('Error fetching from Scorebat API v3 with CORS Proxy:', error);
-    console.log('Falling back to widget API due to error with v3 API');
-    // If any errors occur with the official API, fall back to the widget API
-    return fetchFromWidgetAPI();
+    console.error('Premium API error:', error);
+    throw error;
   }
 };
 
-// Fallback function to fetch data from the widget API
+// Fetch from the widget API endpoint (no token required)
 const fetchFromWidgetAPI = async (): Promise<ScorebatVideo[]> => {
   try {
-    // New direct video highlights API with explicit JSON parameter
-    const widgetUrl = `${SCOREBAT_WIDGET_URL}videopage?_=js`;
-    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(widgetUrl)}`;
+    // Try different widget endpoints until one works
+    const endpoints = [
+      `${SCOREBAT_VIDEO_URL}`,
+      `${SCOREBAT_WIDGET_URL}videopage?_format=json`, 
+      `${SCOREBAT_WIDGET_URL}livescore?json=1`
+    ];
     
-    console.log('Fetching from Scorebat Widget Videopage API with CORS Proxy');
+    let lastError = null;
     
-    const response = await fetch(proxyUrl, {
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Widget API error: ${response.status} ${response.statusText}`);
-    }
-    
-    const text = await response.text();
-    if (!text || text.trim() === '') {
-      console.error('Empty response from Scorebat Widget API');
-      throw new Error('Empty response from Widget API');
-    }
-    
-    let data;
-    
-    // Check if it's actually HTML with JSON embedded
-    if (text.includes('<!doctype html>') || text.includes('<html')) {
-      console.warn('Received HTML instead of JSON. Attempting to extract data from HTML.');
-      
-      // Look for the __PRELOADED_STATE__ variable in the HTML
-      const stateMatch = text.match(/__PRELOADED_STATE__\s*=\s*({.+?});/s);
-      
-      if (stateMatch && stateMatch[1]) {
-        try {
-          data = JSON.parse(stateMatch[1]);
-          console.log('Successfully extracted data from HTML response');
-        } catch (e) {
-          console.error('Failed to parse extracted JSON from HTML', e);
-          throw new Error('Failed to parse widget API response');
-        }
-      } else {
-        // Try another approach - look for a JSON object anywhere in the response
-        const jsonMatch = text.match(/({".+})/);
-        if (jsonMatch && jsonMatch[1]) {
-          try {
-            data = JSON.parse(jsonMatch[1]);
-            console.log('Found and extracted JSON object from response');
-          } catch (e) {
-            console.error('Failed to parse JSON object from response', e);
-            throw new Error('Could not extract data from HTML response');
-          }
-        } else {
-          console.error('No usable data found in HTML response');
-          throw new Error('Could not extract data from HTML response');
-        }
-      }
-    } else {
-      // If it's already JSON, parse it directly
+    // Try each endpoint until one works
+    for (const endpoint of endpoints) {
       try {
-        data = JSON.parse(text);
-        console.log('Successfully parsed JSON response from widget API');
-      } catch (e) {
-        console.error('JSON parse error:', e);
-        throw new Error('Failed to parse widget API response');
+        const proxyUrl = `${CORS_PROXY}${encodeURIComponent(endpoint)}`;
+        console.log(`Trying widget endpoint: ${endpoint}`);
+        
+        const response = await fetch(proxyUrl, {
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Widget API error: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        if (!text || text.trim() === '') {
+          throw new Error('Empty response from Widget API');
+        }
+        
+        // Try to parse the response as JSON
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          // If it's not valid JSON, it might be HTML with embedded JSON
+          if (text.includes('<!doctype html>') || text.includes('<html')) {
+            console.log('Received HTML, trying to extract JSON data...');
+            
+            // Look for the __PRELOADED_STATE__ variable or any JSON object
+            const stateMatch = text.match(/__PRELOADED_STATE__\s*=\s*({.+?});/s) || 
+                               text.match(/({".+})/);
+            
+            if (stateMatch && stateMatch[1]) {
+              data = JSON.parse(stateMatch[1]);
+              console.log('Successfully extracted data from HTML');
+            } else {
+              throw new Error('Could not extract data from HTML response');
+            }
+          } else {
+            throw new Error('Response is not valid JSON');
+          }
+        }
+        
+        // Find the videos array in the response
+        let videoArray = [];
+        
+        if (data.videos && Array.isArray(data.videos)) {
+          videoArray = data.videos;
+        } else if (data.matches && Array.isArray(data.matches)) {
+          videoArray = data.matches;
+        } else if (data.response && Array.isArray(data.response)) {
+          videoArray = data.response;
+        } else if (Array.isArray(data)) {
+          videoArray = data;
+        } else {
+          throw new Error('No videos found in response');
+        }
+        
+        if (videoArray.length === 0) {
+          throw new Error('Widget API returned empty video array');
+        }
+        
+        console.log(`Found ${videoArray.length} videos from widget API`);
+        
+        // Transform to our standard format
+        const transformedData: ScorebatVideo[] = videoArray.map(item => ({
+          id: item.id || item.matchId || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          title: item.title,
+          embed: item.embed || '',
+          url: item.url || item.matchviewUrl || '',
+          thumbnail: item.thumbnail || item.image || '',
+          date: item.date,
+          competition: {
+            id: item.competition?.id || '',
+            name: item.competition?.name || item.competition || 'Unknown',
+            url: item.competition?.url || item.competitionUrl || '',
+          },
+          matchviewUrl: item.matchviewUrl || item.url || '',
+          competitionUrl: item.competitionUrl || item.competition?.url || '',
+          team1: {
+            name: item.side1?.name || item.team1 || 'Unknown',
+            url: item.side1?.url || '',
+          },
+          team2: {
+            name: item.side2?.name || item.team2 || 'Unknown',
+            url: item.side2?.url || '',
+          }
+        }));
+        
+        return transformedData;
+      } catch (error) {
+        console.warn(`Failed with endpoint ${endpoint}:`, error);
+        lastError = error;
+        // Continue to the next endpoint
       }
     }
     
-    // Check for valid data structure
-    if (!data) {
-      console.error('No data found in response');
-      throw new Error('No data found in response');
-    }
+    // If we've tried all endpoints and none worked, throw the last error
+    throw lastError || new Error('All widget API endpoints failed');
     
-    // Use the videos array if it exists, otherwise try the matches array or response array
-    let videoArray = [];
-    
-    if (data.videos && Array.isArray(data.videos)) {
-      videoArray = data.videos;
-      console.log('Using videos array from response');
-    } else if (data.matches && Array.isArray(data.matches)) {
-      videoArray = data.matches;
-      console.log('Using matches array from response');
-    } else if (data.response && Array.isArray(data.response)) {
-      videoArray = data.response;
-      console.log('Using response array from data');
-    } else {
-      console.error('No usable video array found in data:', data);
-      throw new Error('No videos found in API response');
-    }
-    
-    // Check if the video array is empty
-    if (videoArray.length === 0) {
-      console.error('Widget API returned empty video array');
-      throw new Error('No videos found in Widget API response');
-    }
-    
-    // Transform the data format from widget to match our expected ScorebatVideo format
-    const transformedData: ScorebatVideo[] = videoArray.map(item => ({
-      id: item.id || item.matchId || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      title: item.title,
-      embed: item.embed || '',
-      url: item.url || item.matchviewUrl || '',
-      thumbnail: item.thumbnail || item.image || '',
-      date: item.date,
-      competition: {
-        id: item.competition?.id || '',
-        name: item.competition?.name || item.competition || 'Unknown',
-        url: item.competition?.url || item.competitionUrl || '',
-      },
-      matchviewUrl: item.matchviewUrl || item.url || '',
-      competitionUrl: item.competitionUrl || item.competition?.url || '',
-      team1: {
-        name: item.side1?.name || item.team1 || 'Unknown',
-        url: item.side1?.url || '',
-      },
-      team2: {
-        name: item.side2?.name || item.team2 || 'Unknown',
-        url: item.side2?.url || '',
-      }
-    }));
-    
-    console.log('Transformed widget video data count:', transformedData.length);
-    
-    if (transformedData.length === 0) {
-      throw new Error('No videos found after transformation');
-    }
-    
-    return transformedData;
   } catch (error) {
-    console.error('Error fetching from Scorebat Widget API with CORS Proxy:', error);
+    console.error('Widget API error:', error);
     throw error;
   }
 };
@@ -389,18 +358,15 @@ export const fetchCompetitionVideos = async (competitionId: string): Promise<Sco
   try {
     // Use the CORS proxy with the competition endpoint
     const proxyUrl = `${CORS_PROXY}${encodeURIComponent(`${SCOREBAT_WIDGET_URL}competition/${competitionId}?json=1`)}`;
-    console.log(`Fetching from Scorebat Widget API (competition ${competitionId}) with CORS Proxy:`, proxyUrl);
+    console.log(`Fetching competition ${competitionId} highlights...`);
     
     const response = await fetch(proxyUrl);
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      console.error('Scorebat Widget API error response (competition):', errorData);
-      throw new Error(`Scorebat Widget API competition error: ${response.status} ${response.statusText}`);
+      throw new Error(`Competition API error: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log(`Scorebat Widget API competition ${competitionId} response data:`, data);
     
     // Transform the data format from widget to match our expected ScorebatVideo format
     const transformedData: ScorebatVideo[] = Array.isArray(data) ? data.map(item => ({
@@ -427,10 +393,9 @@ export const fetchCompetitionVideos = async (competitionId: string): Promise<Sco
       }
     })) : [];
     
-    console.log(`Transformed competition video data count:`, transformedData.length);
     return transformedData;
   } catch (error) {
-    console.error(`Error fetching from Scorebat Widget API (competition ${competitionId}) with CORS Proxy:`, error);
+    console.error(`Error fetching competition ${competitionId} highlights:`, error);
     throw error; // Re-throw to let fallback service handle it
   }
 };
