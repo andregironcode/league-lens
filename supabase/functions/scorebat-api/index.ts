@@ -16,29 +16,28 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Get the Scorebat API token
-async function getScorebatToken(): Promise<string> {
-  // First, check for the token in Supabase secrets
-  const scorebatToken = Deno.env.get('SCOREBAT_API_TOKEN');
+// Get the Scorebat API tokens
+async function getScorebatTokens() {
+  const videoApiToken = Deno.env.get('Video API Access Token');
+  const embedToken = Deno.env.get('Embed Token');
   
-  if (scorebatToken) {
-    console.log('Using Scorebat API token from environment variables');
-    return scorebatToken;
-  } else {
-    console.log('No Scorebat API token found in environment variables');
-    return '';
-  }
+  return {
+    videoApiToken: videoApiToken || '',
+    embedToken: embedToken || '',
+    videoApiTokenExists: !!videoApiToken,
+    embedTokenExists: !!embedToken
+  };
 }
 
 // Process request to fetch Scorebat videos
 async function fetchScorebatVideos() {
-  const token = await getScorebatToken();
+  const { videoApiToken } = await getScorebatTokens();
   console.log('Fetching Scorebat videos...');
   
   // Try premium API if we have a token
-  if (token) {
+  if (videoApiToken) {
     try {
-      const apiUrl = `${SCOREBAT_API_URL}/feed?token=${token}`;
+      const apiUrl = `${SCOREBAT_API_URL}/feed?token=${videoApiToken}`;
       console.log('Using premium API with token');
       
       const response = await fetch(apiUrl, {
@@ -140,6 +139,55 @@ async function fetchTeamVideos(teamId: string) {
   }
 }
 
+// Check API status
+async function checkApiStatus() {
+  const { videoApiToken } = await getScorebatTokens();
+  const result = {
+    premium: false,
+    widget: false
+  };
+  
+  // Check premium API
+  if (videoApiToken) {
+    try {
+      const apiUrl = `${SCOREBAT_API_URL}/feed?token=${videoApiToken}`;
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (!data.error) {
+          result.premium = true;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking premium API:', error);
+    }
+  }
+  
+  // Check widget API
+  try {
+    const widgetUrl = `${SCOREBAT_WIDGET_URL}livescore?json=1`;
+    const response = await fetch(widgetUrl, {
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
+    if (response.ok) {
+      await response.json();
+      result.widget = true;
+    }
+  } catch (error) {
+    console.error('Error checking widget API:', error);
+  }
+  
+  return result;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -157,14 +205,27 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const endpoint = url.pathname.split('/').pop();
+
+    // Parse request body if it exists
+    let requestBody = {};
+    if (req.method === 'POST') {
+      try {
+        requestBody = await req.json();
+      } catch (e) {
+        console.log('No JSON body or error parsing it:', e);
+      }
+    }
     
-    // Route based on endpoint
-    if (endpoint === 'videos') {
+    // Handle action parameter for more flexibility
+    const action = requestBody.action || url.searchParams.get('action');
+    
+    // Route based on endpoint or action
+    if (endpoint === 'videos' || action === 'videos') {
       const data = await fetchScorebatVideos();
       return new Response(JSON.stringify(data), responseInit);
     } 
-    else if (endpoint === 'competition') {
-      const competitionId = url.searchParams.get('id');
+    else if (endpoint === 'competition' || action === 'competition') {
+      const competitionId = requestBody.id || url.searchParams.get('id');
       if (!competitionId) {
         return new Response(
           JSON.stringify({ error: 'Competition ID is required' }), 
@@ -175,8 +236,8 @@ Deno.serve(async (req) => {
       const data = await fetchCompetitionVideos(competitionId);
       return new Response(JSON.stringify(data), responseInit);
     } 
-    else if (endpoint === 'team') {
-      const teamId = url.searchParams.get('id');
+    else if (endpoint === 'team' || action === 'team') {
+      const teamId = requestBody.id || url.searchParams.get('id');
       if (!teamId) {
         return new Response(
           JSON.stringify({ error: 'Team ID is required' }), 
@@ -187,20 +248,31 @@ Deno.serve(async (req) => {
       const data = await fetchTeamVideos(teamId);
       return new Response(JSON.stringify(data), responseInit);
     } 
-    else if (endpoint === 'status') {
-      const token = await getScorebatToken();
+    else if (endpoint === 'status' || action === 'status') {
+      const tokens = await getScorebatTokens();
       return new Response(
         JSON.stringify({ 
-          hasToken: !!token,
-          token: token ? '******' : null
+          tokens: {
+            videoApiToken: tokens.videoApiTokenExists,
+            embedToken: tokens.embedTokenExists,
+            videoApiTokenUpdated: new Date().toISOString(),
+            embedTokenUpdated: new Date().toISOString()
+          }
         }), 
         responseInit
       );
     }
+    else if (endpoint === 'check' || action === 'check') {
+      const apiStatus = await checkApiStatus();
+      return new Response(
+        JSON.stringify(apiStatus),
+        responseInit
+      );
+    }
     
-    // Unknown endpoint
+    // Unknown endpoint or action
     return new Response(
-      JSON.stringify({ error: 'Unknown endpoint' }), 
+      JSON.stringify({ error: 'Unknown endpoint or action' }), 
       { ...responseInit, status: 404 }
     );
     
