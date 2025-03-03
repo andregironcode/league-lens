@@ -1,3 +1,4 @@
+
 import { MatchHighlight, League } from '@/types';
 import { getRecommendedHighlights as getMockRecommendedHighlights, 
          getLeagueHighlights as getMockLeagueHighlights,
@@ -46,7 +47,7 @@ export const getFallbackData = async <T>(
   apiCall: () => Promise<T>,
   mockCall: () => Promise<T>,
   threshold: number = 1, // Minimum number of items expected
-  showToast: boolean = true
+  showToast: boolean = false // Changed default to false
 ): Promise<T> => {
   // Always retry API calls on page load or manual refreshes
   if (apiStateTracker.shouldRetryApi()) {
@@ -60,7 +61,7 @@ export const getFallbackData = async <T>(
         console.log('Successfully received live data from Scorebat');
         apiStateTracker.recordSuccess();
         
-        // Only show success toast if we previously showed an error
+        // Only show success toast if we previously showed an error and toasts are enabled
         if (showToast && hasShownAPIError.value) {
           toast.success('Live highlights available', {
             description: 'Score90 is now showing the latest football highlights.',

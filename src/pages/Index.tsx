@@ -1,17 +1,16 @@
+
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
 import { Toaster } from '@/components/ui/sonner';
-import { toast } from 'sonner';
 import { 
   getRecommendedHighlightsWithFallback, 
   getLeagueHighlightsWithFallback,
-  forceRetryAPI,
-  resetApiCooldown // New helper to reset API cooldown
+  resetApiCooldown
 } from '@/services/fallbackService';
 import { MatchHighlight, League } from '@/types';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
@@ -23,7 +22,6 @@ const Index = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [apiStatus, setApiStatus] = useState<'live' | 'demo' | 'checking'>('checking');
 
   const fetchData = async (forceRefresh = false) => {
     try {
@@ -52,29 +50,10 @@ const Index = () => {
       setLeagues(sortedLeagues);
       setLoading(prev => ({ ...prev, leagues: false }));
       setError(null);
-      
-      // Check if we're using live data or demo data
-      // More robust detection of live data
-      const isUsingLiveData = recommendedData.some(h => 
-        h.title.includes('2024') ||
-        h.title.includes('2023') ||
-        new Date(h.date).getTime() > new Date('2023-06-01').getTime()
-      );
-      
-      setApiStatus(isUsingLiveData ? 'live' : 'demo');
-      
-      if (!isUsingLiveData && forceRefresh) {
-        toast.warning('Still using demo data', {
-          description: 'Unable to connect to live data source. Check your API configuration.',
-          duration: 4000
-        });
-      }
-      
     } catch (error) {
       console.error('Error fetching highlights:', error);
       setError('Failed to load highlights. Please refresh the page.');
       setLoading({ recommended: false, leagues: false });
-      setApiStatus('demo');
     } finally {
       setIsRefreshing(false);
     }
@@ -88,12 +67,6 @@ const Index = () => {
       const customEvent = event as CustomEvent;
       console.log('API status changed:', customEvent.detail);
       
-      if (customEvent.detail?.status === 'connected') {
-        setApiStatus('live');
-      } else if (customEvent.detail?.status === 'error') {
-        setApiStatus('demo');
-      }
-      
       // Only refresh data if there was a status change to avoid duplicate fetches
       if (customEvent.detail?.refresh !== false) {
         fetchData();
@@ -102,7 +75,7 @@ const Index = () => {
     
     // Listen for force refresh events
     const forceRefreshHandler = () => {
-      handleRefresh();
+      fetchData(true);
     };
     
     // Add listeners
@@ -117,14 +90,6 @@ const Index = () => {
       window.removeEventListener('scorebat-token-updated', apiStatusChangeHandler);
     };
   }, []);
-
-  const handleRefresh = () => {
-    setLoading({ recommended: true, leagues: true });
-    setApiStatus('checking');
-    // Force a retry of the API even if we're in cooldown
-    forceRetryAPI();
-    fetchData(true); // Pass true to force a refresh
-  };
 
   // Show skeleton loaders when content is loading
   const renderSkeleton = (count: number, featured = false) => {
@@ -148,41 +113,6 @@ const Index = () => {
       <Toaster position="top-center" />
       
       <main className="pt-16 pb-10">
-        {/* Improved refresh button with status indicator */}
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            {apiStatus === 'live' && (
-              <span className="text-sm text-green-500 flex items-center">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                Live Data
-              </span>
-            )}
-            {apiStatus === 'demo' && (
-              <span className="text-sm text-amber-500 flex items-center">
-                <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
-                Demo Data (API Issue)
-              </span>
-            )}
-            {apiStatus === 'checking' && (
-              <span className="text-sm text-gray-400 flex items-center">
-                <span className="w-2 h-2 bg-gray-400 rounded-full mr-2 animate-pulse"></span>
-                Checking...
-              </span>
-            )}
-          </div>
-          
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
-            size="sm" 
-            className="text-white bg-highlight-800 hover:bg-highlight-700"
-            disabled={isRefreshing}
-          >
-            <RefreshCw size={16} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Force Refresh'}
-          </Button>
-        </div>
-        
         {/* Hero section with recommended highlights */}
         <section className="mb-12">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
@@ -193,8 +123,8 @@ const Index = () => {
                 <AlertCircle size={32} className="text-red-500 mb-4" />
                 <p className="text-white text-xl mb-2">Error Loading Highlights</p>
                 <p className="text-gray-400 mb-6">{error}</p>
-                <Button onClick={handleRefresh} variant="default">
-                  <RefreshCw size={16} className="mr-2" /> Try Again
+                <Button onClick={() => fetchData(true)} variant="default">
+                  Try Again
                 </Button>
               </div>
             ) : (
@@ -227,8 +157,8 @@ const Index = () => {
                 <div className="text-center py-20">
                   <p className="text-xl text-gray-400">No leagues available at the moment.</p>
                   <p className="text-sm text-gray-500 mt-2">Try refreshing the page or check back later.</p>
-                  <Button onClick={handleRefresh} variant="outline" className="mt-4">
-                    <RefreshCw size={16} className="mr-2" /> Refresh
+                  <Button onClick={() => fetchData(true)} variant="outline" className="mt-4">
+                    Refresh
                   </Button>
                 </div>
               )
