@@ -1,5 +1,4 @@
 import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper, Team } from '@/types';
-import { getApiToken } from './tokenService';
 
 // API constants
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
@@ -159,8 +158,8 @@ const scorebatMapper: ScorebatMapper = {
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   console.log('Starting fetchScorebatVideos with optimized endpoint attempts');
   
-  // Get API token from service
-  const API_TOKEN = getApiToken();
+  // Check if we have an API token
+  const API_TOKEN = import.meta.env.VITE_SCOREBAT_API_TOKEN || '';
   
   // Try premium API first if we have a token
   if (API_TOKEN) {
