@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -152,6 +153,16 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
     navigate(`/match/${currentHighlight.id}`);
   };
 
+  const handleNavigateToTeam = (teamId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/team/${teamId}`);
+  };
+
+  const handleNavigateToLeague = (leagueId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/league/${leagueId}`);
+  };
+
   const handlePrevSlide = () => {
     setCurrentIndex((prevIndex) => 
       prevIndex === 0 ? highlights.length - 1 : prevIndex - 1
@@ -195,29 +206,39 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
           <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
             <div className="flex justify-center items-center mb-6">
-              <img 
-                src={currentHighlight.homeTeam.logo} 
-                alt={currentHighlight.homeTeam.name} 
-                className="w-16 h-16 object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                }}
-              />
+              <div 
+                onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
+                className="cursor-pointer transition-transform duration-200 hover:scale-110"
+              >
+                <img 
+                  src={currentHighlight.homeTeam.logo} 
+                  alt={currentHighlight.homeTeam.name} 
+                  className="w-16 h-16 object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                  }}
+                />
+              </div>
               
               <div className="text-white text-4xl font-bold mx-8">
                 {currentHighlight.score.home} - {currentHighlight.score.away}
               </div>
               
-              <img 
-                src={currentHighlight.awayTeam.logo} 
-                alt={currentHighlight.awayTeam.name} 
-                className="w-16 h-16 object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                }}
-              />
+              <div 
+                onClick={(e) => handleNavigateToTeam(currentHighlight.awayTeam.id, e)}
+                className="cursor-pointer transition-transform duration-200 hover:scale-110"
+              >
+                <img 
+                  src={currentHighlight.awayTeam.logo} 
+                  alt={currentHighlight.awayTeam.name} 
+                  className="w-16 h-16 object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                  }}
+                />
+              </div>
             </div>
             
             <div className="relative overflow-hidden max-w-full px-4">
@@ -227,14 +248,31 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
                   isScrolling ? 'animate-marquee' : ''
                 }`}
               >
-                {getShortTeamName(currentHighlight.homeTeam.name)} vs {getShortTeamName(currentHighlight.awayTeam.name)}
+                <span 
+                  onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
+                  className="cursor-pointer hover:text-[#FFC30B] transition-colors"
+                >
+                  {getShortTeamName(currentHighlight.homeTeam.name)}
+                </span>
+                {" vs "}
+                <span 
+                  onClick={(e) => handleNavigateToTeam(currentHighlight.awayTeam.id, e)}
+                  className="cursor-pointer hover:text-[#FFC30B] transition-colors"
+                >
+                  {getShortTeamName(currentHighlight.awayTeam.name)}
+                </span>
               </h1>
             </div>
 
             <div className="flex items-center justify-center mb-4">
               <p className="text-white/70">2 hours ago</p>
               <span className="mx-2 text-white/40">•</span>
-              <p className="text-white/70">{currentHighlight.competition.name}</p>
+              <p 
+                className="text-white/70 hover:text-[#FFC30B] cursor-pointer transition-colors"
+                onClick={(e) => handleNavigateToLeague(currentHighlight.competition.id, e)}
+              >
+                {currentHighlight.competition.name}
+              </p>
             </div>
             
             <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
