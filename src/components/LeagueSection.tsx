@@ -49,9 +49,9 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
     <div className="mb-10 animate-fade-in">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          {/* Country flag instead of league logo with added hover effect */}
+          {/* Country flag with clickable link */}
           <Link to={`/competition/${league.id}`} className="block">
-            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center hover:scale-110 transition-transform">
               <img 
                 src={getCountryFlag(league.id)}
                 alt={league.name}
@@ -64,7 +64,9 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
             </div>
           </Link>
           <div className="flex items-center space-x-3">
-            <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
+            <Link to={`/competition/${league.id}`} className="hover:text-[#FFC30B] transition-colors">
+              <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
+            </Link>
             <span className="text-sm text-gray-400">
               {league.highlights.length} highlights
             </span>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -75,6 +76,16 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     navigate(`/match/${currentHighlight.id}`);
   };
 
+  const handleNavigateToTeam = (teamId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/team/${teamId}`);
+  };
+
+  const handleNavigateToCompetition = (competitionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/competition/${competitionId}`);
+  };
+
   const handlePrevSlide = () => {
     setCurrentIndex((prevIndex) => 
       prevIndex === 0 ? validHighlights.length - 1 : prevIndex - 1
@@ -144,7 +155,8 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
               <img 
                 src={currentHighlight.homeTeam.logo} 
                 alt={currentHighlight.homeTeam.name} 
-                className="w-16 h-16 object-contain"
+                className="w-16 h-16 object-contain cursor-pointer hover:scale-110 transition-transform"
+                onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
@@ -158,7 +170,8 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
               <img 
                 src={currentHighlight.awayTeam.logo} 
                 alt={currentHighlight.awayTeam.name} 
-                className="w-16 h-16 object-contain"
+                className="w-16 h-16 object-contain cursor-pointer hover:scale-110 transition-transform"
+                onClick={(e) => handleNavigateToTeam(currentHighlight.awayTeam.id, e)}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
@@ -173,14 +186,31 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
                   isScrolling ? 'animate-marquee' : ''
                 }`}
               >
-                {getShortTeamName(currentHighlight.homeTeam.name)} vs {getShortTeamName(currentHighlight.awayTeam.name)}
+                <span 
+                  className="cursor-pointer hover:text-[#FFC30B] transition-colors" 
+                  onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
+                >
+                  {getShortTeamName(currentHighlight.homeTeam.name)}
+                </span>
+                {" vs "}
+                <span 
+                  className="cursor-pointer hover:text-[#FFC30B] transition-colors" 
+                  onClick={(e) => handleNavigateToTeam(currentHighlight.awayTeam.id, e)}
+                >
+                  {getShortTeamName(currentHighlight.awayTeam.name)}
+                </span>
               </h1>
             </div>
 
             <div className="flex items-center justify-center mb-4">
               <p className="text-white/70">{formatRelativeTime(currentHighlight.date)}</p>
               <span className="mx-2 text-white/40">•</span>
-              <p className="text-white/70">{currentHighlight.competition.name}</p>
+              <p 
+                className="text-white/70 cursor-pointer hover:text-[#FFC30B] transition-colors"
+                onClick={(e) => handleNavigateToCompetition(currentHighlight.competition.id, e)}
+              >
+                {currentHighlight.competition.name}
+              </p>
             </div>
             
             <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
