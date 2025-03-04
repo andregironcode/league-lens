@@ -106,9 +106,14 @@ export const getFallbackData = async <T>(
         }
         
         return apiData;
+      } else if (apiData && typeof apiData === 'object' && Object.keys(apiData).length > 0) {
+        // Handle non-array but valid responses (like single match data)
+        console.log('Successfully received non-array data from Scorebat');
+        apiStateTracker.recordSuccess();
+        return apiData;
       }
       
-      console.warn('No highlights found in API response, using demo highlights');
+      console.warn('No highlights found in API response or response format incorrect. Response:', apiData);
       if (showToast && !hasShownAPIError.value) {
         toast.warning('No new highlights available', {
           description: 'No recent football highlights found. Showing demo highlights for now.',
@@ -117,18 +122,28 @@ export const getFallbackData = async <T>(
         hasShownAPIError.value = true;
         
         window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
-          detail: { status: 'error', error: 'No videos found', refresh: false } 
+          detail: { status: 'error', error: 'No videos found or invalid format', refresh: false } 
         }));
       }
       return await mockCall();
     } catch (error) {
-      console.error('Error fetching highlights, using demo data:', error);
+      console.error('Error fetching highlights, details:', error);
+      // Additional error logging
+      if (error instanceof Response) {
+        try {
+          const errorText = await error.text();
+          console.error('API error response:', errorText);
+        } catch (e) {
+          console.error('Could not extract error text:', e);
+        }
+      }
+      
       if (showToast && !hasShownAPIError.value) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         
         if (errorMessage.includes('403')) {
-          toast.error('API Connection Error', {
-            description: 'Score90 is having trouble accessing fresh highlights. Showing demo content for now.',
+          toast.error('API Access Denied', {
+            description: 'Your API token appears to be invalid or has expired. Check your settings.',
             duration: 5000,
           });
         } else if (errorMessage.includes('timed out')) {
@@ -142,8 +157,8 @@ export const getFallbackData = async <T>(
             duration: 5000,
           });
         } else {
-          toast.error('Highlights Temporarily Unavailable', {
-            description: 'We\'re having trouble getting the latest highlights. Showing demo content for now.',
+          toast.error('API Connection Error', {
+            description: `Could not load highlights: ${errorMessage.substring(0, 100)}`,
             duration: 5000,
           });
         }
@@ -153,6 +168,8 @@ export const getFallbackData = async <T>(
           detail: { status: 'error', error: errorMessage, refresh: false } 
         }));
       }
+      
+      console.log('Falling back to demo data due to API error');
       return await mockCall();
     }
   } else {

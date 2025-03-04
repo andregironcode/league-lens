@@ -4,10 +4,12 @@ import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
 import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import { 
   getRecommendedHighlightsWithFallback, 
   getLeagueHighlightsWithFallback,
-  resetApiCooldown
+  resetApiCooldown,
+  forceRetryAPI
 } from '@/services/fallbackService';
 import { MatchHighlight, League } from '@/types';
 import { AlertCircle } from 'lucide-react';
@@ -23,6 +25,7 @@ const Index = () => {
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [apiMode, setApiMode] = useState<'api' | 'demo' | 'unknown'>('unknown');
 
   const fetchData = async (forceRefresh = false) => {
     // Only proceed if we're not already refreshing to prevent loops
@@ -54,6 +57,18 @@ const Index = () => {
       // Only update state if we have data to prevent flickering
       if (recommendedData.length > 0) {
         setRecommendedHighlights(recommendedData);
+        // Check if we received the token we configured
+        const token = import.meta.env.VITE_SCOREBAT_API_TOKEN || localStorage.getItem('scorebat-api-token');
+        const firstVideoUrl = recommendedData[0]?.videoUrl || '';
+        
+        // If the video URL contains our token, we're in API mode
+        if (token && firstVideoUrl.includes(token.substring(0, 10))) {
+          setApiMode('api');
+          console.log('API mode confirmed - using live data');
+        } else if (apiMode !== 'api') {
+          setApiMode('demo');
+          console.log('Demo mode detected - using fallback data');
+        }
       }
       
       setLoading(prev => ({ ...prev, recommended: false }));
@@ -80,6 +95,7 @@ const Index = () => {
       setError('Failed to load highlights. Please refresh the page.');
       setLoading({ recommended: false, leagues: false });
       setInitialLoad(false);
+      setApiMode('demo');
     } finally {
       setIsRefreshing(false);
     }
@@ -121,6 +137,15 @@ const Index = () => {
     };
   }, []);
 
+  // Function to force an API retry
+  const handleForceRetry = () => {
+    toast.info('Retrying API connection', {
+      description: 'Attempting to connect to Scorebat API...'
+    });
+    forceRetryAPI();
+    fetchData(true);
+  };
+
   // Show skeleton loaders when content is loading
   const renderSkeleton = (count: number, featured = false) => {
     return Array(count)
@@ -143,6 +168,26 @@ const Index = () => {
       <Toaster position="top-center" />
       
       <main className="pt-16 pb-10">
+        {/* API mode indicator (for debugging) */}
+        {apiMode === 'demo' && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-4">
+            <div className="bg-yellow-900/30 text-yellow-300 py-2 px-4 rounded-md flex items-center justify-between">
+              <div className="flex items-center">
+                <AlertCircle size={16} className="mr-2" />
+                <span>Using demo content - API connection issue detected</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-yellow-600 text-yellow-300 hover:bg-yellow-900/50"
+                onClick={handleForceRetry}
+              >
+                Retry API
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Hero section with recommended highlights */}
         <section className="mb-12">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">

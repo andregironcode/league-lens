@@ -178,18 +178,25 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     });
     
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('API error response:', errorText);
+      throw new Error(`API error: ${response.status} - ${errorText}`);
     }
     
     const data = await response.json();
-    console.log('Feed API response received:', data);
+    console.log('Feed API response structure:', Object.keys(data));
     
     // Check if the response has the expected structure
     if (data && data.response && Array.isArray(data.response)) {
       console.log(`Found ${data.response.length} videos in feed`);
       return transformVideoArray(data.response);
+    } else if (Array.isArray(data)) {
+      // Some API responses might be direct arrays
+      console.log(`Found ${data.length} videos in feed (direct array)`);
+      return transformVideoArray(data);
     } else {
-      throw new Error('Invalid API response format');
+      console.error('Unexpected API response format:', data);
+      throw new Error('Invalid API response format - expected array or {response: array}');
     }
   } catch (error) {
     console.error('Error fetching from Scorebat API:', error);
@@ -211,11 +218,13 @@ export const fetchPremierLeagueVideos = async (): Promise<ScorebatVideo[]> => {
     }, 8000);
     
     if (!response.ok) {
-      throw new Error(`Premier League API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('API error response:', errorText);
+      throw new Error(`Premier League API error: ${response.status} - ${errorText}`);
     }
     
     const data = await response.json();
-    console.log('Premier League API response received:', data);
+    console.log('Premier League API response structure:', typeof data, Array.isArray(data) ? 'array' : Object.keys(data));
     
     if (data && data.response && Array.isArray(data.response)) {
       console.log(`Found ${data.response.length} Premier League videos`);
@@ -225,6 +234,7 @@ export const fetchPremierLeagueVideos = async (): Promise<ScorebatVideo[]> => {
       return transformVideoArray(data);
     }
     
+    console.error('Unexpected Premier League API response format:', data);
     throw new Error('Invalid Premier League API response format');
   } catch (error) {
     console.error('Error fetching Premier League highlights:', error);
@@ -302,39 +312,65 @@ export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> 
 
 // Helper to transform an array of video objects with flexible format handling
 const transformVideoArray = (videoArray: any[]): ScorebatVideo[] => {
-  return videoArray.map((item: any) => ({
-    id: item.matchId || item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-    title: item.title || `${item.side1?.name || 'Team 1'} vs ${item.side2?.name || 'Team 2'}`,
-    embed: item.embed || '',
-    url: item.matchviewUrl || item.url || '',
-    thumbnail: item.thumbnail || item.image || '',
-    date: item.date || new Date().toISOString(),
-    competition: {
-      id: item.competition?.id || '',
-      name: item.competition || 'Unknown',
-      url: item.competition?.url || '',
-    },
-    matchviewUrl: item.matchviewUrl || item.url || '',
-    competitionUrl: item.competitionUrl || item.competition?.url || '',
-    side1: item.side1 || {
-      name: item.team1?.name || 'Unknown',
-      url: item.team1?.url || '',
-    },
-    side2: item.side2 || {
-      name: item.team2?.name || 'Unknown',
-      url: item.team2?.url || '',
-    },
-    // Keep legacy properties for backward compatibility
-    team1: {
-      name: item.side1?.name || item.team1?.name || 'Unknown',
-      url: item.side1?.url || item.team1?.url || '',
-    },
-    team2: {
-      name: item.side2?.name || item.team2?.name || 'Unknown',
-      url: item.side2?.url || item.team2?.url || '',
-    },
-    videos: item.videos || []
-  }));
+  console.log('First video object structure:', videoArray.length > 0 ? Object.keys(videoArray[0]) : 'empty array');
+  
+  if (videoArray.length > 0) {
+    const sampleVideo = videoArray[0];
+    // Log the structure of the first video to understand the format
+    console.log('Sample competition:', sampleVideo.competition);
+    console.log('Sample team1/side1:', sampleVideo.side1 || sampleVideo.team1);
+    console.log('Sample team2/side2:', sampleVideo.side2 || sampleVideo.team2);
+  }
+  
+  return videoArray.map((item: any) => {
+    // Ensure we have a competition object with at least a name
+    const competition = typeof item.competition === 'string' 
+      ? { id: '', name: item.competition, url: '' }
+      : item.competition || { id: '', name: 'Unknown', url: '' };
+      
+    // Process side1/team1
+    const side1 = item.side1 || (item.team1 ? {
+      name: item.team1.name || 'Unknown',
+      url: item.team1.url || '',
+    } : {
+      name: 'Unknown',
+      url: '',
+    });
+    
+    // Process side2/team2  
+    const side2 = item.side2 || (item.team2 ? {
+      name: item.team2.name || 'Unknown',
+      url: item.team2.url || '',
+    } : {
+      name: 'Unknown',
+      url: '',
+    });
+    
+    // Create a normalized video object
+    return {
+      id: item.matchId || item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      title: item.title || `${side1.name} vs ${side2.name}`,
+      embed: item.embed || '',
+      url: item.matchviewUrl || item.url || '',
+      thumbnail: item.thumbnail || item.image || '',
+      date: item.date || new Date().toISOString(),
+      competition: competition,
+      matchviewUrl: item.matchviewUrl || item.url || '',
+      competitionUrl: item.competitionUrl || competition.url || '',
+      side1: side1,
+      side2: side2,
+      // Keep legacy properties for backward compatibility
+      team1: {
+        name: side1.name || 'Unknown',
+        url: side1.url || '',
+      },
+      team2: {
+        name: side2.name || 'Unknown',
+        url: side2.url || '',
+      },
+      videos: item.videos || []
+    };
+  });
 };
 
 // Get recommended highlights (latest videos from API)
