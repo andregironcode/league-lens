@@ -5,6 +5,7 @@ import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
 import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
 import { MatchHighlight, League } from '@/types';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
@@ -13,6 +14,7 @@ const Index = () => {
     recommended: true,
     leagues: true
   });
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,6 +35,13 @@ const Index = () => {
     };
 
     fetchData();
+
+    // Hide swipe hint after 5 seconds
+    const timer = setTimeout(() => {
+      setShowSwipeHint(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Helper function for skeleton loading
@@ -57,12 +66,26 @@ const Index = () => {
       
       <main className="pt-16 pb-10">
         {/* Hero Carousel */}
-        <section className="mb-12">
+        <section className="mb-12 relative">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4">
             {loading.recommended ? (
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
             ) : (
-              <HeroCarousel highlights={recommendedHighlights} />
+              <>
+                <HeroCarousel highlights={recommendedHighlights} />
+                {showSwipeHint && (
+                  <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 pointer-events-none z-50 flex justify-between px-4 md:px-10 animate-pulse">
+                    <div className="bg-black/50 backdrop-blur-sm rounded-full p-2 flex items-center text-xs md:text-sm text-white/90">
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      <span className="hidden md:inline">Swipe</span>
+                    </div>
+                    <div className="bg-black/50 backdrop-blur-sm rounded-full p-2 flex items-center text-xs md:text-sm text-white/90">
+                      <span className="hidden md:inline">Swipe</span>
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

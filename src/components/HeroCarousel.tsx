@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
 import { MatchHighlight } from '@/types';
@@ -125,6 +124,9 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
   const [showComments, setShowComments] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const navigate = useNavigate();
+  
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const highlights = exampleGames;
   const currentHighlight = highlights[currentIndex];
@@ -184,8 +186,35 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
     setShowComments(false);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const swipeDistance = touchEndX.current - touchStartX.current;
+    const minSwipeDistance = 50;
+
+    if (swipeDistance > minSwipeDistance) {
+      handlePrevSlide();
+    } else if (swipeDistance < -minSwipeDistance) {
+      handleNextSlide();
+    }
+    
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
+
   return (
-    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
+    <div 
+      className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
         <Flame className="w-4 h-4 mr-2 text-[#FFC30B]" />
         <span className="text-sm font-medium">For You</span>
