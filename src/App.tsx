@@ -13,6 +13,7 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/match/:id" element={<MatchDetails />} />
         <Route path="/team/:teamId" element={<TeamPage />} />
+        <Route path="/league/:leagueId" element={<NotFound />} /> {/* This will use NotFound for now */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

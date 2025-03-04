@@ -1,5 +1,6 @@
 
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { League } from "@/types";
 import HighlightCard from "./HighlightCard";
 import { ChevronRight } from "lucide-react";
@@ -27,6 +28,7 @@ const getCountryFlag = (leagueId: string): string => {
 
 const LeagueSection = ({ league }: LeagueSectionProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   
   const scrollRight = () => {
     if (scrollContainerRef.current) {
@@ -37,11 +39,20 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
     }
   };
 
+  const handleLeagueClick = () => {
+    // Navigate to league page - this can be expanded based on requirements
+    // For now, let's assume we'd navigate to /league/{id}
+    navigate(`/league/${league.id}`);
+  };
+
   return (
     <div className="mb-10 animate-fade-in">
       <div className="flex items-center space-x-3 mb-4">
-        {/* Country flag instead of league logo */}
-        <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
+        {/* Country flag instead of league logo - now clickable with hover effect */}
+        <div 
+          className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110"
+          onClick={handleLeagueClick}
+        >
           <img 
             src={getCountryFlag(league.id)}
             alt={league.name}
@@ -54,7 +65,13 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
         </div>
         <div className="flex items-center justify-between flex-1">
           <div className="flex items-center space-x-3">
-            <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
+            {/* League name - now clickable with hover effect */}
+            <h2 
+              className="text-xl font-semibold tracking-tight text-white hover:text-[#FFC30B] cursor-pointer transition-colors duration-200"
+              onClick={handleLeagueClick}
+            >
+              {league.name}
+            </h2>
             {/* Removed the following span that displayed the number of highlights */}
             {/* <span className="text-sm text-gray-400">
               {league.highlights.length} highlights
