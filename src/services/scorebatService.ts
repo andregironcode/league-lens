@@ -1,4 +1,5 @@
 import { MatchHighlight, League, ScorebatVideo, ScorebatResponse, ScorebatMapper, Team } from '@/types';
+import { PREMIER_LEAGUE_ID, PREMIER_LEAGUE_TOKEN } from './fallbackService';
 
 // API constants
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
@@ -6,6 +7,7 @@ const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
 // Widget access (free) alternative endpoints
 const SCOREBAT_WIDGET_URL = 'https://www.scorebat.com/embed/';
 const SCOREBAT_VIDEO_URL = 'https://www.scorebat.com/embed/videopage';
+const SCOREBAT_COMPETITION_URL = 'https://www.scorebat.com/video-api/v3/competition';
 
 // Reduced CORS proxies to just the most reliable one
 const CORS_PROXIES = [
@@ -47,18 +49,16 @@ const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeout 
 
 // Helper to extract team info from Scorebat data
 const extractTeamInfo = (teamData: { name: string, url: string }): Team => {
-  // Create a simple ID from team name (lowercase, spaces to dashes)
   const id = teamData.name.toLowerCase().replace(/\s+/g, '-');
   return {
     id,
     name: teamData.name,
-    logo: `https://www.sofascore.com/static/images/placeholders/team.svg` // Default logo
+    logo: `https://www.sofascore.com/static/images/placeholders/team.svg`
   };
 };
 
 // Helper to extract duration from embed code (approximate, as Scorebat doesn't provide duration)
 const extractDuration = (): string => {
-  // Random duration between 5 and 12 minutes
   const minutes = Math.floor(Math.random() * 7) + 5;
   const seconds = Math.floor(Math.random() * 60);
   return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
@@ -66,12 +66,11 @@ const extractDuration = (): string => {
 
 // Helper to extract views (Scorebat doesn't provide views, so we generate a random number)
 const generateViews = (): number => {
-  return Math.floor(Math.random() * 900000) + 100000; // Random between 100k and 1M
+  return Math.floor(Math.random() * 900000) + 100000;
 };
 
 // Helper to extract score from title (approximate, as Scorebat doesn't provide structured score data)
 const extractScoreFromTitle = (title: string): { home: number, away: number } => {
-  // Try to find patterns like "Team1 3-2 Team2" or "Team1 3 - 2 Team2"
   const scoreRegex = /(\d+)\s*-\s*(\d+)/;
   const match = title.match(scoreRegex);
   
@@ -94,12 +93,10 @@ const scorebatMapper: ScorebatMapper = {
     const homeTeam = extractTeamInfo(video.team1);
     const awayTeam = extractTeamInfo(video.team2);
     
-    // Extract competition info
     const competitionName = video.competition.name;
     const competitionInfo = competitionToLeagueMap[competitionName] || 
                             { id: competitionName.toLowerCase().replace(/[\s:]+/g, '-'), logo: '/leagues/other.png' };
     
-    // Try to extract score from title
     const score = extractScoreFromTitle(video.title);
     
     return {
@@ -122,7 +119,6 @@ const scorebatMapper: ScorebatMapper = {
   },
   
   mapToLeagues: (videos: ScorebatVideo[]): League[] => {
-    // Group videos by competition
     const leagueMap = new Map<string, ScorebatVideo[]>();
     
     videos.forEach(video => {
@@ -133,7 +129,6 @@ const scorebatMapper: ScorebatMapper = {
       leagueMap.get(competitionName)?.push(video);
     });
     
-    // Convert to League objects
     const leagues: League[] = [];
     
     leagueMap.forEach((videos, competitionName) => {
@@ -158,16 +153,13 @@ const scorebatMapper: ScorebatMapper = {
 export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
   console.log('Starting fetchScorebatVideos with optimized endpoint attempts');
   
-  // Check if we have an API token
   const API_TOKEN = import.meta.env.VITE_SCOREBAT_API_TOKEN || '';
   
-  // Try premium API first if we have a token
   if (API_TOKEN) {
     try {
       console.log('API token found, attempting premium API');
       const apiUrl = `${SCOREBAT_API_URL}/feed?token=${API_TOKEN}`;
       
-      // Direct API call with timeout
       const response = await fetchWithTimeout(apiUrl, {
         headers: { 'Accept': 'application/json' },
         mode: 'cors'
@@ -187,9 +179,7 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     }
   }
   
-  // Try the widget API as second option with CORS proxy
   try {
-    // Try a single endpoint with CORS proxy
     const endpoint = `${SCOREBAT_WIDGET_URL}videopage?_format=json`;
     const proxyUrl = `${CORS_PROXIES[0]}${encodeURIComponent(endpoint)}`;
     
@@ -205,7 +195,6 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
           const data = JSON.parse(text);
           return extractAndTransformVideos(data);
         } catch (e) {
-          // If it's HTML, try to extract JSON
           if (text.includes('<!doctype html>') || text.includes('<html')) {
             const stateMatch = text.match(/__PRELOADED_STATE__\s*=\s*({.+?});/s);
             if (stateMatch && stateMatch[1]) {
@@ -220,7 +209,6 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     console.error('Widget API attempt failed:', error);
   }
   
-  // If all attempts failed, throw error to trigger fallback
   throw new Error('All API attempts failed');
 };
 
@@ -237,7 +225,6 @@ const extractAndTransformVideos = (data: any): ScorebatVideo[] => {
   } else if (Array.isArray(data)) {
     videoArray = data;
   } else {
-    // Try to find any array in the data that looks like videos
     for (const key in data) {
       if (Array.isArray(data[key]) && data[key].length > 0 && 
           (data[key][0].title || data[key][0].url)) {
@@ -253,19 +240,16 @@ const extractAndTransformVideos = (data: any): ScorebatVideo[] => {
   
   console.log(`Found ${videoArray.length} videos`);
   
-  // Transform to standard format
   return transformVideoArray(videoArray);
 };
 
 // Helper to transform premium API response
 const transformPremiumApiResponse = (data: any): ScorebatVideo[] => {
-  // Additional logging to debug the response structure
   console.log('Premium API response keys:', Object.keys(data));
   
   if (!data.response) {
     console.warn('Response property missing in API data');
     
-    // Try to find any array in the response that might contain videos
     for (const key in data) {
       if (Array.isArray(data[key]) && data[key].length > 0) {
         console.log(`Found potential video array in key: ${key}`);
@@ -293,7 +277,6 @@ const transformPremiumApiResponse = (data: any): ScorebatVideo[] => {
 
 // Helper to transform an array of video objects with flexible format handling
 const transformVideoArray = (videoArray: any[]): ScorebatVideo[] => {
-  // Transform with flexible property access
   return videoArray.map((item: any) => ({
     id: item.matchId || item.id || item.title || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     title: item.title || `${item.side1?.name || 'Team 1'} vs ${item.side2?.name || 'Team 2'}`,
@@ -319,6 +302,40 @@ const transformVideoArray = (videoArray: any[]): ScorebatVideo[] => {
   }));
 };
 
+// Direct API call for Premier League highlights
+export const fetchPremierLeagueVideos = async (): Promise<ScorebatVideo[]> => {
+  try {
+    console.log('Fetching Premier League highlights using direct API with token...');
+    
+    const apiUrl = `${SCOREBAT_COMPETITION_URL}/${PREMIER_LEAGUE_ID}/${PREMIER_LEAGUE_TOKEN}`;
+    
+    const response = await fetchWithTimeout(apiUrl, {
+      headers: { 'Accept': 'application/json' },
+      mode: 'cors'
+    }, 8000);
+    
+    if (!response.ok) {
+      throw new Error(`Premier League API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Premier League API response received:', data);
+    
+    if (data && data.response && Array.isArray(data.response)) {
+      console.log(`Found ${data.response.length} Premier League videos`);
+      return transformVideoArray(data.response);
+    } else if (Array.isArray(data)) {
+      console.log(`Found ${data.length} Premier League videos (array format)`);
+      return transformVideoArray(data);
+    }
+    
+    throw new Error('Invalid Premier League API response format');
+  } catch (error) {
+    console.error('Error fetching Premier League highlights:', error);
+    throw error;
+  }
+};
+
 // Fetch data for a specific competition with timeout
 export const fetchCompetitionVideos = async (competitionId: string): Promise<ScorebatVideo[]> => {
   try {
@@ -333,7 +350,6 @@ export const fetchCompetitionVideos = async (competitionId: string): Promise<Sco
     
     const data = await response.json();
     
-    // Transform the data format
     const transformedData: ScorebatVideo[] = Array.isArray(data) ? data.map(item => ({
       id: item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: item.title,
@@ -361,7 +377,7 @@ export const fetchCompetitionVideos = async (competitionId: string): Promise<Sco
     return transformedData;
   } catch (error) {
     console.error(`Error fetching competition ${competitionId} highlights:`, error);
-    throw error; // Re-throw to let fallback service handle it
+    throw error;
   }
 };
 
@@ -379,7 +395,6 @@ export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> 
     
     const data = await response.json();
     
-    // Transform the data format
     const transformedData: ScorebatVideo[] = Array.isArray(data) ? data.map(item => ({
       id: item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: item.title,
@@ -407,7 +422,7 @@ export const fetchTeamVideos = async (teamId: string): Promise<ScorebatVideo[]> 
     return transformedData;
   } catch (error) {
     console.error(`Error fetching team ${teamId} highlights:`, error);
-    throw error; // Re-throw to let fallback service handle it
+    throw error;
   }
 };
 
@@ -416,12 +431,10 @@ export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
   console.log('Getting recommended highlights from API');
   const videos = await fetchScorebatVideos();
   
-  // Sort videos by date (newest first)
   const sortedVideos = [...videos].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
   
-  // Take the first 5 videos as recommended (newest)
   const recommendedVideos = sortedVideos.slice(0, 5);
   
   console.log(`Returning ${recommendedVideos.length} recommended videos`);
@@ -433,10 +446,8 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
   console.log('Getting league highlights from API');
   const videos = await fetchScorebatVideos();
   
-  // Sort videos within each league by date (newest first)
   const leagues = scorebatMapper.mapToLeagues(videos);
   
-  // Sort highlights within each league by date (newest first)
   leagues.forEach(league => {
     league.highlights.sort((a, b) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -451,7 +462,18 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
 export const getCompetitionHighlights = async (competitionId: string): Promise<MatchHighlight[]> => {
   const videos = await fetchCompetitionVideos(competitionId);
   
-  // Sort by date (newest first)
+  const sortedVideos = [...videos].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  return sortedVideos.map(video => scorebatMapper.mapToMatchHighlight(video));
+};
+
+// Get Premier League highlights using the direct API
+export const getPremierLeagueHighlights = async (): Promise<MatchHighlight[]> => {
+  console.log('Getting Premier League highlights from direct API');
+  const videos = await fetchPremierLeagueVideos();
+  
   const sortedVideos = [...videos].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -461,8 +483,6 @@ export const getCompetitionHighlights = async (competitionId: string): Promise<M
 
 // Use widget API to get a specific match by ID
 export const getMatchById = async (id: string): Promise<MatchHighlight | null> => {
-  // For a specific match, we currently don't have a direct widget API endpoint
-  // So we'll get all videos and find the matching one
   const videos = await fetchScorebatVideos();
   const video = videos.find(v => v.id === id);
   
@@ -475,7 +495,6 @@ export const getMatchById = async (id: string): Promise<MatchHighlight | null> =
 export const getTeamHighlights = async (teamId: string): Promise<MatchHighlight[]> => {
   const videos = await fetchTeamVideos(teamId);
   
-  // Sort by date (newest first)
   const sortedVideos = [...videos].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -490,7 +509,6 @@ export const searchHighlights = async (query: string): Promise<MatchHighlight[]>
   const videos = await fetchScorebatVideos();
   const normalizedQuery = query.toLowerCase().trim();
   
-  // Search in title, team names, and competition name
   const matchingVideos = videos.filter(video => {
     return (
       video.title.toLowerCase().includes(normalizedQuery) ||
@@ -500,7 +518,6 @@ export const searchHighlights = async (query: string): Promise<MatchHighlight[]>
     );
   });
   
-  // Sort by date (newest first)
   const sortedVideos = [...matchingVideos].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );

@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
 
 // Define CORS headers for browser requests
@@ -10,6 +9,11 @@ const corsHeaders = {
 // Scorebat API endpoints
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
 const SCOREBAT_WIDGET_URL = 'https://www.scorebat.com/embed/';
+const SCOREBAT_COMPETITION_URL = 'https://www.scorebat.com/video-api/v3/competition';
+
+// Premier League specific token
+const PREMIER_LEAGUE_TOKEN = 'MTk1NDQ4XzE3NDEwODA4NDdfOGNmZWUwYmVmOWVmNGRlOTY0OGE2MGM0NjA1ZGRmMWM1YzljNDc5Yg==';
+const PREMIER_LEAGUE_ID = 'england-premier-league';
 
 // Create a Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -18,7 +22,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Get the Scorebat API tokens
 async function getScorebatTokens() {
-  const videoApiToken = Deno.env.get('Video API Access Token');
+  const videoApiToken = Deno.env.get('Video API Access Token') || PREMIER_LEAGUE_TOKEN;
   const embedToken = Deno.env.get('Embed Token');
   
   return {
@@ -91,9 +95,44 @@ async function fetchScorebatVideos() {
   }
 }
 
+// Fetch Premier League videos using direct API access
+async function fetchPremierLeagueVideos() {
+  console.log('Fetching Premier League videos with direct API access...');
+  try {
+    const apiUrl = `${SCOREBAT_COMPETITION_URL}/${PREMIER_LEAGUE_ID}/${PREMIER_LEAGUE_TOKEN}`;
+    
+    const response = await fetch(apiUrl, {
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Premier League API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Successfully fetched Premier League data from API');
+    
+    return { 
+      source: 'premium',
+      data 
+    };
+  } catch (error) {
+    console.error('Error fetching Premier League videos:', error);
+    throw error;
+  }
+}
+
 // Fetch competition-specific videos
 async function fetchCompetitionVideos(competitionId: string) {
   console.log(`Fetching videos for competition: ${competitionId}`);
+  
+  // For Premier League, use the direct API with token
+  if (competitionId === PREMIER_LEAGUE_ID) {
+    return fetchPremierLeagueVideos();
+  }
+  
   try {
     const competitionUrl = `${SCOREBAT_WIDGET_URL}competition/${competitionId}?json=1`;
     
@@ -224,6 +263,17 @@ Deno.serve(async (req) => {
       const data = await fetchScorebatVideos();
       return new Response(JSON.stringify(data), responseInit);
     } 
+    else if (endpoint === 'premier-league' || action === 'premier-league') {
+      try {
+        const data = await fetchPremierLeagueVideos();
+        return new Response(JSON.stringify(data), responseInit);
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: error.message || 'Failed to fetch Premier League data' }), 
+          { ...responseInit, status: 500 }
+        );
+      }
+    }
     else if (endpoint === 'competition' || action === 'competition') {
       const competitionId = requestBody.id || url.searchParams.get('id');
       if (!competitionId) {

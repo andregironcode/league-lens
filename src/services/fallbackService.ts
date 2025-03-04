@@ -7,6 +7,10 @@ import { getRecommendedHighlights as getMockRecommendedHighlights,
          searchHighlights as mockSearchHighlights } from './highlightService';
 import { toast } from 'sonner';
 
+// Set the Premier League competition ID
+export const PREMIER_LEAGUE_ID = 'england-premier-league';
+export const PREMIER_LEAGUE_TOKEN = 'MTk1NDQ4XzE3NDEwODA4NDdfOGNmZWUwYmVmOWVmNGRlOTY0OGE2MGM0NjA1ZGRmMWM1YzljNDc5Yg==';
+
 // Track when we've shown error messages to prevent duplicates
 const hasShownAPIError = {
   value: false,
@@ -17,8 +21,8 @@ const hasShownAPIError = {
 const apiStateTracker = {
   lastSuccessTime: 0,
   retryCount: 0,
-  maxRetries: 3, // Reduced from 5 to 3
-  cooldownPeriod: 60 * 1000, // Reduced from 2 minutes to 1 minute
+  maxRetries: 3,
+  cooldownPeriod: 60 * 1000,
   
   recordSuccess: () => {
     apiStateTracker.lastSuccessTime = Date.now();
@@ -63,8 +67,8 @@ const promiseWithTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<
 export const getFallbackData = async <T>(
   apiCall: () => Promise<T>,
   mockCall: () => Promise<T>,
-  threshold: number = 1, // Minimum number of items expected
-  showToast: boolean = false // Changed default to false
+  threshold: number = 1,
+  showToast: boolean = false
 ): Promise<T> => {
   // Always retry API calls on page load or manual refreshes
   if (apiStateTracker.shouldRetryApi()) {
@@ -186,7 +190,7 @@ export const isValidTokenFormat = (): boolean => {
 // Helper functions to get different types of football highlights with fallback to demo data
 export const getRecommendedHighlightsWithFallback = async (): Promise<MatchHighlight[]> => {
   const { getRecommendedHighlights } = await import('./scorebatService');
-  return getFallbackData(getRecommendedHighlights, getMockRecommendedHighlights, 1); // Lower threshold to 1
+  return getFallbackData(getRecommendedHighlights, getMockRecommendedHighlights, 1);
 };
 
 export const getLeagueHighlightsWithFallback = async (): Promise<League[]> => {
@@ -229,6 +233,17 @@ export const getCompetitionHighlightsWithFallback = async (competitionId: string
     const league = leagues.find(l => l.id === id);
     return league ? league.highlights : [];
   };
+  
+  // For Premier League, use direct API with token
+  if (competitionId === PREMIER_LEAGUE_ID) {
+    const { getPremierLeagueHighlights } = await import('./scorebatService');
+    return getFallbackData(
+      getPremierLeagueHighlights,
+      () => mockCompetitionHighlights(competitionId),
+      1,
+      true // Show toast for Premier League data
+    );
+  }
   
   return getFallbackData(
     () => getCompetitionHighlights(competitionId), 
