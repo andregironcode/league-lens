@@ -56,8 +56,8 @@ const Index = () => {
       <Header />
       
       <main className="pt-16 pb-10 w-full">
-        {/* Hero Carousel - removed padding for mobile */}
-        <section className="mb-12">
+        {/* Hero Carousel - Added more vertical spacing */}
+        <section className="mb-16">
           <div className="w-full container-xl mx-auto sm:px-4">
             {loading.recommended ? (
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>

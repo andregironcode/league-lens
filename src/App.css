@@ -88,3 +88,19 @@ html, body {
     padding-right: 0;
   }
 }
+
+/* Add spacing for buttons and controls */
+.hero-controls {
+  margin-bottom: 2rem;
+}
+
+/* Ensure buttons don't overlap with indicators */
+@media (max-width: 640px) {
+  .hero-actions {
+    margin-bottom: 3rem;
+  }
+  
+  .hero-indicators {
+    bottom: 1.5rem;
+  }
+}
