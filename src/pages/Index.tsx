@@ -22,9 +22,18 @@ const Index = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const fetchData = async (forceRefresh = false) => {
     try {
+      if (forceRefresh || initialLoad) {
+        // Only show loading state on initial load or manual refresh
+        setLoading({
+          recommended: true,
+          leagues: true
+        });
+      }
+      
       setIsRefreshing(true);
       
       // If we're forcing a refresh, reset the API cooldown
@@ -35,25 +44,36 @@ const Index = () => {
       console.log('Fetching recommended highlights...');
       const recommendedData = await getRecommendedHighlightsWithFallback();
       console.log('Received recommended highlights:', recommendedData.length);
-      setRecommendedHighlights(recommendedData);
+      
+      // Only update state if we have data to prevent flickering
+      if (recommendedData.length > 0) {
+        setRecommendedHighlights(recommendedData);
+      }
+      
       setLoading(prev => ({ ...prev, recommended: false }));
 
       console.log('Fetching league highlights...');
       const leaguesData = await getLeagueHighlightsWithFallback();
       console.log('Received league highlights:', leaguesData.length);
       
-      // Sort leagues by number of highlights (most highlights first)
-      const sortedLeagues = [...leaguesData].sort(
-        (a, b) => b.highlights.length - a.highlights.length
-      );
+      // Only update state if we have data to prevent flickering
+      if (leaguesData.length > 0) {
+        // Sort leagues by number of highlights (most highlights first)
+        const sortedLeagues = [...leaguesData].sort(
+          (a, b) => b.highlights.length - a.highlights.length
+        );
+        
+        setLeagues(sortedLeagues);
+      }
       
-      setLeagues(sortedLeagues);
       setLoading(prev => ({ ...prev, leagues: false }));
       setError(null);
+      setInitialLoad(false);
     } catch (error) {
       console.error('Error fetching highlights:', error);
       setError('Failed to load highlights. Please refresh the page.');
       setLoading({ recommended: false, leagues: false });
+      setInitialLoad(false);
     } finally {
       setIsRefreshing(false);
     }
@@ -69,7 +89,8 @@ const Index = () => {
       
       // Only refresh data if there was a status change to avoid duplicate fetches
       if (customEvent.detail?.refresh !== false) {
-        fetchData();
+        // Don't show loading states on API status changes to prevent flickering
+        fetchData(false);
       }
     };
     

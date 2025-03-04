@@ -73,12 +73,12 @@ export interface ScorebatVideo {
   thumbnail: string;
   date: string;
   competition: {
-    id: string;
+    id?: string;
     name: string;
-    url: string;
+    url?: string;
   };
   matchviewUrl: string;
-  competitionUrl: string;
+  competitionUrl?: string;
   team1: {
     name: string;
     url: string;
@@ -87,6 +87,17 @@ export interface ScorebatVideo {
     name: string;
     url: string;
   };
+  videos?: any[];
+  side1?: {
+    name: string;
+    url: string;
+  };
+  side2?: {
+    name: string;
+    url: string;
+  };
+  matchId?: string;
+  image?: string;
 }
 
 export interface ScorebatResponse {

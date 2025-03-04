@@ -23,10 +23,12 @@ const apiStateTracker = {
   retryCount: 0,
   maxRetries: 3,
   cooldownPeriod: 60 * 1000,
+  isApiModeEnabled: true, // Always enable API mode by default
   
   recordSuccess: () => {
     apiStateTracker.lastSuccessTime = Date.now();
     apiStateTracker.retryCount = 0;
+    apiStateTracker.isApiModeEnabled = true; // Ensure API mode is enabled after success
     hasShownAPIError.reset();
     
     window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
@@ -35,7 +37,12 @@ const apiStateTracker = {
   },
   
   shouldRetryApi: () => {
-    // Always retry if the cooldown period has passed or we haven't reached max retries
+    // Always use API if it's enabled
+    if (apiStateTracker.isApiModeEnabled) {
+      return true;
+    }
+    
+    // Only retry if the cooldown period has passed or we haven't reached max retries
     if (
       (Date.now() - apiStateTracker.lastSuccessTime > apiStateTracker.cooldownPeriod) ||
       (apiStateTracker.retryCount < apiStateTracker.maxRetries)
@@ -70,7 +77,7 @@ export const getFallbackData = async <T>(
   threshold: number = 1,
   showToast: boolean = false
 ): Promise<T> => {
-  // Always retry API calls on page load or manual refreshes
+  // Always try API calls first
   if (apiStateTracker.shouldRetryApi()) {
     try {
       console.log('Attempting to fetch highlights from Scorebat...');
@@ -157,6 +164,7 @@ export const forceRetryAPI = () => {
   // Reset all API state tracking
   apiStateTracker.retryCount = 0;
   apiStateTracker.lastSuccessTime = 0; // Reset the last success time to force retry
+  apiStateTracker.isApiModeEnabled = true; // Ensure API mode is enabled
   hasShownAPIError.reset();
   
   console.log('Forcing API refresh and reconnection');
@@ -168,6 +176,7 @@ export const forceRetryAPI = () => {
 export const resetApiCooldown = () => {
   apiStateTracker.lastSuccessTime = 0;
   apiStateTracker.retryCount = 0;
+  apiStateTracker.isApiModeEnabled = true; // Ensure API mode is enabled
   hasShownAPIError.reset();
   console.log('API cooldown reset - will attempt fresh connections');
   return true;
