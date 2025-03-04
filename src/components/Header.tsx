@@ -127,7 +127,7 @@ const Header = () => {
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center flex-1 space-x-4 md:space-x-6">
-          <Link to="/" className="flex-shrink-0">
+          <Link to="/" className="flex-shrink-0 transition-transform duration-200 hover:scale-110">
             <img 
               src="/lovable-uploads/3f69b4d3-7c25-4f74-a779-c3f73cd73d08.png" 
               alt="Score 90" 
