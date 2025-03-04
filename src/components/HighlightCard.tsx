@@ -50,12 +50,8 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
   const navigate = useNavigate();
   const formattedDate = formatDistanceToNow(new Date(highlight.date), { addSuffix: true });
   
-  // Get competition name in readable format if it exists
-  const competitionName = highlight.competition?.name 
-    ? formatCompetitionName(highlight.competition.name)
-    : highlight.competition && typeof highlight.competition === 'string'
-      ? formatCompetitionName(highlight.competition)
-      : '';
+  // Get competition name in readable format
+  const competitionName = highlight.competition.name;
 
   const handleCardClick = () => {
     console.log('Navigating to match with ID:', highlight.id);

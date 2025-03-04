@@ -1,3 +1,4 @@
+
 export interface Team {
   id: string;
   name: string;
@@ -27,7 +28,7 @@ export interface MatchHighlight {
     name: string;
     logo?: string;
     url?: string;
-  } | string;
+  };
   videos?: Array<{
     id?: string;
     title?: string;
