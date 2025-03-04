@@ -64,8 +64,8 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
             </div>
           </Link>
           <div className="flex items-center space-x-3">
-            <Link to={`/competition/${league.id}`} className="hover:text-[#FFC30B] transition-colors">
-              <h2 className="text-xl font-semibold tracking-tight text-white">{league.name}</h2>
+            <Link to={`/competition/${league.id}`} className="group hover:text-[#FFC30B] transition-colors">
+              <h2 className="text-xl font-semibold tracking-tight text-white group-hover:text-[#FFC30B] transition-colors">{league.name}</h2>
             </Link>
             <span className="text-sm text-gray-400">
               {league.highlights.length} highlights
@@ -75,7 +75,7 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
         
         <Link 
           to={`/competition/${league.id}`} 
-          className="text-sm text-highlight-500 hover:text-highlight-400 flex items-center clickable"
+          className="text-sm text-highlight-500 hover:text-[#FFC30B] flex items-center clickable"
         >
           <span>View all</span>
           <ExternalLink size={14} className="ml-1" />
