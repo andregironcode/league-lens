@@ -2,7 +2,7 @@
 import { useRef } from "react";
 import { League } from "@/types";
 import HighlightCard from "./HighlightCard";
-import { ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface LeagueSectionProps {
@@ -35,6 +35,15 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
         left: 300,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: -300,
         behavior: 'smooth'
       });
     }
@@ -78,14 +87,24 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
           className="text-sm text-highlight-500 hover:text-[#FFC30B] flex items-center clickable"
         >
           <span>View all</span>
-          <ExternalLink size={14} className="ml-1" />
         </Link>
       </div>
 
       <div className="relative">
+        {/* Left scroll button */}
+        {league.highlights.length > 3 && (
+          <button 
+            onClick={scrollLeft}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-highlight-800/80 hover:bg-highlight-700 p-2 rounded-full shadow-md z-10 clickable"
+            aria-label="Scroll to previous highlights"
+          >
+            <ChevronLeft size={24} className="text-white" />
+          </button>
+        )}
+        
         <div 
           ref={scrollContainerRef}
-          className="flex overflow-x-auto scrollbar-hide gap-4 pb-2 -mx-1 px-1"
+          className="flex overflow-x-auto scrollbar-hide gap-4 pb-2 -mx-1 px-1 pl-8 pr-8"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {league.highlights.map((highlight) => (
@@ -98,12 +117,12 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
           ))}
         </div>
         
-        {/* Only show scroll button if there are enough highlights */}
+        {/* Right scroll button */}
         {league.highlights.length > 3 && (
           <button 
             onClick={scrollRight}
             className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-highlight-800/80 hover:bg-highlight-700 p-2 rounded-full shadow-md z-10 clickable"
-            aria-label="See more highlights"
+            aria-label="Scroll to next highlights"
           >
             <ChevronRight size={24} className="text-white" />
           </button>
