@@ -44,6 +44,224 @@ const competitionToLeagueMap: Record<string, { id: string, logo: string }> = {
   'FRANCE: Coupe de France': { id: 'france-coupe', logo: '/leagues/other.png' },
 };
 
+// Map of team name to ID and logo
+const teamMap: Record<string, { id: string, logo: string }> = {
+  // Premier League
+  'Arsenal': { id: 'arsenal', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Aston Villa': { id: 'aston-villa', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Bournemouth': { id: 'bournemouth', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Brentford': { id: 'brentford', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Brighton': { id: 'brighton', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Chelsea': { id: 'chelsea', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Crystal Palace': { id: 'crystal-palace', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Everton': { id: 'everton', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Fulham': { id: 'fulham', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Leeds': { id: 'leeds', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Leicester City': { id: 'leicester-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Liverpool': { id: 'liverpool', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Manchester City': { id: 'manchester-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Manchester United': { id: 'manchester-united', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Newcastle United': { id: 'newcastle-united', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Nottingham Forest': { id: 'nottingham-forest', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Southampton': { id: 'southampton', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Tottenham Hotspur': { id: 'tottenham-hotspur', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'West Ham United': { id: 'west-ham-united', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Wolves': { id: 'wolves', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Championship
+  'Birmingham': { id: 'birmingham', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Blackburn': { id: 'blackburn', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Blackpool': { id: 'blackpool', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Bristol City': { id: 'bristol-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Burnley': { id: 'burnley', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Cardiff City': { id: 'cardiff-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Coventry': { id: 'coventry', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Huddersfield': { id: 'huddersfield', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Hull City': { id: 'hull-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Luton': { id: 'luton', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Middlesbrough': { id: 'middlesbrough', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Millwall': { id: 'millwall', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Norwich City': { id: 'norwich-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Preston NE': { id: 'preston-ne', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'QPR': { id: 'qpr', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Reading': { id: 'reading', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Rotherham': { id: 'rotherham', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Sheffield United': { id: 'sheffield-united', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Stoke City': { id: 'stoke-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Sunderland': { id: 'sunderland', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Swansea City': { id: 'swansea-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Watford': { id: 'watford', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'West Bromwich Albion': { id: 'west-bromwich-albion', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Wigan': { id: 'wigan', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // La Liga
+  'Atletico Madrid': { id: 'atletico-madrid', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Barcelona': { id: 'barcelona', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Real Madrid': { id: 'real-madrid', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Almeria': { id: 'almeria', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Athletic Bilbao': { id: 'athletic-bilbao', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Cadiz': { id: 'cadiz', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Celta Vigo': { id: 'celta-vigo', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Elche': { id: 'elche', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Espanyol': { id: 'espanyol', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Getafe': { id: 'getafe', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Girona': { id: 'girona', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Mallorca': { id: 'mallorca', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Osasuna': { id: 'osasuna', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Rayo Vallecano': { id: 'rayo-vallecano', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Real Betis': { id: 'real-betis', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Real Sociedad': { id: 'real-sociedad', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Real Valladolid': { id: 'real-valladolid', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Sevilla': { id: 'sevilla', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Valencia': { id: 'valencia', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Villarreal': { id: 'villarreal', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Serie A
+  'AC Milan': { id: 'ac-milan', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Atalanta': { id: 'atalanta', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Bologna': { id: 'bologna', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Cremonese': { id: 'cremonese', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Empoli': { id: 'empoli', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Fiorentina': { id: 'fiorentina', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Inter Milan': { id: 'inter-milan', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Juventus': { id: 'juventus', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Lazio': { id: 'lazio', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Lecce': { id: 'lecce', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Monza': { id: 'monza', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Napoli': { id: 'napoli', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Roma': { id: 'roma', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Salernitana': { id: 'salernitana', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Sampdoria': { id: 'sampdoria', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Sassuolo': { id: 'sassuolo', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Spezia': { id: 'spezia', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Torino': { id: 'torino', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Udinese': { id: 'udinese', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Verona': { id: 'verona', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Bundesliga
+  'Augsburg': { id: 'augsburg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Bayern Munich': { id: 'bayern-munich', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Bayer Leverkusen': { id: 'bayer-leverkusen', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Bochum': { id: 'bochum', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Borussia Dortmund': { id: 'borussia-dortmund', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Borussia Monchengladbach': { id: 'borussia-monchengladbach', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Eintracht Frankfurt': { id: 'eintracht-frankfurt', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Hertha Berlin': { id: 'hertha-berlin', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Hoffenheim': { id: 'hoffenheim', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Koln': { id: 'koln', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Mainz': { id: 'mainz', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'RB Leipzig': { id: 'rb-leipzig', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'SC Freiburg': { id: 'sc-freiburg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Schalke': { id: 'schalke', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Stuttgart': { id: 'stuttgart', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Union Berlin': { id: 'union-berlin', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Werder Bremen': { id: 'werder-bremen', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Wolfsburg': { id: 'wolfsburg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+
+  // Ligue 1
+  'Ajaccio': { id: 'ajaccio', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Angers': { id: 'angers', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Auxerre': { id: 'auxerre', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Brest': { id: 'brest', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Clermont': { id: 'clermont', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Lens': { id: 'lens', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Lille': { id: 'lille', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Lorient': { id: 'lorient', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Lyon': { id: 'lyon', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Marseille': { id: 'marseille', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Monaco': { id: 'monaco', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Montpellier': { id: 'montpellier', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Nantes': { id: 'nantes', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Nice': { id: 'nice', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'PSG': { id: 'psg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Reims': { id: 'reims', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Rennes': { id: 'rennes', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Strasbourg': { id: 'strasbourg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Toulouse': { id: 'toulouse', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Troyes': { id: 'troyes', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Dutch Eredivisie
+  'Ajax': { id: 'ajax', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'AZ': { id: 'az', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Cambuur Leeuwarden': { id: 'cambuur-leeuwarden', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Emmen': { id: 'emmen', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Excelsior': { id: 'excelsior', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Feyenoord': { id: 'feyenoord', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Fortuna Sittard': { id: 'fortuna-sittard', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Go Ahead Eagles': { id: 'go-ahead-eagles', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Groningen': { id: 'groningen', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'NEC': { id: 'nec', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'PSV': { id: 'psv', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'RKC': { id: 'rkc', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Sparta Rotterdam': { id: 'sparta-rotterdam', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Twente': { id: 'twente', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Utrecht': { id: 'utrecht', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Vitesse': { id: 'vitesse', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Volendam': { id: 'volendam', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Portuguese Liga
+  'Benfica': { id: 'benfica', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Porto': { id: 'porto', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Sporting': { id: 'sporting', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Greek Super League
+  'AEK': { id: 'aek', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Olympiakos': { id: 'olympiakos', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Panathinaikos': { id: 'panathinaikos', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'PAOK': { id: 'paok', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Turkish Super Lig
+  'Besiktas': { id: 'besiktas', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Fenerbahce': { id: 'fenerbahce', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Galatasaray': { id: 'galatasaray', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // National Teams
+  'Argentina': { id: 'argentina', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Belgium': { id: 'belgium', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Brazil': { id: 'brazil', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'England': { id: 'england', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'France': { id: 'france', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Germany': { id: 'germany', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Italy': { id: 'italy', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Netherlands': { id: 'netherlands', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Portugal': { id: 'portugal', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Spain': { id: 'spain', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Other notable teams
+  'Celtic': { id: 'celtic', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Rangers': { id: 'rangers', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Inter Miami FC': { id: 'inter-miami-fc', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Al Nassr': { id: 'al-nassr', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  
+  // Add common alternative naming patterns
+  'Man United': { id: 'manchester-united', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Man Utd': { id: 'manchester-united', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Man City': { id: 'manchester-city', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Spurs': { id: 'tottenham-hotspur', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Atletico': { id: 'atletico-madrid', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Barca': { id: 'barcelona', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Barça': { id: 'barcelona', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Real': { id: 'real-madrid', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Bayern': { id: 'bayern-munich', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Juve': { id: 'juventus', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Inter': { id: 'inter-milan', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Paris Saint-Germain': { id: 'psg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Paris Saint Germain': { id: 'psg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Paris SG': { id: 'psg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Newcastle': { id: 'newcastle-united', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'West Ham': { id: 'west-ham-united', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Brighton & Hove Albion': { id: 'brighton', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Brighton and Hove Albion': { id: 'brighton', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Athletic Club': { id: 'athletic-bilbao', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Milan': { id: 'ac-milan', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Dortmund': { id: 'borussia-dortmund', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Gladbach': { id: 'borussia-monchengladbach', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Leipzig': { id: 'rb-leipzig', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Leverkusen': { id: 'bayer-leverkusen', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Frankfurt': { id: 'eintracht-frankfurt', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+  'Wolfsburg VfL': { id: 'wolfsburg', logo: 'https://www.sofascore.com/static/images/placeholders/team.svg' },
+};
+
 // Get the active API token (env var or default)
 const getApiToken = (): string => {
   return import.meta.env.VITE_SCOREBAT_API_TOKEN || SCOREBAT_API_TOKEN;
@@ -68,32 +286,36 @@ const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeout 
 
 // Helper to extract team info from Scorebat data
 const extractTeamInfo = (teamData: { name: string, url: string } | string | undefined): Team => {
+  let teamName = '';
+  let teamUrl = '';
+  
   if (typeof teamData === 'string') {
+    teamName = teamData;
+  } else if (teamData && typeof teamData === 'object') {
+    teamName = teamData.name || 'Unknown';
+    teamUrl = teamData.url || '';
+  } else {
+    teamName = 'Unknown';
+  }
+  
+  // Look up the team in our map
+  const teamLookup = teamMap[teamName];
+  if (teamLookup) {
     return {
-      id: teamData.toLowerCase().replace(/\s+/g, '-'),
-      name: teamData,
-      logo: `https://www.sofascore.com/static/images/placeholders/team.svg`
+      id: teamLookup.id,
+      name: teamName,
+      logo: teamLookup.logo
     };
   }
   
-  if (!teamData) {
-    return {
-      id: 'unknown',
-      name: 'Unknown',
-      logo: `https://www.sofascore.com/static/images/placeholders/team.svg`
-    };
-  }
-  
-  const name = teamData.name || 'Unknown';
-  const url = teamData.url || '';
-  
-  const id = url ? new URL(url).pathname.split('/').pop() || 
-           name.toLowerCase().replace(/\s+/g, '-') : 
-           name.toLowerCase().replace(/\s+/g, '-');
+  // If not found in our map, derive ID from name or URL
+  const id = teamUrl ? new URL(teamUrl).pathname.split('/').pop() || 
+           teamName.toLowerCase().replace(/\s+/g, '-') : 
+           teamName.toLowerCase().replace(/\s+/g, '-');
            
   return {
     id,
-    name,
+    name: teamName,
     logo: `https://www.sofascore.com/static/images/placeholders/team.svg`
   };
 };
@@ -134,11 +356,20 @@ const extractTeamsFromTitle = (title: string): { homeName: string, awayName: str
     /^(.+?)\s+vs\s+(.+?)(?:\s+-\s+|$|\s+\d+-\d+)/i,
     /^(.+?)\s+-\s+(.+?)(?:\s+\d+-\d+|\s+\(|$)/i,
     /^(.+?)\s+v\s+(.+?)(?:\s+-\s+|$|\s+\d+-\d+)/i,
+    /^(.+?)[\s-]+(\d+)[^\d]+(\d+)[\s-]+(.+?)(?:\s+\||$)/i, // Format: Team1 2-1 Team2
   ];
   
   for (const pattern of vsPatterns) {
     const match = title.match(pattern);
     if (match && match.length >= 3) {
+      // For the score-in-middle pattern (Team1 2-1 Team2)
+      if (match.length >= 5 && /\d+/.test(match[2])) {
+        return {
+          homeName: match[1].trim(),
+          awayName: match[4].trim()
+        };
+      }
+      
       return {
         homeName: match[1].trim(),
         awayName: match[2].trim()
@@ -158,24 +389,41 @@ const scorebatMapper: ScorebatMapper = {
     let homeTeam = extractTeamInfo(video.side1 || video.team1);
     let awayTeam = extractTeamInfo(video.side2 || video.team2);
     
-    if ((homeTeam.name === 'Unknown' && awayTeam.name === 'Unknown') || 
-        (homeTeam.id === 'unknown' && awayTeam.id === 'unknown')) {
+    if ((homeTeam.name === 'Unknown' || awayTeam.name === 'Unknown')) {
       const { homeName, awayName } = extractTeamsFromTitle(video.title);
       
-      if (homeName !== 'Unknown') {
-        homeTeam = {
-          id: homeName.toLowerCase().replace(/\s+/g, '-'),
-          name: homeName,
-          logo: homeTeam.logo
-        };
+      if (homeName !== 'Unknown' && homeTeam.name === 'Unknown') {
+        const teamInfo = teamMap[homeName];
+        if (teamInfo) {
+          homeTeam = {
+            id: teamInfo.id,
+            name: homeName,
+            logo: teamInfo.logo
+          };
+        } else {
+          homeTeam = {
+            id: homeName.toLowerCase().replace(/\s+/g, '-'),
+            name: homeName,
+            logo: homeTeam.logo
+          };
+        }
       }
       
-      if (awayName !== 'Unknown') {
-        awayTeam = {
-          id: awayName.toLowerCase().replace(/\s+/g, '-'),
-          name: awayName,
-          logo: awayTeam.logo
-        };
+      if (awayName !== 'Unknown' && awayTeam.name === 'Unknown') {
+        const teamInfo = teamMap[awayName];
+        if (teamInfo) {
+          awayTeam = {
+            id: teamInfo.id,
+            name: awayName,
+            logo: teamInfo.logo
+          };
+        } else {
+          awayTeam = {
+            id: awayName.toLowerCase().replace(/\s+/g, '-'),
+            name: awayName,
+            logo: awayTeam.logo
+          };
+        }
       }
     }
     

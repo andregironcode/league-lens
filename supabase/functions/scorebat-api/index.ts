@@ -21,6 +21,140 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Team names to IDs mapping for improved data enrichment
+const teamNameToIdMap: Record<string, string> = {
+  // Premier League
+  'Arsenal': 'arsenal',
+  'Aston Villa': 'aston-villa',
+  'Bournemouth': 'bournemouth',
+  'Brentford': 'brentford',
+  'Brighton': 'brighton',
+  'Chelsea': 'chelsea',
+  'Crystal Palace': 'crystal-palace',
+  'Everton': 'everton',
+  'Fulham': 'fulham',
+  'Leeds': 'leeds',
+  'Leicester City': 'leicester-city',
+  'Liverpool': 'liverpool',
+  'Manchester City': 'manchester-city',
+  'Manchester United': 'manchester-united',
+  'Newcastle United': 'newcastle-united',
+  'Nottingham Forest': 'nottingham-forest',
+  'Southampton': 'southampton',
+  'Tottenham Hotspur': 'tottenham-hotspur',
+  'West Ham United': 'west-ham-united',
+  'Wolves': 'wolves',
+  
+  // La Liga
+  'Atletico Madrid': 'atletico-madrid',
+  'Barcelona': 'barcelona',
+  'Real Madrid': 'real-madrid',
+  
+  // Other major teams
+  'Bayern Munich': 'bayern-munich',
+  'Borussia Dortmund': 'borussia-dortmund',
+  'Inter Milan': 'inter-milan',
+  'AC Milan': 'ac-milan',
+  'Juventus': 'juventus',
+  'PSG': 'psg',
+  
+  // Common alternative naming patterns
+  'Man United': 'manchester-united',
+  'Man Utd': 'manchester-united',
+  'Man City': 'manchester-city',
+  'Spurs': 'tottenham-hotspur',
+  'Atletico': 'atletico-madrid',
+  'Barca': 'barcelona',
+  'Barça': 'barcelona',
+  'Real': 'real-madrid',
+  'Bayern': 'bayern-munich',
+  'Juve': 'juventus',
+  'Inter': 'inter-milan',
+  'Paris Saint-Germain': 'psg',
+  'Paris SG': 'psg',
+};
+
+// Helper to extract team names from title
+function extractTeamsFromTitle(title: string): { home: string, away: string } {
+  const patterns = [
+    /^(.+?)\s+vs\s+(.+?)(?:\s+-\s+|$|\s+\d+-\d+)/i,
+    /^(.+?)\s+-\s+(.+?)(?:\s+\d+-\d+|\s+\(|$)/i,
+    /^(.+?)\s+v\s+(.+?)(?:\s+-\s+|$|\s+\d+-\d+)/i,
+    /^(.+?)[\s-]+(\d+)[^\d]+(\d+)[\s-]+(.+?)(?:\s+\||$)/i, // Format: Team1 2-1 Team2
+  ];
+  
+  for (const pattern of patterns) {
+    const match = title.match(pattern);
+    
+    if (match) {
+      // For the score-in-middle pattern (Team1 2-1 Team2)
+      if (match.length >= 5 && /\d+/.test(match[2])) {
+        return {
+          home: match[1].trim(),
+          away: match[4].trim()
+        };
+      }
+      
+      if (match.length >= 3) {
+        return {
+          home: match[1].trim(),
+          away: match[2].trim()
+        };
+      }
+    }
+  }
+  
+  return { home: 'Unknown', away: 'Unknown' };
+}
+
+// Helper to enrich team data
+function enrichTeamData(teamData: any, title: string, isHome: boolean): any {
+  // If team data is missing or incomplete
+  if (!teamData || (typeof teamData === 'object' && !teamData.name)) {
+    // Extract teams from title
+    const { home, away } = extractTeamsFromTitle(title);
+    const teamName = isHome ? home : away;
+    
+    // Create team object
+    return {
+      name: teamName,
+      url: '',
+      id: teamNameToIdMap[teamName] || teamName.toLowerCase().replace(/\s+/g, '-')
+    };
+  }
+  
+  // If team data is a string, convert to object
+  if (typeof teamData === 'string') {
+    return {
+      name: teamData,
+      url: '',
+      id: teamNameToIdMap[teamData] || teamData.toLowerCase().replace(/\s+/g, '-')
+    };
+  }
+  
+  // If team data exists but needs ID enrichment
+  if (!teamData.id && teamData.name) {
+    teamData.id = teamNameToIdMap[teamData.name] || teamData.name.toLowerCase().replace(/\s+/g, '-');
+  }
+  
+  return teamData;
+}
+
+// Process and enrich video data
+function enrichVideoData(videos: any[]): any[] {
+  return videos.map(video => {
+    // Make sure we have team data
+    video.team1 = enrichTeamData(video.team1 || video.side1, video.title, true);
+    video.team2 = enrichTeamData(video.team2 || video.side2, video.title, false);
+    
+    // For compatibility
+    video.side1 = video.team1;
+    video.side2 = video.team2;
+    
+    return video;
+  });
+}
+
 // Get the Scorebat API tokens
 async function getScorebatTokens() {
   // First check environment variables
@@ -61,24 +195,23 @@ async function fetchScorebatVideos() {
     const data = await response.json();
     console.log('Successfully fetched data from Scorebat API');
     
-    // Add more detailed logging about the data structure
+    // Process the data based on its structure
+    let processedData;
+    
     if (Array.isArray(data)) {
       console.log(`Received array with ${data.length} items`);
-      if (data.length > 0) {
-        console.log('First item structure:', Object.keys(data[0]));
-      }
+      processedData = enrichVideoData(data);
     } else if (data && data.response && Array.isArray(data.response)) {
       console.log(`Received object with response array containing ${data.response.length} items`);
-      if (data.response.length > 0) {
-        console.log('First item structure:', Object.keys(data.response[0]));
-      }
+      processedData = enrichVideoData(data.response);
     } else {
       console.log('Received unexpected data format:', typeof data);
+      throw new Error('Invalid API response format');
     }
     
     return {
       source: 'api',
-      data
+      data: processedData
     };
   } catch (error) {
     console.error('Error using Scorebat API:', error);
@@ -112,9 +245,23 @@ async function fetchPremierLeagueVideos() {
     const data = await response.json();
     console.log('Successfully fetched Premier League data from API');
     
+    // Process the data based on its structure
+    let processedData;
+    
+    if (Array.isArray(data)) {
+      console.log(`Received array with ${data.length} items`);
+      processedData = enrichVideoData(data);
+    } else if (data && data.response && Array.isArray(data.response)) {
+      console.log(`Received object with response array containing ${data.response.length} items`);
+      processedData = enrichVideoData(data.response);
+    } else {
+      console.log('Received unexpected data format:', typeof data);
+      throw new Error('Invalid API response format');
+    }
+    
     return { 
       source: 'api',
-      data 
+      data: processedData
     };
   } catch (error) {
     console.error('Error fetching Premier League videos:', error);
@@ -148,9 +295,23 @@ async function fetchCompetitionVideos(competitionId: string) {
     const data = await response.json();
     console.log(`Successfully fetched data for competition ${competitionId}`);
     
+    // Process the data
+    let processedData;
+    
+    if (Array.isArray(data)) {
+      console.log(`Received array with ${data.length} items`);
+      processedData = enrichVideoData(data);
+    } else if (data && data.response && Array.isArray(data.response)) {
+      console.log(`Received object with response array containing ${data.response.length} items`);
+      processedData = enrichVideoData(data.response);
+    } else {
+      console.log('Received unexpected data format:', typeof data);
+      throw new Error('Invalid API response format');
+    }
+    
     return { 
       source: 'api',
-      data 
+      data: processedData
     };
   } catch (error) {
     console.error(`Error fetching competition ${competitionId}:`, error);
@@ -184,9 +345,23 @@ async function fetchTeamVideos(teamId: string) {
     const data = await response.json();
     console.log(`Successfully fetched data for team ${teamId}`);
     
+    // Process the data
+    let processedData;
+    
+    if (Array.isArray(data)) {
+      console.log(`Received array with ${data.length} items`);
+      processedData = enrichVideoData(data);
+    } else if (data && data.response && Array.isArray(data.response)) {
+      console.log(`Received object with response array containing ${data.response.length} items`);
+      processedData = enrichVideoData(data.response);
+    } else {
+      console.log('Received unexpected data format:', typeof data);
+      throw new Error('Invalid API response format');
+    }
+    
     return { 
       source: 'api',
-      data 
+      data: processedData
     };
   } catch (error) {
     console.error(`Error fetching team ${teamId}:`, error);
