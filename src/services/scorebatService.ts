@@ -29,6 +29,19 @@ const competitionToLeagueMap: Record<string, { id: string, logo: string }> = {
   'PORTUGAL: Liga Portugal': { id: 'portugal-liga-portugal', logo: '/leagues/portugal.png' },
   'CHAMPIONS LEAGUE': { id: 'champions-league', logo: '/leagues/ucl.png' },
   'EUROPA LEAGUE': { id: 'europa-league', logo: '/leagues/uel.png' },
+  'COLOMBIA: Primera Division, Apertura': { id: 'colombia-primera-a', logo: '/leagues/other.png' },
+  'ARGENTINA: Liga Profesional': { id: 'argentina-liga', logo: '/leagues/other.png' },
+  'BRAZIL: Serie A': { id: 'brazil-serie-a', logo: '/leagues/other.png' },
+  'USA: MLS': { id: 'usa-mls', logo: '/leagues/other.png' },
+  'INTERNATIONAL: Club Friendlies': { id: 'club-friendlies', logo: '/leagues/other.png' },
+  'INTERNATIONAL: FIFA World Cup': { id: 'world-cup', logo: '/leagues/other.png' },
+  'INTERNATIONAL: UEFA Nations League': { id: 'nations-league', logo: '/leagues/other.png' },
+  'ENGLAND: FA Cup': { id: 'england-fa-cup', logo: '/leagues/other.png' },
+  'ENGLAND: EFL Cup': { id: 'england-efl-cup', logo: '/leagues/other.png' },
+  'SPAIN: Copa del Rey': { id: 'spain-copa-del-rey', logo: '/leagues/other.png' },
+  'ITALY: Coppa Italia': { id: 'italy-coppa-italia', logo: '/leagues/other.png' },
+  'GERMANY: DFB Pokal': { id: 'germany-dfb-pokal', logo: '/leagues/other.png' },
+  'FRANCE: Coupe de France': { id: 'france-coupe', logo: '/leagues/other.png' },
 };
 
 // Get the active API token (env var or default)
@@ -54,14 +67,33 @@ const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeout 
 };
 
 // Helper to extract team info from Scorebat data
-const extractTeamInfo = (teamData: { name: string, url: string }): Team => {
-  const id = teamData.url ? new URL(teamData.url).pathname.split('/').pop() || 
-             teamData.name.toLowerCase().replace(/\s+/g, '-') : 
-             teamData.name.toLowerCase().replace(/\s+/g, '-');
-             
+const extractTeamInfo = (teamData: { name: string, url: string } | string | undefined): Team => {
+  if (typeof teamData === 'string') {
+    return {
+      id: teamData.toLowerCase().replace(/\s+/g, '-'),
+      name: teamData,
+      logo: `https://www.sofascore.com/static/images/placeholders/team.svg`
+    };
+  }
+  
+  if (!teamData) {
+    return {
+      id: 'unknown',
+      name: 'Unknown',
+      logo: `https://www.sofascore.com/static/images/placeholders/team.svg`
+    };
+  }
+  
+  const name = teamData.name || 'Unknown';
+  const url = teamData.url || '';
+  
+  const id = url ? new URL(url).pathname.split('/').pop() || 
+           name.toLowerCase().replace(/\s+/g, '-') : 
+           name.toLowerCase().replace(/\s+/g, '-');
+           
   return {
     id,
-    name: teamData.name,
+    name,
     logo: `https://www.sofascore.com/static/images/placeholders/team.svg`
   };
 };
@@ -96,15 +128,63 @@ const extractScoreFromTitle = (title: string): { home: number, away: number } =>
   };
 };
 
+// Helper to extract team names from title when API doesn't provide them
+const extractTeamsFromTitle = (title: string): { homeName: string, awayName: string } => {
+  const vsPatterns = [
+    /^(.+?)\s+vs\s+(.+?)(?:\s+-\s+|$|\s+\d+-\d+)/i,
+    /^(.+?)\s+-\s+(.+?)(?:\s+\d+-\d+|\s+\(|$)/i,
+    /^(.+?)\s+v\s+(.+?)(?:\s+-\s+|$|\s+\d+-\d+)/i,
+  ];
+  
+  for (const pattern of vsPatterns) {
+    const match = title.match(pattern);
+    if (match && match.length >= 3) {
+      return {
+        homeName: match[1].trim(),
+        awayName: match[2].trim()
+      };
+    }
+  }
+  
+  return {
+    homeName: 'Unknown',
+    awayName: 'Unknown'
+  };
+};
+
 // Mapper to convert Scorebat data to our application format
 const scorebatMapper: ScorebatMapper = {
   mapToMatchHighlight: (video: ScorebatVideo): MatchHighlight => {
-    const homeTeam = extractTeamInfo(video.side1 || video.team1);
-    const awayTeam = extractTeamInfo(video.side2 || video.team2);
+    let homeTeam = extractTeamInfo(video.side1 || video.team1);
+    let awayTeam = extractTeamInfo(video.side2 || video.team2);
     
-    const competitionName = video.competition.name;
+    if ((homeTeam.name === 'Unknown' && awayTeam.name === 'Unknown') || 
+        (homeTeam.id === 'unknown' && awayTeam.id === 'unknown')) {
+      const { homeName, awayName } = extractTeamsFromTitle(video.title);
+      
+      if (homeName !== 'Unknown') {
+        homeTeam = {
+          id: homeName.toLowerCase().replace(/\s+/g, '-'),
+          name: homeName,
+          logo: homeTeam.logo
+        };
+      }
+      
+      if (awayName !== 'Unknown') {
+        awayTeam = {
+          id: awayName.toLowerCase().replace(/\s+/g, '-'),
+          name: awayName,
+          logo: awayTeam.logo
+        };
+      }
+    }
+    
+    const competitionName = typeof video.competition === 'string' 
+      ? video.competition 
+      : (video.competition?.name || 'Unknown');
+      
     const competitionInfo = competitionToLeagueMap[competitionName] || 
-                            { id: competitionName.toLowerCase().replace(/[\s:]+/g, '-'), logo: '/leagues/other.png' };
+                          { id: competitionName.toLowerCase().replace(/[\s:,]+/g, '-'), logo: '/leagues/other.png' };
     
     const score = extractScoreFromTitle(video.title);
     
@@ -186,12 +266,10 @@ export const fetchScorebatVideos = async (): Promise<ScorebatVideo[]> => {
     const data = await response.json();
     console.log('Feed API response structure:', Object.keys(data));
     
-    // Check if the response has the expected structure
     if (data && data.response && Array.isArray(data.response)) {
       console.log(`Found ${data.response.length} videos in feed`);
       return transformVideoArray(data.response);
     } else if (Array.isArray(data)) {
-      // Some API responses might be direct arrays
       console.log(`Found ${data.length} videos in feed (direct array)`);
       return transformVideoArray(data);
     } else {
@@ -316,37 +394,57 @@ const transformVideoArray = (videoArray: any[]): ScorebatVideo[] => {
   
   if (videoArray.length > 0) {
     const sampleVideo = videoArray[0];
-    // Log the structure of the first video to understand the format
     console.log('Sample competition:', sampleVideo.competition);
     console.log('Sample team1/side1:', sampleVideo.side1 || sampleVideo.team1);
     console.log('Sample team2/side2:', sampleVideo.side2 || sampleVideo.team2);
+    console.log('Sample title:', sampleVideo.title);
   }
   
   return videoArray.map((item: any) => {
-    // Ensure we have a competition object with at least a name
     const competition = typeof item.competition === 'string' 
       ? { id: '', name: item.competition, url: '' }
       : item.competition || { id: '', name: 'Unknown', url: '' };
       
-    // Process side1/team1
-    const side1 = item.side1 || (item.team1 ? {
-      name: item.team1.name || 'Unknown',
-      url: item.team1.url || '',
-    } : {
-      name: 'Unknown',
-      url: '',
-    });
+    let side1, side2;
     
-    // Process side2/team2  
-    const side2 = item.side2 || (item.team2 ? {
-      name: item.team2.name || 'Unknown',
-      url: item.team2.url || '',
-    } : {
-      name: 'Unknown',
-      url: '',
-    });
+    if (item.side1) {
+      side1 = typeof item.side1 === 'string' 
+        ? { name: item.side1, url: '' }
+        : item.side1;
+    } else if (item.team1) {
+      side1 = typeof item.team1 === 'string'
+        ? { name: item.team1, url: '' }
+        : {
+            name: item.team1?.name || 'Unknown',
+            url: item.team1?.url || '',
+          };
+    } else {
+      const { homeName } = extractTeamsFromTitle(item.title || '');
+      side1 = {
+        name: homeName,
+        url: '',
+      };
+    }
     
-    // Create a normalized video object
+    if (item.side2) {
+      side2 = typeof item.side2 === 'string'
+        ? { name: item.side2, url: '' }
+        : item.side2;
+    } else if (item.team2) {
+      side2 = typeof item.team2 === 'string'
+        ? { name: item.team2, url: '' }
+        : {
+            name: item.team2?.name || 'Unknown',
+            url: item.team2?.url || '',
+          };
+    } else {
+      const { awayName } = extractTeamsFromTitle(item.title || '');
+      side2 = {
+        name: awayName,
+        url: '',
+      };
+    }
+    
     return {
       id: item.matchId || item.id || `scorebat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: item.title || `${side1.name} vs ${side2.name}`,
@@ -359,7 +457,6 @@ const transformVideoArray = (videoArray: any[]): ScorebatVideo[] => {
       competitionUrl: item.competitionUrl || competition.url || '',
       side1: side1,
       side2: side2,
-      // Keep legacy properties for backward compatibility
       team1: {
         name: side1.name || 'Unknown',
         url: side1.url || '',

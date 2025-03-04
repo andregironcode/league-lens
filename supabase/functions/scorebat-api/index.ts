@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
 
 // Define CORS headers for browser requests
@@ -61,6 +60,21 @@ async function fetchScorebatVideos() {
     
     const data = await response.json();
     console.log('Successfully fetched data from Scorebat API');
+    
+    // Add more detailed logging about the data structure
+    if (Array.isArray(data)) {
+      console.log(`Received array with ${data.length} items`);
+      if (data.length > 0) {
+        console.log('First item structure:', Object.keys(data[0]));
+      }
+    } else if (data && data.response && Array.isArray(data.response)) {
+      console.log(`Received object with response array containing ${data.response.length} items`);
+      if (data.response.length > 0) {
+        console.log('First item structure:', Object.keys(data.response[0]));
+      }
+    } else {
+      console.log('Received unexpected data format:', typeof data);
+    }
     
     return {
       source: 'api',
@@ -242,9 +256,20 @@ Deno.serve(async (req) => {
     // Handle action parameter for more flexibility
     const action = requestBody.action || url.searchParams.get('action');
     
+    // Add detailed logging for incoming requests
+    console.log(`Processing request to endpoint: ${endpoint}, action: ${action}`);
+    
     // Route based on endpoint or action
     if (endpoint === 'videos' || action === 'videos') {
       const data = await fetchScorebatVideos();
+      
+      // Additional logging to help debug data structure
+      console.log('Returning videos data with structure:', 
+        typeof data.data === 'object' ? 
+          (Array.isArray(data.data) ? `Array(${data.data.length})` : 
+           Object.keys(data.data).join(', ')) : 
+          typeof data.data);
+          
       return new Response(JSON.stringify(data), responseInit);
     } 
     else if (endpoint === 'premier-league' || action === 'premier-league') {
