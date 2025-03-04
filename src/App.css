@@ -14,8 +14,6 @@
 }
 .logo:hover {
   filter: drop-shadow(0 0 2em #FFC30Baa);
-  transform: scale(1.05);
-  cursor: pointer;
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #FFC30Baa);
@@ -72,28 +70,4 @@ html, body {
   display: inline-block;
   animation: marquee 8s linear infinite;
   animation-delay: 2s;
-}
-
-/* Add hover effects for clickable elements */
-.clickable {
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out, filter 0.2s ease-in-out;
-}
-
-.clickable:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
-  filter: brightness(1.2);
-}
-
-/* League flag hover effect */
-.league-flag {
-  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
-}
-
-.league-flag:hover {
-  transform: scale(1.1);
-  filter: brightness(1.1);
-  box-shadow: 0 0 10px rgba(255, 195, 11, 0.5);
-  cursor: pointer;
 }

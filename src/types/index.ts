@@ -3,41 +3,27 @@ export interface Team {
   id: string;
   name: string;
   logo: string;
-  url?: string;
 }
 
 export interface MatchHighlight {
   id: string;
   title: string;
   date: string;
-  thumbnailUrl?: string;
-  thumbnail?: string;
-  videoUrl?: string;
-  duration?: string;
-  views?: number;
+  thumbnailUrl: string;
+  videoUrl: string;
+  duration: string;
+  views: number;
   homeTeam: Team;
   awayTeam: Team;
-  team1?: Team;
-  team2?: Team;
   score: {
     home: number;
     away: number;
   };
   competition: {
-    id?: string;
+    id: string;
     name: string;
-    logo?: string;
-    url?: string;
+    logo: string;
   };
-  videos?: Array<{
-    id?: string;
-    title?: string;
-    embed?: string;
-  }>;
-  matchviewUrl?: string;
-  competitionUrl?: string;
-  matchId?: string;
-  embed?: string;
 }
 
 export interface League {
@@ -79,46 +65,8 @@ export interface TeamDetails {
   fixtures: Fixture[];
 }
 
-export interface ScorebatVideo {
-  id: string;
-  title: string;
-  embed: string;
-  url: string;
-  thumbnail: string;
-  date: string;
-  competition: {
-    id?: string;
-    name: string;
-    url?: string;
-  };
-  matchviewUrl: string;
-  competitionUrl?: string;
-  team1: {
-    name: string;
-    url: string;
-  };
-  team2: {
-    name: string;
-    url: string;
-  };
-  videos?: any[];
-  side1?: {
-    name: string;
-    url: string;
-  };
-  side2?: {
-    name: string;
-    url: string;
-  };
-  matchId?: string;
-  image?: string;
-}
-
-export interface ScorebatResponse {
-  data: ScorebatVideo[];
-}
-
-export interface ScorebatMapper {
-  mapToMatchHighlight: (video: ScorebatVideo) => MatchHighlight;
-  mapToLeagues: (videos: ScorebatVideo[]) => League[];
+export interface UserPreferences {
+  followedTeams: string[];
+  followedLeagues: string[];
+  savedMatches: string[];
 }
