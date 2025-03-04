@@ -7,9 +7,9 @@ import { getRecommendedHighlights as getMockRecommendedHighlights,
          searchHighlights as mockSearchHighlights } from './highlightService';
 import { toast } from 'sonner';
 
-// Set the Premier League competition ID
+// Set the Premier League competition ID and default API token
 export const PREMIER_LEAGUE_ID = 'england-premier-league';
-export const PREMIER_LEAGUE_TOKEN = 'MTk1NDQ4XzE3NDEwODA4NDdfOGNmZWUwYmVmOWVmNGRlOTY0OGE2MGM0NjA1ZGRmMWM1YzljNDc5Yg==';
+export const SCOREBAT_API_TOKEN = 'MTk1NDQ4XzE3NDEwODA4NDdfOGNmZWUwYmVmOWVmNGRlOTY0OGE2MGM0NjA1ZGRmMWM1YzljNDc5Yg==';
 
 // Track when we've shown error messages to prevent duplicates
 const hasShownAPIError = {
@@ -174,12 +174,14 @@ export const resetApiCooldown = () => {
 };
 
 export const hasApiToken = (): boolean => {
-  const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
+  // First check environment variable, then fallback to constant
+  const token = import.meta.env.VITE_SCOREBAT_API_TOKEN || SCOREBAT_API_TOKEN;
   return !!token && token.length > 0;
 };
 
 export const isValidTokenFormat = (): boolean => {
-  const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
+  // First check environment variable, then fallback to constant
+  const token = import.meta.env.VITE_SCOREBAT_API_TOKEN || SCOREBAT_API_TOKEN;
   if (!token) return false;
   
   // Check for reasonable token length and correct format

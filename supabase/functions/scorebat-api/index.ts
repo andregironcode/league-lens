@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
 
 // Define CORS headers for browser requests
@@ -6,13 +7,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Scorebat API endpoints
+// Scorebat API endpoints based on the documentation
 const SCOREBAT_API_URL = 'https://www.scorebat.com/video-api/v3';
-const SCOREBAT_WIDGET_URL = 'https://www.scorebat.com/embed/';
-const SCOREBAT_COMPETITION_URL = 'https://www.scorebat.com/video-api/v3/competition';
+const SCOREBAT_FEED_ENDPOINT = `${SCOREBAT_API_URL}/feed`;
+const SCOREBAT_COMPETITION_ENDPOINT = `${SCOREBAT_API_URL}/competition`;
+const SCOREBAT_TEAM_ENDPOINT = `${SCOREBAT_API_URL}/team`;
 
-// Premier League specific token
-const PREMIER_LEAGUE_TOKEN = 'MTk1NDQ4XzE3NDEwODA4NDdfOGNmZWUwYmVmOWVmNGRlOTY0OGE2MGM0NjA1ZGRmMWM1YzljNDc5Yg==';
+// Default API token to use if no token is provided in environment variables
+const DEFAULT_API_TOKEN = 'MTk1NDQ4XzE3NDEwODA4NDdfOGNmZWUwYmVmOWVmNGRlOTY0OGE2MGM0NjA1ZGRmMWM1YzljNDc5Yg==';
 const PREMIER_LEAGUE_ID = 'england-premier-league';
 
 // Create a Supabase client
@@ -22,7 +24,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Get the Scorebat API tokens
 async function getScorebatTokens() {
-  const videoApiToken = Deno.env.get('Video API Access Token') || PREMIER_LEAGUE_TOKEN;
+  // First check environment variables
+  const videoApiToken = Deno.env.get('Video API Access Token') || DEFAULT_API_TOKEN;
   const embedToken = Deno.env.get('Embed Token');
   
   return {
@@ -33,73 +36,54 @@ async function getScorebatTokens() {
   };
 }
 
-// Process request to fetch Scorebat videos
+// Process request to fetch Scorebat videos from feed
 async function fetchScorebatVideos() {
   const { videoApiToken } = await getScorebatTokens();
   console.log('Fetching Scorebat videos...');
   
-  // Try premium API if we have a token
-  if (videoApiToken) {
-    try {
-      const apiUrl = `${SCOREBAT_API_URL}/feed?token=${videoApiToken}`;
-      console.log('Using premium API with token');
-      
-      const response = await fetch(apiUrl, {
-        headers: {
-          'Accept': 'application/json',
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Premium API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Successfully fetched data from premium API');
-      
-      return {
-        source: 'premium',
-        data
-      };
-    } catch (error) {
-      console.error('Error using premium API:', error);
-      // Fall through to widget API
-    }
+  if (!videoApiToken) {
+    throw new Error('No API token available');
   }
   
-  // Try widget API as fallback
   try {
-    const widgetUrl = `${SCOREBAT_WIDGET_URL}livescore?json=1`;
-    console.log('Using widget API as fallback');
+    const apiUrl = `${SCOREBAT_FEED_ENDPOINT}?token=${videoApiToken}`;
+    console.log('Using Scorebat feed API with token');
     
-    const response = await fetch(widgetUrl, {
+    const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
       }
     });
     
     if (!response.ok) {
-      throw new Error(`Widget API error: ${response.status}`);
+      throw new Error(`API error: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('Successfully fetched data from widget API');
+    console.log('Successfully fetched data from Scorebat API');
     
     return {
-      source: 'widget',
+      source: 'api',
       data
     };
   } catch (error) {
-    console.error('Error using widget API:', error);
-    throw new Error('All API attempts failed');
+    console.error('Error using Scorebat API:', error);
+    throw error;
   }
 }
 
 // Fetch Premier League videos using direct API access
 async function fetchPremierLeagueVideos() {
   console.log('Fetching Premier League videos with direct API access...');
+  
+  const { videoApiToken } = await getScorebatTokens();
+  
+  if (!videoApiToken) {
+    throw new Error('No API token available');
+  }
+  
   try {
-    const apiUrl = `${SCOREBAT_COMPETITION_URL}/${PREMIER_LEAGUE_ID}/${PREMIER_LEAGUE_TOKEN}`;
+    const apiUrl = `${SCOREBAT_COMPETITION_ENDPOINT}/${PREMIER_LEAGUE_ID}/${videoApiToken}`;
     
     const response = await fetch(apiUrl, {
       headers: {
@@ -115,7 +99,7 @@ async function fetchPremierLeagueVideos() {
     console.log('Successfully fetched Premier League data from API');
     
     return { 
-      source: 'premium',
+      source: 'api',
       data 
     };
   } catch (error) {
@@ -128,15 +112,16 @@ async function fetchPremierLeagueVideos() {
 async function fetchCompetitionVideos(competitionId: string) {
   console.log(`Fetching videos for competition: ${competitionId}`);
   
-  // For Premier League, use the direct API with token
-  if (competitionId === PREMIER_LEAGUE_ID) {
-    return fetchPremierLeagueVideos();
+  const { videoApiToken } = await getScorebatTokens();
+  
+  if (!videoApiToken) {
+    throw new Error('No API token available');
   }
   
   try {
-    const competitionUrl = `${SCOREBAT_WIDGET_URL}competition/${competitionId}?json=1`;
+    const apiUrl = `${SCOREBAT_COMPETITION_ENDPOINT}/${competitionId}/${videoApiToken}`;
     
-    const response = await fetch(competitionUrl, {
+    const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
       }
@@ -147,7 +132,12 @@ async function fetchCompetitionVideos(competitionId: string) {
     }
     
     const data = await response.json();
-    return { data };
+    console.log(`Successfully fetched data for competition ${competitionId}`);
+    
+    return { 
+      source: 'api',
+      data 
+    };
   } catch (error) {
     console.error(`Error fetching competition ${competitionId}:`, error);
     throw error;
@@ -157,10 +147,17 @@ async function fetchCompetitionVideos(competitionId: string) {
 // Fetch team-specific videos
 async function fetchTeamVideos(teamId: string) {
   console.log(`Fetching videos for team: ${teamId}`);
+  
+  const { videoApiToken } = await getScorebatTokens();
+  
+  if (!videoApiToken) {
+    throw new Error('No API token available');
+  }
+  
   try {
-    const teamUrl = `${SCOREBAT_WIDGET_URL}team/${teamId}?json=1`;
+    const apiUrl = `${SCOREBAT_TEAM_ENDPOINT}/${teamId}/${videoApiToken}`;
     
-    const response = await fetch(teamUrl, {
+    const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
       }
@@ -171,7 +168,12 @@ async function fetchTeamVideos(teamId: string) {
     }
     
     const data = await response.json();
-    return { data };
+    console.log(`Successfully fetched data for team ${teamId}`);
+    
+    return { 
+      source: 'api',
+      data 
+    };
   } catch (error) {
     console.error(`Error fetching team ${teamId}:`, error);
     throw error;
@@ -182,14 +184,13 @@ async function fetchTeamVideos(teamId: string) {
 async function checkApiStatus() {
   const { videoApiToken } = await getScorebatTokens();
   const result = {
-    premium: false,
-    widget: false
+    api: false
   };
   
-  // Check premium API
+  // Check API
   if (videoApiToken) {
     try {
-      const apiUrl = `${SCOREBAT_API_URL}/feed?token=${videoApiToken}`;
+      const apiUrl = `${SCOREBAT_FEED_ENDPOINT}?token=${videoApiToken}`;
       const response = await fetch(apiUrl, {
         headers: {
           'Accept': 'application/json',
@@ -199,29 +200,12 @@ async function checkApiStatus() {
       if (response.ok) {
         const data = await response.json();
         if (!data.error) {
-          result.premium = true;
+          result.api = true;
         }
       }
     } catch (error) {
-      console.error('Error checking premium API:', error);
+      console.error('Error checking API:', error);
     }
-  }
-  
-  // Check widget API
-  try {
-    const widgetUrl = `${SCOREBAT_WIDGET_URL}livescore?json=1`;
-    const response = await fetch(widgetUrl, {
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-    
-    if (response.ok) {
-      await response.json();
-      result.widget = true;
-    }
-  } catch (error) {
-    console.error('Error checking widget API:', error);
   }
   
   return result;
