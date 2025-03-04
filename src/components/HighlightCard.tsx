@@ -41,6 +41,7 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
   const formattedDate = formatDistanceToNow(new Date(highlight.date), { addSuffix: true });
 
   const handleCardClick = () => {
+    console.log('Navigating to match with ID:', highlight.id);
     navigate(`/match/${highlight.id}`);
   };
 

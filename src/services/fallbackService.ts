@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League } from '@/types';
 import { getRecommendedHighlights as getMockRecommendedHighlights, 
          getLeagueHighlights as getMockLeagueHighlights,
@@ -233,15 +232,37 @@ export const getLeagueHighlightsWithFallback = async (): Promise<League[]> => {
 export const getMatchByIdWithFallback = async (id: string): Promise<MatchHighlight | null> => {
   const { getMatchById } = await import('./scorebatService');
   
-  // Log the ID we're trying to fetch
+  // Enhanced logging for match ID troubleshooting
   console.log(`Attempting to fetch match with ID: ${id}`);
   
-  return getFallbackData(
-    () => getMatchById(id), 
-    () => getMockMatchById(id), 
-    1,
-    true // Show toast for match details to help debug issues
-  );
+  try {
+    // Try the real API call first
+    const match = await getFallbackData(
+      () => getMatchById(id), 
+      () => getMockMatchById(id), 
+      1,
+      true // Show toast for match details to help debug issues
+    );
+    
+    // Log successful result
+    if (match) {
+      console.log('Successfully found match:', match.id);
+    } else {
+      console.warn('No match found with ID:', id);
+    }
+    
+    return match;
+  } catch (error) {
+    console.error(`Error fetching match with ID ${id}:`, error);
+    
+    // Fall back to mock data with more detailed error
+    toast.error('Match details unavailable', {
+      description: `Unable to load details for this match. Technical details: ${error instanceof Error ? error.message : String(error)}`,
+      duration: 5000,
+    });
+    
+    return getMockMatchById(id);
+  }
 };
 
 export const getTeamHighlightsWithFallback = async (teamId: string): Promise<MatchHighlight[]> => {

@@ -776,11 +776,43 @@ export const getPremierLeagueHighlights = async (): Promise<MatchHighlight[]> =>
 
 // Get a specific match by ID
 export const getMatchById = async (id: string): Promise<MatchHighlight | null> => {
+  console.log(`Searching for match with ID: ${id}`);
+  
+  // Load all videos first
   const videos = await fetchScorebatVideos();
-  const video = videos.find(v => v.id === id);
+  console.log(`Loaded ${videos.length} videos to search for match ${id}`);
   
-  if (!video) return null;
+  // Look for match by direct ID comparison
+  let video = videos.find(v => v.id === id || v.matchId === id);
   
+  // If not found, try additional ID formats
+  if (!video) {
+    console.log(`Match not found with direct ID ${id}, trying alternative ID formats`);
+    
+    // Check if the ID might be wrapped in an additional property
+    video = videos.find(v => 
+      (v.id && typeof v.id === 'object' && v.id.id === id) || 
+      (v.matchId && typeof v.matchId === 'object' && v.matchId.id === id)
+    );
+  }
+  
+  // If still not found, try extracting IDs from URLs
+  if (!video) {
+    console.log(`Match not found with object ID ${id}, trying URL matching`);
+    
+    // Try to match by URL pattern
+    video = videos.find(v => {
+      const url = v.matchviewUrl || v.url || '';
+      return url.includes(id) || url.endsWith(id);
+    });
+  }
+  
+  if (!video) {
+    console.warn(`No match found with ID ${id} after all search attempts`);
+    return null;
+  }
+  
+  console.log(`Found match with ID ${id}:`, video.title);
   return scorebatMapper.mapToMatchHighlight(video);
 };
 
