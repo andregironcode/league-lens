@@ -188,19 +188,17 @@ const MatchDetails = () => {
   return (
     <div className="min-h-screen bg-black text-white pt-16 pb-16">
       <Header />
-      <div className="max-w-7xl mx-auto px-0 sm:px-2">
-        <div className="px-4">
-          <button 
-            onClick={handleGoBack}
-            className="flex items-center mb-6 text-sm font-medium hover:underline transition-colors text-white"
-          >
-            <ArrowLeft size={16} className="mr-2" />
-            Back to Home
-          </button>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <button 
+          onClick={handleGoBack}
+          className="flex items-center mb-6 text-sm font-medium hover:underline transition-colors text-white"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back to Home
+        </button>
 
         <div className="mb-8 w-full">
-          <div className="aspect-video bg-black rounded-none sm:rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
+          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
             <iframe
               className="w-full h-full"
               src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
@@ -212,198 +210,102 @@ const MatchDetails = () => {
           </div>
         </div>
 
-        <div className="px-4">
-          <section className="mb-4">
-            <div className="mb-4">
-              <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
-                {match.competition.name}
+        <section className="mb-4">
+          <div className="mb-4">
+            <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
+              {match.competition.name}
+            </span>
+          </div>
+          
+          <h1 className="text-2xl md:text-3xl font-bold mb-4 text-white">
+            {match.title}
+          </h1>
+          
+          <div className="flex flex-wrap items-center text-sm text-gray-400 mb-4 space-x-6">
+            <div className="flex items-center">
+              <Calendar size={16} className="mr-2" />
+              <span>{exactDate}</span>
+            </div>
+            <div className="flex items-center">
+              <Clock size={16} className="mr-2" />
+              <span>{formattedDate}</span>
+            </div>
+            <div className="flex items-center">
+              <Eye size={16} className="mr-2" />
+              <span>{new Intl.NumberFormat('en-US').format(match.views)} views</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-6 bg-[#222222] rounded-xl p-6 shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div 
+              className="flex flex-col items-center mb-6 md:mb-0 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleTeamClick(match.homeTeam.id)}
+            >
+              <img 
+                src={match.homeTeam.logo} 
+                alt={match.homeTeam.name} 
+                className="w-16 h-16 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                }}
+              />
+              <span className="font-semibold text-lg mt-2 text-white hover:text-[#FFC30B] transition-colors">
+                {match.homeTeam.name}
               </span>
             </div>
             
-            <h1 className="text-2xl md:text-3xl font-bold mb-4 text-white">
-              {match.title}
-            </h1>
+            <div className="flex items-center mb-6 md:mb-0">
+              <span className="text-4xl md:text-5xl font-bold px-4 text-center text-white">
+                {match.score.home} <span className="text-gray-400">-</span> {match.score.away}
+              </span>
+            </div>
             
-            <div className="flex flex-wrap items-center text-sm text-gray-400 mb-4 space-x-6">
-              <div className="flex items-center">
-                <Calendar size={16} className="mr-2" />
-                <span>{exactDate}</span>
-              </div>
-              <div className="flex items-center">
-                <Clock size={16} className="mr-2" />
-                <span>{formattedDate}</span>
-              </div>
-              <div className="flex items-center">
-                <Eye size={16} className="mr-2" />
-                <span>{new Intl.NumberFormat('en-US').format(match.views)} views</span>
-              </div>
+            <div 
+              className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleTeamClick(match.awayTeam.id)}
+            >
+              <img 
+                src={match.awayTeam.logo} 
+                alt={match.awayTeam.name} 
+                className="w-16 h-16 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                }}
+              />
+              <span className="font-semibold text-lg mt-2 text-white hover:text-[#FFC30B] transition-colors">
+                {match.awayTeam.name}
+              </span>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section className="mb-6 bg-[#222222] rounded-xl p-6 shadow-sm">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div 
-                className="flex flex-col items-center mb-6 md:mb-0 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => handleTeamClick(match.homeTeam.id)}
-              >
-                <img 
-                  src={match.homeTeam.logo} 
-                  alt={match.homeTeam.name} 
-                  className="w-16 h-16 object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                  }}
-                />
-                <span className="font-semibold text-lg mt-2 text-white hover:text-[#FFC30B] transition-colors">
-                  {match.homeTeam.name}
-                </span>
-              </div>
-              
-              <div className="flex items-center mb-6 md:mb-0">
-                <span className="text-4xl md:text-5xl font-bold px-4 text-center text-white">
-                  {match.score.home} <span className="text-gray-400">-</span> {match.score.away}
-                </span>
-              </div>
-              
-              <div 
-                className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => handleTeamClick(match.awayTeam.id)}
-              >
-                <img 
-                  src={match.awayTeam.logo} 
-                  alt={match.awayTeam.name} 
-                  className="w-16 h-16 object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                  }}
-                />
-                <span className="font-semibold text-lg mt-2 text-white hover:text-[#FFC30B] transition-colors">
-                  {match.awayTeam.name}
-                </span>
-              </div>
-            </div>
-          </section>
-
-          {topComment && (
-            <section className="mb-6 bg-[#292929] rounded-xl p-4 border border-[#FFC30B] shadow-md">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-lg font-semibold text-white flex items-center">
-                  <MessageCircle size={18} className="mr-2 text-[#FFC30B]" />
-                  Top Comment
-                </h3>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="px-3 py-1 bg-[#333333] rounded-full text-xs font-medium text-white hover:bg-[#444444] transition-colors">
-                      View All
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-[#222222] text-white border-[#333333] max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl text-white">Comments</DialogTitle>
-                      <DialogDescription className="text-gray-400">
-                        Join the conversation about this match
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="max-h-[60vh] overflow-y-auto mt-4 pr-2">
-                      {comments.map(comment => (
-                        <div key={comment.id} className="border-b border-gray-800 py-4">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
-                              {comment.user.initial}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                <span className="text-white text-sm font-medium">{comment.user.username}</span>
-                                <span className="text-gray-400 text-xs ml-2">{comment.time}</span>
-                              </div>
-                              <p className="text-white text-sm mt-1">{comment.content}</p>
-                              <div className="flex items-center mt-2 space-x-4">
-                                <button className="flex items-center text-gray-400 hover:text-white">
-                                  <ThumbsUp size={14} className="mr-1" />
-                                  <span className="text-xs">{comment.likes}</span>
-                                </button>
-                                <button className="flex items-center text-gray-400 hover:text-white">
-                                  <MessageSquare size={14} className="mr-1" />
-                                  <span className="text-xs">{comment.replies}</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
-                  {topComment.user.initial}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center">
-                    <span className="text-white text-sm font-medium">{topComment.user.username}</span>
-                    <span className="text-gray-400 text-xs ml-2">{topComment.time}</span>
-                  </div>
-                  <p className="text-white text-sm mt-1">{topComment.content}</p>
-                  <div className="flex items-center mt-2 space-x-4">
-                    <span className="flex items-center text-gray-300">
-                      <ThumbsUp size={14} className="mr-1 text-[#FFC30B]" />
-                      <span className="text-xs">{new Intl.NumberFormat('en-US').format(topComment.likes)}</span>
-                    </span>
-                    <span className="flex items-center text-gray-300">
-                      <MessageSquare size={14} className="mr-1" />
-                      <span className="text-xs">{topComment.replies} replies</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white flex items-center">
-                Comments
+        {topComment && (
+          <section className="mb-6 bg-[#292929] rounded-xl p-4 border border-[#FFC30B] shadow-md">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold text-white flex items-center">
+                <MessageCircle size={18} className="mr-2 text-[#FFC30B]" />
+                Top Comment
               </h3>
-              <button 
-                onClick={toggleComments}
-                className="px-4 py-2 bg-[#222222] rounded-full text-sm font-medium text-white hover:bg-[#333333] transition-colors"
-              >
-                {showComments ? "Hide comments" : "Show comments"}
-              </button>
-            </div>
-            
-            {showComments && (
-              <div className="bg-[#222222] rounded-xl overflow-hidden">
-                <div className="p-4">
-                  <div className="mb-6 flex space-x-2">
-                    <button 
-                      className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'top' ? 'bg-white text-black' : 'bg-[#191919] text-white'}`}
-                      onClick={() => setCommentSortBy('top')}
-                    >
-                      Top
-                    </button>
-                    <button 
-                      className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'newest' ? 'bg-white text-black' : 'bg-[#191919] text-white'}`}
-                      onClick={() => setCommentSortBy('newest')}
-                    >
-                      Newest
-                    </button>
-                  </div>
-                  
-                  <div className="mb-6 py-3 px-4 bg-[#191919] rounded">
-                    <p className="text-white text-sm">
-                      Remember to keep comments respectful and to follow our
-                      <span className="text-[#FFC30B] ml-1">Community Guidelines</span>
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="px-3 py-1 bg-[#333333] rounded-full text-xs font-medium text-white hover:bg-[#444444] transition-colors">
+                    View All
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#222222] text-white border-[#333333] max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl text-white">Comments</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                      Join the conversation about this match
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="max-h-[60vh] overflow-y-auto mt-4 pr-2">
                     {comments.map(comment => (
-                      <div key={comment.id} className="border-b border-gray-800 pb-6">
+                      <div key={comment.id} className="border-b border-gray-700 py-4">
                         <div className="flex items-start space-x-3">
                           <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
                             {comment.user.initial}
@@ -416,15 +318,12 @@ const MatchDetails = () => {
                             <p className="text-white text-sm mt-1">{comment.content}</p>
                             <div className="flex items-center mt-2 space-x-4">
                               <button className="flex items-center text-gray-400 hover:text-white">
-                                <ThumbsUp size={16} className="mr-1" />
+                                <ThumbsUp size={14} className="mr-1" />
                                 <span className="text-xs">{comment.likes}</span>
                               </button>
                               <button className="flex items-center text-gray-400 hover:text-white">
-                                <ThumbsUp size={16} className="mr-1 transform rotate-180" />
-                              </button>
-                              <button className="flex items-center text-gray-400 hover:text-white">
-                                <MessageSquare size={16} className="mr-1" />
-                                <span className="text-xs">{comment.replies} replies</span>
+                                <MessageSquare size={14} className="mr-1" />
+                                <span className="text-xs">{comment.replies}</span>
                               </button>
                             </div>
                           </div>
@@ -432,210 +331,315 @@ const MatchDetails = () => {
                       </div>
                     ))}
                   </div>
-                  
-                  <div className="sticky bottom-0 bg-[#222222] pt-4 pb-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
-                        A
-                      </div>
-                      <div className="flex-1 bg-[#191919] rounded-full px-4 py-2 flex items-center">
-                        <input 
-                          type="text" 
-                          placeholder="Add a comment..." 
-                          className="bg-transparent text-white w-full focus:outline-none"
-                        />
+                </DialogContent>
+              </Dialog>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
+                {topComment.user.initial}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center">
+                  <span className="text-white text-sm font-medium">{topComment.user.username}</span>
+                  <span className="text-gray-400 text-xs ml-2">{topComment.time}</span>
+                </div>
+                <p className="text-white text-sm mt-1">{topComment.content}</p>
+                <div className="flex items-center mt-2 space-x-4">
+                  <span className="flex items-center text-gray-300">
+                    <ThumbsUp size={14} className="mr-1 text-[#FFC30B]" />
+                    <span className="text-xs">{new Intl.NumberFormat('en-US').format(topComment.likes)}</span>
+                  </span>
+                  <span className="flex items-center text-gray-300">
+                    <MessageSquare size={14} className="mr-1" />
+                    <span className="text-xs">{topComment.replies} replies</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-white flex items-center">
+              Comments
+            </h3>
+            <button 
+              onClick={toggleComments}
+              className="px-4 py-2 bg-[#222222] rounded-full text-sm font-medium text-white hover:bg-[#333333] transition-colors"
+            >
+              {showComments ? "Hide comments" : "Show comments"}
+            </button>
+          </div>
+          
+          {showComments && (
+            <div className="bg-[#222222] rounded-xl overflow-hidden">
+              <div className="p-4">
+                <div className="mb-6 flex space-x-2">
+                  <button 
+                    className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'top' ? 'bg-white text-black' : 'bg-[#191919] text-white'}`}
+                    onClick={() => setCommentSortBy('top')}
+                  >
+                    Top
+                  </button>
+                  <button 
+                    className={`px-4 py-2 rounded-full text-sm font-medium ${commentSortBy === 'newest' ? 'bg-white text-black' : 'bg-[#191919] text-white'}`}
+                    onClick={() => setCommentSortBy('newest')}
+                  >
+                    Newest
+                  </button>
+                </div>
+                
+                <div className="mb-6 py-3 px-4 bg-[#191919] rounded">
+                  <p className="text-white text-sm">
+                    Remember to keep comments respectful and to follow our
+                    <span className="text-[#FFC30B] ml-1">Community Guidelines</span>
+                  </p>
+                </div>
+                
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                  {comments.map(comment => (
+                    <div key={comment.id} className="border-b border-gray-800 pb-6">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
+                          {comment.user.initial}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center">
+                                <span className="text-white text-sm font-medium">{comment.user.username}</span>
+                                <span className="text-gray-400 text-xs ml-2">{comment.time}</span>
+                              </div>
+                              <p className="text-white text-sm mt-1">{comment.content}</p>
+                            </div>
+                            <button className="text-gray-400 hover:text-white">
+                              <MoreVertical size={16} />
+                            </button>
+                          </div>
+                          
+                          <div className="flex items-center mt-3 space-x-4">
+                            <button className="flex items-center text-gray-400 hover:text-white">
+                              <ThumbsUp size={16} className="mr-1" />
+                              <span className="text-xs">{comment.likes}</span>
+                            </button>
+                            <button className="flex items-center text-gray-400 hover:text-white">
+                              <ThumbsUp size={16} className="mr-1 transform rotate-180" />
+                            </button>
+                            <button className="flex items-center text-gray-400 hover:text-white">
+                              <MessageSquare size={16} className="mr-1" />
+                              <span className="text-xs">{comment.replies} replies</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+                
+                <div className="sticky bottom-0 bg-[#222222] pt-4 pb-2">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-[#FFC30B] flex-shrink-0 flex items-center justify-center text-black font-bold">
+                      A
+                    </div>
+                    <div className="flex-1 bg-[#191919] rounded-full px-4 py-2 flex items-center">
+                      <input 
+                        type="text" 
+                        placeholder="Add a comment..." 
+                        className="bg-transparent text-white w-full focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mb-8">
+          <div className="grid grid-cols-2 gap-0 mb-4">
+            <button 
+              onClick={() => setActiveTab('stats')}
+              className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
+                activeTab === 'stats' 
+                  ? 'bg-[#FFC30B] text-black rounded-tl-lg' 
+                  : 'bg-[#222222] text-white hover:bg-[#333333] rounded-tl-lg'
+              }`}
+            >
+              <BarChart4 className="w-4 h-4 mr-2" />
+              Match Stats
+            </button>
+            <button 
+              onClick={() => setActiveTab('lineups')}
+              className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
+                activeTab === 'lineups' 
+                  ? 'bg-[#FFC30B] text-black rounded-tr-lg' 
+                  : 'bg-[#191919] text-white hover:bg-[#252525] rounded-tr-lg'
+              }`}
+            >
+              <Shirt className="w-4 h-4 mr-2" />
+              Lineups
+            </button>
+          </div>
+          
+          <div className="bg-[#222222] rounded-b-lg p-6">
+            {activeTab === 'stats' ? (
+              <>
+                <h3 className="text-lg font-semibold mb-6 text-center text-white">Match Statistics</h3>
+                
+                <div className="mb-6">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-white">55%</span>
+                    <span className="text-sm font-medium text-center text-white">Possession</span>
+                    <span className="text-sm text-white">45%</span>
+                  </div>
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                    <div className="flex h-full">
+                      <div className="bg-[#FFC30B] h-full" style={{ width: '55%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '45%' }}></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-white">15</span>
+                    <span className="text-sm font-medium text-center text-white">Shots</span>
+                    <span className="text-sm text-white">12</span>
+                  </div>
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                    <div className="flex h-full">
+                      <div className="bg-[#FFC30B] h-full" style={{ width: '56%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '44%' }}></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-white">6</span>
+                    <span className="text-sm font-medium text-center text-white">Shots on Target</span>
+                    <span className="text-sm text-white">4</span>
+                  </div>
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                    <div className="flex h-full">
+                      <div className="bg-[#FFC30B] h-full" style={{ width: '60%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '40%' }}></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-white">8</span>
+                    <span className="text-sm font-medium text-center text-white">Corners</span>
+                    <span className="text-sm text-white">5</span>
+                  </div>
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                    <div className="flex h-full">
+                      <div className="bg-[#FFC30B] h-full" style={{ width: '62%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '38%' }}></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-0">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-white">10</span>
+                    <span className="text-sm font-medium text-center text-white">Fouls</span>
+                    <span className="text-sm text-white">12</span>
+                  </div>
+                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                    <div className="flex h-full">
+                      <div className="bg-[#FFC30B] h-full" style={{ width: '45%' }}></div>
+                      <div className="bg-white h-full" style={{ width: '55%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col md:flex-row justify-between">
+                <div className="md:w-[48%] mb-6 md:mb-0">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
+                    <img 
+                      src={match.homeTeam.logo} 
+                      alt={match.homeTeam.name} 
+                      className="w-6 h-6 object-contain mr-2"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                      }}
+                    />
+                    {match.homeTeam.name}
+                  </h3>
+                  <div className="space-y-2">
+                    {[
+                      "1. Alisson",
+                      "66. Alexander-Arnold",
+                      "4. Van Dijk (C)",
+                      "32. Matip",
+                      "26. Robertson",
+                      "3. Fabinho",
+                      "6. Thiago",
+                      "14. Henderson",
+                      "11. Salah",
+                      "20. Jota",
+                      "10. Mané"
+                    ].map((player, index) => (
+                      <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
+                        <span className="text-white text-sm">{player}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="md:w-[48%]">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
+                    <img 
+                      src={match.awayTeam.logo}
+                      alt={match.awayTeam.name} 
+                      className="w-6 h-6 object-contain mr-2"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                      }}
+                    />
+                    {match.awayTeam.name}
+                  </h3>
+                  <div className="space-y-2">
+                    {[
+                      "32. Ramsdale",
+                      "18. Tomiyasu",
+                      "4. White",
+                      "6. Gabriel",
+                      "3. Tierney",
+                      "5. Partey",
+                      "34. Xhaka",
+                      "7. Saka",
+                      "8. Ødegaard (C)",
+                      "35. Martinelli",
+                      "9. Lacazette"
+                    ].map((player, index) => (
+                      <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
+                        <span className="text-white text-sm">{player}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             )}
           </div>
+        </div>
 
-          <div className="mb-8">
-            <div className="grid grid-cols-2 gap-0 mb-4">
-              <button 
-                onClick={() => setActiveTab('stats')}
-                className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
-                  activeTab === 'stats' 
-                    ? 'bg-[#FFC30B] text-black rounded-tl-lg' 
-                    : 'bg-[#222222] text-white hover:bg-[#333333] rounded-tl-lg'
-                }`}
-              >
-                <BarChart4 className="w-4 h-4 mr-2" />
-                Match Stats
-              </button>
-              <button 
-                onClick={() => setActiveTab('lineups')}
-                className={`flex justify-center items-center py-3 px-4 font-medium text-sm ${
-                  activeTab === 'lineups' 
-                    ? 'bg-[#FFC30B] text-black rounded-tr-lg' 
-                    : 'bg-[#191919] text-white hover:bg-[#252525] rounded-tr-lg'
-                }`}
-              >
-                <Shirt className="w-4 h-4 mr-2" />
-                Lineups
-              </button>
-            </div>
-            
-            <div className="bg-[#222222] rounded-b-lg p-6">
-              {activeTab === 'stats' ? (
-                <>
-                  <h3 className="text-lg font-semibold mb-6 text-center text-white">Match Statistics</h3>
-                  
-                  <div className="mb-6">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-white">55%</span>
-                      <span className="text-sm font-medium text-center text-white">Possession</span>
-                      <span className="text-sm text-white">45%</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                      <div className="flex h-full">
-                        <div className="bg-[#FFC30B] h-full" style={{ width: '55%' }}></div>
-                        <div className="bg-white h-full" style={{ width: '45%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-white">15</span>
-                      <span className="text-sm font-medium text-center text-white">Shots</span>
-                      <span className="text-sm text-white">12</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                      <div className="flex h-full">
-                        <div className="bg-[#FFC30B] h-full" style={{ width: '56%' }}></div>
-                        <div className="bg-white h-full" style={{ width: '44%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-white">6</span>
-                      <span className="text-sm font-medium text-center text-white">Shots on Target</span>
-                      <span className="text-sm text-white">4</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                      <div className="flex h-full">
-                        <div className="bg-[#FFC30B] h-full" style={{ width: '60%' }}></div>
-                        <div className="bg-white h-full" style={{ width: '40%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-white">8</span>
-                      <span className="text-sm font-medium text-center text-white">Corners</span>
-                      <span className="text-sm text-white">5</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                      <div className="flex h-full">
-                        <div className="bg-[#FFC30B] h-full" style={{ width: '62%' }}></div>
-                        <div className="bg-white h-full" style={{ width: '38%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-0">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-white">10</span>
-                      <span className="text-sm font-medium text-center text-white">Fouls</span>
-                      <span className="text-sm text-white">12</span>
-                    </div>
-                    <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                      <div className="flex h-full">
-                        <div className="bg-[#FFC30B] h-full" style={{ width: '45%' }}></div>
-                        <div className="bg-white h-full" style={{ width: '55%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col md:flex-row justify-between">
-                  <div className="md:w-[48%] mb-6 md:mb-0">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
-                      <img 
-                        src={match.homeTeam.logo} 
-                        alt={match.homeTeam.name} 
-                        className="w-6 h-6 object-contain mr-2"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                        }}
-                      />
-                      {match.homeTeam.name}
-                    </h3>
-                    <div className="space-y-2">
-                      {[
-                        "1. Alisson",
-                        "66. Alexander-Arnold",
-                        "4. Van Dijk (C)",
-                        "32. Matip",
-                        "26. Robertson",
-                        "3. Fabinho",
-                        "6. Thiago",
-                        "14. Henderson",
-                        "11. Salah",
-                        "20. Jota",
-                        "10. Mané"
-                      ].map((player, index) => (
-                        <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
-                          <span className="text-white text-sm">{player}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="md:w-[48%]">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
-                      <img 
-                        src={match.awayTeam.logo}
-                        alt={match.awayTeam.name} 
-                        className="w-6 h-6 object-contain mr-2"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                        }}
-                      />
-                      {match.awayTeam.name}
-                    </h3>
-                    <div className="space-y-2">
-                      {[
-                        "32. Ramsdale",
-                        "18. Tomiyasu",
-                        "4. White",
-                        "6. Gabriel",
-                        "3. Tierney",
-                        "5. Partey",
-                        "34. Xhaka",
-                        "7. Saka",
-                        "8. Ødegaard (C)",
-                        "35. Martinelli",
-                        "9. Lacazette"
-                      ].map((player, index) => (
-                        <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
-                          <span className="text-white text-sm">{player}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex justify-center">
-            <button 
-              onClick={handleShare}
-              className="flex items-center px-4 py-2 rounded-md border border-gray-700 hover:bg-[#222222] transition-colors text-white"
-            >
-              <Share2 size={16} className="mr-2" />
-              Share this highlight
-            </button>
-          </div>
+        <div className="flex justify-center">
+          <button 
+            onClick={handleShare}
+            className="flex items-center px-4 py-2 rounded-md border border-gray-700 hover:bg-[#222222] transition-colors text-white"
+          >
+            <Share2 size={16} className="mr-2" />
+            Share this highlight
+          </button>
         </div>
       </div>
     </div>

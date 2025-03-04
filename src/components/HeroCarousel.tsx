@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -184,8 +185,8 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
   };
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[450px] sm:min-h-[550px] border border-highlight-700/10">
-      <div className="absolute top-2 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
+    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
+      <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
         <Flame className="w-4 h-4 mr-2 text-[#FFC30B]" />
         <span className="text-sm font-medium">For You</span>
       </div>
@@ -201,112 +202,9 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         />
       </div>
 
-      <div className="relative z-20 flex flex-col h-full lg:hidden px-0 pt-10 pb-24">
-        <div className="flex-1 mb-6 w-full">
-          <div className="w-full aspect-video shadow-xl">
-            <iframe
-              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
-              title={currentHighlight.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              className="w-full h-full"
-            ></iframe>
-          </div>
-        </div>
-        
-        <div className="space-y-6 px-4 mt-2">
-          <div className="flex justify-center items-center">
-            <div 
-              onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
-              className="cursor-pointer transition-transform duration-200 hover:scale-110"
-            >
-              <img 
-                src={currentHighlight.homeTeam.logo} 
-                alt={currentHighlight.homeTeam.name} 
-                className="w-18 h-18 object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                }}
-              />
-            </div>
-            
-            <div className="text-white text-4xl font-bold mx-8">
-              {currentHighlight.score.home} - {currentHighlight.score.away}
-            </div>
-            
-            <div 
-              onClick={(e) => handleNavigateToTeam(currentHighlight.awayTeam.id, e)}
-              className="cursor-pointer transition-transform duration-200 hover:scale-110"
-            >
-              <img 
-                src={currentHighlight.awayTeam.logo} 
-                alt={currentHighlight.awayTeam.name} 
-                className="w-18 h-18 object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                }}
-              />
-            </div>
-          </div>
-          
-          <div className="text-center">
-            <h1 
-              id="match-title"
-              className={`text-2xl font-bold text-white mb-3 whitespace-nowrap overflow-hidden text-ellipsis ${
-                isScrolling ? 'animate-marquee' : ''
-              }`}
-            >
-              <span 
-                onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
-                className="cursor-pointer hover:text-[#FFC30B] transition-colors"
-              >
-                {getShortTeamName(currentHighlight.homeTeam.name)}
-              </span>
-              {" vs "}
-              <span 
-                onClick={(e) => handleNavigateToTeam(currentHighlight.awayTeam.id, e)}
-                className="cursor-pointer hover:text-[#FFC30B] transition-colors"
-              >
-                {getShortTeamName(currentHighlight.awayTeam.name)}
-              </span>
-            </h1>
-          </div>
-          
-          <div className="flex items-center justify-center mb-2">
-            <p className="text-white/70 text-sm">2 hours ago</p>
-            <span className="mx-2 text-white/40">•</span>
-            <p 
-              className="text-white/70 text-sm hover:text-[#FFC30B] cursor-pointer transition-colors"
-              onClick={(e) => handleNavigateToLeague(currentHighlight.competition.id, e)}
-            >
-              {currentHighlight.competition.name}
-            </p>
-          </div>
-          
-          <div className="flex items-center justify-center gap-6 mt-4">
-            <button 
-              onClick={handleNavigateToMatch}
-              className="bg-white text-black px-6 py-3 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
-            >
-              <Expand className="w-4 h-4 mr-2" />
-              Expand
-            </button>
-            
-            <button
-              onClick={handleOpenComments}
-              className="bg-[#FFC30B] text-black px-5 py-3 rounded-full font-medium flex items-center hover:bg-[#FFC30B]/90 transition-colors"
-            >
-              <MessageCircle className="w-4 h-4 mr-1" />
-              +{Math.floor(Math.random() * 20) + 5}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative z-20 w-full h-full hidden lg:flex items-center justify-center py-2 px-2">
-        <div className="flex flex-col lg:flex-row items-center gap-4 w-full max-w-full mx-auto mt-4">
-          <div className="w-full lg:w-[35%] self-center order-2 lg:order-1 px-4">
+      <div className="relative z-20 w-full h-full flex items-center justify-center py-6 px-6 md:px-12">
+        <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
+          <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
             <div className="flex justify-center items-center mb-6">
               <div 
                 onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
@@ -396,7 +294,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </div>
           </div>
 
-          <div className="w-full lg:w-[65%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2">
+          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
             <iframe
               src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
               title={currentHighlight.title}
@@ -407,7 +305,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30 lg:bottom-6">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
         {highlights.map((_, index) => (
           <button
             key={index}
@@ -421,14 +319,14 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
       </div>
 
       <button
-        className="absolute left-2 md:left-6 top-[60%] lg:top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
+        className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
         onClick={handlePrevSlide}
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-6 h-6" />
       </button>
       <button
-        className="absolute right-2 md:right-6 top-[60%] lg:top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
+        className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
         onClick={handleNextSlide}
         aria-label="Next slide"
       >
