@@ -25,6 +25,12 @@ const Index = () => {
   const [initialLoad, setInitialLoad] = useState(true);
 
   const fetchData = async (forceRefresh = false) => {
+    // Only proceed if we're not already refreshing to prevent loops
+    if (isRefreshing && !forceRefresh) {
+      console.log('Already refreshing, skipping redundant fetch');
+      return;
+    }
+    
     try {
       if (forceRefresh || initialLoad) {
         // Only show loading state on initial load or manual refresh
@@ -80,35 +86,38 @@ const Index = () => {
   };
 
   useEffect(() => {
+    // Initial data fetch on component mount
     fetchData();
     
-    // Listen for API status changes
+    // Listen for API status changes - but with a more careful approach
     const apiStatusChangeHandler = (event: Event) => {
       const customEvent = event as CustomEvent;
       console.log('API status changed:', customEvent.detail);
       
-      // Only refresh data if there was a status change to avoid duplicate fetches
-      if (customEvent.detail?.refresh !== false) {
-        // Don't show loading states on API status changes to prevent flickering
+      // Prevent reload loops: only refresh when status change is meaningful
+      // and avoid triggering refresh for status changes that we caused ourselves
+      if (customEvent.detail?.refresh === true) {
+        console.log('Refreshing due to API status change');
         fetchData(false);
+      } else {
+        console.log('Skipping refresh for this API status change');
       }
     };
     
     // Listen for force refresh events
     const forceRefreshHandler = () => {
+      console.log('Force refresh triggered');
       fetchData(true);
     };
     
     // Add listeners
     window.addEventListener('scorebat-api-status-change', apiStatusChangeHandler);
     window.addEventListener('scorebat-force-refresh', forceRefreshHandler);
-    window.addEventListener('scorebat-token-updated', apiStatusChangeHandler);
     
     return () => {
       // Clean up listeners
       window.removeEventListener('scorebat-api-status-change', apiStatusChangeHandler);
       window.removeEventListener('scorebat-force-refresh', forceRefreshHandler);
-      window.removeEventListener('scorebat-token-updated', apiStatusChangeHandler);
     };
   }, []);
 

@@ -31,8 +31,9 @@ const apiStateTracker = {
     apiStateTracker.isApiModeEnabled = true; // Ensure API mode is enabled after success
     hasShownAPIError.reset();
     
+    // When dispatching events, don't trigger refreshes by default
     window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
-      detail: { status: 'connected' } 
+      detail: { status: 'connected', refresh: false } 
     }));
   },
   
@@ -116,7 +117,7 @@ export const getFallbackData = async <T>(
         hasShownAPIError.value = true;
         
         window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
-          detail: { status: 'error', error: 'No videos found' } 
+          detail: { status: 'error', error: 'No videos found', refresh: false } 
         }));
       }
       return await mockCall();
@@ -149,7 +150,7 @@ export const getFallbackData = async <T>(
         hasShownAPIError.value = true;
         
         window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
-          detail: { status: 'error', error: errorMessage } 
+          detail: { status: 'error', error: errorMessage, refresh: false } 
         }));
       }
       return await mockCall();
