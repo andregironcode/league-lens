@@ -2,27 +2,41 @@ export interface Team {
   id: string;
   name: string;
   logo: string;
+  url?: string;
 }
 
 export interface MatchHighlight {
   id: string;
   title: string;
   date: string;
-  thumbnailUrl: string;
-  videoUrl: string;
-  duration: string;
-  views: number;
+  thumbnailUrl?: string;
+  thumbnail?: string;
+  videoUrl?: string;
+  duration?: string;
+  views?: number;
   homeTeam: Team;
   awayTeam: Team;
+  team1?: Team;
+  team2?: Team;
   score: {
     home: number;
     away: number;
   };
   competition: {
-    id: string;
+    id?: string;
     name: string;
-    logo: string;
-  };
+    logo?: string;
+    url?: string;
+  } | string;
+  videos?: Array<{
+    id?: string;
+    title?: string;
+    embed?: string;
+  }>;
+  matchviewUrl?: string;
+  competitionUrl?: string;
+  matchId?: string;
+  embed?: string;
 }
 
 export interface League {
@@ -64,7 +78,6 @@ export interface TeamDetails {
   fixtures: Fixture[];
 }
 
-// New types for Scorebat API
 export interface ScorebatVideo {
   id: string;
   title: string;
@@ -104,7 +117,6 @@ export interface ScorebatResponse {
   data: ScorebatVideo[];
 }
 
-// Helper interface to convert Scorebat data to our format
 export interface ScorebatMapper {
   mapToMatchHighlight: (video: ScorebatVideo) => MatchHighlight;
   mapToLeagues: (videos: ScorebatVideo[]) => League[];

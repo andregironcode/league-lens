@@ -791,11 +791,21 @@ export const getMatchById = async (id: string): Promise<MatchHighlight | null> =
     
     // Check if the ID might be wrapped in an additional property
     video = videos.find(v => {
-      // Safely check nested id properties
-      const nestedIdMatch = 
-        (v.id && typeof v.id === 'object' && 'id' in v.id && v.id.id === id);
-      const nestedMatchIdMatch = 
-        (v.matchId && typeof v.matchId === 'object' && 'id' in v.matchId && v.matchId.id === id);
+      // Safely check nested id properties with proper null checks
+      const idExists = v?.id !== undefined && v?.id !== null;
+      const matchIdExists = v?.matchId !== undefined && v?.matchId !== null;
+      
+      const nestedIdMatch = idExists && 
+        typeof v.id === 'object' && 
+        v.id !== null && 
+        'id' in v.id && 
+        v.id.id === id;
+        
+      const nestedMatchIdMatch = matchIdExists && 
+        typeof v.matchId === 'object' && 
+        v.matchId !== null && 
+        'id' in v.matchId && 
+        v.matchId.id === id;
       
       return nestedIdMatch || nestedMatchIdMatch;
     });
