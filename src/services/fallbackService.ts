@@ -17,8 +17,8 @@ const hasShownAPIError = {
 const apiStateTracker = {
   lastSuccessTime: 0,
   retryCount: 0,
-  maxRetries: 5, // Increased from 3 to 5
-  cooldownPeriod: 2 * 60 * 1000, // Reduced from 5 minutes to 2 minutes
+  maxRetries: 3, // Reduced from 5 to 3
+  cooldownPeriod: 60 * 1000, // Reduced from 2 minutes to 1 minute
   
   recordSuccess: () => {
     apiStateTracker.lastSuccessTime = Date.now();
@@ -43,6 +43,23 @@ const apiStateTracker = {
   }
 };
 
+// Helper to create a promise with timeout
+const promiseWithTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+  let timeoutHandle: number;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutHandle = window.setTimeout(() => {
+      reject(new Error(`Request timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  return Promise.race([
+    promise,
+    timeoutPromise
+  ]).finally(() => {
+    clearTimeout(timeoutHandle);
+  }) as Promise<T>;
+};
+
 export const getFallbackData = async <T>(
   apiCall: () => Promise<T>,
   mockCall: () => Promise<T>,
@@ -53,7 +70,13 @@ export const getFallbackData = async <T>(
   if (apiStateTracker.shouldRetryApi()) {
     try {
       console.log('Attempting to fetch highlights from Scorebat...');
-      const apiData = await apiCall();
+      
+      // Use timeout to prevent long-hanging requests
+      const apiData = await promiseWithTimeout(
+        apiCall(), 
+        8000 // 8 second timeout
+      );
+      
       console.log('API response received', apiData);
       
       // Check if the response is an array and has sufficient items
@@ -94,6 +117,11 @@ export const getFallbackData = async <T>(
         if (errorMessage.includes('403')) {
           toast.error('API Connection Error', {
             description: 'Score90 is having trouble accessing fresh highlights. Showing demo content for now.',
+            duration: 5000,
+          });
+        } else if (errorMessage.includes('timed out')) {
+          toast.error('Connection Timeout', {
+            description: 'Request timed out while fetching highlights. Showing demo content for now.',
             duration: 5000,
           });
         } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('Failed to parse')) {
