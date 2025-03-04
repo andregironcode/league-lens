@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { Toaster } from '@/components/ui/sonner';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, CheckCircle, RefreshCw, Code, Globe, ServerIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getApiToken, saveApiToken } from '@/services/tokenService';
 
 interface ApiStatus {
   url: string;
@@ -40,7 +40,7 @@ const SettingsPage = () => {
   ]);
   
   const [apiToken, setApiToken] = useState<string>(() => {
-    return import.meta.env.VITE_SCOREBAT_API_TOKEN || localStorage.getItem('scorebat-api-token') || '';
+    return getApiToken();
   });
 
   const [secretStatuses, setSecretStatuses] = useState<SecretStatus[]>([
@@ -50,10 +50,8 @@ const SettingsPage = () => {
 
   const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean>(false);
 
-  // Check if Supabase is properly connected and edge function exists
   const checkSupabaseConnection = async () => {
     try {
-      // Check if we can call the edge function
       const { data, error } = await supabase.functions.invoke('scorebat-api', {
         body: { action: 'status' }
       });
@@ -71,10 +69,8 @@ const SettingsPage = () => {
         return false;
       }
 
-      // If we got data back, Supabase is connected
       setIsSupabaseConnected(true);
       
-      // Update edge function status
       setApiStatuses(prev => prev.map(api => 
         api.url.includes('Edge Function') ? {
           ...api,
@@ -83,7 +79,6 @@ const SettingsPage = () => {
         } : api
       ));
 
-      // If the edge function returns token status, update the secret statuses
       if (data && data.tokens) {
         setSecretStatuses([
           { 
@@ -115,17 +110,14 @@ const SettingsPage = () => {
   };
 
   const checkApiStatus = async () => {
-    // Reset all statuses to loading
     setApiStatuses(prev => prev.map(api => ({
       ...api,
       status: 'loading',
       message: 'Checking access...'
     })));
     
-    // First check Supabase connection
     const supabaseConnected = await checkSupabaseConnection();
     
-    // If Supabase is connected, try to use the edge function to check API status
     if (supabaseConnected) {
       try {
         const { data, error } = await supabase.functions.invoke('scorebat-api', {
@@ -134,7 +126,6 @@ const SettingsPage = () => {
         
         if (error) {
           console.error('Edge function error during API check:', error);
-          // Update both API statuses to error
           setApiStatuses(prev => prev.map(api => 
             !api.url.includes('Edge Function') ? {
               ...api,
@@ -146,7 +137,6 @@ const SettingsPage = () => {
         }
         
         if (data) {
-          // Update API statuses based on the edge function response
           setApiStatuses(prev => prev.map(api => {
             if (api.url.includes('video-api')) {
               return {
@@ -174,9 +164,7 @@ const SettingsPage = () => {
       }
     }
     
-    // Fallback to direct API checks if Supabase integration fails or isn't available
     try {
-      // Check the main API status
       const token = import.meta.env.VITE_SCOREBAT_API_TOKEN || apiToken;
       const apiResponse = await fetch(`https://www.scorebat.com/video-api/v3/feed?token=${token}`);
       const apiData = await apiResponse.json();
@@ -208,7 +196,6 @@ const SettingsPage = () => {
       ));
     }
     
-    // Check the widget API status
     try {
       const widgetResponse = await fetch('https://www.scorebat.com/embed/livescore?json=1');
       
@@ -256,7 +243,6 @@ const SettingsPage = () => {
         <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-8">
           <h1 className="text-3xl font-bold mb-8">Settings & Diagnostics</h1>
           
-          {/* Supabase Connection Status Card */}
           <Card className="bg-[#222222] border-gray-700 mb-8">
             <CardHeader>
               <CardTitle className="text-white flex items-center">
@@ -269,7 +255,6 @@ const SettingsPage = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4 mb-6">
-                {/* Edge Function Status */}
                 <div className="p-4 rounded-lg bg-[#333333] flex items-start justify-between">
                   <div>
                     <div className="font-medium text-white mb-1 flex items-center">
@@ -299,7 +284,6 @@ const SettingsPage = () => {
                   </div>
                 </div>
                 
-                {/* API Secrets Status */}
                 {secretStatuses.map((secret, index) => (
                   <div key={index} className="p-4 rounded-lg bg-[#333333] flex items-start justify-between">
                     <div>
@@ -354,13 +338,10 @@ const SettingsPage = () => {
                       <Button
                         className="bg-[#FFC30B] hover:bg-[#E5AF09] text-black"
                         onClick={() => {
-                          // Store in localStorage for persistence
-                          localStorage.setItem('scorebat-api-token', apiToken);
-                          // Inform the app that the token has been updated
+                          saveApiToken(apiToken);
                           window.dispatchEvent(new CustomEvent('scorebat-token-updated', { 
                             detail: { status: 'checking', refresh: true } 
                           }));
-                          // Check the API status with the new token
                           checkApiStatus();
                           toast.success('API Token Saved', {
                             description: 'Your Scorebat API token has been saved. Testing connection...',
@@ -374,7 +355,7 @@ const SettingsPage = () => {
                     <div className="text-xs text-gray-500 mt-2">
                       {import.meta.env.VITE_SCOREBAT_API_TOKEN ? 
                         '✓ API token is set in environment variables' : 
-                        'Note: For best security, set this as VITE_SCOREBAT_API_TOKEN in your environment'}
+                        'Note: API token set to default value. You can update it above.'}
                     </div>
                   </div>
                 )}

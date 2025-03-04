@@ -6,6 +6,7 @@ import { getRecommendedHighlights as getMockRecommendedHighlights,
          getTeamHighlights as getMockTeamHighlights,
          searchHighlights as mockSearchHighlights } from './highlightService';
 import { toast } from 'sonner';
+import { getApiToken } from './tokenService';
 
 // Track when we've shown error messages to prevent duplicates
 const hasShownAPIError = {
@@ -170,12 +171,12 @@ export const resetApiCooldown = () => {
 };
 
 export const hasApiToken = (): boolean => {
-  const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
+  const token = getApiToken();
   return !!token && token.length > 0;
 };
 
 export const isValidTokenFormat = (): boolean => {
-  const token = import.meta.env.VITE_SCOREBAT_API_TOKEN;
+  const token = getApiToken();
   if (!token) return false;
   
   // Check for reasonable token length and correct format
