@@ -185,7 +185,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
 
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[450px] sm:min-h-[550px] border border-highlight-700/10">
-      <div className="absolute top-4 left-4 z-20 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
+      <div className="absolute top-2 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
         <Flame className="w-4 h-4 mr-2 text-[#FFC30B]" />
         <span className="text-sm font-medium">For You</span>
       </div>
@@ -201,7 +201,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         />
       </div>
 
-      <div className="relative z-20 flex flex-col h-full lg:hidden px-0 pt-16 pb-20">
+      <div className="relative z-20 flex flex-col h-full lg:hidden px-0 pt-10 pb-24">
         <div className="flex-1 mb-6 w-full">
           <div className="w-full aspect-video shadow-xl">
             <iframe
@@ -213,7 +213,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
           </div>
         </div>
         
-        <div className="space-y-5 px-4">
+        <div className="space-y-6 px-4 mt-2">
           <div className="flex justify-center items-center">
             <div 
               onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
@@ -222,7 +222,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
               <img 
                 src={currentHighlight.homeTeam.logo} 
                 alt={currentHighlight.homeTeam.name} 
-                className="w-16 h-16 object-contain"
+                className="w-18 h-18 object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
@@ -241,7 +241,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
               <img 
                 src={currentHighlight.awayTeam.logo} 
                 alt={currentHighlight.awayTeam.name} 
-                className="w-16 h-16 object-contain"
+                className="w-18 h-18 object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
@@ -273,7 +273,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </h1>
           </div>
           
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex items-center justify-center mb-2">
             <p className="text-white/70 text-sm">2 hours ago</p>
             <span className="mx-2 text-white/40">•</span>
             <p 
@@ -284,7 +284,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </p>
           </div>
           
-          <div className="flex items-center justify-center gap-6 mt-2 mb-10">
+          <div className="flex items-center justify-center gap-6 mt-4">
             <button 
               onClick={handleNavigateToMatch}
               className="bg-white text-black px-6 py-3 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
@@ -407,7 +407,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30 lg:bottom-6">
         {highlights.map((_, index) => (
           <button
             key={index}
@@ -421,18 +421,16 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
       </div>
 
       <button
-        className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
+        className="absolute left-2 md:left-6 top-[60%] lg:top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
         onClick={handlePrevSlide}
         aria-label="Previous slide"
-        style={{ marginTop: "40px" }}
       >
         <ChevronLeft className="w-6 h-6" />
       </button>
       <button
-        className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
+        className="absolute right-2 md:right-6 top-[60%] lg:top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
         onClick={handleNextSlide}
         aria-label="Next slide"
-        style={{ marginTop: "40px" }}
       >
         <ChevronRight className="w-6 h-6" />
       </button>

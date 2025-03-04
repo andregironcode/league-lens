@@ -87,20 +87,24 @@ html, body {
     padding-left: 0;
     padding-right: 0;
   }
+  
+  /* Increase spacing between hero and leagues on mobile */
+  .hero-section {
+    margin-bottom: 2rem;
+  }
 }
 
-/* Add spacing for buttons and controls */
-.hero-controls {
-  margin-bottom: 2rem;
-}
-
-/* Ensure buttons don't overlap with indicators */
+/* Enhanced mobile adjustments */
 @media (max-width: 640px) {
-  .hero-actions {
-    margin-bottom: 3rem;
+  .hero-controls {
+    margin-bottom: 3rem; /* Increased spacing for controls */
   }
   
   .hero-indicators {
-    bottom: 1.5rem;
+    bottom: 2.5rem; /* Move indicators down */
+  }
+  
+  .hero-actions {
+    margin-bottom: 4rem; /* More space for action buttons */
   }
 }
