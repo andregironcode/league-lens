@@ -203,10 +203,10 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
       </div>
 
       {/* Mobile layout */}
-      <div className="relative z-20 flex flex-col h-full lg:hidden pt-16 pb-8 px-6">
-        <div className="flex-1 flex items-center justify-center">
-          {/* Video embed for mobile (smaller) */}
-          <div className="w-full aspect-video rounded-lg overflow-hidden shadow-xl mb-4">
+      <div className="relative z-20 flex flex-col h-full lg:hidden pt-12 pb-8 px-2">
+        <div className="flex-1 mb-4 w-full">
+          {/* Video embed for mobile (edge-to-edge) */}
+          <div className="w-full aspect-video rounded-lg overflow-hidden shadow-xl">
             <iframe
               src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
               title={currentHighlight.title}
@@ -216,7 +216,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
           </div>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-4 px-2">
           <div className="flex justify-center items-center">
             <div 
               onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
@@ -308,9 +308,9 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
       </div>
 
       {/* Desktop layout */}
-      <div className="relative z-20 w-full h-full hidden lg:flex items-center justify-center py-6 px-6 md:px-12">
-        <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
-          <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
+      <div className="relative z-20 w-full h-full hidden lg:flex items-center justify-center py-2 px-2">
+        <div className="flex flex-col lg:flex-row items-center gap-4 w-full max-w-full mx-auto mt-4">
+          <div className="w-full lg:w-[35%] self-center order-2 lg:order-1 px-4">
             <div className="flex justify-center items-center mb-6">
               <div 
                 onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
@@ -400,7 +400,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </div>
           </div>
 
-          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
+          <div className="w-full lg:w-[65%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2">
             <iframe
               src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
               title={currentHighlight.title}
