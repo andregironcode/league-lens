@@ -790,10 +790,15 @@ export const getMatchById = async (id: string): Promise<MatchHighlight | null> =
     console.log(`Match not found with direct ID ${id}, trying alternative ID formats`);
     
     // Check if the ID might be wrapped in an additional property
-    video = videos.find(v => 
-      (v.id && typeof v.id === 'object' && v.id.id === id) || 
-      (v.matchId && typeof v.matchId === 'object' && v.matchId.id === id)
-    );
+    video = videos.find(v => {
+      // Safely check nested id properties
+      const nestedIdMatch = 
+        (v.id && typeof v.id === 'object' && 'id' in v.id && v.id.id === id);
+      const nestedMatchIdMatch = 
+        (v.matchId && typeof v.matchId === 'object' && 'id' in v.matchId && v.matchId.id === id);
+      
+      return nestedIdMatch || nestedMatchIdMatch;
+    });
   }
   
   // If still not found, try extracting IDs from URLs
