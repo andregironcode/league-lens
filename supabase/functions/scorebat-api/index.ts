@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
 
 // Define CORS headers for browser requests
@@ -109,11 +110,17 @@ function extractTeamsFromTitle(title: string): { home: string, away: string } {
 
 // Helper to enrich team data
 function enrichTeamData(teamData: any, title: string, isHome: boolean): any {
+  // Enhanced logging to track team data processing
+  console.log(`Processing team data for ${isHome ? 'home' : 'away'} team:`, 
+    typeof teamData === 'object' ? JSON.stringify(teamData) : teamData);
+  
   // If team data is missing or incomplete
   if (!teamData || (typeof teamData === 'object' && !teamData.name)) {
     // Extract teams from title
     const { home, away } = extractTeamsFromTitle(title);
     const teamName = isHome ? home : away;
+    
+    console.log(`Extracted team name from title: ${teamName}`);
     
     // Create team object
     return {
@@ -125,16 +132,20 @@ function enrichTeamData(teamData: any, title: string, isHome: boolean): any {
   
   // If team data is a string, convert to object
   if (typeof teamData === 'string') {
+    const teamId = teamNameToIdMap[teamData] || teamData.toLowerCase().replace(/\s+/g, '-');
+    console.log(`Converting string team data to object with ID: ${teamId}`);
+    
     return {
       name: teamData,
       url: '',
-      id: teamNameToIdMap[teamData] || teamData.toLowerCase().replace(/\s+/g, '-')
+      id: teamId
     };
   }
   
   // If team data exists but needs ID enrichment
   if (!teamData.id && teamData.name) {
     teamData.id = teamNameToIdMap[teamData.name] || teamData.name.toLowerCase().replace(/\s+/g, '-');
+    console.log(`Added ID to existing team data: ${teamData.id}`);
   }
   
   return teamData;
@@ -142,17 +153,41 @@ function enrichTeamData(teamData: any, title: string, isHome: boolean): any {
 
 // Process and enrich video data
 function enrichVideoData(videos: any[]): any[] {
+  if (!videos || !Array.isArray(videos)) {
+    console.error('Invalid videos data received for enrichment:', videos);
+    return [];
+  }
+  
+  console.log(`Enriching ${videos.length} video items`);
+  
   return videos.map(video => {
-    // Make sure we have team data
-    video.team1 = enrichTeamData(video.team1 || video.side1, video.title, true);
-    video.team2 = enrichTeamData(video.team2 || video.side2, video.title, false);
+    if (!video) {
+      console.error('Invalid video item:', video);
+      return null;
+    }
     
-    // For compatibility
-    video.side1 = video.team1;
-    video.side2 = video.team2;
+    // Generate a unique ID if none exists
+    if (!video.id && !video.matchId) {
+      const timestamp = new Date().getTime();
+      const random = Math.random().toString(36).substring(2, 9);
+      video.matchId = `scorebat-${timestamp}-${random}`;
+      console.log(`Generated new match ID: ${video.matchId}`);
+    }
+    
+    // Make sure we have team data
+    try {
+      video.team1 = enrichTeamData(video.team1 || video.side1, video.title, true);
+      video.team2 = enrichTeamData(video.team2 || video.side2, video.title, false);
+      
+      // For compatibility
+      video.side1 = video.team1;
+      video.side2 = video.team2;
+    } catch (error) {
+      console.error(`Error enriching team data for video ${video.title}:`, error);
+    }
     
     return video;
-  });
+  }).filter(v => v !== null);
 }
 
 // Get the Scorebat API tokens
@@ -208,6 +243,10 @@ async function fetchScorebatVideos() {
       console.log('Received unexpected data format:', typeof data);
       throw new Error('Invalid API response format');
     }
+    
+    // Additional verification of processed data
+    console.log(`Processed ${processedData.length} items. First item:`, 
+      processedData.length > 0 ? JSON.stringify(processedData[0]) : 'No items');
     
     return {
       source: 'api',

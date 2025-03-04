@@ -35,6 +35,9 @@ const apiStateTracker = {
     window.dispatchEvent(new CustomEvent('scorebat-api-status-change', { 
       detail: { status: 'connected', refresh: false } 
     }));
+    
+    // Add more detailed logs for successful API responses
+    console.log('API connection successful, reset tracking state');
   },
   
   shouldRetryApi: () => {
@@ -86,7 +89,7 @@ export const getFallbackData = async <T>(
       // Use timeout to prevent long-hanging requests
       const apiData = await promiseWithTimeout(
         apiCall(), 
-        8000 // 8 second timeout
+        10000 // Increase timeout to 10 seconds
       );
       
       console.log('API response received', apiData);
@@ -229,10 +232,15 @@ export const getLeagueHighlightsWithFallback = async (): Promise<League[]> => {
 
 export const getMatchByIdWithFallback = async (id: string): Promise<MatchHighlight | null> => {
   const { getMatchById } = await import('./scorebatService');
+  
+  // Log the ID we're trying to fetch
+  console.log(`Attempting to fetch match with ID: ${id}`);
+  
   return getFallbackData(
     () => getMatchById(id), 
     () => getMockMatchById(id), 
-    1
+    1,
+    true // Show toast for match details to help debug issues
   );
 };
 
