@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -39,7 +38,6 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const navigate = useNavigate();
 
-  // Make sure we have highlights and select a safe index
   const validHighlights = highlights && highlights.length > 0 ? highlights : [];
   const currentHighlight = validHighlights[currentIndex] || null;
 
@@ -59,7 +57,6 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     return () => clearTimeout(timer);
   }, [currentIndex, currentHighlight]);
 
-  // If no highlights are available, show a placeholder
   if (validHighlights.length === 0) {
     return (
       <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10 flex items-center justify-center">
@@ -99,7 +96,6 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
     setShowComments(false);
   };
 
-  // Format date relative to now
   const formatRelativeTime = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -208,7 +204,7 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
 
           <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
             <iframe
-              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=0&mute=1&controls=1&modestbranding=1`}
+              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
               title={currentHighlight.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               className="w-full h-full"
@@ -299,4 +295,3 @@ const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
 };
 
 export default HeroCarousel;
-
