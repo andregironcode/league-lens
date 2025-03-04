@@ -80,3 +80,11 @@ html, body {
   max-width: 1600px;
   margin: 0 auto;
 }
+
+/* Add better spacing for mobile */
+@media (max-width: 768px) {
+  .container-xl {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

@@ -203,10 +203,10 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
       </div>
 
       {/* Mobile layout */}
-      <div className="relative z-20 flex flex-col h-full lg:hidden pt-12 pb-8 px-2">
-        <div className="flex-1 mb-4 w-full">
+      <div className="relative z-20 flex flex-col h-full lg:hidden px-0 pt-12 pb-8">
+        <div className="flex-1 mb-6 w-full">
           {/* Video embed for mobile (edge-to-edge) */}
-          <div className="w-full aspect-video rounded-lg overflow-hidden shadow-xl">
+          <div className="w-full aspect-video shadow-xl">
             <iframe
               src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
               title={currentHighlight.title}
@@ -216,7 +216,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
           </div>
         </div>
         
-        <div className="space-y-4 px-2">
+        <div className="space-y-5 px-4">
           <div className="flex justify-center items-center">
             <div 
               onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
@@ -225,7 +225,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
               <img 
                 src={currentHighlight.homeTeam.logo} 
                 alt={currentHighlight.homeTeam.name} 
-                className="w-12 h-12 object-contain"
+                className="w-16 h-16 object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
@@ -233,7 +233,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
               />
             </div>
             
-            <div className="text-white text-3xl font-bold mx-6">
+            <div className="text-white text-4xl font-bold mx-8">
               {currentHighlight.score.home} - {currentHighlight.score.away}
             </div>
             
@@ -244,7 +244,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
               <img 
                 src={currentHighlight.awayTeam.logo} 
                 alt={currentHighlight.awayTeam.name} 
-                className="w-12 h-12 object-contain"
+                className="w-16 h-16 object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
@@ -256,7 +256,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
           <div className="text-center">
             <h1 
               id="match-title"
-              className={`text-xl font-bold text-white mb-2 whitespace-nowrap overflow-hidden text-ellipsis ${
+              className={`text-2xl font-bold text-white mb-3 whitespace-nowrap overflow-hidden text-ellipsis ${
                 isScrolling ? 'animate-marquee' : ''
               }`}
             >
@@ -276,7 +276,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </h1>
           </div>
           
-          <div className="flex items-center justify-center mb-2">
+          <div className="flex items-center justify-center mb-4">
             <p className="text-white/70 text-sm">2 hours ago</p>
             <span className="mx-2 text-white/40">•</span>
             <p 
@@ -287,10 +287,10 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </p>
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-6 mt-2">
             <button 
               onClick={handleNavigateToMatch}
-              className="bg-white text-black px-5 py-2 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
+              className="bg-white text-black px-6 py-2.5 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
             >
               <Expand className="w-4 h-4 mr-2" />
               Expand
@@ -298,7 +298,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             
             <button
               onClick={handleOpenComments}
-              className="bg-[#FFC30B] text-black px-4 py-2 rounded-full font-medium flex items-center hover:bg-[#FFC30B]/90 transition-colors"
+              className="bg-[#FFC30B] text-black px-5 py-2.5 rounded-full font-medium flex items-center hover:bg-[#FFC30B]/90 transition-colors"
             >
               <MessageCircle className="w-4 h-4 mr-1" />
               +{Math.floor(Math.random() * 20) + 5}
