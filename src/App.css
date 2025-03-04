@@ -1,8 +1,8 @@
 
 #root {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
 }
 
@@ -48,6 +48,8 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Add marquee animation for scrolling text */
@@ -70,4 +72,39 @@ html, body {
   display: inline-block;
   animation: marquee 8s linear infinite;
   animation-delay: 2s;
+}
+
+/* Container widths */
+.container-xl {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Add better spacing for mobile */
+@media (max-width: 768px) {
+  .container-xl {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  /* Increase spacing between hero and leagues on mobile */
+  .hero-section {
+    margin-bottom: 2rem;
+  }
+}
+
+/* Enhanced mobile adjustments */
+@media (max-width: 640px) {
+  .hero-controls {
+    margin-bottom: 3rem; /* Increased spacing for controls */
+  }
+  
+  .hero-indicators {
+    bottom: 2.5rem; /* Move indicators down */
+  }
+  
+  .hero-actions {
+    margin-bottom: 4rem; /* More space for action buttons */
+  }
 }
