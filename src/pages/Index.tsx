@@ -56,9 +56,9 @@ const Index = () => {
       <Header />
       
       <main className="pt-16 pb-10">
-        {/* Hero Carousel */}
+        {/* Hero Carousel - Wider layout */}
         <section className="mb-12">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4">
+          <div className="w-full mx-auto px-0 sm:px-0">
             {loading.recommended ? (
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
             ) : (
@@ -67,7 +67,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Leagues Section - removed heading as requested */}
+        {/* Leagues Section */}
         <section id="leagues" className="mb-16">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
             {loading.leagues 

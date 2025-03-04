@@ -71,3 +71,32 @@ html, body {
   animation: marquee 8s linear infinite;
   animation-delay: 2s;
 }
+
+/* Disney+ style hero carousel */
+.hero-carousel-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 0;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .hero-carousel-container {
+    border-radius: 12px;
+    margin: 0 20px;
+  }
+}
+
+/* Make video fill more space */
+.hero-video-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+}
+
+/* Style for nav buttons to show better against the wider background */
+.hero-nav-button {
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
