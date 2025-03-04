@@ -185,7 +185,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
   };
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
+    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[450px] sm:min-h-[550px] border border-highlight-700/10">
       <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
         <Flame className="w-4 h-4 mr-2 text-[#FFC30B]" />
         <span className="text-sm font-medium">For You</span>
@@ -202,7 +202,113 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         />
       </div>
 
-      <div className="relative z-20 w-full h-full flex items-center justify-center py-6 px-6 md:px-12">
+      {/* Mobile layout */}
+      <div className="relative z-20 flex flex-col h-full lg:hidden pt-16 pb-8 px-6">
+        <div className="flex-1 flex items-center justify-center">
+          {/* Video embed for mobile (smaller) */}
+          <div className="w-full aspect-video rounded-lg overflow-hidden shadow-xl mb-4">
+            <iframe
+              src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
+              title={currentHighlight.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              className="w-full h-full"
+            ></iframe>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex justify-center items-center">
+            <div 
+              onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
+              className="cursor-pointer transition-transform duration-200 hover:scale-110"
+            >
+              <img 
+                src={currentHighlight.homeTeam.logo} 
+                alt={currentHighlight.homeTeam.name} 
+                className="w-12 h-12 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                }}
+              />
+            </div>
+            
+            <div className="text-white text-3xl font-bold mx-6">
+              {currentHighlight.score.home} - {currentHighlight.score.away}
+            </div>
+            
+            <div 
+              onClick={(e) => handleNavigateToTeam(currentHighlight.awayTeam.id, e)}
+              className="cursor-pointer transition-transform duration-200 hover:scale-110"
+            >
+              <img 
+                src={currentHighlight.awayTeam.logo} 
+                alt={currentHighlight.awayTeam.name} 
+                className="w-12 h-12 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                }}
+              />
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <h1 
+              id="match-title"
+              className={`text-xl font-bold text-white mb-2 whitespace-nowrap overflow-hidden text-ellipsis ${
+                isScrolling ? 'animate-marquee' : ''
+              }`}
+            >
+              <span 
+                onClick={(e) => handleNavigateToTeam(currentHighlight.homeTeam.id, e)}
+                className="cursor-pointer hover:text-[#FFC30B] transition-colors"
+              >
+                {getShortTeamName(currentHighlight.homeTeam.name)}
+              </span>
+              {" vs "}
+              <span 
+                onClick={(e) => handleNavigateToTeam(currentHighlight.awayTeam.id, e)}
+                className="cursor-pointer hover:text-[#FFC30B] transition-colors"
+              >
+                {getShortTeamName(currentHighlight.awayTeam.name)}
+              </span>
+            </h1>
+          </div>
+          
+          <div className="flex items-center justify-center mb-2">
+            <p className="text-white/70 text-sm">2 hours ago</p>
+            <span className="mx-2 text-white/40">•</span>
+            <p 
+              className="text-white/70 text-sm hover:text-[#FFC30B] cursor-pointer transition-colors"
+              onClick={(e) => handleNavigateToLeague(currentHighlight.competition.id, e)}
+            >
+              {currentHighlight.competition.name}
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button 
+              onClick={handleNavigateToMatch}
+              className="bg-white text-black px-5 py-2 rounded-full font-semibold flex items-center hover:bg-white/90 transition-colors"
+            >
+              <Expand className="w-4 h-4 mr-2" />
+              Expand
+            </button>
+            
+            <button
+              onClick={handleOpenComments}
+              className="bg-[#FFC30B] text-black px-4 py-2 rounded-full font-medium flex items-center hover:bg-[#FFC30B]/90 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4 mr-1" />
+              +{Math.floor(Math.random() * 20) + 5}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop layout */}
+      <div className="relative z-20 w-full h-full hidden lg:flex items-center justify-center py-6 px-6 md:px-12">
         <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
           <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
             <div className="flex justify-center items-center mb-6">
