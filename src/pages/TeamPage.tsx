@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trophy, Calendar } from 'lucide-react';
@@ -44,7 +43,6 @@ const TeamPage = () => {
   };
 
   const handleViewFixtures = () => {
-    // Navigate to fixtures tab
     setActiveTab("fixtures");
   };
 
@@ -91,7 +89,6 @@ const TeamPage = () => {
           Back to Home
         </button>
 
-        {/* Team Header */}
         <div className="bg-[#222222] rounded-xl p-6 mb-8 flex flex-col md:flex-row items-center md:items-start gap-6">
           <div className="w-32 h-32 flex items-center justify-center">
             <img 
@@ -139,12 +136,26 @@ const TeamPage = () => {
           </div>
         </div>
 
-        {/* Tabs for different sections */}
         <Tabs defaultValue="highlights" value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid grid-cols-3 mb-8">
-            <TabsTrigger value="highlights">Highlights</TabsTrigger>
-            <TabsTrigger value="standings">Standings</TabsTrigger>
-            <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
+          <TabsList className="grid grid-cols-3 mb-8 bg-highlight-800 border border-highlight-700">
+            <TabsTrigger 
+              value="highlights" 
+              className="data-[state=active]:bg-[#FFC30B] data-[state=active]:text-black"
+            >
+              Highlights
+            </TabsTrigger>
+            <TabsTrigger 
+              value="standings" 
+              className="data-[state=active]:bg-[#FFC30B] data-[state=active]:text-black"
+            >
+              Standings
+            </TabsTrigger>
+            <TabsTrigger 
+              value="fixtures" 
+              className="data-[state=active]:bg-[#FFC30B] data-[state=active]:text-black"
+            >
+              Fixtures
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="highlights" className="space-y-6">
