@@ -52,13 +52,13 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white">
+    <div className="min-h-screen bg-[#111111] text-white w-full">
       <Header />
       
-      <main className="pt-16 pb-10">
+      <main className="pt-16 pb-10 w-full">
         {/* Hero Carousel */}
         <section className="mb-12">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4">
+          <div className="w-full container-xl mx-auto px-2 sm:px-4 pt-4">
             {loading.recommended ? (
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
             ) : (
@@ -69,15 +69,15 @@ const Index = () => {
 
         {/* Leagues Section - removed heading as requested */}
         <section id="leagues" className="mb-16">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="w-full container-xl mx-auto px-2 sm:px-4">
             {loading.leagues 
               ? (
                 <div className="space-y-10">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="animate-pulse">
                       <div className="h-8 bg-highlight-200 rounded w-48 mb-6"></div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {renderSkeleton(3)}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                        {renderSkeleton(4)}
                       </div>
                     </div>
                   ))}
@@ -92,8 +92,8 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#222222] py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <footer className="bg-[#222222] py-8 w-full">
+        <div className="container-xl mx-auto px-2 sm:px-4">
           <div className="text-center">
             <p className="text-sm text-gray-400">
               © {new Date().getFullYear()} Score90. All rights reserved.
