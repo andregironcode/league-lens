@@ -1,11 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getLeagueHighlights, fetchPremierLeagueFromScoreBat } from '@/services/highlightService';
 import { League, MatchHighlight, ScoreBatMatch } from '@/types';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
-import VideoPlayerDialog from '@/components/VideoPlayerDialog';
-import { ArrowLeft, PlayCircle, Calendar, ExternalLink } from 'lucide-react';
+import ScoreBatHighlightCard from '@/components/ScoreBatHighlightCard';
+import { ArrowLeft, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
@@ -32,8 +33,6 @@ const LeaguePage = () => {
   const [loading, setLoading] = useState(true);
   const [scoreBatMatches, setScoreBatMatches] = useState<ScoreBatMatch[]>([]);
   const [scoreBatLoading, setScoreBatLoading] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState<ScoreBatMatch | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -90,28 +89,6 @@ const LeaguePage = () => {
     } finally {
       setScoreBatLoading(false);
     }
-  };
-
-  const parseTeamNames = (title: string): { home: string; away: string } => {
-    const parts = title.split(' - ');
-    return {
-      home: parts[0] || '',
-      away: parts[1] || ''
-    };
-  };
-
-  const formatMatchDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      return format(date, 'MMM dd, yyyy • HH:mm');
-    } catch (error) {
-      return dateString;
-    }
-  };
-
-  const handleMatchClick = (match: ScoreBatMatch) => {
-    setSelectedMatch(match);
-    setIsDialogOpen(true);
   };
 
   return (
@@ -181,48 +158,11 @@ const LeaguePage = () => {
                     </div>
                   ) : scoreBatMatches.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {scoreBatMatches.map((match, index) => {
-                        const teams = parseTeamNames(match.title);
-                        return (
-                          <div 
-                            key={index} 
-                            className="bg-highlight-800 rounded-lg overflow-hidden hover:bg-highlight-700 transition-colors cursor-pointer"
-                            onClick={() => handleMatchClick(match)}
-                          >
-                            <div className="relative">
-                              <img 
-                                src={match.thumbnail} 
-                                alt={match.title}
-                                className="w-full aspect-video object-cover"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = "https://www.sofascore.com/static/images/placeholders/tournament.svg";
-                                }}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-50 transition-all">
-                                <PlayCircle className="w-16 h-16 text-[#FFC30B]" />
-                              </div>
-                            </div>
-                            <div className="p-4">
-                              <div className="flex justify-between items-center mb-2">
-                                <h3 className="font-bold text-white">{teams.home}</h3>
-                                <span className="text-sm text-white">vs</span>
-                                <h3 className="font-bold text-white text-right">{teams.away}</h3>
-                              </div>
-                              <div className="flex items-center justify-between text-xs text-gray-400">
-                                <div className="flex items-center">
-                                  <Calendar size={12} className="mr-1" />
-                                  <span>{formatMatchDate(match.date)}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <span className="mr-1">Watch</span>
-                                  <PlayCircle size={12} />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {scoreBatMatches.map((match, index) => (
+                        <div key={index} className="transform transition-all duration-300 hover:scale-105">
+                          <ScoreBatHighlightCard match={match} />
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="bg-highlight-800 p-6 rounded-lg text-center">
@@ -255,12 +195,6 @@ const LeaguePage = () => {
           )}
         </div>
       </main>
-
-      <VideoPlayerDialog 
-        match={selectedMatch}
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-      />
     </div>
   );
 };

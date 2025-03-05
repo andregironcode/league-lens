@@ -43,7 +43,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
           <div className="flex flex-wrap gap-2 mt-4">
             {videos.map((video: ScoreBatVideo, index: number) => (
               <button
-                key={video.id}
+                key={video.id || index}
                 onClick={() => setSelectedVideoIndex(index)}
                 className={`px-3 py-1 rounded text-sm font-medium ${
                   selectedVideoIndex === index
