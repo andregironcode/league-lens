@@ -1,4 +1,3 @@
-
 export interface Team {
   id: string;
   name: string;
@@ -63,4 +62,21 @@ export interface TeamDetails {
   leagueTable: TableRow[];
   europeanTable: TableRow[];
   fixtures: Fixture[];
+}
+
+// Adding types for ScoreBat API
+export interface ScoreBatVideo {
+  id: string;
+  title: string;
+  embed: string;
+}
+
+export interface ScoreBatMatch {
+  title: string;
+  competition: string;
+  matchviewUrl: string;
+  competitionUrl: string;
+  thumbnail: string;
+  date: string;
+  videos: ScoreBatVideo[];
 }
