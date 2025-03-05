@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getLeagueHighlights } from '@/services/highlightService';
+import { getLeagueHighlights, fetchPremierLeagueFromScoreBat } from '@/services/highlightService';
 import { League, MatchHighlight } from '@/types';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 // Helper function to get country flag based on league ID - same as in LeagueSection
 const getCountryFlag = (leagueId: string): string => {
@@ -29,6 +30,9 @@ const LeaguePage = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const [league, setLeague] = useState<League | null>(null);
   const [loading, setLoading] = useState(true);
+  const [scoreBatData, setScoreBatData] = useState<any>(null);
+  const [scoreBatLoading, setScoreBatLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchLeagueData = async () => {
@@ -50,6 +54,37 @@ const LeaguePage = () => {
 
     fetchLeagueData();
   }, [leagueId]);
+
+  const testScoreBatAPI = async () => {
+    if (leagueId !== 'pl') {
+      toast({
+        title: "API Test Limited",
+        description: "This API test only works with Premier League (pl)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setScoreBatLoading(true);
+    try {
+      const data = await fetchPremierLeagueFromScoreBat();
+      setScoreBatData(data);
+      toast({
+        title: "API Test Successful",
+        description: "ScoreBat API data fetched successfully!",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error testing ScoreBat API:', error);
+      toast({
+        title: "API Test Failed",
+        description: "There was an error fetching data from ScoreBat API.",
+        variant: "destructive"
+      });
+    } finally {
+      setScoreBatLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#111111] text-white">
@@ -91,6 +126,31 @@ const LeaguePage = () => {
                 </div>
                 <h1 className="text-3xl font-bold">{league.name}</h1>
               </div>
+              
+              {/* API Test Section for Premier League Only */}
+              {leagueId === 'pl' && (
+                <div className="mb-8 p-4 border border-gray-700 rounded-lg bg-[#1A1A1A]">
+                  <h2 className="text-xl font-semibold mb-4">ScoreBat API Test</h2>
+                  <Button 
+                    onClick={testScoreBatAPI} 
+                    disabled={scoreBatLoading}
+                    className="mb-4"
+                  >
+                    {scoreBatLoading ? 'Loading...' : 'Test ScoreBat API'}
+                  </Button>
+                  
+                  {scoreBatData && (
+                    <div className="mt-4">
+                      <h3 className="text-lg font-medium mb-2">API Response:</h3>
+                      <div className="bg-[#222] p-4 rounded overflow-auto max-h-[300px] text-left">
+                        <pre className="text-xs text-gray-300">
+                          {JSON.stringify(scoreBatData, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-300">Highlights</h2>
