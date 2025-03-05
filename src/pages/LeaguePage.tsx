@@ -1,27 +1,26 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getLeagueHighlights, fetchPremierLeagueFromScoreBat } from '@/services/highlightService';
 import { League, MatchHighlight, ScoreBatMatch } from '@/types';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
+import VideoPlayerDialog from '@/components/VideoPlayerDialog';
 import { ArrowLeft, PlayCircle, Calendar, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 
-// Helper function to get country flag based on league ID - same as in LeagueSection
 const getCountryFlag = (leagueId: string): string => {
   const flagMap: Record<string, string> = {
-    'pl': 'https://flagcdn.com/w40/gb-eng.png', // English flag
-    'laliga': 'https://flagcdn.com/w40/es.png', // Spanish flag
-    'bundesliga': 'https://flagcdn.com/w40/de.png', // German flag
-    'seriea': 'https://flagcdn.com/w40/it.png', // Italian flag
-    'ligue1': 'https://flagcdn.com/w40/fr.png', // French flag
-    'eredivisie': 'https://flagcdn.com/w40/nl.png', // Dutch flag
-    'portugal': 'https://flagcdn.com/w40/pt.png', // Portuguese flag
-    'brazil': 'https://flagcdn.com/w40/br.png', // Brazilian flag
-    'argentina': 'https://flagcdn.com/w40/ar.png', // Argentine flag
+    'pl': 'https://flagcdn.com/w40/gb-eng.png',
+    'laliga': 'https://flagcdn.com/w40/es.png',
+    'bundesliga': 'https://flagcdn.com/w40/de.png',
+    'seriea': 'https://flagcdn.com/w40/it.png',
+    'ligue1': 'https://flagcdn.com/w40/fr.png',
+    'eredivisie': 'https://flagcdn.com/w40/nl.png',
+    'portugal': 'https://flagcdn.com/w40/pt.png',
+    'brazil': 'https://flagcdn.com/w40/br.png',
+    'argentina': 'https://flagcdn.com/w40/ar.png',
   };
   
   return flagMap[leagueId] || 'https://www.sofascore.com/static/images/placeholders/tournament.svg';
@@ -33,14 +32,14 @@ const LeaguePage = () => {
   const [loading, setLoading] = useState(true);
   const [scoreBatMatches, setScoreBatMatches] = useState<ScoreBatMatch[]>([]);
   const [scoreBatLoading, setScoreBatLoading] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<ScoreBatMatch | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchLeagueData = async () => {
       try {
-        // Get all leagues
         const leaguesData = await getLeagueHighlights();
-        // Find the specific league by ID
         const leagueData = leaguesData.find(l => l.id === leagueId);
         
         if (leagueData) {
@@ -48,7 +47,6 @@ const LeaguePage = () => {
         }
         setLoading(false);
         
-        // Automatically fetch ScoreBat data for Premier League
         if (leagueId === 'pl') {
           fetchScoreBatMatches();
         }
@@ -94,7 +92,6 @@ const LeaguePage = () => {
     }
   };
 
-  // Parse team names from match title (e.g., "Manchester United - Liverpool")
   const parseTeamNames = (title: string): { home: string; away: string } => {
     const parts = title.split(' - ');
     return {
@@ -103,7 +100,6 @@ const LeaguePage = () => {
     };
   };
 
-  // Format date for display
   const formatMatchDate = (dateString: string): string => {
     try {
       const date = new Date(dateString);
@@ -111,6 +107,11 @@ const LeaguePage = () => {
     } catch (error) {
       return dateString;
     }
+  };
+
+  const handleMatchClick = (match: ScoreBatMatch) => {
+    setSelectedMatch(match);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -154,7 +155,6 @@ const LeaguePage = () => {
                 <h1 className="text-3xl font-bold">{league.name}</h1>
               </div>
               
-              {/* ScoreBat API Matches Section */}
               {leagueId === 'pl' && (
                 <div className="mb-12">
                   <div className="flex justify-between items-center mb-6">
@@ -184,7 +184,11 @@ const LeaguePage = () => {
                       {scoreBatMatches.map((match, index) => {
                         const teams = parseTeamNames(match.title);
                         return (
-                          <div key={index} className="bg-highlight-800 rounded-lg overflow-hidden hover:bg-highlight-700 transition-colors">
+                          <div 
+                            key={index} 
+                            className="bg-highlight-800 rounded-lg overflow-hidden hover:bg-highlight-700 transition-colors cursor-pointer"
+                            onClick={() => handleMatchClick(match)}
+                          >
                             <div className="relative">
                               <img 
                                 src={match.thumbnail} 
@@ -195,14 +199,9 @@ const LeaguePage = () => {
                                   target.src = "https://www.sofascore.com/static/images/placeholders/tournament.svg";
                                 }}
                               />
-                              <a 
-                                href={match.matchviewUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-50 transition-all"
-                              >
+                              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-50 transition-all">
                                 <PlayCircle className="w-16 h-16 text-[#FFC30B]" />
-                              </a>
+                              </div>
                             </div>
                             <div className="p-4">
                               <div className="flex justify-between items-center mb-2">
@@ -217,7 +216,7 @@ const LeaguePage = () => {
                                 </div>
                                 <div className="flex items-center">
                                   <span className="mr-1">Watch</span>
-                                  <ExternalLink size={12} />
+                                  <PlayCircle size={12} />
                                 </div>
                               </div>
                             </div>
@@ -256,6 +255,12 @@ const LeaguePage = () => {
           )}
         </div>
       </main>
+
+      <VideoPlayerDialog 
+        match={selectedMatch}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
     </div>
   );
 };
