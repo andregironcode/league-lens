@@ -118,6 +118,10 @@ const Header = () => {
     console.log('Opening profile picture edit dialog');
   };
 
+  const handleLiveButtonClick = () => {
+    navigate('/live');
+  };
+
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out px-4 py-4 md:py-3 ${
@@ -217,6 +221,7 @@ const Header = () => {
               variant="ghost" 
               size="sm" 
               className="ml-2 bg-[#ea384c] hover:bg-[#ea384c]/80 text-white font-medium rounded-full px-4 h-9 flex items-center"
+              onClick={handleLiveButtonClick}
             >
               <Radio size={16} className="mr-1.5 animate-pulse" />
               LIVE
