@@ -1,7 +1,7 @@
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ScoreBatMatch, ScoreBatVideo } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Eye, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -13,6 +13,11 @@ interface VideoPlayerDialogProps {
 
 const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) => {
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+
+  // Reset selected video index when match changes
+  useEffect(() => {
+    setSelectedVideoIndex(0);
+  }, [match]);
 
   if (!match) return null;
 
@@ -39,9 +44,69 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
     day: 'numeric' 
   });
 
+  // Process embed code to add autoplay parameter if it's an iframe
+  const processEmbedCode = (embedCode: string): string => {
+    if (!embedCode) return '';
+    
+    // Add autoplay=1 parameter to iframe src if it's a YouTube or other video embed
+    return embedCode.replace(/src="([^"]+)"/, (match, src) => {
+      const url = new URL(src, window.location.origin);
+      
+      // Add autoplay parameter based on video platform
+      if (src.includes('youtube.com')) {
+        url.searchParams.set('autoplay', '1');
+        url.searchParams.set('mute', '0'); // Unmuted autoplay
+      } else if (src.includes('vimeo.com')) {
+        url.searchParams.set('autoplay', '1');
+      } else {
+        // For other platforms, we'll try the autoplay parameter
+        url.searchParams.set('autoplay', '1');
+      }
+      
+      return `src="${url.toString()}" allow="autoplay; encrypted-media"`;
+    });
+  };
+
+  // Get team abbreviations for the team circles
+  const getTeamAbbreviation = (name: string): string => {
+    if (!name) return '';
+    const words = name.trim().split(' ');
+    if (words.length === 1) {
+      return words[0].substring(0, 2).toUpperCase();
+    }
+    // Get first letters of first two words
+    return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+  };
+
+  // Generate a consistent background color for team abbreviation circles
+  const getTeamColor = (name: string): string => {
+    const colors = [
+      'bg-blue-500', 'bg-red-500', 'bg-green-500', 'bg-yellow-500',
+      'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
+    ];
+    
+    // Create a simple hash of the name to pick a consistent color
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Get a positive number
+    hash = Math.abs(hash);
+    
+    // Get a color from the colors array
+    return colors[hash % colors.length];
+  };
+
+  const homeTeamAbbrev = getTeamAbbreviation(homeTeamName);
+  const awayTeamAbbrev = getTeamAbbreviation(awayTeamName);
+  const homeTeamColor = getTeamColor(homeTeamName);
+  const awayTeamColor = getTeamColor(awayTeamName);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-6xl w-full bg-black border-highlight-800 text-white p-0 overflow-hidden">
+        <DialogTitle className="sr-only">{match.title}</DialogTitle>
         <div className="flex flex-col h-full">
           {/* Back button */}
           <div className="px-6 pt-6">
@@ -59,7 +124,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
             {currentVideo ? (
               <div 
                 className="w-full h-full"
-                dangerouslySetInnerHTML={{ __html: currentVideo.embed }}
+                dangerouslySetInnerHTML={{ __html: processEmbedCode(currentVideo.embed) }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black">
@@ -68,15 +133,18 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
             )}
           </div>
           
-          {/* Video Information */}
-          <div className="px-6 py-4">
-            <div className="mb-4">
+          {/* Competition Info */}
+          <div className="px-6 pt-4">
+            <div className="mb-2">
               <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
                 {match.competition}
               </span>
             </div>
-            
-            <h1 className="text-2xl md:text-3xl font-bold mb-4 text-white">
+          </div>
+          
+          {/* Match Title */}
+          <div className="px-6">
+            <h1 className="text-2xl md:text-3xl font-bold mb-3 text-white">
               {match.title}
             </h1>
             
@@ -97,35 +165,23 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
             <div className="bg-[#111111] rounded-xl p-6 shadow-sm">
               <div className="flex justify-between items-center">
                 <div className="flex flex-col items-center">
-                  <img 
-                    src={`https://ui-avatars.com/api/?name=${homeTeamName.split(' ')[0]}&background=random&color=fff&size=128`}
-                    alt={homeTeamName}
-                    className="w-16 h-16 object-contain rounded-full"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                    }}
-                  />
-                  <span className="font-semibold text-lg mt-2 text-white">
+                  <div className={`w-16 h-16 ${homeTeamColor} rounded-full flex items-center justify-center text-2xl font-bold text-white`}>
+                    {homeTeamAbbrev}
+                  </div>
+                  <span className="font-semibold text-lg mt-2 text-white text-center">
                     {homeTeamName}
                   </span>
                 </div>
                 
-                <div className="text-4xl md:text-5xl font-bold text-center text-white">
+                <div className="text-5xl md:text-6xl font-bold text-center text-white">
                   {homeScore} <span className="text-gray-400">-</span> {awayScore}
                 </div>
                 
                 <div className="flex flex-col items-center">
-                  <img 
-                    src={`https://ui-avatars.com/api/?name=${awayTeamName.split(' ')[0]}&background=random&color=fff&size=128`}
-                    alt={awayTeamName}
-                    className="w-16 h-16 object-contain rounded-full"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                    }}
-                  />
-                  <span className="font-semibold text-lg mt-2 text-white">
+                  <div className={`w-16 h-16 ${awayTeamColor} rounded-full flex items-center justify-center text-2xl font-bold text-white`}>
+                    {awayTeamAbbrev}
+                  </div>
+                  <span className="font-semibold text-lg mt-2 text-white text-center">
                     {awayTeamName}
                   </span>
                 </div>
