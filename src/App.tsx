@@ -4,7 +4,6 @@ import Index from '@/pages/Index';
 import MatchDetails from '@/pages/MatchDetails';
 import TeamPage from '@/pages/TeamPage';
 import LeaguePage from '@/pages/LeaguePage';
-import LiveMatches from '@/pages/LiveMatches';
 import NotFound from '@/pages/NotFound';
 import './App.css';
 
@@ -16,7 +15,6 @@ function App() {
         <Route path="/match/:id" element={<MatchDetails />} />
         <Route path="/team/:teamId" element={<TeamPage />} />
         <Route path="/league/:leagueId" element={<LeaguePage />} />
-        <Route path="/live" element={<LiveMatches />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
