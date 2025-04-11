@@ -203,113 +203,13 @@ export const fetchLineups = async (matchId: string) => {
   }
 };
 
-// For fetching match by ID
+// For fetching match by ID - simple alias function
 export const getMatchById = async (id: string) => {
   try {
     const match = await fetchMatchById(id);
     return match;
   } catch (error) {
     console.error('Error getting match by ID:', error);
-    toast.error('Failed to load match details');
-    return null;
-  }
-};
-
-// Helper functions for recommended highlights and league highlights
-export const getRecommendedHighlights = async () => {
-  // This will get the most recent finished matches with highlights
-  const matches = await fetchMatches();
-  const finishedMatches = matches.filter((match: any) => 
-    match.status === 'FINISHED' || match.status === 'FT'
-  ).slice(0, 10); // Get latest 10 matches
-  
-  // Check which matches have highlights
-  const withHighlights = await Promise.all(
-    finishedMatches.map(async (match: any) => {
-      try {
-        const highlights = await fetchHighlights(match.id);
-        if (highlights && highlights.length > 0) {
-          return {
-            id: match.id,
-            title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
-            date: match.date,
-            thumbnailUrl: highlights[0]?.thumbnailUrl || '',
-            videoUrl: highlights[0]?.videoUrl || '',
-            duration: highlights[0]?.duration || '3:00',
-            views: Math.floor(Math.random() * 50000) + 10000, // Mock data for now
-            homeTeam: match.homeTeam,
-            awayTeam: match.awayTeam,
-            score: match.score,
-            competition: match.competition,
-          };
-        }
-        return null;
-      } catch (error) {
-        return null;
-      }
-    })
-  );
-  
-  return withHighlights.filter(Boolean);
-};
-
-export const getLeagueHighlights = async () => {
-  const leagues = await fetchLeagues();
-  const topLeagues = leagues.slice(0, 5); // Get top 5 leagues
-  
-  const leaguesWithHighlights = await Promise.all(
-    topLeagues.map(async (league: any) => {
-      const matches = await fetchMatchesByLeague(league.name);
-      const finishedMatches = matches.filter((match: any) => 
-        match.status === 'FINISHED' || match.status === 'FT'
-      ).slice(0, 5); // Get latest 5 matches per league
-      
-      const highlights = await Promise.all(
-        finishedMatches.map(async (match: any) => {
-          try {
-            const highlightData = await fetchHighlights(match.id);
-            if (highlightData && highlightData.length > 0) {
-              return {
-                id: match.id,
-                title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
-                date: match.date,
-                thumbnailUrl: highlightData[0]?.thumbnailUrl || '',
-                videoUrl: highlightData[0]?.videoUrl || '',
-                duration: highlightData[0]?.duration || '3:00',
-                views: Math.floor(Math.random() * 50000) + 10000, // Mock data for now
-                homeTeam: match.homeTeam,
-                awayTeam: match.awayTeam,
-                score: match.score,
-                competition: match.competition,
-              };
-            }
-            return null;
-          } catch (error) {
-            return null;
-          }
-        })
-      );
-      
-      return {
-        id: league.id,
-        name: league.name,
-        logo: league.logo,
-        highlights: highlights.filter(Boolean),
-      };
-    })
-  );
-  
-  return leaguesWithHighlights.filter(league => league.highlights && league.highlights.length > 0);
-};
-
-// Specially for Highlightly match format
-export const fetchHighlightlyMatch = async (matchId: string) => {
-  try {
-    // First try to get the match from the matches endpoint
-    const match = await fetchMatchById(matchId);
-    return match;
-  } catch (error) {
-    console.error('Error fetching Highlightly match:', error);
     toast.error('Failed to load match details');
     return null;
   }
