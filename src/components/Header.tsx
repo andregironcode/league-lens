@@ -6,7 +6,7 @@ import { fetchMatches } from '@/services/highlightService';
 import HeaderLinks from './HeaderLinks';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,7 +15,7 @@ const Header = () => {
   const [isSearching, setIsSearching] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useIsMobile();
 
   // Close menu when screen size changes
   useEffect(() => {
@@ -167,7 +167,7 @@ const Header = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-highlight-800">
           <div className="px-4 pt-2 pb-4 space-y-3">
-            <HeaderLinks mobile />
+            <HeaderLinks mobile={true} />
             
             {/* Mobile Search */}
             <div className="pt-2" ref={searchRef}>

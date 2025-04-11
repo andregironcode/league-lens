@@ -4,7 +4,7 @@ import { ScoreBatMatch, ScoreBatVideo } from "@/types";
 import { useState, useEffect } from "react";
 import { Calendar, Eye, ArrowLeft, Video } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { fetchHighlightlyMatch, fetchHighlights } from "@/services/highlightService";
+import { fetchHighlights, fetchMatchById } from "@/services/highlightService";
 import { toast } from "sonner";
 
 interface VideoPlayerDialogProps {
@@ -31,7 +31,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
       setIsLoading(true);
       
       // First fetch match data
-      fetchHighlightlyMatch(matchId)
+      fetchMatchById(matchId)
         .then(data => {
           setHighlightlyData(data);
           console.log("Fetched Highlightly match data:", data);

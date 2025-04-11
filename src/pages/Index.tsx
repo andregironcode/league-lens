@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
-import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
+import { fetchMatches, fetchLeagues } from '@/services/highlightService';
 import { MatchHighlight, League } from '@/types';
 
 const Index = () => {
@@ -17,14 +17,51 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch recommended highlights
-        const recommendedData = await getRecommendedHighlights();
-        setRecommendedHighlights(recommendedData);
+        // Fetch all matches for recommended highlights (recent finished matches)
+        const matchesData = await fetchMatches();
+        const recentHighlights = matchesData
+          .filter((match: any) => match.status === 'FINISHED' || match.status === 'FT')
+          .slice(0, 6)
+          .map((match: any) => ({
+            id: match.id,
+            title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
+            date: match.date,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            score: match.score,
+            competition: match.competition,
+          }));
+        
+        setRecommendedHighlights(recentHighlights);
         setLoading(prev => ({ ...prev, recommended: false }));
 
-        // Fetch league highlights
-        const leaguesData = await getLeagueHighlights();
-        setLeagues(leaguesData);
+        // Fetch leagues and their highlights
+        const leaguesData = await fetchLeagues();
+        // For each league, get recent matches
+        const leaguesWithHighlights = await Promise.all(
+          leaguesData.map(async (league: any) => {
+            const leagueMatches = await fetchMatches(undefined, league.id);
+            const leagueHighlights = leagueMatches
+              .filter((match: any) => match.status === 'FINISHED' || match.status === 'FT')
+              .slice(0, 3)
+              .map((match: any) => ({
+                id: match.id,
+                title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
+                date: match.date,
+                homeTeam: match.homeTeam,
+                awayTeam: match.awayTeam,
+                score: match.score,
+                competition: match.competition,
+              }));
+            
+            return {
+              ...league,
+              highlights: leagueHighlights
+            };
+          })
+        );
+        
+        setLeagues(leaguesWithHighlights);
         setLoading(prev => ({ ...prev, leagues: false }));
       } catch (error) {
         console.error('Error fetching highlights:', error);
