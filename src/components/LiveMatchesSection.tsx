@@ -1,7 +1,10 @@
+
 import { useState, useEffect } from 'react';
-import { fetchMatches } from '@/services/highlightService';
-import { Clock, AlertCircle } from 'lucide-react';
+import { fetchMatches, fetchHighlights } from '@/services/highlightService';
+import { Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import MatchCard from './MatchCard';
+import VideoPlayerDialog from './VideoPlayerDialog';
 
 interface LiveMatch {
   id: string;
@@ -23,23 +26,60 @@ interface LiveMatch {
     name: string;
     logo: string;
   };
+  embedUrl?: string;
 }
 
-const LiveMatchesSection = () => {
+interface Props {
+  filteredData?: any[] | null;
+  showVerifiedOnly?: boolean;
+}
+
+const LiveMatchesSection = ({ filteredData, showVerifiedOnly = false }: Props) => {
   const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Function to fetch live matches
   const fetchLiveMatches = async () => {
     try {
-      const allMatches = await fetchMatches();
+      // If we have filtered data, use that instead of fetching
+      const allMatches = filteredData || await fetchMatches();
+      
       // Filter for live matches only
       const livesOnly = allMatches.filter((match: any) => 
-        match.status === 'LIVE' || match.status === 'IN_PLAY'
+        match.status === 'LIVE' || match.status === 'IN_PLAY' || match.status === 'HT'
       );
       
-      setLiveMatches(livesOnly);
+      // Apply verification filter if needed
+      const verifiedMatches = showVerifiedOnly 
+        ? livesOnly.filter((match: any) => match.verified === true)
+        : livesOnly;
+      
+      // Check for highlights
+      const matchesWithHighlightsInfo = await Promise.all(
+        verifiedMatches.map(async (match: any) => {
+          try {
+            const highlights = await fetchHighlights(match.id);
+            const embedUrl = highlights && highlights.length > 0 && highlights[0].embedUrl ? 
+              highlights[0].embedUrl : undefined;
+            
+            return {
+              ...match,
+              hasHighlights: highlights && highlights.length > 0,
+              embedUrl
+            };
+          } catch (error) {
+            return {
+              ...match,
+              hasHighlights: false
+            };
+          }
+        })
+      );
+      
+      setLiveMatches(matchesWithHighlightsInfo);
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Failed to fetch live matches:', error);
@@ -49,49 +89,29 @@ const LiveMatchesSection = () => {
     }
   };
 
-  // Fetch matches on initial load
+  // Fetch matches on initial load and when filters change
   useEffect(() => {
     fetchLiveMatches();
-  }, []);
+  }, [filteredData, showVerifiedOnly]);
 
-  // Set up auto-refresh interval (every 60-120 seconds)
+  // Set up auto-refresh interval
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       fetchLiveMatches();
-    }, 90000); // 90 seconds is in the middle of the 60-120 range
+    }, Math.floor(Math.random() * 60000) + 60000); // Refresh between 60-120 seconds
 
     return () => clearInterval(refreshInterval);
-  }, []);
+  }, [filteredData, showVerifiedOnly]);
 
-  // Format match time for display
-  const formatMatchTime = (time: string) => {
-    if (!time) return '';
-    
-    // If it's a minute number (e.g., '45', '90')
-    if (/^\d+$/.test(time)) {
-      return `${time}'`;
-    }
-    
-    // Otherwise return as is
-    return time;
-  };
-
-  // Get appropriate status display
-  const getStatusDisplay = (status: string) => {
-    switch (status) {
-      case 'LIVE':
-      case 'IN_PLAY':
-        return 'LIVE';
-      case 'HT':
-        return 'HT';
-      case 'FT':
-        return 'FT';
-      case 'SUSPENDED':
-        return 'SUSPENDED';
-      case 'POSTPONED':
-        return 'POSTPONED';
-      default:
-        return status;
+  const handleHighlightClick = async (match: LiveMatch) => {
+    try {
+      // Fetch highlight data and show in dialog
+      const highlightData = await fetchHighlights(match.id);
+      setSelectedMatch({ ...match, videos: highlightData });
+      setIsDialogOpen(true);
+    } catch (error) {
+      console.error('Failed to fetch highlights:', error);
+      toast.error('Failed to load match highlights');
     }
   };
 
@@ -137,53 +157,23 @@ const LiveMatchesSection = () => {
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {liveMatches.map((match) => (
-          <div key={match.id} className="bg-highlight-800 rounded-lg p-4 hover:bg-highlight-700 transition-colors">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded">
-                {getStatusDisplay(match.status)}
-              </span>
-              <span className="text-xs text-gray-400">{match.competition?.name}</span>
-            </div>
-            
-            <div className="flex items-center justify-between mt-3">
-              <div className="flex items-center w-[40%]">
-                <img 
-                  src={match.homeTeam.logo} 
-                  alt={match.homeTeam.name}
-                  className="w-8 h-8 object-contain mr-2"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                  }}
-                />
-                <span className="text-white text-sm truncate">{match.homeTeam.name}</span>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <div className="flex items-center bg-black bg-opacity-50 px-3 py-1 rounded">
-                  <span className="text-white font-bold mx-1 text-lg">{match.score.home}</span>
-                  <span className="text-gray-400 mx-1">-</span>
-                  <span className="text-white font-bold mx-1 text-lg">{match.score.away}</span>
-                </div>
-                <span className="text-[#FFC30B] text-xs mt-1 font-medium">{formatMatchTime(match.time)}</span>
-              </div>
-              
-              <div className="flex items-center justify-end w-[40%]">
-                <span className="text-white text-sm truncate text-right">{match.awayTeam.name}</span>
-                <img 
-                  src={match.awayTeam.logo} 
-                  alt={match.awayTeam.name}
-                  className="w-8 h-8 object-contain ml-2"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+          <MatchCard 
+            key={match.id}
+            match={match}
+            onHighlightClick={handleHighlightClick}
+            matchType="live"
+          />
         ))}
       </div>
+
+      {selectedMatch && (
+        <VideoPlayerDialog
+          match={selectedMatch}
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          matchId={selectedMatch.id}
+        />
+      )}
     </div>
   );
 };

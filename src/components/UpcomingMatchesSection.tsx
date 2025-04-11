@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { fetchMatches } from '@/services/highlightService';
-import { Calendar, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import MatchCard from './MatchCard';
 
 interface UpcomingMatch {
   id: string;
@@ -19,28 +18,41 @@ interface UpcomingMatch {
     name: string;
     logo: string;
   };
+  status: string;
 }
 
-const UpcomingMatchesSection = () => {
+interface Props {
+  filteredData?: any[] | null;
+  showVerifiedOnly?: boolean;
+}
+
+const UpcomingMatchesSection = ({ filteredData, showVerifiedOnly = false }: Props) => {
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUpcomingMatches = async () => {
       try {
-        const allMatches = await fetchMatches();
+        // If we have filtered data, use that instead of fetching
+        const allMatches = filteredData || await fetchMatches();
+        
         // Filter for upcoming matches only
         const upcoming = allMatches.filter((match: any) => 
           match.status === 'SCHEDULED' || 
           match.status === 'TIMED'
         );
         
+        // Apply verification filter if needed
+        const verifiedMatches = showVerifiedOnly 
+          ? upcoming.filter((match: any) => match.verified === true)
+          : upcoming;
+        
         // Sort by kickoff time
-        upcoming.sort((a: any, b: any) => 
-          new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime()
+        verifiedMatches.sort((a: any, b: any) => 
+          new Date(a.kickoff || a.date).getTime() - new Date(b.kickoff || b.date).getTime()
         );
         
-        setUpcomingMatches(upcoming.slice(0, 12)); // Take the next 12 matches
+        setUpcomingMatches(verifiedMatches.slice(0, 12)); // Take the next 12 matches
       } catch (error) {
         console.error('Failed to fetch upcoming matches:', error);
       } finally {
@@ -49,27 +61,14 @@ const UpcomingMatchesSection = () => {
     };
 
     fetchUpcomingMatches();
-  }, []);
-
-  // Format kickoff time
-  const formatKickoff = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return format(date, 'HH:mm');
-    } catch (e) {
-      return '--:--';
-    }
-  };
-
-  // Format kickoff date
-  const formatKickoffDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return format(date, 'dd MMM');
-    } catch (e) {
-      return '--';
-    }
-  };
+    
+    // Set up auto-refresh interval
+    const refreshInterval = setInterval(() => {
+      fetchUpcomingMatches();
+    }, Math.floor(Math.random() * 60000) + 60000); // Refresh between 60-120 seconds
+    
+    return () => clearInterval(refreshInterval);
+  }, [filteredData, showVerifiedOnly]);
 
   if (isLoading) {
     return (
@@ -100,48 +99,11 @@ const UpcomingMatchesSection = () => {
       <h2 className="text-2xl font-bold mb-4 text-white">Upcoming Matches</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {upcomingMatches.map((match) => (
-          <div key={match.id} className="bg-highlight-800 rounded-lg p-4 hover:bg-highlight-700 transition-colors">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-gray-400">{match.competition?.name}</span>
-              <div className="flex items-center text-xs text-gray-400">
-                <Calendar size={12} className="mr-1" />
-                <span>{formatKickoffDate(match.kickoff)}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between mt-3">
-              <div className="flex items-center w-[40%]">
-                <img 
-                  src={match.homeTeam.logo} 
-                  alt={match.homeTeam.name}
-                  className="w-8 h-8 object-contain mr-2"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                  }}
-                />
-                <span className="text-white text-sm truncate">{match.homeTeam.name}</span>
-              </div>
-              
-              <div className="flex items-center bg-black bg-opacity-30 px-3 py-1 rounded">
-                <Clock size={12} className="text-[#FFC30B] mr-1" />
-                <span className="text-white text-sm font-medium">{formatKickoff(match.kickoff)}</span>
-              </div>
-              
-              <div className="flex items-center justify-end w-[40%]">
-                <span className="text-white text-sm truncate text-right">{match.awayTeam.name}</span>
-                <img 
-                  src={match.awayTeam.logo} 
-                  alt={match.awayTeam.name}
-                  className="w-8 h-8 object-contain ml-2"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+          <MatchCard 
+            key={match.id}
+            match={match}
+            matchType="upcoming"
+          />
         ))}
       </div>
     </div>
