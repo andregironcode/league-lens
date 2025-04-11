@@ -77,7 +77,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <img src="/favicon.ico" alt="Logo" className="w-8 h-8" />
-            <span className="font-bold text-xl text-white">Highlightly</span>
+            <span className="font-bold text-xl text-white">Score90</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -167,7 +167,7 @@ const Header = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-highlight-800">
           <div className="px-4 pt-2 pb-4 space-y-3">
-            <HeaderLinks mobile={true} />
+            <HeaderLinks />
             
             {/* Mobile Search */}
             <div className="pt-2" ref={searchRef}>

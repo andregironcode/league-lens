@@ -60,10 +60,15 @@ const TeamPage = () => {
           .filter((match: any) => match.status === 'SCHEDULED' || match.status === 'TIMED')
           .slice(0, 5);
         
-        // Ensure we have a competition object with a name property
-        const competitionName = firstMatch.competition && typeof firstMatch.competition === 'object' && firstMatch.competition.name
-          ? firstMatch.competition.name
-          : 'Unknown';
+        // Extract competition name safely
+        let competitionName = 'Unknown';
+        if (firstMatch.competition) {
+          if (typeof firstMatch.competition === 'object' && firstMatch.competition?.name) {
+            competitionName = firstMatch.competition.name;
+          } else if (typeof firstMatch.competition === 'string') {
+            competitionName = firstMatch.competition;
+          }
+        }
         
         // Mock team details since we don't have specific team endpoints
         const mockTeamDetails: TeamDetails = {
