@@ -2,9 +2,9 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ScoreBatMatch, ScoreBatVideo } from "@/types";
 import { useState, useEffect } from "react";
-import { Calendar, Eye, ArrowLeft } from "lucide-react";
+import { Calendar, Eye, ArrowLeft, Video } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { fetchHighlightlyMatch } from "@/services/highlightService";
+import { fetchHighlightlyMatch, fetchHighlights } from "@/services/highlightService";
 import { toast } from "sonner";
 
 interface VideoPlayerDialogProps {
@@ -18,6 +18,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [highlightlyData, setHighlightlyData] = useState<any>(null);
+  const [highlightVideos, setHighlightVideos] = useState<any[]>([]);
 
   // Reset selected video index when match changes
   useEffect(() => {
@@ -28,10 +29,19 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
   useEffect(() => {
     if (matchId && isOpen) {
       setIsLoading(true);
+      
+      // First fetch match data
       fetchHighlightlyMatch(matchId)
         .then(data => {
           setHighlightlyData(data);
-          console.log("Fetched Highlightly data:", data);
+          console.log("Fetched Highlightly match data:", data);
+          
+          // Then fetch highlight videos for this match
+          return fetchHighlights(matchId);
+        })
+        .then(videos => {
+          console.log("Fetched Highlightly highlight videos:", videos);
+          setHighlightVideos(videos || []);
         })
         .catch(error => {
           console.error("Failed to fetch match from Highlightly:", error);
@@ -61,23 +71,43 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
 
   // Use highlightlyData if available, otherwise use match data
   const activeMatch = highlightlyData || match;
-  const videos = activeMatch.videos || [];
+  
+  // Set videos - either from ScoreBat or Highlightly
+  const videos = highlightlyData 
+    ? highlightVideos.map((v: any) => ({ id: v.id, title: v.title, embed: v.embedUrl }))
+    : (match?.videos || []);
+  
   const currentVideo = videos[selectedVideoIndex];
   
   // Parse score from title if possible (format: "Team A 1-0 Team B")
-  const scoreRegex = /(\d+)\s*-\s*(\d+)/;
-  const scoreMatch = activeMatch.title.match(scoreRegex);
-  const homeScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
-  const awayScore = scoreMatch ? parseInt(scoreMatch[2]) : 0;
+  let homeScore = 0;
+  let awayScore = 0;
+  let homeTeamName = '';
+  let awayTeamName = '';
   
-  // Parse team names from title (format: "Team A - Team B")
-  const teamNames = activeMatch.title.split(' - ');
-  const homeTeamName = teamNames[0] || '';
-  const awayTeamName = teamNames[1] ? teamNames[1].replace(scoreRegex, '').trim() : '';
+  if (highlightlyData) {
+    // Use structured data from Highlightly
+    homeScore = highlightlyData.score?.home || 0;
+    awayScore = highlightlyData.score?.away || 0;
+    homeTeamName = highlightlyData.homeTeam?.name || '';
+    awayTeamName = highlightlyData.awayTeam?.name || '';
+  } else {
+    // Parse from ScoreBat format
+    const scoreRegex = /(\d+)\s*-\s*(\d+)/;
+    const scoreMatch = activeMatch.title.match(scoreRegex);
+    homeScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+    awayScore = scoreMatch ? parseInt(scoreMatch[2]) : 0;
+    
+    // Parse team names from title (format: "Team A - Team B")
+    const teamNames = activeMatch.title.split(' - ');
+    homeTeamName = teamNames[0] || '';
+    awayTeamName = teamNames[1] ? teamNames[1].replace(scoreRegex, '').trim() : '';
+  }
   
   // Format date
-  const formattedDate = formatDistanceToNow(new Date(activeMatch.date), { addSuffix: true });
-  const exactDate = new Date(activeMatch.date).toLocaleDateString('en-US', { 
+  const matchDate = highlightlyData?.date || highlightlyData?.kickoff || activeMatch.date;
+  const formattedDate = formatDistanceToNow(new Date(matchDate), { addSuffix: true });
+  const exactDate = new Date(matchDate).toLocaleDateString('en-US', { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
@@ -142,6 +172,10 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
   const awayTeamAbbrev = getTeamAbbreviation(awayTeamName);
   const homeTeamColor = getTeamColor(homeTeamName);
   const awayTeamColor = getTeamColor(awayTeamName);
+  
+  // Get team logos
+  const homeTeamLogo = highlightlyData?.homeTeam?.logo || '';
+  const awayTeamLogo = highlightlyData?.awayTeam?.logo || '';
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -177,7 +211,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
           <div className="px-6 pt-4">
             <div className="mb-2">
               <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
-                {activeMatch.competition}
+                {highlightlyData?.competition?.name || highlightlyData?.league?.name || activeMatch.competition}
               </span>
             </div>
           </div>
@@ -185,7 +219,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
           {/* Match Title */}
           <div className="px-6">
             <h1 className="text-2xl md:text-3xl font-bold mb-3 text-white">
-              {activeMatch.title}
+              {highlightlyData ? `${homeTeamName} vs ${awayTeamName}` : activeMatch.title}
             </h1>
             
             <div className="flex flex-wrap items-center text-sm text-gray-400 mb-6 space-x-6">
@@ -195,7 +229,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
               </div>
               <div className="flex items-center">
                 <Eye size={16} className="mr-2" />
-                <span>1,243,000 views</span>
+                <span>{highlightlyData?.views ? new Intl.NumberFormat().format(highlightlyData.views) : '1,243,000'} views</span>
               </div>
             </div>
           </div>
@@ -205,9 +239,21 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
             <div className="bg-[#111111] rounded-xl p-6 shadow-sm">
               <div className="flex justify-between items-center">
                 <div className="flex flex-col items-center">
-                  <div className={`w-16 h-16 ${homeTeamColor} rounded-full flex items-center justify-center text-2xl font-bold text-white`}>
-                    {homeTeamAbbrev}
-                  </div>
+                  {homeTeamLogo ? (
+                    <img 
+                      src={homeTeamLogo}
+                      alt={homeTeamName}
+                      className="w-16 h-16 object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                      }}
+                    />
+                  ) : (
+                    <div className={`w-16 h-16 ${homeTeamColor} rounded-full flex items-center justify-center text-2xl font-bold text-white`}>
+                      {homeTeamAbbrev}
+                    </div>
+                  )}
                   <span className="font-semibold text-lg mt-2 text-white text-center">
                     {homeTeamName}
                   </span>
@@ -218,9 +264,21 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
                 </div>
                 
                 <div className="flex flex-col items-center">
-                  <div className={`w-16 h-16 ${awayTeamColor} rounded-full flex items-center justify-center text-2xl font-bold text-white`}>
-                    {awayTeamAbbrev}
-                  </div>
+                  {awayTeamLogo ? (
+                    <img 
+                      src={awayTeamLogo}
+                      alt={awayTeamName}
+                      className="w-16 h-16 object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                      }}
+                    />
+                  ) : (
+                    <div className={`w-16 h-16 ${awayTeamColor} rounded-full flex items-center justify-center text-2xl font-bold text-white`}>
+                      {awayTeamAbbrev}
+                    </div>
+                  )}
                   <span className="font-semibold text-lg mt-2 text-white text-center">
                     {awayTeamName}
                   </span>
@@ -232,7 +290,10 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
           {/* Video Selection */}
           {videos.length > 1 && (
             <div className="px-6 pb-6">
-              <h3 className="text-lg font-semibold mb-3 text-white">Available Highlights</h3>
+              <h3 className="text-lg font-semibold mb-3 text-white flex items-center">
+                <Video size={18} className="mr-2 text-[#FFC30B]" />
+                Available Highlights
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {videos.map((video: ScoreBatVideo, index: number) => (
                   <button
@@ -244,7 +305,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialo
                         : "bg-highlight-700 text-white hover:bg-highlight-600"
                     }`}
                   >
-                    Highlight {index + 1}
+                    {video.title || `Highlight ${index + 1}`}
                   </button>
                 ))}
               </div>

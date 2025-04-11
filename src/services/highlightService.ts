@@ -1,14 +1,14 @@
-
 import { MatchHighlight, League, Team, TableRow, Fixture, TeamDetails, ScoreBatMatch } from '@/types';
 
-// New function to fetch highlights from Highlightly API using API key
-export const fetchHighlightlyMatch = async (matchId: string): Promise<any> => {
+const HIGHLIGHTLY_API_BASE = 'https://soccer.highlightly.net';
+const HIGHLIGHTLY_API_KEY = 'ba92a323-13fd-4cd8-91a9-408f4de89d3f';
+
+// Helper function to make API calls to Highlightly API
+const fetchFromHighlightly = async (endpoint: string) => {
   try {
-    const apiKey = 'ba92a323-13fd-4cd8-91a9-408f4de89d3f'; // API key for Highlightly service
-    const response = await fetch(`https://api.highlightly.com/v1/matches/${matchId}`, {
-      method: 'GET',
+    const response = await fetch(`${HIGHLIGHTLY_API_BASE}${endpoint}`, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'x-api-key': HIGHLIGHTLY_API_KEY,
         'Content-Type': 'application/json'
       }
     });
@@ -18,69 +18,98 @@ export const fetchHighlightlyMatch = async (matchId: string): Promise<any> => {
     }
     
     const data = await response.json();
-    console.log('Highlightly API Response:', data);
     return data;
   } catch (error) {
-    console.error('Error fetching from Highlightly API:', error);
+    console.error(`Error fetching from Highlightly API (${endpoint}):`, error);
     throw error;
   }
 };
 
-// New function to fetch multiple highlights from Highlightly API
-export const fetchHighlightlyMatches = async (limit: number = 10): Promise<any> => {
-  try {
-    const apiKey = 'ba92a323-13fd-4cd8-91a9-408f4de89d3f'; // API key for Highlightly service
-    const response = await fetch(`https://api.highlightly.com/v1/matches?limit=${limit}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Highlightly API returned status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('Highlightly API Multiple Matches Response:', data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching matches from Highlightly API:', error);
-    throw error;
-  }
+// Fetch all matches (live, upcoming, finished)
+export const fetchMatches = async () => {
+  return fetchFromHighlightly('/matches');
 };
 
-// Function to convert Highlightly API match data to our MatchHighlight format
-export const convertHighlightlyDataToMatchHighlight = (highlightlyData: any): MatchHighlight => {
-  // This is a placeholder conversion function - you would adapt this to match the actual API response structure
+// Fetch match by ID
+export const fetchHighlightlyMatch = async (matchId: string) => {
+  return fetchFromHighlightly(`/matches/${matchId}`);
+};
+
+// Fetch highlights for a specific match
+export const fetchHighlights = async (matchId: string) => {
+  return fetchFromHighlightly(`/highlights/${matchId}`);
+};
+
+// Fetch statistics for a specific match
+export const fetchStatistics = async (matchId: string) => {
+  return fetchFromHighlightly(`/statistics/${matchId}`);
+};
+
+// Fetch lineups for a specific match
+export const fetchLineups = async (matchId: string) => {
+  return fetchFromHighlightly(`/lineups/${matchId}`);
+};
+
+// Fetch standings for leagues
+export const fetchStandings = async () => {
+  return fetchFromHighlightly('/standings');
+};
+
+// Fetch teams
+export const fetchTeams = async () => {
+  return fetchFromHighlightly('/teams');
+};
+
+// Fetch leagues
+export const fetchLeagues = async () => {
+  return fetchFromHighlightly('/leagues');
+};
+
+// Filter matches by league
+export const fetchMatchesByLeague = async (leagueId: string) => {
+  return fetchFromHighlightly(`/matches?league=${leagueId}`);
+};
+
+// Filter matches by date range
+export const fetchMatchesByDateRange = async (startDate: string, endDate: string) => {
+  return fetchFromHighlightly(`/matches?from=${startDate}&to=${endDate}`);
+};
+
+// Filter matches by country
+export const fetchMatchesByCountry = async (country: string) => {
+  return fetchFromHighlightly(`/matches?country=${country}`);
+};
+
+// Helper to convert Highlightly match to our internal format
+export const convertHighlightlyMatchToInternal = (match: any): MatchHighlight => {
   return {
-    id: highlightlyData.id || '',
-    title: highlightlyData.title || `${highlightlyData.homeTeam?.name || ''} vs ${highlightlyData.awayTeam?.name || ''}`,
-    date: highlightlyData.date || new Date().toISOString(),
-    thumbnailUrl: highlightlyData.thumbnail || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018',
-    videoUrl: highlightlyData.videoUrl || '',
-    duration: highlightlyData.duration || '10:00',
-    views: highlightlyData.views || 1000,
+    id: match.id || '',
+    title: match.name || `${match.homeTeam?.name || ''} vs ${match.awayTeam?.name || ''}`,
+    date: match.kickoff || match.date || new Date().toISOString(),
+    thumbnailUrl: match.thumbnail || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018',
+    videoUrl: match.embedUrl || '',
+    duration: match.duration || '00:00',
+    views: match.views || 0,
     homeTeam: {
-      id: highlightlyData.homeTeam?.id || 'home',
-      name: highlightlyData.homeTeam?.name || 'Home Team',
-      logo: highlightlyData.homeTeam?.logo || 'https://www.sofascore.com/static/images/placeholders/team.svg'
+      id: match.homeTeam?.id || 'home',
+      name: match.homeTeam?.name || 'Home Team',
+      logo: match.homeTeam?.logo || 'https://www.sofascore.com/static/images/placeholders/team.svg'
     },
     awayTeam: {
-      id: highlightlyData.awayTeam?.id || 'away',
-      name: highlightlyData.awayTeam?.name || 'Away Team',
-      logo: highlightlyData.awayTeam?.logo || 'https://www.sofascore.com/static/images/placeholders/team.svg'
+      id: match.awayTeam?.id || 'away',
+      name: match.awayTeam?.name || 'Away Team',
+      logo: match.awayTeam?.logo || 'https://www.sofascore.com/static/images/placeholders/team.svg'
     },
     score: {
-      home: highlightlyData.score?.home || 0,
-      away: highlightlyData.score?.away || 0
+      home: match.score?.home || 0,
+      away: match.score?.away || 0
     },
     competition: {
-      id: highlightlyData.competition?.id || 'comp',
-      name: highlightlyData.competition?.name || 'Competition',
-      logo: highlightlyData.competition?.logo || '/placeholder.svg'
-    }
+      id: match.competition?.id || match.league?.id || 'comp',
+      name: match.competition?.name || match.league?.name || 'Competition',
+      logo: match.competition?.logo || match.league?.logo || '/placeholder.svg'
+    },
+    status: match.status || 'UNKNOWN'
   };
 };
 
@@ -419,7 +448,6 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
         }
       ]
     },
-    // Adding Serie A
     {
       id: 'seriea',
       name: 'Serie A',
@@ -483,7 +511,6 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
         }
       ]
     },
-    // Adding Ligue 1
     {
       id: 'ligue1',
       name: 'Ligue 1',
@@ -505,7 +532,7 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
           awayTeam: {
             id: 'mar',
             name: 'Marseille',
-            logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg'
+            logo: 'https://upload.wikimedia.org/wikipedia/en/d/d8/Olympique_Marseille_logo.svg'
           },
           score: {
             home: 3,
