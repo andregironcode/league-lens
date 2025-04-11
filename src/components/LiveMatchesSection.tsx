@@ -5,6 +5,7 @@ import { Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import MatchCard from './MatchCard';
 import VideoPlayerDialog from './VideoPlayerDialog';
+import MatchDetailPopup from './MatchDetailPopup';
 
 interface LiveMatch {
   id: string;
@@ -40,6 +41,7 @@ const LiveMatchesSection = ({ filteredData, showVerifiedOnly = false }: Props) =
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // Function to fetch live matches
   const fetchLiveMatches = async () => {
@@ -94,11 +96,11 @@ const LiveMatchesSection = ({ filteredData, showVerifiedOnly = false }: Props) =
     fetchLiveMatches();
   }, [filteredData, showVerifiedOnly]);
 
-  // Set up auto-refresh interval
+  // Set up auto-refresh interval - more frequent for live matches
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       fetchLiveMatches();
-    }, Math.floor(Math.random() * 60000) + 60000); // Refresh between 60-120 seconds
+    }, 45000); // Refresh every 45 seconds for live matches
 
     return () => clearInterval(refreshInterval);
   }, [filteredData, showVerifiedOnly]);
@@ -107,12 +109,24 @@ const LiveMatchesSection = ({ filteredData, showVerifiedOnly = false }: Props) =
     try {
       // Fetch highlight data and show in dialog
       const highlightData = await fetchHighlights(match.id);
-      setSelectedMatch({ ...match, videos: highlightData });
-      setIsDialogOpen(true);
+      
+      if (highlightData && highlightData.length > 0 && highlightData[0].embedUrl) {
+        setSelectedMatch({ ...match, videos: highlightData });
+        setIsDialogOpen(true);
+      } else {
+        // If no embedUrl is available, show match details instead
+        setSelectedMatch(match);
+        setIsDetailOpen(true);
+      }
     } catch (error) {
       console.error('Failed to fetch highlights:', error);
       toast.error('Failed to load match highlights');
     }
+  };
+  
+  const handleMatchClick = (match: LiveMatch) => {
+    setSelectedMatch(match);
+    setIsDetailOpen(true);
   };
 
   if (isLoading) {
@@ -157,22 +171,32 @@ const LiveMatchesSection = ({ filteredData, showVerifiedOnly = false }: Props) =
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {liveMatches.map((match) => (
-          <MatchCard 
-            key={match.id}
-            match={match}
-            onHighlightClick={handleHighlightClick}
-            matchType="live"
-          />
+          <div key={match.id} onClick={() => handleMatchClick(match)}>
+            <MatchCard 
+              match={match}
+              onHighlightClick={handleHighlightClick}
+              matchType="live"
+            />
+          </div>
         ))}
       </div>
 
       {selectedMatch && (
-        <VideoPlayerDialog
-          match={selectedMatch}
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          matchId={selectedMatch.id}
-        />
+        <>
+          <VideoPlayerDialog
+            match={selectedMatch}
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            matchId={selectedMatch.id}
+          />
+          
+          <MatchDetailPopup
+            matchId={selectedMatch.id}
+            match={selectedMatch}
+            isOpen={isDetailOpen}
+            onClose={() => setIsDetailOpen(false)}
+          />
+        </>
       )}
     </div>
   );

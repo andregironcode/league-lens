@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Calendar, Clock, Video } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatMatchStatus } from '@/utils/formatMatchStatus';
 import { useNavigate } from 'react-router-dom';
 
 interface MatchCardProps {
@@ -74,29 +75,6 @@ const MatchCard = ({ match, onHighlightClick, matchType }: MatchCardProps) => {
     return time;
   };
 
-  // Get appropriate status display
-  const getStatusDisplay = (status: string) => {
-    switch (status) {
-      case 'LIVE':
-      case 'IN_PLAY':
-        return 'LIVE';
-      case 'HT':
-        return 'HT';
-      case 'FT':
-      case 'FINISHED':
-        return 'FT';
-      case 'SUSPENDED':
-        return 'SUSPENDED';
-      case 'POSTPONED':
-        return 'POSTPONED';
-      case 'SCHEDULED':
-      case 'TIMED':
-        return 'Not started';
-      default:
-        return status;
-    }
-  };
-
   const handleClick = () => {
     if (match.embedUrl && !showVideo) {
       setShowVideo(true);
@@ -118,7 +96,7 @@ const MatchCard = ({ match, onHighlightClick, matchType }: MatchCardProps) => {
       <div className="flex justify-between items-center mb-2">
         {matchType === 'live' && (
           <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded">
-            {getStatusDisplay(match.status)}
+            {formatMatchStatus(match.status)}
           </span>
         )}
         {matchType === 'upcoming' && (
@@ -164,7 +142,7 @@ const MatchCard = ({ match, onHighlightClick, matchType }: MatchCardProps) => {
           {matchType === 'upcoming' && (
             <div className="flex items-center bg-black bg-opacity-30 px-3 py-1 rounded">
               <Clock size={12} className="text-[#FFC30B] mr-1" />
-              <span className="text-white text-sm font-medium">{formatTime(match.kickoff)}</span>
+              <span className="text-white text-sm font-medium">{formatTime(match.kickoff || match.date)}</span>
             </div>
           )}
           
