@@ -4,40 +4,80 @@ import { ScoreBatMatch, ScoreBatVideo } from "@/types";
 import { useState, useEffect } from "react";
 import { Calendar, Eye, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { fetchHighlightlyMatch } from "@/services/highlightService";
+import { toast } from "sonner";
 
 interface VideoPlayerDialogProps {
   match: ScoreBatMatch | null;
   isOpen: boolean;
   onClose: () => void;
+  matchId?: string; // Optional match ID for fetching from Highlightly API
 }
 
-const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) => {
+const VideoPlayerDialog = ({ match, isOpen, onClose, matchId }: VideoPlayerDialogProps) => {
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [highlightlyData, setHighlightlyData] = useState<any>(null);
 
   // Reset selected video index when match changes
   useEffect(() => {
     setSelectedVideoIndex(0);
   }, [match]);
 
-  if (!match) return null;
+  // Fetch match data from Highlightly API if matchId is provided
+  useEffect(() => {
+    if (matchId && isOpen) {
+      setIsLoading(true);
+      fetchHighlightlyMatch(matchId)
+        .then(data => {
+          setHighlightlyData(data);
+          console.log("Fetched Highlightly data:", data);
+        })
+        .catch(error => {
+          console.error("Failed to fetch match from Highlightly:", error);
+          toast.error("Failed to load highlight from Highlightly API");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [matchId, isOpen]);
 
-  const videos = match.videos || [];
+  // If we're loading or neither match nor highlightlyData is available, show loading state
+  if (isLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-6xl w-full bg-black border-highlight-800 text-white p-0 overflow-hidden">
+          <div className="flex items-center justify-center p-8 h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FFC30B]"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // If no match data is available, return null
+  if (!match && !highlightlyData) return null;
+
+  // Use highlightlyData if available, otherwise use match data
+  const activeMatch = highlightlyData || match;
+  const videos = activeMatch.videos || [];
   const currentVideo = videos[selectedVideoIndex];
   
   // Parse score from title if possible (format: "Team A 1-0 Team B")
   const scoreRegex = /(\d+)\s*-\s*(\d+)/;
-  const scoreMatch = match.title.match(scoreRegex);
+  const scoreMatch = activeMatch.title.match(scoreRegex);
   const homeScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
   const awayScore = scoreMatch ? parseInt(scoreMatch[2]) : 0;
   
   // Parse team names from title (format: "Team A - Team B")
-  const teamNames = match.title.split(' - ');
+  const teamNames = activeMatch.title.split(' - ');
   const homeTeamName = teamNames[0] || '';
   const awayTeamName = teamNames[1] ? teamNames[1].replace(scoreRegex, '').trim() : '';
   
   // Format date
-  const formattedDate = formatDistanceToNow(new Date(match.date), { addSuffix: true });
-  const exactDate = new Date(match.date).toLocaleDateString('en-US', { 
+  const formattedDate = formatDistanceToNow(new Date(activeMatch.date), { addSuffix: true });
+  const exactDate = new Date(activeMatch.date).toLocaleDateString('en-US', { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
@@ -106,7 +146,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-6xl w-full bg-black border-highlight-800 text-white p-0 overflow-hidden">
-        <DialogTitle className="sr-only">{match.title}</DialogTitle>
+        <DialogTitle className="sr-only">{activeMatch.title}</DialogTitle>
         <div className="flex flex-col h-full">
           {/* Back button */}
           <div className="px-6 pt-6">
@@ -137,7 +177,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
           <div className="px-6 pt-4">
             <div className="mb-2">
               <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
-                {match.competition}
+                {activeMatch.competition}
               </span>
             </div>
           </div>
@@ -145,7 +185,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
           {/* Match Title */}
           <div className="px-6">
             <h1 className="text-2xl md:text-3xl font-bold mb-3 text-white">
-              {match.title}
+              {activeMatch.title}
             </h1>
             
             <div className="flex flex-wrap items-center text-sm text-gray-400 mb-6 space-x-6">

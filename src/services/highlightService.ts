@@ -1,6 +1,90 @@
-import { MatchHighlight, League, Team, TableRow, Fixture, TeamDetails } from '@/types';
 
-// New function to fetch data from ScoreBat API for Premier League
+import { MatchHighlight, League, Team, TableRow, Fixture, TeamDetails, ScoreBatMatch } from '@/types';
+
+// New function to fetch highlights from Highlightly API using API key
+export const fetchHighlightlyMatch = async (matchId: string): Promise<any> => {
+  try {
+    const apiKey = 'ba92a323-13fd-4cd8-91a9-408f4de89d3f'; // API key for Highlightly service
+    const response = await fetch(`https://api.highlightly.com/v1/matches/${matchId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Highlightly API returned status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Highlightly API Response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching from Highlightly API:', error);
+    throw error;
+  }
+};
+
+// New function to fetch multiple highlights from Highlightly API
+export const fetchHighlightlyMatches = async (limit: number = 10): Promise<any> => {
+  try {
+    const apiKey = 'ba92a323-13fd-4cd8-91a9-408f4de89d3f'; // API key for Highlightly service
+    const response = await fetch(`https://api.highlightly.com/v1/matches?limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Highlightly API returned status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Highlightly API Multiple Matches Response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching matches from Highlightly API:', error);
+    throw error;
+  }
+};
+
+// Function to convert Highlightly API match data to our MatchHighlight format
+export const convertHighlightlyDataToMatchHighlight = (highlightlyData: any): MatchHighlight => {
+  // This is a placeholder conversion function - you would adapt this to match the actual API response structure
+  return {
+    id: highlightlyData.id || '',
+    title: highlightlyData.title || `${highlightlyData.homeTeam?.name || ''} vs ${highlightlyData.awayTeam?.name || ''}`,
+    date: highlightlyData.date || new Date().toISOString(),
+    thumbnailUrl: highlightlyData.thumbnail || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018',
+    videoUrl: highlightlyData.videoUrl || '',
+    duration: highlightlyData.duration || '10:00',
+    views: highlightlyData.views || 1000,
+    homeTeam: {
+      id: highlightlyData.homeTeam?.id || 'home',
+      name: highlightlyData.homeTeam?.name || 'Home Team',
+      logo: highlightlyData.homeTeam?.logo || 'https://www.sofascore.com/static/images/placeholders/team.svg'
+    },
+    awayTeam: {
+      id: highlightlyData.awayTeam?.id || 'away',
+      name: highlightlyData.awayTeam?.name || 'Away Team',
+      logo: highlightlyData.awayTeam?.logo || 'https://www.sofascore.com/static/images/placeholders/team.svg'
+    },
+    score: {
+      home: highlightlyData.score?.home || 0,
+      away: highlightlyData.score?.away || 0
+    },
+    competition: {
+      id: highlightlyData.competition?.id || 'comp',
+      name: highlightlyData.competition?.name || 'Competition',
+      logo: highlightlyData.competition?.logo || '/placeholder.svg'
+    }
+  };
+};
+
+// New function to fetch from ScoreBat API for Premier League
 export const fetchPremierLeagueFromScoreBat = async (): Promise<any> => {
   try {
     const response = await fetch('https://www.scorebat.com/video-api/v3/competition/england-premier-league/?token=MTk1NDQ4XzE3NDExMTE1MDBfMzZhOThmNzNlODQ0ODk1NTA2NzFhNWE0YTJjZjE5NWU0MWFhMzY1MA==');
