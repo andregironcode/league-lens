@@ -23,7 +23,6 @@ export interface MatchHighlight {
     name: string;
     logo: string;
   };
-  status?: string;
 }
 
 export interface League {
