@@ -12,30 +12,30 @@ interface HeroCarouselProps {
 const exampleGames: MatchHighlight[] = [
   {
     id: "1",
-    title: "Manchester City vs Arsenal",
+    title: "Formula 1 Abu Dhabi Grand Prix",
     date: new Date().toISOString(),
-    thumbnailUrl: "https://e0.365dm.com/23/04/768x432/skysports-arsenal-manchester-city_6131683.jpg?20230426210634",
-    videoUrl: "https://www.youtube.com/watch?v=38qkI3jAl68",
+    thumbnailUrl: "https://i.ytimg.com/vi/ZI-HntdeVas/maxresdefault.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=ZI-HntdeVas",
     duration: "10:25",
     views: 1500000,
     homeTeam: {
       id: "65",
-      name: "Manchester City",
-      logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg"
+      name: "Red Bull",
+      logo: "https://upload.wikimedia.org/wikipedia/en/f/f1/Oracle_Red_Bull_Racing_logo.svg"
     },
     awayTeam: {
       id: "57",
-      name: "Arsenal",
-      logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg"
+      name: "Ferrari",
+      logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d1/Ferrari_Logo.svg/800px-Ferrari_Logo.svg.png"
     },
     score: {
-      home: 4,
-      away: 1
+      home: 1,
+      away: 2
     },
     competition: {
       id: "1",
-      name: "Premier League",
-      logo: "/competitions/premier-league.png"
+      name: "Formula 1",
+      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/F1.svg/2560px-F1.svg.png"
     }
   },
   {
