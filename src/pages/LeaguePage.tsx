@@ -1,25 +1,25 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchLeagues } from '@/services/highlightService';
+import { getLeagueHighlights } from '@/services/highlightService';
 import { League, MatchHighlight } from '@/types';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
 
+// Helper function to get country flag based on league ID - same as in LeagueSection
 const getCountryFlag = (leagueId: string): string => {
   const flagMap: Record<string, string> = {
-    'pl': 'https://flagcdn.com/w40/gb-eng.png',
-    'laliga': 'https://flagcdn.com/w40/es.png',
-    'bundesliga': 'https://flagcdn.com/w40/de.png',
-    'seriea': 'https://flagcdn.com/w40/it.png',
-    'ligue1': 'https://flagcdn.com/w40/fr.png',
-    'eredivisie': 'https://flagcdn.com/w40/nl.png',
-    'portugal': 'https://flagcdn.com/w40/pt.png',
-    'brazil': 'https://flagcdn.com/w40/br.png',
-    'argentina': 'https://flagcdn.com/w40/ar.png',
+    'pl': 'https://flagcdn.com/w40/gb-eng.png', // English flag
+    'laliga': 'https://flagcdn.com/w40/es.png', // Spanish flag
+    'bundesliga': 'https://flagcdn.com/w40/de.png', // German flag
+    'seriea': 'https://flagcdn.com/w40/it.png', // Italian flag
+    'ligue1': 'https://flagcdn.com/w40/fr.png', // French flag
+    'eredivisie': 'https://flagcdn.com/w40/nl.png', // Dutch flag
+    'portugal': 'https://flagcdn.com/w40/pt.png', // Portuguese flag
+    'brazil': 'https://flagcdn.com/w40/br.png', // Brazilian flag
+    'argentina': 'https://flagcdn.com/w40/ar.png', // Argentine flag
   };
   
   return flagMap[leagueId] || 'https://www.sofascore.com/static/images/placeholders/tournament.svg';
@@ -33,16 +33,17 @@ const LeaguePage = () => {
   useEffect(() => {
     const fetchLeagueData = async () => {
       try {
-        setLoading(true);
-        const leaguesData = await fetchLeagues();
-        const leagueData = leaguesData.find((l: League) => l.id === leagueId);
+        // Get all leagues
+        const leaguesData = await getLeagueHighlights();
+        // Find the specific league by ID
+        const leagueData = leaguesData.find(l => l.id === leagueId);
         
         if (leagueData) {
           setLeague(leagueData);
         }
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching league data:', error);
-      } finally {
         setLoading(false);
       }
     };
@@ -94,19 +95,13 @@ const LeaguePage = () => {
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-300">Highlights</h2>
                 
-                {league.highlights && league.highlights.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {league.highlights.map((highlight: MatchHighlight) => (
-                      <div key={highlight.id} className="transform transition-all duration-300 hover:scale-105">
-                        <HighlightCard highlight={highlight} />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-10">
-                    <p className="text-gray-400">No highlights available for this league</p>
-                  </div>
-                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {league.highlights.map((highlight: MatchHighlight) => (
+                    <div key={highlight.id} className="transform transition-all duration-300 hover:scale-105">
+                      <HighlightCard highlight={highlight} />
+                    </div>
+                  ))}
+                </div>
               </div>
             </>
           ) : (

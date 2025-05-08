@@ -1,3 +1,4 @@
+
 export interface Team {
   id: string;
   name: string;
@@ -23,7 +24,6 @@ export interface MatchHighlight {
     name: string;
     logo: string;
   };
-  status?: string;
 }
 
 export interface League {
@@ -63,36 +63,4 @@ export interface TeamDetails {
   leagueTable: TableRow[];
   europeanTable: TableRow[];
   fixtures: Fixture[];
-}
-
-export interface ScoreBatVideo {
-  id: string;
-  title: string;
-  embed: string;
-}
-
-export interface ScoreBatTeam {
-  name: string;
-  logo?: string;
-}
-
-export interface ScoreBatMatch {
-  title: string;
-  competition: string;
-  matchviewUrl: string;
-  competitionUrl: string;
-  thumbnail: string;
-  date: string;
-  videos: ScoreBatVideo[];
-  formattedMatch?: {
-    id: string;
-    homeTeam: Team;
-    awayTeam: Team;
-    score: {
-      home: number;
-      away: number;
-    };
-    duration: string;
-    views: number;
-  };
 }

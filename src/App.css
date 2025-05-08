@@ -1,8 +1,8 @@
 
 #root {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
 }
 
@@ -48,6 +48,8 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Add marquee animation for scrolling text */
@@ -72,31 +74,33 @@ html, body {
   animation-delay: 2s;
 }
 
-/* Disney+ style hero carousel */
-.hero-carousel-container {
+/* Container widths */
+.container-xl {
   width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  border-radius: 0;
-  position: relative;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
-@media (min-width: 768px) {
-  .hero-carousel-container {
-    border-radius: 12px;
-    margin: 0 20px;
+/* Add better spacing for mobile */
+@media (max-width: 768px) {
+  .container-xl {
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
-/* Make video fill more space */
-.hero-video-container {
-  width: 100%;
-  aspect-ratio: 16/9;
+/* Add spacing for buttons and controls */
+.hero-controls {
+  margin-bottom: 2rem;
 }
 
-/* Style for nav buttons to show better against the wider background */
-.hero-nav-button {
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+/* Ensure buttons don't overlap with indicators */
+@media (max-width: 640px) {
+  .hero-actions {
+    margin-bottom: 3rem;
+  }
+  
+  .hero-indicators {
+    bottom: 1.5rem;
+  }
 }
-
