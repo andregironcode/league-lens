@@ -3,11 +3,19 @@ import { useState, useEffect } from 'react';
 import { format, addDays, isSameDay } from 'date-fns';
 
 interface DayNavigationProps {
-  onSelectDay: (date: Date) => void;
+  onSelectDay?: (date: Date) => void;
+  currentDate?: Date;
+  onPreviousDay?: () => void;
+  onNextDay?: () => void;
 }
 
-const DayNavigation = ({ onSelectDay }: DayNavigationProps) => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+const DayNavigation = ({ 
+  onSelectDay, 
+  currentDate, 
+  onPreviousDay, 
+  onNextDay 
+}: DayNavigationProps) => {
+  const [selectedDate, setSelectedDate] = useState(currentDate || new Date());
   const [days, setDays] = useState<Date[]>([]);
 
   useEffect(() => {
@@ -19,9 +27,17 @@ const DayNavigation = ({ onSelectDay }: DayNavigationProps) => {
     setDays(daysArray);
   }, []);
 
+  useEffect(() => {
+    if (currentDate) {
+      setSelectedDate(currentDate);
+    }
+  }, [currentDate]);
+
   const handleSelectDay = (date: Date) => {
     setSelectedDate(date);
-    onSelectDay(date);
+    if (onSelectDay) {
+      onSelectDay(date);
+    }
   };
 
   return (
