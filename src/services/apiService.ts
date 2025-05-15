@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { MatchHighlight, League } from '@/types';
+import { MatchHighlight, League, Team, TableRow, Fixture, TeamDetails } from '@/types';
 
 // Function to fetch highlights from our Supabase Edge Function
 export const fetchHighlightsFromApi = async (matchId?: string): Promise<any> => {
