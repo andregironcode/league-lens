@@ -3,6 +3,7 @@ export interface Team {
   id: string;
   name: string;
   logo: string;
+  [key: string]: any;
 }
 
 export interface MatchHighlight {
@@ -44,6 +45,7 @@ export interface TableRow {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
+  [key: string]: any;
 }
 
 export interface Fixture {
@@ -53,6 +55,11 @@ export interface Fixture {
   date: string;
   competition: string;
   venue?: string;
+  score?: {
+    home: number;
+    away: number;
+  };
+  [key: string]: any;
 }
 
 export interface TeamDetails {
@@ -63,4 +70,5 @@ export interface TeamDetails {
   leagueTable: TableRow[];
   europeanTable: TableRow[];
   fixtures: Fixture[];
+  [key: string]: any;
 }
