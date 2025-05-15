@@ -17,13 +17,15 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch recommended highlights
+        // Fetch recommended highlights - these will be the most recent ones from the API
         const recommendedData = await getRecommendedHighlights();
+        console.log('Fetched recommended highlights:', recommendedData);
         setRecommendedHighlights(recommendedData);
         setLoading(prev => ({ ...prev, recommended: false }));
 
-        // Fetch league highlights
+        // Fetch league highlights - grouped by competition
         const leaguesData = await getLeagueHighlights();
+        console.log('Fetched league highlights:', leaguesData);
         setLeagues(leaguesData);
         setLoading(prev => ({ ...prev, leagues: false }));
       } catch (error) {
@@ -83,9 +85,15 @@ const Index = () => {
                   ))}
                 </div>
               )
-              : leagues.map(league => (
-                <LeagueSection key={league.id} league={league} />
-              ))
+              : leagues.length > 0 ? (
+                  leagues.map(league => (
+                    <LeagueSection key={league.id} league={league} />
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-xl text-gray-400">No league highlights found</p>
+                  </div>
+                )
             }
           </div>
         </section>

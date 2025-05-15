@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
@@ -7,93 +8,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 interface HeroCarouselProps {
   highlights: MatchHighlight[];
 }
-
-const exampleGames: MatchHighlight[] = [
-  {
-    id: "1",
-    title: "Manchester City vs Arsenal",
-    date: new Date().toISOString(),
-    thumbnailUrl: "https://e0.365dm.com/23/04/768x432/skysports-arsenal-manchester-city_6131683.jpg?20230426210634",
-    videoUrl: "https://www.youtube.com/watch?v=38qkI3jAl68",
-    duration: "10:25",
-    views: 1500000,
-    homeTeam: {
-      id: "65",
-      name: "Manchester City",
-      logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg"
-    },
-    awayTeam: {
-      id: "57",
-      name: "Arsenal",
-      logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg"
-    },
-    score: {
-      home: 4,
-      away: 1
-    },
-    competition: {
-      id: "1",
-      name: "Premier League",
-      logo: "/competitions/premier-league.png"
-    }
-  },
-  {
-    id: "2",
-    title: "Real Madrid vs Barcelona",
-    date: new Date().toISOString(),
-    thumbnailUrl: "https://cdn.wearefanatics.com/resources/products/football/barcelona-vs-real-madrid.png",
-    videoUrl: "https://www.youtube.com/watch?v=MFb7LCqm6FE",
-    duration: "11:40",
-    views: 2300000,
-    homeTeam: {
-      id: "541",
-      name: "Real Madrid",
-      logo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg"
-    },
-    awayTeam: {
-      id: "529",
-      name: "Barcelona",
-      logo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg"
-    },
-    score: {
-      home: 3,
-      away: 2
-    },
-    competition: {
-      id: "2",
-      name: "La Liga",
-      logo: "/competitions/la-liga.png"
-    }
-  },
-  {
-    id: "3",
-    title: "Borussia Dortmund vs Bayern Munich",
-    date: new Date().toISOString(),
-    thumbnailUrl: "https://e0.365dm.com/22/10/768x432/skysports-bundesliga-bayern-munich_5922057.jpg?20221008170713",
-    videoUrl: "https://www.youtube.com/watch?v=sApmPP5ku5k",
-    duration: "9:15",
-    views: 1800000,
-    homeTeam: {
-      id: "16",
-      name: "Borussia Dortmund",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg"
-    },
-    awayTeam: {
-      id: "14",
-      name: "Bayern Munich",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg"
-    },
-    score: {
-      home: 2,
-      away: 2
-    },
-    competition: {
-      id: "3",
-      name: "Bundesliga",
-      logo: "/competitions/bundesliga.png"
-    }
-  }
-];
 
 const getShortTeamName = (fullName: string): string => {
   const teamMappings: Record<string, string> = {
@@ -119,13 +33,12 @@ const getShortTeamName = (fullName: string): string => {
   return teamMappings[fullName] || fullName;
 };
 
-const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
+const HeroCarousel = ({ highlights }: HeroCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const navigate = useNavigate();
 
-  const highlights = exampleGames;
   const currentHighlight = highlights[currentIndex];
 
   useEffect(() => {
@@ -182,6 +95,39 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
   const handleCloseComments = () => {
     setShowComments(false);
   };
+  
+  // Format the relative date
+  const formatRelativeDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      
+      if (diffHrs < 1) return 'Just now';
+      if (diffHrs < 24) return `${diffHrs} hour${diffHrs > 1 ? 's' : ''} ago`;
+      
+      const diffDays = Math.floor(diffHrs / 24);
+      if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      
+      const diffMonths = Math.floor(diffDays / 30);
+      return `${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
+    } catch (e) {
+      return 'Recently';
+    }
+  };
+
+  // If no highlights available, show a loading state
+  if (!highlights || highlights.length === 0 || !currentHighlight) {
+    return (
+      <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[450px] sm:min-h-[550px] border border-highlight-700/10 animate-pulse">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/70 to-transparent z-10"></div>
+        <div className="flex items-center justify-center h-full">
+          <p className="text-white/50 text-xl">Loading highlights...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[450px] sm:min-h-[550px] border border-highlight-700/10">
@@ -198,6 +144,10 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
           src={currentHighlight.thumbnailUrl}
           alt=""
           className="w-full h-full object-cover opacity-40"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop";
+          }}
         />
       </div>
 
@@ -274,7 +224,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
           </div>
           
           <div className="flex items-center justify-center mb-4">
-            <p className="text-white/70 text-sm">2 hours ago</p>
+            <p className="text-white/70 text-sm">{formatRelativeDate(currentHighlight.date)}</p>
             <span className="mx-2 text-white/40">•</span>
             <p 
               className="text-white/70 text-sm hover:text-[#FFC30B] cursor-pointer transition-colors"
@@ -367,7 +317,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </div>
 
             <div className="flex items-center justify-center mb-4">
-              <p className="text-white/70">2 hours ago</p>
+              <p className="text-white/70">{formatRelativeDate(currentHighlight.date)}</p>
               <span className="mx-2 text-white/40">•</span>
               <p 
                 className="text-white/70 hover:text-[#FFC30B] cursor-pointer transition-colors"
@@ -407,35 +357,39 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
-        {highlights.map((_, index) => (
-          <button
-            key={index}
-            className={`h-3 rounded-full transition-all ${
-              index === currentIndex ? "bg-[#FFC30B] w-8" : "bg-white/50 w-3"
-            }`}
-            onClick={() => setCurrentIndex(index)}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
+      {highlights.length > 1 && (
+        <>
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
+            {highlights.map((_, index) => (
+              <button
+                key={index}
+                className={`h-3 rounded-full transition-all ${
+                  index === currentIndex ? "bg-[#FFC30B] w-8" : "bg-white/50 w-3"
+                }`}
+                onClick={() => setCurrentIndex(index)}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
 
-      <button
-        className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
-        onClick={handlePrevSlide}
-        aria-label="Previous slide"
-        style={{ marginTop: "40px" }}
-      >
-        <ChevronLeft className="w-6 h-6" />
-      </button>
-      <button
-        className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
-        onClick={handleNextSlide}
-        aria-label="Next slide"
-        style={{ marginTop: "40px" }}
-      >
-        <ChevronRight className="w-6 h-6" />
-      </button>
+          <button
+            className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
+            onClick={handlePrevSlide}
+            aria-label="Previous slide"
+            style={{ marginTop: "40px" }}
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button
+            className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 flex items-center justify-center text-white z-30 hover:bg-black/80 transition-colors"
+            onClick={handleNextSlide}
+            aria-label="Next slide"
+            style={{ marginTop: "40px" }}
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </>
+      )}
 
       <Dialog open={showComments} onOpenChange={handleCloseComments}>
         <DialogContent className="sm:max-w-md bg-[#222222] border-gray-700">
