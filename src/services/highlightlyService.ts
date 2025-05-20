@@ -17,17 +17,14 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   const fullUrl = url.toString();
   
   // Log the request details for debugging
-  console.log(`🔍 Proxy API Request:
-  URL: ${fullUrl}
-  Method: GET
-  Target: https://soccer.highlightly.net${endpoint}`);
+  console.log(`🔍 API Request to: ${fullUrl}`);
   
   try {
-    // No need to include headers as proxy handles authentication
+    // Make the request - the proxy automatically adds the Authorization header
     const response = await fetch(fullUrl);
     
-    // Log response details for debugging
-    console.log(`📥 Proxy Response Status: ${response.status} ${response.statusText}`);
+    // Log response details
+    console.log(`📥 API Response: ${response.status} ${response.statusText}`);
     
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text available');
@@ -35,26 +32,22 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
-    // Check the content type to handle different response formats
+    // Check for JSON content type
     const contentType = response.headers.get('content-type');
-    console.log(`Content-Type: ${contentType}`);
+    console.log(`Content-Type: ${contentType || 'not specified'}`);
     
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
       console.log(`✅ API Response (${endpoint}): Success`);
       return data;
     } else {
-      // If not JSON, log the response body to help debug
+      // If not JSON, log the response body
       const textResponse = await response.text();
-      console.error('❌ Received non-JSON response:', textResponse.substring(0, 500) + '...');
+      console.error('❌ Received non-JSON response:', textResponse.substring(0, 500) + (textResponse.length > 500 ? '...' : ''));
       throw new Error('API returned non-JSON response');
     }
   } catch (error) {
     console.error('❌ Error fetching from API:', error);
-    // Check for network connectivity issues vs API errors
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      console.error('🌐 Network error: Check your internet connection or proxy settings');
-    }
     throw error;
   }
 }

@@ -16,16 +16,21 @@ export default defineConfig(({ mode }) => ({
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
           proxy.on('proxyReq', function(proxyReq, req, _res) {
-            // Add the Authorization header with Bearer prefix to each request
-            proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+            // Set the Authorization header with Bearer prefix
+            const authHeader = 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed';
+            proxyReq.setHeader('Authorization', authHeader);
             
-            // Log the complete outgoing request headers for debugging
-            const headers = proxyReq.getHeaders();
-            console.log('🔐 Proxy outgoing request headers to Highlightly:', 
-              Object.fromEntries(Object.entries(headers))
-            );
-            
+            // Log the complete request including URL
             console.log(`🚀 Forwarding ${req.method} ${req.url} to Highlightly`);
+            
+            // Log all outgoing request headers for debugging
+            const headers = {};
+            const headerNames = proxyReq.getHeaderNames();
+            headerNames.forEach(name => {
+              headers[name] = proxyReq.getHeader(name);
+            });
+            
+            console.log('🔐 Proxy outgoing request headers to Highlightly:', headers);
           });
           
           proxy.on('proxyRes', function(proxyRes, req, _res) {
@@ -40,7 +45,7 @@ export default defineConfig(({ mode }) => ({
             if (statusCode >= 400) {
               let responseBody = '';
               proxyRes.on('data', (chunk) => {
-                responseBody += chunk;
+                responseBody += chunk.toString('utf8');
               });
               
               proxyRes.on('end', () => {
