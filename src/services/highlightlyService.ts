@@ -1,14 +1,11 @@
 import { MatchHighlight, League, Team } from '@/types';
 
-// Direct API URL instead of using a proxy
-const API_BASE_URL = 'https://soccer.highlightly.net';
+// Use Supabase Edge Function as a proxy instead of direct API access
+const PROXY_URL = 'https://cctqwyhoryahdauqcetf.supabase.co/functions/v1/highlightly-proxy';
 
-// API authorization token
-const API_TOKEN = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
-
-// Helper function to make authenticated requests directly to the Highlightly API
+// Helper function to make authenticated requests via our proxy
 async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}) {
-  const url = new URL(`${API_BASE_URL}${endpoint}`);
+  const url = new URL(`${PROXY_URL}${endpoint}`);
   
   // Add query parameters
   Object.keys(params).forEach(key => {
@@ -20,13 +17,12 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   const fullUrl = url.toString();
   
   // Log the request details for debugging
-  console.log(`🔍 API Request to: ${fullUrl}`);
+  console.log(`🔍 API Request via proxy to: ${endpoint}`);
   
   try {
-    // Make the request with all headers included directly
+    // Make the request through our proxy
     const response = await fetch(fullUrl, {
       headers: {
-        'Authorization': `Bearer ${API_TOKEN}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
@@ -40,7 +36,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
       
       if (response.status === 403) {
-        console.error('💡 403 FORBIDDEN - Authorization header might be incorrect. Check API token.');
+        console.error('💡 403 FORBIDDEN - Authorization might be incorrect. Check API token in Supabase secrets.');
       }
       
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -401,15 +397,14 @@ export async function checkHighlightGeoRestrictions(highlightId: string): Promis
   }
 }
 
-// Update the debug function to make a test request with explicit headers to the direct API
+// Update the test function to check connection with the proxy
 export async function testApiConnection(): Promise<{success: boolean, message: string, details?: any}> {
   try {
-    console.log('🔍 Testing direct API connection to Highlightly...');
+    console.log('🔍 Testing Edge Function proxy connection to Highlightly...');
     
-    // Make a simple request directly to the Highlightly API
-    const response = await fetch(`${API_BASE_URL}/highlights?limit=1`, {
+    // Make a simple request to our proxy
+    const response = await fetch(`${PROXY_URL}/highlights?limit=1`, {
       headers: {
-        'Authorization': `Bearer ${API_TOKEN}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
@@ -435,7 +430,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
     if (response.ok) {
       return {
         success: true,
-        message: `API connection successful (${response.status} ${response.statusText})`,
+        message: `Proxy connection successful (${response.status} ${response.statusText})`,
         details: {
           contentType: response.headers.get('content-type'),
           dataPreview: jsonData ? 'Valid JSON received' : 'Invalid JSON format',
@@ -445,11 +440,11 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
     } else {
       return {
         success: false,
-        message: `API error: ${response.status} ${response.statusText}`,
+        message: `Proxy error: ${response.status} ${response.statusText}`,
         details: {
           responseText: text.substring(0, 500),
           headers: responseHeaders,
-          errorType: response.status === 403 ? 'Authorization Error - Check API token format' : 'API Error'
+          errorType: response.status === 403 ? 'API Key Error - Check Supabase secret' : 'Proxy Error'
         }
       };
     }
