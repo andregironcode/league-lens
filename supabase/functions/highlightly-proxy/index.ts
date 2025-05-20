@@ -48,39 +48,46 @@ serve(async (req) => {
 
     console.log(`Proxying request to: ${targetUrl}`);
 
-    // Log the headers we're about to send for debugging
-    console.log('Sending request with headers:', {
-      'API Key Header': 'c05d22e5-9a84-4a95-83c7-77ef598647ed',
-      'API Key Value': apiToken ? `${apiToken.substring(0, 5)}...` : 'missing'
-    });
-
-    // Forward the request to the Highlightly API with the correct header
-    // According to the documentation, the API key should be sent as the value 
-    // of a header named exactly 'c05d22e5-9a84-4a95-83c7-77ef598647ed'
-    const headers: Record<string, string> = {
+    // Important: According to Highlightly documentation, we need to set the API key as the 
+    // value of a header with the name 'c05d22e5-9a84-4a95-83c7-77ef598647ed'
+    const apiKeyHeaderName = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
+    
+    // Log the headers for debugging
+    console.log(`Setting up headers with API key header: ${apiKeyHeaderName}`);
+    
+    // Create headers object with the API key header
+    const headers = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
+      [apiKeyHeaderName]: apiToken  // Set the API key as the value of the specific header name
     };
     
-    // Set the API key as a header with the specific name required by Highlightly
-    headers['c05d22e5-9a84-4a95-83c7-77ef598647ed'] = apiToken;
+    console.log('Final request headers:', Object.keys(headers).join(', '));
     
+    // Forward the request to the Highlightly API
     const response = await fetch(targetUrl.toString(), {
       method: req.method,
       headers: headers,
       body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined,
     });
 
-    // Log response status
     console.log(`Highlightly API response: ${response.status} ${response.statusText}`);
+    
+    // Log any headers in the response for debugging
+    console.log('Response headers:', [...response.headers.entries()].map(([k, v]) => `${k}: ${v}`).join(', '));
 
     // Read the response body
     const responseBody = await response.text();
     
-    // Try to parse JSON to check if it's valid
+    // Try to parse JSON to check if it's valid and log for debugging
     try {
-      JSON.parse(responseBody);
-      console.log('Response contains valid JSON');
+      const jsonResponse = JSON.parse(responseBody);
+      console.log('Response contains valid JSON:', JSON.stringify(jsonResponse).substring(0, 200));
+      
+      // Check for specific error messages that might help debugging
+      if (jsonResponse.error || jsonResponse.message) {
+        console.error('API error message:', jsonResponse.error || jsonResponse.message);
+      }
     } catch (e) {
       console.log('Response is not valid JSON:', responseBody.substring(0, 200));
     }
