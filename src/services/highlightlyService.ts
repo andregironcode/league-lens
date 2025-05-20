@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League, Team } from '@/types';
 
 // Use Supabase Edge Function as a proxy instead of direct API access
@@ -471,7 +470,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
           message: `API Error: ${jsonData.error}`,
           details: {
             errorType: jsonData.error.includes("Missing mandatory HTTP Headers") 
-              ? "Authentication Error - Check API key and header format" 
+              ? "Authentication Error - Check API key and header format in Edge Function" 
               : "API Error Response",
             status: response.status,
             responseData: jsonData
@@ -501,7 +500,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
           responseText: text.substring(0, 500),
           headers: responseHeaders,
           errorType: response.status === 403 
-            ? 'API Authentication Error - Check API key and header format' 
+            ? 'API Authentication Error - Check API key and header format in Edge Function' 
             : `HTTP Error ${response.status}`
         }
       };

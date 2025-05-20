@@ -96,8 +96,8 @@ serve(async (req) => {
     console.log(`Proxying request to: ${targetUrl}`);
 
     // CRITICAL: According to Highlightly documentation for direct subscription,
-    // we need to set the API key as the VALUE of a header with the exact name 'c05d22e5-9a84-4a95-83c7-77ef598647ed'
-    const apiKeyHeaderName = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
+    // we need to use the API key as a header with name c05d22e5-9a84-4a95-83c7-77ef598647ed
+    // Note: The apiToken (API key) should be the VALUE of the header, not the name
     
     // Create headers object with all required headers
     const headers = {
@@ -108,10 +108,11 @@ serve(async (req) => {
       'Referer': 'https://cctqwyhoryahdauqcetf.supabase.co',
     };
     
-    // Set the API key as the value of the special header name
-    headers[apiKeyHeaderName] = apiToken.trim(); // Ensure no whitespace
+    // IMPORTANT: For direct Highlightly subscribers, use c05d22e5-9a84-4a95-83c7-77ef598647ed as the header name
+    // This is different from RapidAPI subscription which would use x-rapidapi-key
+    headers['c05d22e5-9a84-4a95-83c7-77ef598647ed'] = apiToken.trim(); // Ensure no whitespace
     
-    console.log('Headers prepared:', JSON.stringify(Object.keys(headers)));
+    console.log('Headers prepared with specific keys:', Object.keys(headers).join(', '));
     
     // Forward the request to the Highlightly API with retry mechanism
     const response = await fetchWithRetry(targetUrl.toString(), {
