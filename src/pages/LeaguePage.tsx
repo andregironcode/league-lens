@@ -1,15 +1,15 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getLeagueHighlights, fetchPremierLeagueFromScoreBat } from '@/services/highlightService';
-import { League, MatchHighlight, ScoreBatMatch } from '@/types';
+import { getLeagueHighlights } from '@/services/highlightService';
+import { League, MatchHighlight, HighlightlyMatch, HighlightlyHighlight } from '@/types';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
-import ScoreBatHighlightCard from '@/components/ScoreBatHighlightCard';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import HighlightlyMatchCard from '@/components/HighlightlyMatchCard';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { format } from 'date-fns';
+import { getMatches } from '@/services/highlightlyService';
 
 const getCountryFlag = (leagueId: string): string => {
   const flagMap: Record<string, string> = {
@@ -31,8 +31,8 @@ const LeaguePage = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const [league, setLeague] = useState<League | null>(null);
   const [loading, setLoading] = useState(true);
-  const [scoreBatMatches, setScoreBatMatches] = useState<ScoreBatMatch[]>([]);
-  const [scoreBatLoading, setScoreBatLoading] = useState(false);
+  const [highlightlyMatches, setHighlightlyMatches] = useState<HighlightlyMatch[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,7 +47,7 @@ const LeaguePage = () => {
         setLoading(false);
         
         if (leagueId === 'pl') {
-          fetchScoreBatMatches();
+          fetchHighlightlyMatches();
         }
       } catch (error) {
         console.error('Error fetching league data:', error);
@@ -58,36 +58,39 @@ const LeaguePage = () => {
     fetchLeagueData();
   }, [leagueId]);
 
-  const fetchScoreBatMatches = async () => {
+  const fetchHighlightlyMatches = async () => {
     if (leagueId !== 'pl') {
       toast({
         title: "API Limited",
-        description: "ScoreBat API integration is only available for Premier League",
+        description: "Highlightly API integration is only available for Premier League",
         variant: "destructive"
       });
       return;
     }
 
-    setScoreBatLoading(true);
+    setMatchesLoading(true);
     try {
-      const data = await fetchPremierLeagueFromScoreBat();
-      if (data && data.response) {
-        setScoreBatMatches(data.response);
+      // Get today's matches for the selected league
+      const today = new Date().toISOString().split('T')[0];
+      const data = await getMatches(today, leagueId);
+      
+      if (data && Array.isArray(data)) {
+        setHighlightlyMatches(data);
         toast({
           title: "Live Matches Loaded",
-          description: `Loaded ${data.response.length} matches from ScoreBat API`,
+          description: `Loaded ${data.length} matches from Highlightly API`,
           variant: "default"
         });
       }
     } catch (error) {
-      console.error('Error fetching ScoreBat matches:', error);
+      console.error('Error fetching Highlightly matches:', error);
       toast({
         title: "API Error",
-        description: "Failed to load matches from ScoreBat API",
+        description: "Failed to load matches from Highlightly API",
         variant: "destructive"
       });
     } finally {
-      setScoreBatLoading(false);
+      setMatchesLoading(false);
     }
   };
 
@@ -138,15 +141,15 @@ const LeaguePage = () => {
                     <h2 className="text-2xl font-bold text-white">Live Matches</h2>
                     <Button 
                       variant="outline" 
-                      onClick={fetchScoreBatMatches}
-                      disabled={scoreBatLoading}
+                      onClick={fetchHighlightlyMatches}
+                      disabled={matchesLoading}
                       size="sm"
                     >
-                      {scoreBatLoading ? 'Refreshing...' : 'Refresh Matches'}
+                      {matchesLoading ? 'Refreshing...' : 'Refresh Matches'}
                     </Button>
                   </div>
                   
-                  {scoreBatLoading && scoreBatMatches.length === 0 ? (
+                  {matchesLoading && highlightlyMatches.length === 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="animate-pulse">
@@ -156,11 +159,22 @@ const LeaguePage = () => {
                         </div>
                       ))}
                     </div>
-                  ) : scoreBatMatches.length > 0 ? (
+                  ) : highlightlyMatches.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {scoreBatMatches.map((match, index) => (
+                      {highlightlyMatches.map((match, index) => (
                         <div key={index} className="transform transition-all duration-300 hover:scale-105">
-                          <ScoreBatHighlightCard match={match} />
+                          <HighlightlyMatchCard highlight={{
+                            id: match.id,
+                            title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
+                            date: match.date,
+                            thumbnailUrl: '', // Matches don't have thumbnails but highlights do
+                            embedUrl: '', // Matches don't have video URLs
+                            homeTeam: match.homeTeam,
+                            awayTeam: match.awayTeam,
+                            homeGoals: match.score.fullTime.home,
+                            awayGoals: match.score.fullTime.away,
+                            competition: match.competition
+                          }} />
                         </div>
                       ))}
                     </div>
