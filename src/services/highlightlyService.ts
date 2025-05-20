@@ -1,4 +1,3 @@
-
 import { MatchHighlight, League, Team } from '@/types';
 
 // Use our local proxy instead of direct API calls
@@ -22,6 +21,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   
   try {
     // Make the request - the proxy automatically adds the Authorization header
+    // Important: DO NOT add Authorization header here - it's added by the proxy
     const response = await fetch(fullUrl, {
       headers: {
         'Accept': 'application/json',
@@ -37,7 +37,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
       
       if (response.status === 403) {
-        console.error('💡 This is likely an authorization issue. Check that the Authorization header is correctly sent with Bearer token.');
+        console.error('💡 403 FORBIDDEN - Authorization failure. Check server logs for details on headers being sent.');
       }
       
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -404,6 +404,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
     console.log('🔍 Testing API connection to Highlightly...');
     
     // Make a simple request to the highlights endpoint with limit=1
+    // IMPORTANT: DO NOT add Authorization here, it should be added by the proxy
     const response = await fetch('/api/highlights?limit=1', {
       headers: {
         'Accept': 'application/json',
@@ -445,7 +446,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
         details: {
           responseText: text.substring(0, 500),
           headers: responseHeaders,
-          errorType: response.status === 403 ? 'Authorization Error - Check Bearer token format' : 'API Error'
+          errorType: response.status === 403 ? 'Authorization Error - The proxy may not be forwarding the Authorization header correctly' : 'API Error'
         }
       };
     }
