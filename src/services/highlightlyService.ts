@@ -2,11 +2,6 @@ import { MatchHighlight, League, Team } from '@/types';
 
 // Use our local proxy instead of direct API calls
 const API_BASE_URL = '/api';
-// API key is now handled by the proxy server
-const API_KEY = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
-
-// Control flag to disable mock data
-const USE_MOCK_DATA = false;
 
 // Helper function to make authenticated requests to the Highlightly API via our proxy
 async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}) {
