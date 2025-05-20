@@ -2,7 +2,7 @@
 import { MatchHighlight, League, Team } from '@/types';
 
 const API_BASE_URL = 'https://soccer.highlightly.net';
-const API_KEY = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
+const API_KEY = 'c05d22e5-9aa5-4a95-83c7-77ef598647ed';
 
 // Control flag to disable mock data
 const USE_MOCK_DATA = false;
@@ -19,14 +19,21 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   });
   
   const fullUrl = url.toString();
-  console.log(`🔍 Highlightly API Request: ${fullUrl}`);
+  
+  // Log the full request details for debugging
+  const headers = {
+    'Authorization': `Bearer ${API_KEY}`
+  };
+  
+  console.log(`🔍 Highlightly API Request:
+  URL: ${fullUrl}
+  Headers: ${JSON.stringify(headers, null, 2)}
+  Method: GET`);
   
   try {
-    // Using the direct API key as header value (no Bearer prefix) as specified in the updated knowledge
+    // Using Bearer prefix with API key as specified in the documentation
     const response = await fetch(fullUrl, {
-      headers: {
-        'Authorization': API_KEY
-      }
+      headers: headers
     });
     
     // Log full response details for debugging
@@ -39,7 +46,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     }
     
     const data = await response.json();
-    console.log(`✅ Highlightly API Response (${endpoint}):`, data);
+    console.log(`✅ Highlightly API Response (${endpoint}): ${JSON.stringify(data).substring(0, 500)}...`);
     return data;
   } catch (error) {
     console.error('❌ Error fetching from Highlightly API:', error);
