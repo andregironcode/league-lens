@@ -1,8 +1,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// The RapidAPI base URL for the Football Highlights API
-const API_BASE_URL = "https://football-highlights-api.p.rapidapi.com";
+// The Highlightly API base URL
+const API_BASE_URL = "https://soccer.highlightly.net";
 
 // CORS headers to allow cross-origin requests
 const corsHeaders = {
@@ -50,17 +50,20 @@ serve(async (req) => {
 
     // Log the headers we're about to send for debugging
     console.log('Sending request with headers:', {
-      'x-rapidapi-key': apiToken ? `${apiToken.substring(0, 5)}...` : 'missing',
-      'x-rapidapi-host': 'football-highlights-api.p.rapidapi.com'
+      'API Key Header': 'c05d22e5-9a84-4a95-83c7-77ef598647ed',
+      'API Key Value': apiToken ? `${apiToken.substring(0, 5)}...` : 'missing'
     });
 
-    // Forward the request to the API with the RapidAPI headers
+    // Forward the request to the Highlightly API with the correct header
+    // According to the documentation, the API key should be sent as the value 
+    // of a header named exactly 'c05d22e5-9a84-4a95-83c7-77ef598647ed'
     const headers: Record<string, string> = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'x-rapidapi-key': apiToken,
-      'x-rapidapi-host': 'football-highlights-api.p.rapidapi.com'
     };
+    
+    // Set the API key as a header with the specific name required by Highlightly
+    headers['c05d22e5-9a84-4a95-83c7-77ef598647ed'] = apiToken;
     
     const response = await fetch(targetUrl.toString(), {
       method: req.method,
@@ -69,7 +72,7 @@ serve(async (req) => {
     });
 
     // Log response status
-    console.log(`API response: ${response.status} ${response.statusText}`);
+    console.log(`Highlightly API response: ${response.status} ${response.statusText}`);
 
     // Read the response body
     const responseBody = await response.text();
