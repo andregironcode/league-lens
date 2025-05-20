@@ -1,3 +1,4 @@
+
 import { MatchHighlight, League, Team } from '@/types';
 
 // Use Supabase Edge Function as a proxy instead of direct API access
@@ -43,8 +44,9 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
         if (response.status === 403) {
           console.error('💡 403 FORBIDDEN - Authentication error with Highlightly Direct Access API. Make sure:');
           console.error('  1. The API key is valid and active');
-          console.error('  2. The API key is correctly set as the VALUE of a header named "c05d22e5-9a84-4a95-83c7-77ef598647ed"');
-          console.error('  3. The header name is exactly as shown above (case sensitive)');
+          console.error('  2. The header format in the Edge Function is correct:');
+          console.error('     - Header name must be exactly: "c05d22e5-9a84-4a95-83c7-77ef598647ed"');
+          console.error('     - Header value must be your Highlightly API key');
         }
         
         // If we get a 429 (rate limit) or 5xx (server error), retry after a delay
@@ -470,7 +472,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
           message: `API Error: ${jsonData.error}`,
           details: {
             errorType: jsonData.error.includes("Missing mandatory HTTP Headers") 
-              ? "Authentication Error - Check API key and header format in Edge Function" 
+              ? "Authentication Error - Check header format in Edge Function (header name must be exactly 'c05d22e5-9a84-4a95-83c7-77ef598647ed')" 
               : "API Error Response",
             status: response.status,
             responseData: jsonData
@@ -500,7 +502,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
           responseText: text.substring(0, 500),
           headers: responseHeaders,
           errorType: response.status === 403 
-            ? 'API Authentication Error - Check API key and header format in Edge Function' 
+            ? 'API Authentication Error - Check header format in Edge Function (header name must be exactly "c05d22e5-9a84-4a95-83c7-77ef598647ed")' 
             : `HTTP Error ${response.status}`
         }
       };

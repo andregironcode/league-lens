@@ -95,9 +95,9 @@ serve(async (req) => {
 
     console.log(`Proxying request to: ${targetUrl}`);
 
-    // CRITICAL: According to Highlightly documentation for direct subscription,
-    // we need to use the API key as a header with name c05d22e5-9a84-4a95-83c7-77ef598647ed
-    // Note: The apiToken (API key) should be the VALUE of the header, not the name
+    // IMPORTANT: According to the Highlightly documentation for direct API access subscription,
+    // The API key (c05d22e5-9a84-4a95-83c7-77ef598647ed) is actually a fixed header NAME, 
+    // not the value. We must use it as the header name, and set our actual API token as its value.
     
     // Create headers object with all required headers
     const headers = {
@@ -108,11 +108,11 @@ serve(async (req) => {
       'Referer': 'https://cctqwyhoryahdauqcetf.supabase.co',
     };
     
-    // IMPORTANT: For direct Highlightly subscribers, use c05d22e5-9a84-4a95-83c7-77ef598647ed as the header name
-    // This is different from RapidAPI subscription which would use x-rapidapi-key
+    // CRITICAL: For direct Highlightly API access, we must use the fixed header name 
+    // 'c05d22e5-9a84-4a95-83c7-77ef598647ed' with our API token as its value
     headers['c05d22e5-9a84-4a95-83c7-77ef598647ed'] = apiToken.trim(); // Ensure no whitespace
     
-    console.log('Headers prepared with specific keys:', Object.keys(headers).join(', '));
+    console.log(`Headers prepared with keys: ${Object.keys(headers).join(', ')}`);
     
     // Forward the request to the Highlightly API with retry mechanism
     const response = await fetchWithRetry(targetUrl.toString(), {
@@ -143,7 +143,10 @@ serve(async (req) => {
         
         // Add specific error handling for common error messages
         if (jsonResponse.error && jsonResponse.error.includes("Missing mandatory HTTP Headers")) {
-          console.error('CRITICAL: Authentication header issue detected. The API requires the exact header name "c05d22e5-9a84-4a95-83c7-77ef598647ed" with the API key as its value.');
+          console.error('CRITICAL: Authentication header issue detected.');
+          console.error('The Highlightly API requires a specific header format:');
+          console.error('Header name: "c05d22e5-9a84-4a95-83c7-77ef598647ed" (fixed string)');
+          console.error('Header value: The API key obtained from Highlightly');
           console.error('Current headers sent:', JSON.stringify(Object.keys(headers)));
         }
       }
