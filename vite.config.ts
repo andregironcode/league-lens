@@ -16,8 +16,8 @@ export default defineConfig(({ mode }) => ({
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
           proxy.on('proxyReq', function(proxyReq, req, _res) {
-            // Add the Authorization header to each request
-            proxyReq.setHeader('Authorization', 'c05d22e5-9a84-4a95-83c7-77ef598647ed');
+            // Add the Authorization header with Bearer prefix to each request
+            proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
             
             // Log the complete outgoing request headers for debugging
             const headers = proxyReq.getHeaders();

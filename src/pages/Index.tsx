@@ -19,11 +19,12 @@ const Index = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [useMockData, setUseMockData] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [useMockData]);
 
   const fetchData = async () => {
     try {
@@ -35,46 +36,67 @@ const Index = () => {
         leagues: true
       });
       
-      // Fetch recommended highlights
-      console.log("🔍 Fetching recommended highlights...");
-      const recommendedData = await getRecentHighlights(5);
-      
-      if (recommendedData.length === 0) {
-        console.warn("⚠️ No recommended highlights received from API");
-        toast({
-          title: "No Highlights Available",
-          description: "The API returned no highlights. This could be a temporary issue.",
-          variant: "destructive"
-        });
-      } else {
-        console.log(`✅ Retrieved ${recommendedData.length} recommended highlights`);
+      if (useMockData) {
+        // When mock data is explicitly requested, use it
+        importMockData();
+        return;
       }
       
-      setRecommendedHighlights(recommendedData);
-      setLoading(prev => ({ ...prev, recommended: false }));
+      // Fetch recommended highlights
+      console.log("🔍 Fetching recommended highlights...");
+      try {
+        const recommendedData = await getRecentHighlights(5);
+        
+        if (recommendedData.length === 0) {
+          console.warn("⚠️ No recommended highlights received from API");
+          toast({
+            title: "No Highlights Available",
+            description: "The API returned no highlights. This could be a temporary issue.",
+            variant: "destructive"
+          });
+        } else {
+          console.log(`✅ Retrieved ${recommendedData.length} recommended highlights`);
+          setRecommendedHighlights(recommendedData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch recommended highlights:', error);
+        setError('Failed to load highlights from Highlightly API. Please check the network tab for details.');
+        setDebugInfo(`Error details: ${error instanceof Error ? error.message : String(error)}`);
+        
+        toast({
+          title: "API Connection Error",
+          description: "Failed to fetch highlights. Check your network connection or try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(prev => ({ ...prev, recommended: false }));
+      }
 
       // Fetch league highlights
       console.log("🔍 Fetching league highlights...");
-      const leaguesData = await getHighlightsByLeague();
-      
-      if (leaguesData.length === 0) {
-        console.warn("⚠️ No leagues with highlights received from API");
-        toast({
-          title: "No Leagues Available",
-          description: "The API returned no leagues with highlights. This could be a temporary issue.",
-          variant: "destructive"
-        });
-      } else {
-        console.log(`✅ Retrieved ${leaguesData.length} leagues with highlights`);
+      try {
+        const leaguesData = await getHighlightsByLeague();
+        
+        if (leaguesData.length === 0) {
+          console.warn("⚠️ No leagues with highlights received from API");
+        } else {
+          console.log(`✅ Retrieved ${leaguesData.length} leagues with highlights`);
+          setLeagues(leaguesData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch league highlights:', error);
+        // Don't set the error state if we already have an error from recommended highlights
+        if (!error) {
+          setError('Failed to load league data from Highlightly API.');
+          setDebugInfo(`Error details: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      } finally {
+        setLoading(prev => ({ ...prev, leagues: false }));
       }
-      
-      setLeagues(leaguesData);
-      setLoading(prev => ({ ...prev, leagues: false }));
     } catch (error) {
-      console.error('❌ Error fetching highlights:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('❌ Error in fetch operation:', error);
       setError('Failed to load data from Highlightly API. Please check your network connection or try again later.');
-      setDebugInfo(`Error details: ${errorMessage}`);
+      setDebugInfo(`Error details: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setLoading({ recommended: false, leagues: false });
       
       toast({
@@ -83,6 +105,26 @@ const Index = () => {
         variant: "destructive"
       });
     }
+  };
+
+  // Import mock data when needed
+  const importMockData = () => {
+    import('@/services/highlightService').then(mockService => {
+      mockService.getRecommendedHighlights().then(mockHighlights => {
+        setRecommendedHighlights(mockHighlights);
+        setLoading(prev => ({ ...prev, recommended: false }));
+        
+        toast({
+          title: "Using Mock Data",
+          description: "Displaying mock highlights data",
+        });
+      });
+      
+      mockService.getLeagueHighlights().then(mockLeagues => {
+        setLeagues(mockLeagues);
+        setLoading(prev => ({ ...prev, leagues: false }));
+      });
+    });
   };
 
   // Helper function for skeleton loading
@@ -138,10 +180,7 @@ const Index = () => {
                     size="sm"
                     onClick={() => {
                       console.log('Debugging API Connection:');
-                      console.log('Proxy Setup:');
-                      console.log('- Frontend calls: /api/highlights');
-                      console.log('- Proxy target: https://soccer.highlightly.net/highlights');
-                      console.log('- Auth header: Authorization: Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+                      console.log('- Making test request to API with correct authorization header');
                       
                       // Make a test request to check headers
                       fetch('/api/highlights?limit=1')
@@ -156,6 +195,14 @@ const Index = () => {
                           console.log('Response preview:', 
                             text.length > 500 ? text.substring(0, 500) + '...' : text
                           );
+                          
+                          // Try to parse as JSON to see if it's valid
+                          try {
+                            JSON.parse(text);
+                            console.log('✅ Response is valid JSON');
+                          } catch (e) {
+                            console.error('❌ Response is not valid JSON:', e);
+                          }
                         })
                         .catch(err => console.error('Test request failed:', err));
                       
@@ -172,26 +219,13 @@ const Index = () => {
                     variant="secondary"
                     size="sm"
                     onClick={() => {
-                      // Show mock data
+                      setUseMockData(true);
                       setError(null);
                       setDebugInfo(null);
                       
-                      // Import mock data services
-                      import('@/services/highlightService').then(mockService => {
-                        mockService.getRecommendedHighlights().then(mockHighlights => {
-                          setRecommendedHighlights(mockHighlights);
-                          setLoading(prev => ({ ...prev, recommended: false }));
-                        });
-                        
-                        mockService.getLeagueHighlights().then(mockLeagues => {
-                          setLeagues(mockLeagues);
-                          setLoading(prev => ({ ...prev, leagues: false }));
-                        });
-                        
-                        toast({
-                          title: "Using Mock Data",
-                          description: "Switched to mock data while API issues are resolved",
-                        });
+                      toast({
+                        title: "Using Mock Data",
+                        description: "Switched to mock data while API issues are resolved",
                       });
                     }}
                   >

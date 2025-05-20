@@ -41,16 +41,13 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
-      console.log(`✅ API Response (${endpoint}): ${JSON.stringify(data).substring(0, 500)}...`);
+      console.log(`✅ API Response (${endpoint}): Success`);
       return data;
     } else {
       // If not JSON, log the response body to help debug
       const textResponse = await response.text();
       console.error('❌ Received non-JSON response:', textResponse.substring(0, 500) + '...');
-      
-      // Fallback to mock data temporarily if API isn't working
-      console.warn('⚠️ Falling back to mock data for now');
-      return [];
+      throw new Error('API returned non-JSON response');
     }
   } catch (error) {
     console.error('❌ Error fetching from API:', error);
@@ -99,30 +96,23 @@ export async function getRecentHighlights(limit = 10): Promise<MatchHighlight[]>
   try {
     console.log(`🔍 Fetching ${limit} recent highlights`);
     
-    // Try using the proxy first
-    try {
-      const data = await fetchFromAPI('/highlights', { limit: limit.toString() });
-      
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        console.warn('⚠️ No data returned from Highlightly API or empty array');
-        // If API returns empty array or invalid data, fall back to mock data
-        return getMockHighlights(limit);
-      }
-      
-      const transformedHighlights = data.map(transformHighlight);
-      console.log(`✅ Transformed ${transformedHighlights.length} highlights from API`);
-      return transformedHighlights;
-    } catch (error) {
-      console.error('❌ API request failed, falling back to mock data:', error);
-      return getMockHighlights(limit);
+    const data = await fetchFromAPI('/highlights', { limit: limit.toString() });
+    
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      console.warn('⚠️ No data returned from Highlightly API or empty array');
+      throw new Error('No highlights data available');
     }
+    
+    const transformedHighlights = data.map(transformHighlight);
+    console.log(`✅ Transformed ${transformedHighlights.length} highlights from API`);
+    return transformedHighlights;
   } catch (error) {
     console.error('❌ Error fetching recent highlights:', error);
-    return getMockHighlights(limit);
+    throw error; // Rethrow to handle in the component
   }
 }
 
-// Fallback mock data function
+// Fallback mock data function - only used when explicitly requested
 function getMockHighlights(limit = 10): MatchHighlight[] {
   console.log('📦 Using mock highlights data');
   const mockHighlights: MatchHighlight[] = [
@@ -193,47 +183,42 @@ export async function getHighlightsByLeague(): Promise<League[]> {
   try {
     console.log('🔍 Fetching highlights by league');
     
-    // Try getting data from API first
-    try {
-      const highlights = await getRecentHighlights(20);
+    // Get highlights from the API
+    const highlights = await getRecentHighlights(20);
+    
+    if (highlights.length === 0) {
+      console.warn('⚠️ No highlights available to group by league');
+      throw new Error('No highlights data available to group by league');
+    }
+    
+    // Group highlights by competition
+    const leagueMap = new Map<string, League>();
+    
+    highlights.forEach(highlight => {
+      const competitionId = highlight.competition.id;
       
-      if (highlights.length === 0) {
-        console.warn('⚠️ No highlights available to group by league');
-        return getMockLeagues();
+      if (!leagueMap.has(competitionId)) {
+        leagueMap.set(competitionId, {
+          id: competitionId,
+          name: highlight.competition.name,
+          logo: highlight.competition.logo,
+          highlights: []
+        });
       }
       
-      // Group highlights by competition
-      const leagueMap = new Map<string, League>();
-      
-      highlights.forEach(highlight => {
-        const competitionId = highlight.competition.id;
-        
-        if (!leagueMap.has(competitionId)) {
-          leagueMap.set(competitionId, {
-            id: competitionId,
-            name: highlight.competition.name,
-            logo: highlight.competition.logo,
-            highlights: []
-          });
-        }
-        
-        leagueMap.get(competitionId)?.highlights.push(highlight);
-      });
-      
-      const leagues = Array.from(leagueMap.values());
-      console.log(`✅ Grouped highlights into ${leagues.length} leagues`);
-      return leagues;
-    } catch (error) {
-      console.error('❌ API request failed, falling back to mock leagues:', error);
-      return getMockLeagues();
-    }
+      leagueMap.get(competitionId)?.highlights.push(highlight);
+    });
+    
+    const leagues = Array.from(leagueMap.values());
+    console.log(`✅ Grouped highlights into ${leagues.length} leagues`);
+    return leagues;
   } catch (error) {
     console.error('❌ Error getting highlights by league:', error);
-    return getMockLeagues();
+    throw error; // Rethrow to handle in the component
   }
 }
 
-// Fallback mock leagues function
+// Fallback mock leagues function - only used when explicitly requested
 function getMockLeagues(): League[] {
   console.log('📦 Using mock leagues data');
   
