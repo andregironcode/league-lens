@@ -11,6 +11,51 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
 };
 
+// Utility function to safely log API key (first 4 and last 4 chars only)
+function logSafeApiKey(apiKey) {
+  if (!apiKey) return "undefined";
+  if (apiKey.length <= 8) return "***hidden***";
+  return `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}`;
+}
+
+// Retry mechanism for API requests
+async function fetchWithRetry(url, options, maxRetries = 3) {
+  let lastError;
+  let retryDelay = 300; // Start with 300ms delay
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      console.log(`Request attempt ${attempt + 1}/${maxRetries} to ${url}`);
+      const response = await fetch(url, options);
+      
+      // If successful or it's a 4xx client error (except 429), don't retry
+      if (response.ok || (response.status >= 400 && response.status < 500 && response.status !== 429)) {
+        return response;
+      }
+      
+      // Handle rate limiting explicitly
+      if (response.status === 429) {
+        console.log(`Rate limited. Retrying after delay...`);
+        const retryAfter = response.headers.get("retry-after") || "1";
+        retryDelay = parseInt(retryAfter, 10) * 1000;
+      }
+      
+      lastError = new Error(`HTTP error: ${response.status} ${response.statusText}`);
+    } catch (error) {
+      console.error(`Network error on attempt ${attempt + 1}:`, error);
+      lastError = error;
+    }
+    
+    if (attempt < maxRetries - 1) {
+      console.log(`Waiting ${retryDelay}ms before next retry...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      retryDelay *= 2; // Exponential backoff
+    }
+  }
+  
+  throw lastError || new Error(`Failed after ${maxRetries} attempts`);
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -34,6 +79,8 @@ serve(async (req) => {
       );
     }
 
+    console.log(`API key detected (masked): ${logSafeApiKey(apiToken)}`);
+
     // Parse the request URL
     const url = new URL(req.url);
     const path = url.pathname.replace('/highlightly-proxy', '');
@@ -49,19 +96,25 @@ serve(async (req) => {
     console.log(`Proxying request to: ${targetUrl}`);
 
     // CRITICAL: According to Highlightly documentation for direct subscription,
-    // the API key needs to be the VALUE of a header with the name 'c05d22e5-9a84-4a95-83c7-77ef598647ed'
+    // we need to set the API key as the VALUE of a header with the exact name 'c05d22e5-9a84-4a95-83c7-77ef598647ed'
+    const apiKeyHeaderName = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
+    
+    // Create headers object with all required headers
     const headers = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
+      // Origin and Referer headers to improve authentication acceptance
+      'Origin': 'https://cctqwyhoryahdauqcetf.supabase.co',
+      'Referer': 'https://cctqwyhoryahdauqcetf.supabase.co',
     };
     
-    // This is the API key header name required by Highlightly
-    headers['c05d22e5-9a84-4a95-83c7-77ef598647ed'] = apiToken;
+    // Set the API key as the value of the special header name
+    headers[apiKeyHeaderName] = apiToken.trim(); // Ensure no whitespace
     
-    console.log('Headers prepared with: Accept, Content-Type, and the special API key header');
+    console.log('Headers prepared:', JSON.stringify(Object.keys(headers)));
     
-    // Forward the request to the Highlightly API
-    const response = await fetch(targetUrl.toString(), {
+    // Forward the request to the Highlightly API with retry mechanism
+    const response = await fetchWithRetry(targetUrl.toString(), {
       method: req.method,
       headers: headers,
       body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined,
@@ -79,13 +132,22 @@ serve(async (req) => {
     // Try to parse JSON for debugging
     try {
       const jsonResponse = JSON.parse(responseBody);
-      console.log('Response contains valid JSON:', JSON.stringify(jsonResponse).substring(0, 200));
+      console.log('Response contains valid JSON:', 
+        JSON.stringify(jsonResponse).substring(0, 200) + 
+        (JSON.stringify(jsonResponse).length > 200 ? '...' : '')
+      );
       
       if (jsonResponse.error || jsonResponse.message) {
         console.error('API error message:', jsonResponse.error || jsonResponse.message);
+        
+        // Add specific error handling for common error messages
+        if (jsonResponse.error && jsonResponse.error.includes("Missing mandatory HTTP Headers")) {
+          console.error('CRITICAL: Authentication header issue detected. The API requires the exact header name "c05d22e5-9a84-4a95-83c7-77ef598647ed" with the API key as its value.');
+          console.error('Current headers sent:', JSON.stringify(Object.keys(headers)));
+        }
       }
     } catch (e) {
-      console.log('Response is not valid JSON:', responseBody.substring(0, 200));
+      console.log('Response is not valid JSON:', responseBody.substring(0, 200) + (responseBody.length > 200 ? '...' : ''));
     }
 
     // Return the response with CORS headers
@@ -100,9 +162,13 @@ serve(async (req) => {
   } catch (error) {
     console.error('Proxy error:', error);
     
-    // Return error response
+    // Enhanced error response with more details
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: `Error occurred in Highlightly proxy. Please check the Edge Function logs for more information.`,
+        time: new Date().toISOString()
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

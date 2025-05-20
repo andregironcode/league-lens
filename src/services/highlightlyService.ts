@@ -5,7 +5,7 @@ import { MatchHighlight, League, Team } from '@/types';
 const PROXY_URL = 'https://cctqwyhoryahdauqcetf.supabase.co/functions/v1/highlightly-proxy';
 
 // Helper function to make authenticated requests via our proxy
-async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}) {
+async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}, retries = 2) {
   const url = new URL(`${PROXY_URL}${endpoint}`);
   
   // Add query parameters
@@ -18,55 +18,81 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   const fullUrl = url.toString();
   
   // Log the request details for debugging
-  console.log(`🔍 API Request via proxy to: ${endpoint}`);
+  console.log(`🔍 API Request via proxy to: ${endpoint} with params:`, params);
   
-  try {
-    // Make the request through our proxy
-    const response = await fetch(fullUrl, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    // Log response details
-    console.log(`📥 API Response: ${response.status} ${response.statusText}`);
-    
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'No error text available');
-      console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
+  let attempts = 0;
+  let lastError;
+  
+  while (attempts <= retries) {
+    attempts++;
+    try {
+      // Make the request through our proxy
+      const response = await fetch(fullUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
       
-      if (response.status === 403) {
-        console.error('💡 403 FORBIDDEN - Authentication error. Highlightly direct subscription requires the API key to be the VALUE of a header named "c05d22e5-9a84-4a95-83c7-77ef598647ed"');
+      // Log response details
+      console.log(`📥 API Response: ${response.status} ${response.statusText}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'No error text available');
+        console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
+        
+        if (response.status === 403) {
+          console.error('💡 403 FORBIDDEN - Authentication error with Highlightly Direct Access API. Make sure:');
+          console.error('  1. The API key is valid and active');
+          console.error('  2. The API key is correctly set as the VALUE of a header named "c05d22e5-9a84-4a95-83c7-77ef598647ed"');
+          console.error('  3. The header name is exactly as shown above (case sensitive)');
+        }
+        
+        // If we get a 429 (rate limit) or 5xx (server error), retry after a delay
+        if ((response.status === 429 || response.status >= 500) && attempts <= retries) {
+          const retryDelay = response.status === 429 
+            ? parseInt(response.headers.get('retry-after') || '2', 10) * 1000
+            : 1000 * attempts; // Exponential backoff
+            
+          console.log(`⏱️ Retrying in ${retryDelay}ms... (Attempt ${attempts} of ${retries + 1})`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          continue; // Retry the request
+        }
+        
+        throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
       
-      throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
+      // Check for JSON content type
+      const contentType = response.headers.get('content-type');
+      console.log(`Content-Type: ${contentType || 'not specified'}`);
+      
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        console.log(`✅ API Response (${endpoint}): Success`);
+        return data;
+      } else {
+        // If not JSON, log the response body
+        const textResponse = await response.text();
+        console.error('❌ Received non-JSON response:', textResponse.substring(0, 500) + (textResponse.length > 500 ? '...' : ''));
+        throw new Error('API returned non-JSON response');
+      }
+    } catch (error) {
+      console.error(`❌ Error fetching from API (attempt ${attempts}):`, error);
+      lastError = error;
+      
+      // Only retry for network errors
+      if (error instanceof TypeError && error.message.includes('fetch') && attempts <= retries) {
+        const retryDelay = 1000 * attempts; // Exponential backoff
+        console.log(`🌐 Network error. Retrying in ${retryDelay}ms... (Attempt ${attempts} of ${retries + 1})`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      } else {
+        break; // Don't retry for other errors
+      }
     }
-    
-    // Check for JSON content type
-    const contentType = response.headers.get('content-type');
-    console.log(`Content-Type: ${contentType || 'not specified'}`);
-    
-    if (contentType && contentType.includes('application/json')) {
-      const data = await response.json();
-      console.log(`✅ API Response (${endpoint}): Success`);
-      return data;
-    } else {
-      // If not JSON, log the response body
-      const textResponse = await response.text();
-      console.error('❌ Received non-JSON response:', textResponse.substring(0, 500) + (textResponse.length > 500 ? '...' : ''));
-      throw new Error('API returned non-JSON response');
-    }
-  } catch (error) {
-    console.error('❌ Error fetching from API:', error);
-    
-    // Check for specific network errors
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.error('🌐 Network error: Check your internet connection');
-    }
-    
-    throw error;
   }
+  
+  // All retries failed
+  throw lastError || new Error(`Failed after ${retries + 1} attempts`);
 }
 
 // Transform API highlight data into our application format
@@ -403,7 +429,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
   try {
     console.log('🔍 Testing Edge Function proxy connection to Highlightly...');
     
-    // Make a simple request to our proxy
+    // Make a simple request to test the connection
     const response = await fetch(`${PROXY_URL}/highlights?limit=1`, {
       headers: {
         'Accept': 'application/json',
@@ -424,6 +450,34 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
     try {
       jsonData = JSON.parse(text);
       console.log('✅ Response is valid JSON');
+      
+      // Enhanced success detection
+      if (Array.isArray(jsonData) || (jsonData && !jsonData.error)) {
+        return {
+          success: true,
+          message: `Connection successful! Received valid data from Highlightly API.`,
+          details: {
+            contentType: response.headers.get('content-type'),
+            status: response.status,
+            dataPreview: Array.isArray(jsonData) 
+              ? `Received ${jsonData.length} items` 
+              : 'Received JSON object',
+            data: jsonData
+          }
+        };
+      } else if (jsonData.error) {
+        return {
+          success: false,
+          message: `API Error: ${jsonData.error}`,
+          details: {
+            errorType: jsonData.error.includes("Missing mandatory HTTP Headers") 
+              ? "Authentication Error - Check API key and header format" 
+              : "API Error Response",
+            status: response.status,
+            responseData: jsonData
+          }
+        };
+      }
     } catch (e) {
       console.error('❌ Response is not valid JSON:', e);
       console.log('Raw response:', text);
@@ -436,7 +490,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
         details: {
           contentType: response.headers.get('content-type'),
           dataPreview: jsonData ? 'Valid JSON received' : 'Invalid JSON format',
-          responseData: jsonData ? jsonData : text.substring(0, 500)
+          responsePreview: text.substring(0, 200) + (text.length > 200 ? '...' : '')
         }
       };
     } else {
@@ -446,7 +500,9 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
         details: {
           responseText: text.substring(0, 500),
           headers: responseHeaders,
-          errorType: response.status === 403 ? 'API Authentication Error - Check header format in Edge Function' : 'Proxy Error'
+          errorType: response.status === 403 
+            ? 'API Authentication Error - Check API key and header format' 
+            : `HTTP Error ${response.status}`
         }
       };
     }
@@ -455,7 +511,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
     return {
       success: false,
       message: `Connection error: ${error instanceof Error ? error.message : String(error)}`,
-      details: { error }
+      details: { error: String(error) }
     };
   }
 }
