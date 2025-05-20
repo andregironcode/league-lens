@@ -37,7 +37,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
       
       if (response.status === 403) {
-        console.error('💡 403 FORBIDDEN - Authentication error. Highlightly API requires specific header format: "c05d22e5-9a84-4a95-83c7-77ef598647ed" header with API key as value.');
+        console.error('💡 403 FORBIDDEN - Authentication error. RapidAPI requires "x-rapidapi-key" and "x-rapidapi-host" headers for authentication.');
       }
       
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -401,7 +401,7 @@ export async function checkHighlightGeoRestrictions(highlightId: string): Promis
 // Update the test function to check connection with the proxy
 export async function testApiConnection(): Promise<{success: boolean, message: string, details?: any}> {
   try {
-    console.log('🔍 Testing Edge Function proxy connection to Highlightly...');
+    console.log('🔍 Testing Edge Function proxy connection to Football Highlights API...');
     
     // Make a simple request to our proxy
     const response = await fetch(`${PROXY_URL}/highlights?limit=1`, {
@@ -446,7 +446,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
         details: {
           responseText: text.substring(0, 500),
           headers: responseHeaders,
-          errorType: response.status === 403 ? 'API Authentication Error - Check header format in Edge Function' : 'Proxy Error'
+          errorType: response.status === 403 ? 'API Authentication Error - Check RapidAPI headers in Edge Function' : 'Proxy Error'
         }
       };
     }
