@@ -16,19 +16,21 @@ export default defineConfig(({ mode }) => ({
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
           proxy.on('proxyReq', function(proxyReq, req, _res) {
-            // Add the Authorization header to each request (with Bearer prefix)
-            proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+            // Add the Authorization header to each request
+            proxyReq.setHeader('Authorization', 'c05d22e5-9a84-4a95-83c7-77ef598647ed');
             
             // Log the complete outgoing request headers for debugging
-            console.log(`🔐 Proxy outgoing request headers to Highlightly:`, 
-              Object.fromEntries(proxyReq.getHeaders())
+            const headers = proxyReq.getHeaders();
+            console.log('🔐 Proxy outgoing request headers to Highlightly:', 
+              Object.fromEntries(Object.entries(headers))
             );
             
             console.log(`🚀 Forwarding ${req.method} ${req.url} to Highlightly`);
           });
           
           proxy.on('proxyRes', function(proxyRes, req, _res) {
-            const statusCode = proxyRes.statusCode;
+            // Get the status code safely (it will be undefined if there's no response)
+            const statusCode = proxyRes?.statusCode || 0;
             console.log(`🔄 Proxy response from Highlightly: ${req.method} ${req.url} -> ${statusCode}`);
             
             // Log response headers
