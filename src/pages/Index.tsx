@@ -138,7 +138,8 @@ const Index = () => {
                     size="sm"
                     onClick={() => {
                       console.log('API_BASE_URL:', 'https://soccer.highlightly.net');
-                      console.log('API_KEY format:', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+                      console.log('API_KEY:', 'c05d22e5-9a84-4a95-83c7-77ef598647ed');
+                      console.log('API_KEY header format used:', 'Authorization: c05d22e5-9a84-4a95-83c7-77ef598647ed');
                       toast({
                         title: "Debug Info",
                         description: "Check the browser console for API connection details",

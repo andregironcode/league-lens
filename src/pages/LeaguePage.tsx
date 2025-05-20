@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getLeagueHighlights } from '@/services/highlightService';
-import { League, MatchHighlight, HighlightlyMatch } from '@/types';
+import { League, MatchHighlight, HighlightlyHighlight } from '@/types';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
 import HighlightlyMatchCard from '@/components/HighlightlyMatchCard';
@@ -32,7 +32,7 @@ const LeaguePage = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const [league, setLeague] = useState<League | null>(null);
   const [loading, setLoading] = useState(true);
-  const [highlightlyMatches, setHighlightlyMatches] = useState<HighlightlyMatch[]>([]);
+  const [highlightlyMatches, setHighlightlyMatches] = useState<any[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -57,8 +57,8 @@ const LeaguePage = () => {
         
         setLoading(false);
         
-        // Only fetch matches when the page loads for Premier League
-        if (leagueId === 'pl') {
+        // Only fetch matches when the page loads
+        if (leagueId) {
           fetchHighlightlyMatches();
         }
       } catch (error) {
@@ -72,15 +72,6 @@ const LeaguePage = () => {
   }, [leagueId]);
 
   const fetchHighlightlyMatches = async () => {
-    if (leagueId !== 'pl') {
-      toast({
-        title: "API Limited",
-        description: "Highlightly API integration is only available for Premier League",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setMatchesLoading(true);
     try {
       // Get today's matches for the selected league
@@ -179,70 +170,68 @@ const LeaguePage = () => {
                 <h1 className="text-3xl font-bold">{league.name}</h1>
               </div>
               
-              {leagueId === 'pl' && (
-                <div className="mb-12">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-white">Live Matches</h2>
+              <div className="mb-12">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-white">Live Matches</h2>
+                  <Button 
+                    variant="outline" 
+                    onClick={fetchHighlightlyMatches}
+                    disabled={matchesLoading}
+                    size="sm"
+                  >
+                    {matchesLoading ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Refreshing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Refresh Matches
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                {matchesLoading && highlightlyMatches.length === 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-40 rounded-lg" />
+                    ))}
+                  </div>
+                ) : highlightlyMatches.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {highlightlyMatches.map((match, index) => (
+                      <div key={index} className="transform transition-all duration-300 hover:scale-105">
+                        <HighlightlyMatchCard highlight={{
+                          id: match.id,
+                          title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
+                          date: match.date,
+                          thumbnailUrl: '', 
+                          embedUrl: '', 
+                          homeTeam: match.homeTeam,
+                          awayTeam: match.awayTeam,
+                          homeGoals: match.score.fullTime.home,
+                          awayGoals: match.score.fullTime.away,
+                          competition: match.competition
+                        }} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-highlight-800 p-6 rounded-lg text-center">
+                    <p className="text-gray-400 mb-3">No live matches available from Highlightly API right now.</p>
                     <Button 
                       variant="outline" 
                       onClick={fetchHighlightlyMatches}
-                      disabled={matchesLoading}
                       size="sm"
                     >
-                      {matchesLoading ? (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                          Refreshing...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          Refresh Matches
-                        </>
-                      )}
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Try Again
                     </Button>
                   </div>
-                  
-                  {matchesLoading && highlightlyMatches.length === 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {[1, 2, 3].map((i) => (
-                        <Skeleton key={i} className="h-40 rounded-lg" />
-                      ))}
-                    </div>
-                  ) : highlightlyMatches.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {highlightlyMatches.map((match, index) => (
-                        <div key={index} className="transform transition-all duration-300 hover:scale-105">
-                          <HighlightlyMatchCard highlight={{
-                            id: match.id,
-                            title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
-                            date: match.date,
-                            thumbnailUrl: '', 
-                            embedUrl: '', 
-                            homeTeam: match.homeTeam,
-                            awayTeam: match.awayTeam,
-                            homeGoals: match.score.fullTime.home,
-                            awayGoals: match.score.fullTime.away,
-                            competition: match.competition
-                          }} />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-highlight-800 p-6 rounded-lg text-center">
-                      <p className="text-gray-400 mb-3">No live matches available from Highlightly API right now.</p>
-                      <Button 
-                        variant="outline" 
-                        onClick={fetchHighlightlyMatches}
-                        size="sm"
-                      >
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Try Again
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
               
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-300">Highlights</h2>

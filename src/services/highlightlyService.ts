@@ -4,7 +4,7 @@ import { MatchHighlight, League, Team } from '@/types';
 const API_BASE_URL = 'https://soccer.highlightly.net';
 const API_KEY = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
 
-// Control flag to enable/disable mock data
+// Control flag to disable mock data
 const USE_MOCK_DATA = false;
 
 // Helper function to make authenticated requests to the Highlightly API
@@ -22,9 +22,10 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   console.log(`🔍 Highlightly API Request: ${fullUrl}`);
   
   try {
+    // Using the direct API key as header value (no Bearer prefix) as specified in the updated knowledge
     const response = await fetch(fullUrl, {
       headers: {
-        'Authorization': `Bearer ${API_KEY}`
+        'Authorization': API_KEY
       }
     });
     
@@ -90,10 +91,6 @@ export async function getRecentHighlights(limit = 10): Promise<MatchHighlight[]>
     
     if (!data || !Array.isArray(data)) {
       console.error('❌ Invalid data format from highlights API', data);
-      if (USE_MOCK_DATA) {
-        console.log('⚠️ Using mock highlight data due to API error');
-        return getMockHighlights(limit);
-      }
       return [];
     }
     
@@ -102,12 +99,6 @@ export async function getRecentHighlights(limit = 10): Promise<MatchHighlight[]>
     return transformedHighlights;
   } catch (error) {
     console.error('❌ Error fetching recent highlights:', error);
-    
-    if (USE_MOCK_DATA) {
-      // Return mock data for development/testing
-      console.log('⚠️ Returning mock highlight data');
-      return getMockHighlights(limit);
-    }
     return [];
   }
 }
@@ -120,10 +111,6 @@ export async function getHighlightsByLeague(): Promise<League[]> {
     
     if (highlights.length === 0) {
       console.warn('⚠️ No highlights available to group by league');
-      if (USE_MOCK_DATA) {
-        console.log('⚠️ Using mock league data');
-        return getMockLeagues();
-      }
       return [];
     }
     
@@ -150,12 +137,6 @@ export async function getHighlightsByLeague(): Promise<League[]> {
     return leagues;
   } catch (error) {
     console.error('❌ Error getting highlights by league:', error);
-    
-    if (USE_MOCK_DATA) {
-      // Return mock data for development/testing
-      console.log('⚠️ Returning mock league data');
-      return getMockLeagues();
-    }
     return [];
   }
 }
@@ -174,9 +155,6 @@ export async function getMatches(date?: string, leagueId?: string, teamId?: stri
     
     if (!Array.isArray(data)) {
       console.error('❌ Invalid matches data format from API', data);
-      if (USE_MOCK_DATA) {
-        return getMockMatches(leagueId);
-      }
       return [];
     }
     
@@ -184,12 +162,6 @@ export async function getMatches(date?: string, leagueId?: string, teamId?: stri
     return data || [];
   } catch (error) {
     console.error('❌ Error fetching matches:', error);
-    
-    if (USE_MOCK_DATA) {
-      // Return mock data for development/testing
-      console.log('⚠️ Returning mock match data');
-      return getMockMatches(leagueId);
-    }
     return [];
   }
 }
@@ -317,150 +289,4 @@ export async function checkHighlightGeoRestrictions(highlightId: string): Promis
     console.error(`Error checking geo restrictions for highlight ${highlightId}:`, error);
     return false;
   }
-}
-
-// Generate mock data for development and testing when API is not available
-function getMockHighlights(limit = 5): MatchHighlight[] {
-  const leagues = ['Premier League', 'La Liga', 'Bundesliga', 'Serie A', 'Ligue 1'];
-  const teams = [
-    { name: 'Manchester United', logo: 'https://www.sofascore.com/images/team-logo/football_team_33.png' },
-    { name: 'Arsenal', logo: 'https://www.sofascore.com/images/team-logo/football_team_42.png' },
-    { name: 'Chelsea', logo: 'https://www.sofascore.com/images/team-logo/football_team_38.png' },
-    { name: 'Barcelona', logo: 'https://www.sofascore.com/images/team-logo/football_team_2817.png' },
-    { name: 'Real Madrid', logo: 'https://www.sofascore.com/images/team-logo/football_team_2829.png' },
-    { name: 'Bayern Munich', logo: 'https://www.sofascore.com/images/team-logo/football_team_2672.png' },
-    { name: 'Juventus', logo: 'https://www.sofascore.com/images/team-logo/football_team_2692.png' },
-    { name: 'PSG', logo: 'https://www.sofascore.com/images/team-logo/football_team_1644.png' },
-  ];
-  
-  return Array(limit).fill(0).map((_, index) => {
-    const randomTeam1 = teams[Math.floor(Math.random() * teams.length)];
-    let randomTeam2 = teams[Math.floor(Math.random() * teams.length)];
-    
-    // Ensure we don't have the same team twice
-    while (randomTeam1.name === randomTeam2.name) {
-      randomTeam2 = teams[Math.floor(Math.random() * teams.length)];
-    }
-    
-    const randomLeague = leagues[Math.floor(Math.random() * leagues.length)];
-    const homeScore = Math.floor(Math.random() * 5);
-    const awayScore = Math.floor(Math.random() * 4);
-    
-    // Generate a random date within the last week
-    const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 7));
-    
-    return {
-      id: `mock-${index}`,
-      title: `${randomTeam1.name} vs ${randomTeam2.name}`,
-      date: date.toISOString(),
-      thumbnailUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=3276&ixlib=rb-4.0.3',
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      duration: `${Math.floor(Math.random() * 5) + 2}:${Math.floor(Math.random() * 59).toString().padStart(2, '0')}`,
-      views: Math.floor(Math.random() * 1000000),
-      homeTeam: {
-        id: `home-${index}`,
-        name: randomTeam1.name,
-        logo: randomTeam1.logo
-      },
-      awayTeam: {
-        id: `away-${index}`,
-        name: randomTeam2.name,
-        logo: randomTeam2.logo
-      },
-      score: {
-        home: homeScore,
-        away: awayScore
-      },
-      competition: {
-        id: `comp-${randomLeague.toLowerCase().replace(' ', '')}`,
-        name: randomLeague,
-        logo: '/placeholder.svg'
-      }
-    };
-  });
-}
-
-function getMockLeagues(): League[] {
-  const mockHighlights = getMockHighlights(20);
-  const leagueMap = new Map<string, League>();
-  
-  // Use the competition names from the mock highlights
-  mockHighlights.forEach(highlight => {
-    if (!leagueMap.has(highlight.competition.id)) {
-      leagueMap.set(highlight.competition.id, {
-        id: highlight.competition.id,
-        name: highlight.competition.name,
-        logo: highlight.competition.logo,
-        highlights: []
-      });
-    }
-    
-    leagueMap.get(highlight.competition.id)?.highlights.push(highlight);
-  });
-  
-  return Array.from(leagueMap.values());
-}
-
-function getMockMatches(leagueId?: string): any[] {
-  const competitions = {
-    'pl': { id: 'pl', name: 'Premier League', logo: '/placeholder.svg' },
-    'laliga': { id: 'laliga', name: 'La Liga', logo: '/placeholder.svg' },
-    'bundesliga': { id: 'bundesliga', name: 'Bundesliga', logo: '/placeholder.svg' },
-    'seriea': { id: 'seriea', name: 'Serie A', logo: '/placeholder.svg' },
-    'ligue1': { id: 'ligue1', name: 'Ligue 1', logo: '/placeholder.svg' }
-  };
-  
-  const teams = {
-    'pl': [
-      { id: '33', name: 'Manchester United', logo: 'https://www.sofascore.com/images/team-logo/football_team_33.png' },
-      { id: '42', name: 'Arsenal', logo: 'https://www.sofascore.com/images/team-logo/football_team_42.png' },
-      { id: '38', name: 'Chelsea', logo: 'https://www.sofascore.com/images/team-logo/football_team_38.png' },
-      { id: '36', name: 'Manchester City', logo: 'https://www.sofascore.com/images/team-logo/football_team_36.png' },
-      { id: '35', name: 'Liverpool', logo: 'https://www.sofascore.com/images/team-logo/football_team_35.png' },
-    ],
-    'laliga': [
-      { id: '2817', name: 'Barcelona', logo: 'https://www.sofascore.com/images/team-logo/football_team_2817.png' },
-      { id: '2829', name: 'Real Madrid', logo: 'https://www.sofascore.com/images/team-logo/football_team_2829.png' },
-    ]
-  };
-  
-  const selectedLeague = leagueId || 'pl';
-  const competition = competitions[selectedLeague as keyof typeof competitions] || competitions.pl;
-  const leagueTeams = (teams[selectedLeague as keyof typeof teams] || teams.pl);
-  
-  return Array(5).fill(0).map((_, index) => {
-    const teamIndices = Array(leagueTeams.length).fill(0).map((_, i) => i);
-    const homeTeamIndex = teamIndices.splice(Math.floor(Math.random() * teamIndices.length), 1)[0];
-    const awayTeamIndex = teamIndices[Math.floor(Math.random() * teamIndices.length)];
-    
-    const homeTeam = leagueTeams[homeTeamIndex];
-    const awayTeam = leagueTeams[awayTeamIndex];
-    
-    const homeScore = Math.floor(Math.random() * 5);
-    const awayScore = Math.floor(Math.random() * 4);
-    
-    // Generate a date within a few hours of now
-    const date = new Date();
-    date.setHours(date.getHours() + Math.floor(Math.random() * 5));
-    
-    return {
-      id: `mock-match-${selectedLeague}-${index}`,
-      date: date.toISOString(),
-      status: ['Not Started', 'First Half', 'Half Time', 'Second Half', 'Finished'][Math.floor(Math.random() * 5)],
-      homeTeam,
-      awayTeam,
-      score: {
-        fullTime: {
-          home: homeScore,
-          away: awayScore
-        }
-      },
-      venue: {
-        id: `venue-${index}`,
-        name: `${homeTeam.name} Stadium`
-      },
-      competition
-    };
-  });
 }
