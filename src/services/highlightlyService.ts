@@ -1,8 +1,10 @@
-
 import { MatchHighlight, League, Team } from '@/types';
 
 const API_BASE_URL = 'https://soccer.highlightly.net';
 const API_KEY = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
+
+// Control flag to enable/disable mock data
+const USE_MOCK_DATA = false;
 
 // Helper function to make authenticated requests to the Highlightly API
 async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}) {
@@ -15,7 +17,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     }
   });
   
-  console.log(`Highlightly API Request: ${url.toString()}`);
+  console.log(`🔍 Highlightly API Request: ${url.toString()}`);
   
   try {
     const response = await fetch(url.toString(), {
@@ -25,15 +27,20 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     });
     
     if (!response.ok) {
-      console.error(`API error (${response.status}): ${response.statusText}`);
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text().catch(() => 'No error text available');
+      console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
+      throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
     const data = await response.json();
-    console.log(`Highlightly API Response (${endpoint}):`, data);
+    console.log(`✅ Highlightly API Response (${endpoint}):`, data);
     return data;
   } catch (error) {
-    console.error('Error fetching from Highlightly API:', error);
+    console.error('❌ Error fetching from Highlightly API:', error);
+    // Check for network connectivity issues vs API errors
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      console.error('🌐 Network error: Check your internet connection or CORS settings');
+    }
     throw error;
   }
 }
@@ -73,31 +80,47 @@ function transformHighlight(apiHighlight: any): MatchHighlight {
 // Get recent highlights
 export async function getRecentHighlights(limit = 10): Promise<MatchHighlight[]> {
   try {
-    console.log(`Fetching ${limit} recent highlights`);
+    console.log(`🔍 Fetching ${limit} recent highlights`);
     const data = await fetchFromAPI('/highlights', { limit: limit.toString() });
     
     if (!data || !Array.isArray(data)) {
-      console.error('Invalid data format from highlights API', data);
+      console.error('❌ Invalid data format from highlights API', data);
+      if (USE_MOCK_DATA) {
+        console.log('⚠️ Using mock highlight data due to API error');
+        return getMockHighlights(limit);
+      }
       return [];
     }
     
     const transformedHighlights = data.map(transformHighlight);
-    console.log(`Transformed ${transformedHighlights.length} highlights`);
+    console.log(`✅ Transformed ${transformedHighlights.length} highlights`);
     return transformedHighlights;
   } catch (error) {
-    console.error('Error fetching recent highlights:', error);
+    console.error('❌ Error fetching recent highlights:', error);
     
-    // Return mock data for development/testing
-    console.log('Returning mock highlight data');
-    return getMockHighlights(limit);
+    if (USE_MOCK_DATA) {
+      // Return mock data for development/testing
+      console.log('⚠️ Returning mock highlight data');
+      return getMockHighlights(limit);
+    }
+    return [];
   }
 }
 
 // Group highlights by league/competition
 export async function getHighlightsByLeague(): Promise<League[]> {
   try {
-    console.log('Fetching highlights by league');
+    console.log('🔍 Fetching highlights by league');
     const highlights = await getRecentHighlights(20);
+    
+    if (highlights.length === 0) {
+      console.warn('⚠️ No highlights available to group by league');
+      if (USE_MOCK_DATA) {
+        console.log('⚠️ Using mock league data');
+        return getMockLeagues();
+      }
+      return [];
+    }
     
     // Group highlights by competition
     const leagueMap = new Map<string, League>();
@@ -118,21 +141,24 @@ export async function getHighlightsByLeague(): Promise<League[]> {
     });
     
     const leagues = Array.from(leagueMap.values());
-    console.log(`Grouped highlights into ${leagues.length} leagues`);
+    console.log(`✅ Grouped highlights into ${leagues.length} leagues`);
     return leagues;
   } catch (error) {
-    console.error('Error getting highlights by league:', error);
+    console.error('❌ Error getting highlights by league:', error);
     
-    // Return mock data for development/testing
-    console.log('Returning mock league data');
-    return getMockLeagues();
+    if (USE_MOCK_DATA) {
+      // Return mock data for development/testing
+      console.log('⚠️ Returning mock league data');
+      return getMockLeagues();
+    }
+    return [];
   }
 }
 
 // Get matches with an optional filter by date
 export async function getMatches(date?: string, leagueId?: string, teamId?: string, countryCode?: string): Promise<any[]> {
   try {
-    console.log(`Fetching matches with filters: date=${date}, leagueId=${leagueId}, teamId=${teamId}, countryCode=${countryCode}`);
+    console.log(`🔍 Fetching matches with filters: date=${date}, leagueId=${leagueId}, teamId=${teamId}, countryCode=${countryCode}`);
     const params: Record<string, string> = {};
     if (date) params.date = date;
     if (leagueId) params.leagueId = leagueId;
@@ -141,14 +167,25 @@ export async function getMatches(date?: string, leagueId?: string, teamId?: stri
     
     const data = await fetchFromAPI('/matches', params);
     
-    console.log(`Fetched ${data?.length || 0} matches`);
+    if (!Array.isArray(data)) {
+      console.error('❌ Invalid matches data format from API', data);
+      if (USE_MOCK_DATA) {
+        return getMockMatches(leagueId);
+      }
+      return [];
+    }
+    
+    console.log(`✅ Fetched ${data.length} matches`);
     return data || [];
   } catch (error) {
-    console.error('Error fetching matches:', error);
+    console.error('❌ Error fetching matches:', error);
     
-    // Return mock data for development/testing
-    console.log('Returning mock match data');
-    return getMockMatches(leagueId);
+    if (USE_MOCK_DATA) {
+      // Return mock data for development/testing
+      console.log('⚠️ Returning mock match data');
+      return getMockMatches(leagueId);
+    }
+    return [];
   }
 }
 

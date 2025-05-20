@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getLeagueHighlights } from '@/services/highlightService';
-import { League, MatchHighlight, HighlightlyMatch, HighlightlyHighlight } from '@/types';
+import { League, MatchHighlight, HighlightlyMatch } from '@/types';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
 import HighlightlyMatchCard from '@/components/HighlightlyMatchCard';
@@ -41,28 +41,29 @@ const LeaguePage = () => {
     const fetchLeagueData = async () => {
       setFetchError(null);
       try {
-        console.log(`Fetching league data for leagueId: ${leagueId}`);
+        console.log(`🔍 Fetching league data for leagueId: ${leagueId}`);
         const leaguesData = await getLeagueHighlights();
-        console.log(`Fetched ${leaguesData.length} leagues`);
+        console.log(`✅ Fetched ${leaguesData.length} leagues`);
         
         const leagueData = leaguesData.find(l => l.id === leagueId);
         
         if (leagueData) {
-          console.log(`Found league: ${leagueData.name} with ${leagueData.highlights.length} highlights`);
+          console.log(`✅ Found league: ${leagueData.name} with ${leagueData.highlights.length} highlights`);
           setLeague(leagueData);
         } else {
-          console.log(`League with ID ${leagueId} not found`);
+          console.log(`❌ League with ID ${leagueId} not found`);
           setFetchError(`League with ID ${leagueId} not found`);
         }
         
         setLoading(false);
         
+        // Only fetch matches when the page loads for Premier League
         if (leagueId === 'pl') {
           fetchHighlightlyMatches();
         }
       } catch (error) {
-        console.error('Error fetching league data:', error);
-        setFetchError('Failed to load league data');
+        console.error('❌ Error fetching league data:', error);
+        setFetchError('Failed to load league data from API');
         setLoading(false);
       }
     };
@@ -84,24 +85,33 @@ const LeaguePage = () => {
     try {
       // Get today's matches for the selected league
       const today = new Date().toISOString().split('T')[0];
-      console.log(`Fetching matches for date: ${today} and leagueId: ${leagueId}`);
+      console.log(`🔍 Fetching matches for date: ${today} and leagueId: ${leagueId}`);
       
       const data = await getMatches(today, leagueId);
-      console.log(`Fetched ${data.length} matches for ${leagueId} on ${today}`, data);
+      console.log(`✅ Fetched ${data.length} matches for ${leagueId} on ${today}`, data);
       
       if (data && Array.isArray(data)) {
         setHighlightlyMatches(data);
-        toast({
-          title: "Live Matches Loaded",
-          description: `Loaded ${data.length} matches from Highlightly API`,
-          variant: "default"
-        });
+        
+        if (data.length === 0) {
+          toast({
+            title: "No Matches Found",
+            description: `No matches found for ${leagueId} on ${today}`,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Live Matches Loaded",
+            description: `Loaded ${data.length} matches from Highlightly API`,
+            variant: "default"
+          });
+        }
       }
     } catch (error) {
-      console.error('Error fetching Highlightly matches:', error);
+      console.error('❌ Error fetching Highlightly matches:', error);
       toast({
         title: "API Error",
-        description: "Failed to load matches from Highlightly API",
+        description: "Failed to load matches from Highlightly API. See console for details.",
         variant: "destructive"
       });
     } finally {
@@ -128,7 +138,7 @@ const LeaguePage = () => {
             <div className="bg-red-900/40 border border-red-800 rounded-lg p-4 mb-8">
               <div className="flex items-center mb-2">
                 <AlertCircle className="mr-2 h-5 w-5 text-red-400" />
-                <h3 className="font-medium">Error</h3>
+                <h3 className="font-medium">API Error</h3>
               </div>
               <p className="text-sm text-gray-300">{fetchError}</p>
               <Button 
@@ -207,8 +217,8 @@ const LeaguePage = () => {
                             id: match.id,
                             title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
                             date: match.date,
-                            thumbnailUrl: '', // Matches don't have thumbnails but highlights do
-                            embedUrl: '', // Matches don't have video URLs
+                            thumbnailUrl: '', 
+                            embedUrl: '', 
                             homeTeam: match.homeTeam,
                             awayTeam: match.awayTeam,
                             homeGoals: match.score.fullTime.home,
@@ -220,7 +230,7 @@ const LeaguePage = () => {
                     </div>
                   ) : (
                     <div className="bg-highlight-800 p-6 rounded-lg text-center">
-                      <p className="text-gray-400 mb-3">No live matches available right now.</p>
+                      <p className="text-gray-400 mb-3">No live matches available from Highlightly API right now.</p>
                       <Button 
                         variant="outline" 
                         onClick={fetchHighlightlyMatches}
@@ -247,7 +257,7 @@ const LeaguePage = () => {
                   </div>
                 ) : (
                   <div className="bg-highlight-800 p-6 rounded-lg text-center">
-                    <p className="text-gray-400">No highlights available for this league yet.</p>
+                    <p className="text-gray-400">No highlights available for this league from Highlightly API.</p>
                   </div>
                 )}
               </div>
@@ -255,7 +265,7 @@ const LeaguePage = () => {
           ) : (
             <div className="text-center py-12">
               <h2 className="text-2xl font-semibold mb-2">League not found</h2>
-              <p className="text-gray-400 mb-6">The league you're looking for doesn't exist or is not available.</p>
+              <p className="text-gray-400 mb-6">The league you're looking for doesn't exist or is not available in the Highlightly API.</p>
               <Link to="/">
                 <Button>Return to Home</Button>
               </Link>

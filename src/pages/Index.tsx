@@ -7,7 +7,8 @@ import { MatchHighlight, League } from '@/types';
 import { getRecentHighlights, getHighlightsByLeague } from '@/services/highlightlyService';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
@@ -17,6 +18,7 @@ const Index = () => {
     leagues: true
   });
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchData();
@@ -26,24 +28,56 @@ const Index = () => {
     try {
       // Reset error state on new fetch
       setError(null);
+      setLoading({
+        recommended: true,
+        leagues: true
+      });
       
       // Fetch recommended highlights
-      console.log("Fetching recommended highlights...");
+      console.log("🔍 Fetching recommended highlights...");
       const recommendedData = await getRecentHighlights(5);
-      console.log(`Retrieved ${recommendedData.length} recommended highlights`);
+      
+      if (recommendedData.length === 0) {
+        console.warn("⚠️ No recommended highlights received from API");
+        toast({
+          title: "No Highlights Available",
+          description: "The API returned no highlights. This could be a temporary issue.",
+          variant: "destructive"
+        });
+      } else {
+        console.log(`✅ Retrieved ${recommendedData.length} recommended highlights`);
+      }
+      
       setRecommendedHighlights(recommendedData);
       setLoading(prev => ({ ...prev, recommended: false }));
 
       // Fetch league highlights
-      console.log("Fetching league highlights...");
+      console.log("🔍 Fetching league highlights...");
       const leaguesData = await getHighlightsByLeague();
-      console.log(`Retrieved ${leaguesData.length} leagues with highlights`);
+      
+      if (leaguesData.length === 0) {
+        console.warn("⚠️ No leagues with highlights received from API");
+        toast({
+          title: "No Leagues Available",
+          description: "The API returned no leagues with highlights. This could be a temporary issue.",
+          variant: "destructive"
+        });
+      } else {
+        console.log(`✅ Retrieved ${leaguesData.length} leagues with highlights`);
+      }
+      
       setLeagues(leaguesData);
       setLoading(prev => ({ ...prev, leagues: false }));
     } catch (error) {
-      console.error('Error fetching highlights:', error);
-      setError('Failed to load data. Please try again later.');
+      console.error('❌ Error fetching highlights:', error);
+      setError('Failed to load data from Highlightly API. Please check your network connection or try again later.');
       setLoading({ recommended: false, leagues: false });
+      
+      toast({
+        title: "API Connection Error",
+        description: "Failed to connect to the Highlightly football API. Please try again later.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -74,16 +108,17 @@ const Index = () => {
             <div className="bg-red-900/50 border border-red-700 text-white p-4 rounded-lg">
               <div className="flex items-center mb-2">
                 <AlertTriangle className="h-5 w-5 mr-2 text-red-400" />
-                <p className="font-semibold">Data Loading Error</p>
+                <p className="font-semibold">Highlightly API Error</p>
               </div>
               <p>{error}</p>
               <div className="mt-3 flex justify-between items-center">
-                <span className="text-xs text-gray-400">Using fallback data for display</span>
+                <span className="text-xs text-gray-400">Failed to connect to soccer.highlightly.net</span>
                 <Button 
                   onClick={() => fetchData()} 
                   variant="destructive"
                   size="sm"
                 >
+                  <RefreshCw className="mr-2 h-4 w-4" />
                   Try Again
                 </Button>
               </div>
@@ -102,9 +137,13 @@ const Index = () => {
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg flex flex-col items-center justify-center p-6">
                 <h3 className="text-xl font-semibold mb-2 text-gray-300">No Highlights Available</h3>
                 <p className="text-gray-400 text-center max-w-lg mb-4">
-                  Unable to load the latest football highlights at this time. We're showing placeholder content for demonstration.
+                  Unable to load highlights from the Highlightly API. This could be due to network issues, 
+                  API limitations, or no content being available at this time.
                 </p>
-                <Button onClick={() => fetchData()}>Refresh Content</Button>
+                <Button onClick={() => fetchData()}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh Content
+                </Button>
               </div>
             )}
           </div>
@@ -135,9 +174,13 @@ const Index = () => {
               <div className="bg-highlight-800 rounded-lg p-8 text-center">
                 <h3 className="text-xl font-semibold mb-3 text-gray-300">No Leagues Available</h3>
                 <p className="text-gray-400 mb-6 max-w-lg mx-auto">
-                  We couldn't load league data at this time. Check back later or try refreshing the page.
+                  We couldn't load league data from the Highlightly API. This could be due to network issues,
+                  API limitations, or no content being available at this time.
                 </p>
-                <Button onClick={() => fetchData()}>Refresh Leagues</Button>
+                <Button onClick={() => fetchData()}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh Leagues
+                </Button>
               </div>
             )}
           </div>
