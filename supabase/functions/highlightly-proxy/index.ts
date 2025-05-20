@@ -95,9 +95,9 @@ serve(async (req) => {
 
     console.log(`Proxying request to: ${targetUrl}`);
 
-    // IMPORTANT: According to the Highlightly documentation for direct API access subscription,
-    // The API key (c05d22e5-9a84-4a95-83c7-77ef598647ed) is actually a fixed header NAME, 
-    // not the value. We must use it as the header name, and set our actual API token as its value.
+    // CORRECTED: The proper way to authenticate with Highlightly Direct API
+    // The API key is sent as the request header with the header name being 'x-rapidapi-key'
+    // This is different from mistakenly using the API key as the header name
     
     // Create headers object with all required headers
     const headers = {
@@ -106,11 +106,9 @@ serve(async (req) => {
       // Origin and Referer headers to improve authentication acceptance
       'Origin': 'https://cctqwyhoryahdauqcetf.supabase.co',
       'Referer': 'https://cctqwyhoryahdauqcetf.supabase.co',
+      // Use the API token as the value of the x-rapidapi-key header
+      'x-rapidapi-key': apiToken.trim() // Ensure no whitespace
     };
-    
-    // CRITICAL: For direct Highlightly API access, we must use the fixed header name 
-    // 'c05d22e5-9a84-4a95-83c7-77ef598647ed' with our API token as its value
-    headers['c05d22e5-9a84-4a95-83c7-77ef598647ed'] = apiToken.trim(); // Ensure no whitespace
     
     console.log(`Headers prepared with keys: ${Object.keys(headers).join(', ')}`);
     
@@ -145,8 +143,8 @@ serve(async (req) => {
         if (jsonResponse.error && jsonResponse.error.includes("Missing mandatory HTTP Headers")) {
           console.error('CRITICAL: Authentication header issue detected.');
           console.error('The Highlightly API requires a specific header format:');
-          console.error('Header name: "c05d22e5-9a84-4a95-83c7-77ef598647ed" (fixed string)');
-          console.error('Header value: The API key obtained from Highlightly');
+          console.error('Header name: "x-rapidapi-key" (standard for API gateways)');
+          console.error('Header value: The API key "c05d22e5-9a84-4a95-83c7-77ef598647ed"');
           console.error('Current headers sent:', JSON.stringify(Object.keys(headers)));
         }
       }
