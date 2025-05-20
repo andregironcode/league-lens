@@ -1,18 +1,20 @@
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { ScoreBatMatch, ScoreBatVideo } from "@/types";
+import { HighlightlyHighlight, HighlightlyMatch } from "@/types";
 import { useState, useEffect } from "react";
 import { Calendar, Eye, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface VideoPlayerDialogProps {
-  match: ScoreBatMatch | null;
-  open: boolean;
-  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
+  match?: HighlightlyMatch | null;
+  open?: boolean;
+  onOpenChange?: React.Dispatch<React.SetStateAction<boolean>>;
   videoUrl?: string;
   title?: string;
+  // Support both naming conventions for backward compatibility
   isOpen?: boolean;
   onClose?: () => void;
+  highlight?: HighlightlyHighlight | null;
 }
 
 const VideoPlayerDialog = ({ 
@@ -23,7 +25,8 @@ const VideoPlayerDialog = ({
   title,
   // Support both naming conventions for backward compatibility
   isOpen, 
-  onClose 
+  onClose,
+  highlight
 }: VideoPlayerDialogProps) => {
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
   
@@ -42,33 +45,44 @@ const VideoPlayerDialog = ({
   // Reset selected video index when match changes
   useEffect(() => {
     setSelectedVideoIndex(0);
-  }, [match]);
+  }, [match, highlight]);
 
-  // If we have a direct videoUrl and title, create a minimal match object
-  const displayMatch = match || (videoUrl ? {
-    title: title || "Highlight Video",
-    videos: [{
-      id: "direct-video",
+  // Create a display object from either match, highlight, or direct video URL
+  let displayMatch = null;
+  
+  if (match) {
+    displayMatch = {
+      title: match.homeTeam.name + " vs " + match.awayTeam.name,
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+      score: match.score?.fullTime || { home: 0, away: 0 },
+      competition: match.competition,
+      date: match.date,
+      embedUrl: null
+    };
+  } else if (highlight) {
+    displayMatch = {
+      title: highlight.title || highlight.homeTeam.name + " vs " + highlight.awayTeam.name,
+      homeTeam: highlight.homeTeam,
+      awayTeam: highlight.awayTeam,
+      score: { home: highlight.homeGoals, away: highlight.awayGoals },
+      competition: highlight.competition,
+      date: highlight.date,
+      embedUrl: highlight.embedUrl
+    };
+  } else if (videoUrl) {
+    displayMatch = {
       title: title || "Highlight Video",
-      embed: `<iframe src="${videoUrl}" frameborder="0" allowfullscreen></iframe>`
-    }],
-  } as ScoreBatMatch) : null;
+      homeTeam: { name: "", logo: "" },
+      awayTeam: { name: "", logo: "" },
+      score: { home: 0, away: 0 },
+      competition: { name: "Highlight" },
+      date: new Date().toISOString(),
+      embedUrl: videoUrl
+    };
+  }
 
   if (!displayMatch) return null;
-
-  const videos = displayMatch.videos || [];
-  const currentVideo = videos[selectedVideoIndex];
-  
-  // Parse score from title if possible (format: "Team A 1-0 Team B")
-  const scoreRegex = /(\d+)\s*-\s*(\d+)/;
-  const scoreMatch = displayMatch.title.match(scoreRegex);
-  const homeScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
-  const awayScore = scoreMatch ? parseInt(scoreMatch[2]) : 0;
-  
-  // Parse team names from title (format: "Team A - Team B")
-  const teamNames = displayMatch.title.split(' - ');
-  const homeTeamName = teamNames[0] || '';
-  const awayTeamName = teamNames[1] ? teamNames[1].replace(scoreRegex, '').trim() : '';
   
   // Format date
   const formattedDate = displayMatch.date ? formatDistanceToNow(new Date(displayMatch.date), { addSuffix: true }) : '';
@@ -80,26 +94,28 @@ const VideoPlayerDialog = ({
   }) : '';
 
   // Process embed code to add autoplay parameter if it's an iframe
-  const processEmbedCode = (embedCode: string): string => {
-    if (!embedCode) return '';
+  const processEmbedUrl = (embedUrl: string): string => {
+    if (!embedUrl) return '';
     
-    // Add autoplay=1 parameter to iframe src if it's a YouTube or other video embed
-    return embedCode.replace(/src="([^"]+)"/, (match, src) => {
-      const url = new URL(src, window.location.origin);
+    try {
+      const url = new URL(embedUrl, window.location.origin);
       
       // Add autoplay parameter based on video platform
-      if (src.includes('youtube.com')) {
+      if (embedUrl.includes('youtube.com')) {
         url.searchParams.set('autoplay', '1');
         url.searchParams.set('mute', '0'); // Unmuted autoplay
-      } else if (src.includes('vimeo.com')) {
+      } else if (embedUrl.includes('vimeo.com')) {
         url.searchParams.set('autoplay', '1');
       } else {
         // For other platforms, we'll try the autoplay parameter
         url.searchParams.set('autoplay', '1');
       }
       
-      return `src="${url.toString()}" allow="autoplay; encrypted-media"`;
-    });
+      return url.toString();
+    } catch (e) {
+      console.error("Error processing embed URL:", e);
+      return embedUrl;
+    }
   };
 
   // Get team abbreviations for the team circles
@@ -133,10 +149,10 @@ const VideoPlayerDialog = ({
     return colors[hash % colors.length];
   };
 
-  const homeTeamAbbrev = getTeamAbbreviation(homeTeamName);
-  const awayTeamAbbrev = getTeamAbbreviation(awayTeamName);
-  const homeTeamColor = getTeamColor(homeTeamName);
-  const awayTeamColor = getTeamColor(awayTeamName);
+  const homeTeamAbbrev = getTeamAbbreviation(displayMatch.homeTeam.name);
+  const awayTeamAbbrev = getTeamAbbreviation(displayMatch.awayTeam.name);
+  const homeTeamColor = getTeamColor(displayMatch.homeTeam.name);
+  const awayTeamColor = getTeamColor(displayMatch.awayTeam.name);
 
   return (
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
@@ -156,10 +172,13 @@ const VideoPlayerDialog = ({
 
           {/* Video Player */}
           <div className="w-full aspect-video">
-            {currentVideo ? (
-              <div 
+            {displayMatch.embedUrl ? (
+              <iframe 
                 className="w-full h-full"
-                dangerouslySetInnerHTML={{ __html: processEmbedCode(currentVideo.embed) }}
+                src={processEmbedUrl(displayMatch.embedUrl)}
+                frameBorder="0" 
+                allowFullScreen
+                allow="autoplay; encrypted-media"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black">
@@ -172,7 +191,7 @@ const VideoPlayerDialog = ({
           <div className="px-6 pt-4">
             <div className="mb-2">
               <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
-                {displayMatch.competition || "Highlight"}
+                {displayMatch.competition?.name || "Highlight"}
               </span>
             </div>
           </div>
@@ -206,12 +225,12 @@ const VideoPlayerDialog = ({
                     {homeTeamAbbrev}
                   </div>
                   <span className="font-semibold text-lg mt-2 text-white text-center">
-                    {homeTeamName}
+                    {displayMatch.homeTeam.name}
                   </span>
                 </div>
                 
                 <div className="text-5xl md:text-6xl font-bold text-center text-white">
-                  {homeScore} <span className="text-gray-400">-</span> {awayScore}
+                  {displayMatch.score.home} <span className="text-gray-400">-</span> {displayMatch.score.away}
                 </div>
                 
                 <div className="flex flex-col items-center">
@@ -219,34 +238,12 @@ const VideoPlayerDialog = ({
                     {awayTeamAbbrev}
                   </div>
                   <span className="font-semibold text-lg mt-2 text-white text-center">
-                    {awayTeamName}
+                    {displayMatch.awayTeam.name}
                   </span>
                 </div>
               </div>
             </div>
           </div>
-          
-          {/* Video Selection */}
-          {videos.length > 1 && (
-            <div className="px-6 pb-6">
-              <h3 className="text-lg font-semibold mb-3 text-white">Available Highlights</h3>
-              <div className="flex flex-wrap gap-2">
-                {videos.map((video: ScoreBatVideo, index: number) => (
-                  <button
-                    key={video.id || index}
-                    onClick={() => setSelectedVideoIndex(index)}
-                    className={`px-3 py-1 rounded text-sm font-medium ${
-                      selectedVideoIndex === index
-                        ? "bg-[#FFC30B] text-black"
-                        : "bg-highlight-700 text-white hover:bg-highlight-600"
-                    }`}
-                  >
-                    Highlight {index + 1}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>

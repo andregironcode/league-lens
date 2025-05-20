@@ -2,30 +2,24 @@
 import { useState } from 'react';
 import { Play, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { ScoreBatMatch } from '@/types';
+import { HighlightlyHighlight } from '@/types';
 import VideoPlayerDialog from './VideoPlayerDialog';
 
-interface ScoreBatHighlightCardProps {
-  match: ScoreBatMatch;
+interface HighlightlyMatchCardProps {
+  highlight: HighlightlyHighlight;
 }
 
-const ScoreBatHighlightCard = ({ match }: ScoreBatHighlightCardProps) => {
+const HighlightlyMatchCard = ({ highlight }: HighlightlyMatchCardProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const formattedDate = formatDistanceToNow(new Date(match.date), { addSuffix: true });
+  const formattedDate = formatDistanceToNow(new Date(highlight.date), { addSuffix: true });
   
-  // Parse score from title if possible (format: "Team A 1-0 Team B")
-  const scoreRegex = /(\d+)\s*-\s*(\d+)/;
-  const scoreMatch = match.title.match(scoreRegex);
-  const homeScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
-  const awayScore = scoreMatch ? parseInt(scoreMatch[2]) : 0;
-  
-  // Parse team names from title (format: "Team A - Team B")
-  const teamNames = match.title.split(' - ');
-  const homeTeamName = teamNames[0] || '';
-  const awayTeamName = teamNames[1] ? teamNames[1].replace(scoreRegex, '').trim() : '';
+  const homeTeamName = highlight.homeTeam.name;
+  const awayTeamName = highlight.awayTeam.name;
+  const homeScore = highlight.homeGoals;
+  const awayScore = highlight.awayGoals;
 
   // Extract video duration if available
-  const videoDuration = match.videos && match.videos.length > 0 ? '10:24' : '00:00';
+  const videoDuration = '10:24'; // Placeholder for now
 
   return (
     <>
@@ -36,9 +30,8 @@ const ScoreBatHighlightCard = ({ match }: ScoreBatHighlightCardProps) => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-3 flex-1">
             <div className="flex items-center justify-center">
-              {/* Use generic team logos or extract from API if available */}
               <img 
-                src={`https://ui-avatars.com/api/?name=${homeTeamName.split(' ')[0]}&background=random&color=fff&size=128`}
+                src={highlight.homeTeam.logo || `https://ui-avatars.com/api/?name=${homeTeamName.split(' ')[0]}&background=random&color=fff&size=128`}
                 alt={homeTeamName}
                 className="w-8 h-8 object-contain rounded-full"
                 onError={(e) => {
@@ -50,7 +43,7 @@ const ScoreBatHighlightCard = ({ match }: ScoreBatHighlightCardProps) => {
                 {homeScore}-{awayScore}
               </span>
               <img 
-                src={`https://ui-avatars.com/api/?name=${awayTeamName.split(' ')[0]}&background=random&color=fff&size=128`}
+                src={highlight.awayTeam.logo || `https://ui-avatars.com/api/?name=${awayTeamName.split(' ')[0]}&background=random&color=fff&size=128`}
                 alt={awayTeamName}
                 className="w-8 h-8 object-contain rounded-full"
                 onError={(e) => {
@@ -90,7 +83,7 @@ const ScoreBatHighlightCard = ({ match }: ScoreBatHighlightCardProps) => {
       </div>
 
       <VideoPlayerDialog 
-        match={match}
+        highlight={highlight}
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
       />
@@ -98,4 +91,4 @@ const ScoreBatHighlightCard = ({ match }: ScoreBatHighlightCardProps) => {
   );
 };
 
-export default ScoreBatHighlightCard;
+export default HighlightlyMatchCard;

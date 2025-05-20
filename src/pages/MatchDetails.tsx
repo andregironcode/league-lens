@@ -6,13 +6,14 @@ import { format } from 'date-fns';
 import Header from '@/components/Header';
 import VideoPlayerDialog from '@/components/VideoPlayerDialog';
 import { getMatchById, getHighlightById, getMatchStats } from '@/services/highlightlyService';
+import { HighlightlyMatch, HighlightlyHighlight, HighlightlyMatchStatistics } from '@/types';
 
 const MatchDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
-  const [match, setMatch] = useState<any>(null);
-  const [highlight, setHighlight] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [match, setMatch] = useState<HighlightlyMatch | null>(null);
+  const [highlight, setHighlight] = useState<HighlightlyHighlight | null>(null);
+  const [stats, setStats] = useState<HighlightlyMatchStatistics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [videoOpen, setVideoOpen] = useState(false);
 
@@ -167,10 +168,10 @@ const MatchDetails = () => {
               
               <div className="flex flex-col items-center mx-4 md:mx-8">
                 <div className="text-3xl md:text-4xl font-bold mb-2">
-                  {matchData.score?.fullTime?.home || matchData.homeGoals || '?'} - {matchData.score?.fullTime?.away || matchData.awayGoals || '?'}
+                  {match?.score?.fullTime?.home || highlight?.homeGoals || '?'} - {match?.score?.fullTime?.away || highlight?.awayGoals || '?'}
                 </div>
                 <div className="text-sm text-gray-400 uppercase">
-                  {matchData.status === 'FINISHED' ? 'Final Score' : matchData.status || 'Match'}
+                  {match?.status === 'FINISHED' ? 'Final Score' : match?.status || 'Match'}
                 </div>
               </div>
               
@@ -209,10 +210,10 @@ const MatchDetails = () => {
               </div>
             )}
             
-            {matchData.venue && (
+            {match?.venue && (
               <div className="flex items-center">
                 <MapPin size={16} className="mr-2 text-gray-400" />
-                {matchData.venue.name || matchData.venue}
+                {match.venue.name}
               </div>
             )}
             
@@ -237,7 +238,7 @@ const MatchDetails = () => {
             <h2 className="text-xl font-semibold mb-6">Match Statistics</h2>
             
             <div className="space-y-4">
-              {stats.statistics?.map((stat: any, index: number) => (
+              {stats.statistics?.map((stat, index) => (
                 <div key={index} className="grid grid-cols-3 items-center">
                   <div className="text-right">{stat.homeValue || 0}</div>
                   <div className="text-center text-gray-400 font-medium px-4">
@@ -268,8 +269,7 @@ const MatchDetails = () => {
           <VideoPlayerDialog 
             open={videoOpen} 
             onOpenChange={setVideoOpen}
-            videoUrl={highlight.embedUrl}
-            title={`${matchData.homeTeam?.name || ''} vs ${matchData.awayTeam?.name || ''}`}
+            highlight={highlight}
           />
         )}
       </div>
