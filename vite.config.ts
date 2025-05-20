@@ -16,13 +16,17 @@ export default defineConfig(({ mode }) => ({
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
           proxy.on('proxyReq', function(proxyReq, req, _res) {
-            // Set all required headers first
-            proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9aa5-4e95-83c7-77ef598647ed');
+            console.log('🔍 SETTING HEADERS FOR PROXYING REQUEST TO HIGHLIGHTLY...');
+            
+            // Set all required headers first with correct casing
+            proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
             proxyReq.setHeader('Content-Type', 'application/json');
             proxyReq.setHeader('Accept', 'application/json');
             
-            // Check if the headers are actually being set
+            // CRITICAL DEBUG: Verify Authorization header right before sending
             console.log('🔑 CRITICAL - Authorization header:', proxyReq.getHeader('Authorization'));
+            // Try also checking with lowercase (for troubleshooting)
+            console.log('🔑 CRITICAL - authorization header (lowercase key):', proxyReq.getHeader('authorization'));
             console.log('📝 CRITICAL - Content-Type header:', proxyReq.getHeader('Content-Type'));
             console.log('📥 CRITICAL - Accept header:', proxyReq.getHeader('Accept'));
             
@@ -51,6 +55,25 @@ export default defineConfig(({ mode }) => ({
                 Object.entries(headers).forEach(([name, value]) => {
                   console.log(`   ${name}: ${value}`);
                 });
+                
+                // CRITICAL: Extra verification for Authorization header with exact casing
+                if (headers['Authorization']) {
+                  console.log('✅ VERIFICATION - Authorization header is present with exact casing');
+                  console.log(`   Value: ${headers['Authorization']}`);
+                  // Verify Bearer prefix
+                  if (headers['Authorization'].startsWith('Bearer ')) {
+                    console.log('✅ VERIFICATION - Bearer prefix is present');
+                  } else {
+                    console.error('❌ ERROR - Bearer prefix is MISSING!');
+                  }
+                } else {
+                  console.error('❌ ERROR - Authorization header with exact casing is MISSING!');
+                  // Check if it's present with different casing
+                  const authHeader = Object.keys(headers).find(key => key.toLowerCase() === 'authorization');
+                  if (authHeader) {
+                    console.log(`⚠️ WARNING - Found header with different casing: ${authHeader}: ${headers[authHeader]}`);
+                  }
+                }
               } else {
                 console.warn('⚠️ No header names available in proxyReq');
               }
@@ -83,9 +106,23 @@ export default defineConfig(({ mode }) => ({
                 // Additional log for 403 errors to help diagnose authorization issues
                 if (statusCode === 403) {
                   console.error('🔑 AUTHORIZATION FAILURE: The API rejected our credentials. Check that:');
-                  console.error('1. The Authorization header was correctly set to Bearer c05d22e5-9aa5-4e95-83c7-77ef598647ed');
+                  console.error('1. The Authorization header was correctly set to Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
                   console.error('2. The token is still valid and has the correct permissions');
                   console.error('3. The Highlightly API expects additional authentication parameters');
+                  console.error('4. The exact headers sent with this request were:');
+                  try {
+                    // Try to access the original proxy request headers (may not be available here)
+                    const reqHeaderNames = req.rawHeaders || [];
+                    for (let i = 0; i < reqHeaderNames.length; i += 2) {
+                      const name = reqHeaderNames[i];
+                      const value = reqHeaderNames[i + 1];
+                      if (name && value) {
+                        console.error(`   ${name}: ${value}`);
+                      }
+                    }
+                  } catch (err) {
+                    console.error('   Unable to log original request headers:', err);
+                  }
                 }
               });
             }
