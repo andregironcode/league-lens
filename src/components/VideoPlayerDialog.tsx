@@ -7,42 +7,77 @@ import { formatDistanceToNow } from "date-fns";
 
 interface VideoPlayerDialogProps {
   match: ScoreBatMatch | null;
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
+  videoUrl?: string;
+  title?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) => {
+const VideoPlayerDialog = ({ 
+  match, 
+  open, 
+  onOpenChange, 
+  videoUrl, 
+  title,
+  // Support both naming conventions for backward compatibility
+  isOpen, 
+  onClose 
+}: VideoPlayerDialogProps) => {
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+  
+  // Use either open or isOpen, prioritizing open
+  const dialogOpen = open !== undefined ? open : isOpen;
+  
+  // Handle close with either onOpenChange or onClose
+  const handleOpenChange = (newOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    } else if (!newOpen && onClose) {
+      onClose();
+    }
+  };
 
   // Reset selected video index when match changes
   useEffect(() => {
     setSelectedVideoIndex(0);
   }, [match]);
 
-  if (!match) return null;
+  // If we have a direct videoUrl and title, create a minimal match object
+  const displayMatch = match || (videoUrl ? {
+    title: title || "Highlight Video",
+    videos: [{
+      id: "direct-video",
+      title: title || "Highlight Video",
+      embed: `<iframe src="${videoUrl}" frameborder="0" allowfullscreen></iframe>`
+    }],
+  } as ScoreBatMatch) : null;
 
-  const videos = match.videos || [];
+  if (!displayMatch) return null;
+
+  const videos = displayMatch.videos || [];
   const currentVideo = videos[selectedVideoIndex];
   
   // Parse score from title if possible (format: "Team A 1-0 Team B")
   const scoreRegex = /(\d+)\s*-\s*(\d+)/;
-  const scoreMatch = match.title.match(scoreRegex);
+  const scoreMatch = displayMatch.title.match(scoreRegex);
   const homeScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
   const awayScore = scoreMatch ? parseInt(scoreMatch[2]) : 0;
   
   // Parse team names from title (format: "Team A - Team B")
-  const teamNames = match.title.split(' - ');
+  const teamNames = displayMatch.title.split(' - ');
   const homeTeamName = teamNames[0] || '';
   const awayTeamName = teamNames[1] ? teamNames[1].replace(scoreRegex, '').trim() : '';
   
   // Format date
-  const formattedDate = formatDistanceToNow(new Date(match.date), { addSuffix: true });
-  const exactDate = new Date(match.date).toLocaleDateString('en-US', { 
+  const formattedDate = displayMatch.date ? formatDistanceToNow(new Date(displayMatch.date), { addSuffix: true }) : '';
+  const exactDate = displayMatch.date ? new Date(displayMatch.date).toLocaleDateString('en-US', { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
     day: 'numeric' 
-  });
+  }) : '';
 
   // Process embed code to add autoplay parameter if it's an iframe
   const processEmbedCode = (embedCode: string): string => {
@@ -104,14 +139,14 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
   const awayTeamColor = getTeamColor(awayTeamName);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-6xl w-full bg-black border-highlight-800 text-white p-0 overflow-hidden">
-        <DialogTitle className="sr-only">{match.title}</DialogTitle>
+        <DialogTitle className="sr-only">{displayMatch.title}</DialogTitle>
         <div className="flex flex-col h-full">
           {/* Back button */}
           <div className="px-6 pt-6">
             <button 
-              onClick={onClose}
+              onClick={() => handleOpenChange(false)}
               className="flex items-center mb-4 text-sm font-medium hover:underline transition-colors text-white"
             >
               <ArrowLeft size={16} className="mr-2" />
@@ -137,7 +172,7 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
           <div className="px-6 pt-4">
             <div className="mb-2">
               <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
-                {match.competition}
+                {displayMatch.competition || "Highlight"}
               </span>
             </div>
           </div>
@@ -145,14 +180,16 @@ const VideoPlayerDialog = ({ match, isOpen, onClose }: VideoPlayerDialogProps) =
           {/* Match Title */}
           <div className="px-6">
             <h1 className="text-2xl md:text-3xl font-bold mb-3 text-white">
-              {match.title}
+              {displayMatch.title}
             </h1>
             
             <div className="flex flex-wrap items-center text-sm text-gray-400 mb-6 space-x-6">
-              <div className="flex items-center">
-                <Calendar size={16} className="mr-2" />
-                <span>{exactDate}</span>
-              </div>
+              {exactDate && (
+                <div className="flex items-center">
+                  <Calendar size={16} className="mr-2" />
+                  <span>{exactDate}</span>
+                </div>
+              )}
               <div className="flex items-center">
                 <Eye size={16} className="mr-2" />
                 <span>1,243,000 views</span>

@@ -1,4 +1,3 @@
-
 export interface Team {
   id: string;
   name: string;
@@ -136,4 +135,15 @@ export interface HighlightlyHighlight {
     name: string;
     logo: string;
   };
+}
+
+export interface HighlightlyMatchStatistics {
+  matchId: string;
+  statistics: HighlightlyMatchStat[];
+}
+
+export interface HighlightlyMatchStat {
+  type: string;
+  homeValue: string | number;
+  awayValue: string | number;
 }
