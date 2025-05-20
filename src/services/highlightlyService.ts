@@ -1,11 +1,14 @@
 import { MatchHighlight, League, Team } from '@/types';
 
-// Use our local proxy instead of direct API calls
-const API_BASE_URL = '/api';
+// Direct API URL instead of using a proxy
+const API_BASE_URL = 'https://soccer.highlightly.net';
 
-// Helper function to make authenticated requests to the Highlightly API via our proxy
+// API authorization token
+const API_TOKEN = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
+
+// Helper function to make authenticated requests directly to the Highlightly API
 async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}) {
-  const url = new URL(`${API_BASE_URL}${endpoint}`, window.location.origin);
+  const url = new URL(`${API_BASE_URL}${endpoint}`);
   
   // Add query parameters
   Object.keys(params).forEach(key => {
@@ -20,10 +23,10 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   console.log(`🔍 API Request to: ${fullUrl}`);
   
   try {
-    // Make the request - the proxy automatically adds the Authorization header
-    // Important: DO NOT add Authorization header here - it's added by the proxy
+    // Make the request with all headers included directly
     const response = await fetch(fullUrl, {
       headers: {
+        'Authorization': `Bearer ${API_TOKEN}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
@@ -37,7 +40,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
       
       if (response.status === 403) {
-        console.error('💡 403 FORBIDDEN - Authorization failure. Check server logs for details on headers being sent.');
+        console.error('💡 403 FORBIDDEN - Authorization header might be incorrect. Check API token.');
       }
       
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -62,7 +65,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     
     // Check for specific network errors
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.error('🌐 Network error: Check your internet connection or proxy settings');
+      console.error('🌐 Network error: Check your internet connection');
     }
     
     throw error;
@@ -398,15 +401,15 @@ export async function checkHighlightGeoRestrictions(highlightId: string): Promis
   }
 }
 
-// Update the debug function to make a test request with explicit headers
+// Update the debug function to make a test request with explicit headers to the direct API
 export async function testApiConnection(): Promise<{success: boolean, message: string, details?: any}> {
   try {
-    console.log('🔍 Testing API connection to Highlightly...');
+    console.log('🔍 Testing direct API connection to Highlightly...');
     
-    // Make a simple request to the highlights endpoint with limit=1
-    // IMPORTANT: DO NOT add Authorization here, it should be added by the proxy
-    const response = await fetch('/api/highlights?limit=1', {
+    // Make a simple request directly to the Highlightly API
+    const response = await fetch(`${API_BASE_URL}/highlights?limit=1`, {
       headers: {
+        'Authorization': `Bearer ${API_TOKEN}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
@@ -446,7 +449,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
         details: {
           responseText: text.substring(0, 500),
           headers: responseHeaders,
-          errorType: response.status === 403 ? 'Authorization Error - The proxy may not be forwarding the Authorization header correctly' : 'API Error'
+          errorType: response.status === 403 ? 'Authorization Error - Check API token format' : 'API Error'
         }
       };
     }
