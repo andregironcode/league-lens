@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
         configure: (proxy, _options) => {
           proxy.on('proxyReq', function(proxyReq, req, _res) {
             // Set all required headers first
-            proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+            proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9aa5-4e95-83c7-77ef598647ed');
             proxyReq.setHeader('Content-Type', 'application/json');
             proxyReq.setHeader('Accept', 'application/json');
             
@@ -26,8 +26,8 @@ export default defineConfig(({ mode }) => ({
             console.log('📝 CRITICAL - Content-Type header:', proxyReq.getHeader('Content-Type'));
             console.log('📥 CRITICAL - Accept header:', proxyReq.getHeader('Accept'));
             
-            // Log the complete URL for debugging
-            const fullUrl = `${req.method} ${req.protocol ? req.protocol : 'http'}://${req.headers.host}${req.url} → ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`;
+            // Log the complete URL for debugging (without using req.protocol)
+            const fullUrl = `${req.method} http://${req.headers.host}${req.url} → ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`;
             console.log(`🚀 PROXY REQUEST: ${fullUrl}`);
             
             // Check what headers the original request had
@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => ({
                 // Additional log for 403 errors to help diagnose authorization issues
                 if (statusCode === 403) {
                   console.error('🔑 AUTHORIZATION FAILURE: The API rejected our credentials. Check that:');
-                  console.error('1. The Authorization header was correctly set to Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+                  console.error('1. The Authorization header was correctly set to Bearer c05d22e5-9aa5-4e95-83c7-77ef598647ed');
                   console.error('2. The token is still valid and has the correct permissions');
                   console.error('3. The Highlightly API expects additional authentication parameters');
                 }
@@ -110,4 +110,3 @@ export default defineConfig(({ mode }) => ({
     },
   },
 }));
-
