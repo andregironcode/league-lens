@@ -1,5 +1,5 @@
 
-import { MatchHighlight, League } from '@/types';
+import { MatchHighlight, League, HighlightlyHighlight } from '@/types';
 import { fetchFromAPI } from './highlightlyClient';
 
 // Transform API highlight data into our application format
@@ -48,10 +48,11 @@ export async function getRecentHighlights(limit = 10): Promise<MatchHighlight[]>
     });
     
     if (!data || !Array.isArray(data) || data.length === 0) {
-      console.warn('⚠️ No data returned from Highlightly API or empty array');
+      console.warn('⚠️ No highlight data available from API or empty array');
       throw new Error('No highlights data available');
     }
     
+    // Transform the API data format to our application format
     const transformedHighlights = data.map(transformHighlight);
     console.log(`✅ Transformed ${transformedHighlights.length} highlights from API`);
     return transformedHighlights;

@@ -1,188 +1,191 @@
+/**
+ * Core client for interacting with the Highlightly API
+ * This module handles the direct HTTP communication with the API
+ */
 
-// Core client for making authenticated requests to the Highlightly API via our proxy
-import { toast } from 'sonner';
-
-// Base URL for our Supabase Edge Function proxy
-const PROXY_URL = 'https://cctqwyhoryahdauqcetf.supabase.co/functions/v1/highlightly-proxy';
-
-// Helper function to make authenticated requests via our proxy
-export async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}, retries = 2) {
-  const url = new URL(`${PROXY_URL}${endpoint}`);
-  
-  // Add query parameters
-  Object.keys(params).forEach(key => {
-    if (params[key]) {
-      url.searchParams.append(key, params[key]);
+// Basic function to fetch data from the Highlightly API via our edge function proxy
+export async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}): Promise<any> {
+  try {
+    // Build the URL with query parameters
+    const url = new URL(`/functions/v1/highlightly-proxy${endpoint}`, window.location.origin);
+    
+    // Add query parameters
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) url.searchParams.append(key, value);
+    });
+    
+    console.log(`🔍 Fetching from Highlightly API: ${url.toString()}`);
+    
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      console.error(`❌ API request failed with status: ${response.status} ${response.statusText}`);
+      throw new Error(`API request failed with status: ${response.status} ${response.statusText}`);
     }
-  });
-  
-  const fullUrl = url.toString();
-  
-  // Log the request details for debugging
-  console.log(`🔍 API Request via proxy to: ${endpoint} with params:`, params);
-  
-  let attempts = 0;
-  let lastError;
-  
-  while (attempts <= retries) {
-    attempts++;
-    try {
-      // Make the request through our proxy
-      const response = await fetch(fullUrl, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      // Log response details
-      console.log(`📥 API Response: ${response.status} ${response.statusText}`);
-      
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'No error text available');
-        console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
-        
-        if (response.status === 403) {
-          console.error('💡 403 FORBIDDEN - Authentication error with Highlightly API. Make sure:');
-          console.error('  1. The API key is valid and active');
-          console.error('  2. The header format in the Edge Function is correct');
-        }
-        
-        // If we get a 429 (rate limit) or 5xx (server error), retry after a delay
-        if ((response.status === 429 || response.status >= 500) && attempts <= retries) {
-          const retryDelay = response.status === 429 
-            ? parseInt(response.headers.get('retry-after') || '2', 10) * 1000
-            : 1000 * attempts; // Exponential backoff
-            
-          console.log(`⏱️ Retrying in ${retryDelay}ms... (Attempt ${attempts} of ${retries + 1})`);
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
-          continue; // Retry the request
-        }
-        
-        throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
+    
+    const jsonResponse = await response.json();
+    
+    // Handle the nested data structure - Highlightly API returns { data: [...] }
+    if (jsonResponse && typeof jsonResponse === 'object') {
+      // If the response has a data property that is an array, return that
+      if (jsonResponse.data && Array.isArray(jsonResponse.data)) {
+        console.log(`✅ API returned ${jsonResponse.data.length} items in data array`);
+        return jsonResponse.data;
       }
-      
-      // Check for JSON content type
-      const contentType = response.headers.get('content-type');
-      console.log(`Content-Type: ${contentType || 'not specified'}`);
-      
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        console.log(`✅ API Response (${endpoint}): Success`);
-        return data;
-      } else {
-        // If not JSON, log the response body
-        const textResponse = await response.text();
-        console.error('❌ Received non-JSON response:', textResponse.substring(0, 500) + (textResponse.length > 500 ? '...' : ''));
-        throw new Error('API returned non-JSON response');
+      // If single object with data property, return the data property
+      else if (jsonResponse.data && typeof jsonResponse.data === 'object') {
+        console.log('✅ API returned a single object in data property');
+        return jsonResponse.data;
       }
-    } catch (error) {
-      console.error(`❌ Error fetching from API (attempt ${attempts}):`, error);
-      lastError = error;
-      
-      // Only retry for network errors
-      if (error instanceof TypeError && error.message.includes('fetch') && attempts <= retries) {
-        const retryDelay = 1000 * attempts; // Exponential backoff
-        console.log(`🌐 Network error. Retrying in ${retryDelay}ms... (Attempt ${attempts} of ${retries + 1})`);
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-      } else {
-        break; // Don't retry for other errors
+      // Otherwise return the whole response
+      else {
+        console.log('✅ API returned a response without a data property');
+        return jsonResponse;
       }
     }
+    
+    // Default case if response format is unexpected
+    console.warn('⚠️ API returned unexpected response format:', jsonResponse);
+    return jsonResponse;
+  } catch (error) {
+    console.error('❌ Error fetching from API:', error);
+    throw error;
   }
-  
-  // All retries failed
-  throw lastError || new Error(`Failed after ${retries + 1} attempts`);
 }
 
-// Test the connection to the API
-export async function testApiConnection(): Promise<{success: boolean, message: string, details?: any}> {
+// Test the API connection to diagnose any issues
+export async function testApiConnection(): Promise<{
+  success: boolean;
+  message: string;
+  details: any;
+}> {
   try {
     console.log('🔍 Testing Edge Function proxy connection to Highlightly...');
     
-    // Make a simple request to test the connection
-    const response = await fetch(`${PROXY_URL}/matches?date=${new Date().toISOString().split('T')[0]}`, {
+    // Start with today's date to ensure we have a required parameter
+    const today = new Date().toISOString().split('T')[0];
+    const testUrl = `/matches?date=${today}`;
+    
+    // Try to fetch from the API
+    const response = await fetch(`/functions/v1/highlightly-proxy${testUrl}`, {
+      method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
     
-    console.log(`Test request status: ${response.status} ${response.statusText}`);
+    console.log(`Test request status: ${response.status} `);
     
-    // Log response headers in a cleaner format
-    const responseHeaders = Object.fromEntries(response.headers.entries());
-    console.log('Response headers:', responseHeaders);
+    // Get headers for debugging
+    const headers: Record<string, string> = {};
+    response.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+    console.log('Response headers:', headers);
     
-    const text = await response.text();
-    console.log('Response preview:', text.length > 500 ? text.substring(0, 500) + '...' : text);
+    // Try to parse the response as JSON
+    let data = null;
+    let responsePreview = null;
     
-    let jsonData = null;
     try {
-      jsonData = JSON.parse(text);
-      console.log('✅ Response is valid JSON');
+      const text = await response.text();
+      responsePreview = text.length > 500 ? text.substring(0, 500) + '...' : text;
+      console.log('Response preview:', responsePreview);
       
-      // Enhanced success detection
-      if (Array.isArray(jsonData) || (jsonData && !jsonData.error)) {
-        return {
-          success: true,
-          message: `Connection successful! Received valid data from Highlightly API.`,
-          details: {
-            contentType: response.headers.get('content-type'),
-            status: response.status,
-            dataPreview: Array.isArray(jsonData) 
-              ? `Received ${jsonData.length} items` 
-              : 'Received JSON object',
-            data: jsonData
-          }
-        };
-      } else if (jsonData.error) {
-        return {
-          success: false,
-          message: `API Error: ${jsonData.error}`,
-          details: {
-            errorType: jsonData.error.includes("Missing mandatory HTTP Headers") 
-              ? "Authentication Error - Check API key configuration in the Edge Function" 
-              : "API Error Response",
-            status: response.status,
-            responseData: jsonData
-          }
-        };
-      }
-    } catch (e) {
-      console.error('❌ Response is not valid JSON:', e);
-      console.log('Raw response:', text);
+      // Try to parse the JSON
+      data = JSON.parse(text);
+      console.log('✅ Response is valid JSON');
+    } catch (parseError) {
+      console.error('❌ Failed to parse response as JSON:', parseError);
+      return {
+        success: false,
+        message: 'API returned non-JSON response',
+        details: {
+          status: response.status,
+          headers,
+          responsePreview,
+          error: String(parseError)
+        }
+      };
     }
     
-    if (response.ok) {
+    // Check if the API returned an error message
+    if (data.error) {
+      return {
+        success: false,
+        message: `API returned error: ${data.error}`,
+        details: {
+          status: response.status,
+          headers,
+          data,
+          responseStucture: describeObjectStructure(data)
+        }
+      };
+    }
+    
+    // Check for the expected structure
+    if (data && data.data && Array.isArray(data.data)) {
       return {
         success: true,
-        message: `Proxy connection successful (${response.status} ${response.statusText})`,
+        message: `Successfully connected to Highlightly API - returned ${data.data.length} items`,
         details: {
-          contentType: response.headers.get('content-type'),
-          dataPreview: jsonData ? 'Valid JSON received' : 'Invalid JSON format',
-          responsePreview: text.substring(0, 200) + (text.length > 200 ? '...' : '')
+          status: response.status,
+          headers,
+          sampleData: data.data.length > 0 ? data.data[0] : null,
+          responseStucture: describeObjectStructure(data)
         }
       };
     } else {
       return {
-        success: false,
-        message: `Proxy error: ${response.status} ${response.statusText}`,
+        success: true,
+        message: 'Connected to API but unexpected data structure',
         details: {
-          responseText: text.substring(0, 500),
-          headers: responseHeaders,
-          errorType: response.status === 403 
-            ? 'API Authentication Error - Check API key configuration in the Edge Function' 
-            : `HTTP Error ${response.status}`
+          status: response.status,
+          headers,
+          responseStucture: describeObjectStructure(data)
         }
       };
     }
   } catch (error) {
-    console.error('Test request failed:', error);
+    console.error('❌ Error testing API connection:', error);
     return {
       success: false,
-      message: `Connection error: ${error instanceof Error ? error.message : String(error)}`,
+      message: `Failed to connect to API: ${error instanceof Error ? error.message : String(error)}`,
       details: { error: String(error) }
     };
   }
+}
+
+// Helper function to describe the structure of an object for debugging
+function describeObjectStructure(obj: any): any {
+  if (obj === null) return 'null';
+  if (obj === undefined) return 'undefined';
+  
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return 'Empty array []';
+    return `Array with ${obj.length} items. First item: ${describeObjectStructure(obj[0])}`;
+  }
+  
+  if (typeof obj === 'object') {
+    return Object.keys(obj).reduce((acc, key) => {
+      let value = obj[key];
+      
+      if (value === null) acc[key] = 'null';
+      else if (value === undefined) acc[key] = 'undefined';
+      else if (Array.isArray(value)) acc[key] = `Array[${value.length}]`;
+      else if (typeof value === 'object') acc[key] = 'Object';
+      else acc[key] = typeof value;
+      
+      return acc;
+    }, {} as Record<string, string>);
+  }
+  
+  return typeof obj;
 }
