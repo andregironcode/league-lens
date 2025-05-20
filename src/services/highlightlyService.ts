@@ -37,7 +37,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
       
       if (response.status === 403) {
-        console.error('💡 403 FORBIDDEN - Authorization might be incorrect. Check API token format in Supabase Edge Function.');
+        console.error('💡 403 FORBIDDEN - Authentication error. Highlightly API requires specific header format: "c05d22e5-9a84-4a95-83c7-77ef598647ed" header with API key as value.');
       }
       
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
