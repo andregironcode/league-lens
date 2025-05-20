@@ -14,6 +14,11 @@ export default defineConfig(({ mode }) => ({
         target: 'https://soccer.highlightly.net',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+        headers: { 
+          'Authorization': 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         configure: (proxy, _options) => {
           proxy.on('proxyReq', function(proxyReq, req, _res) {
             console.log('🔍 SETTING HEADERS FOR PROXYING REQUEST TO HIGHLIGHTLY...');
