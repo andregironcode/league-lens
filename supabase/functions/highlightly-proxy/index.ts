@@ -50,18 +50,24 @@ serve(async (req) => {
 
     // Log the headers we're about to send for debugging
     console.log('Sending request with headers:', {
-      apiToken: apiToken ? `${apiToken.substring(0, 5)}...` : 'missing',
+      'API Key Header': 'c05d22e5-9a84-4a95-83c7-77ef598647ed',
+      'API Key Value': apiToken ? `${apiToken.substring(0, 5)}...` : 'missing'
     });
 
     // Forward the request to the Highlightly API with the correct header
+    // According to the documentation, the API key should be sent as the value 
+    // of a header named exactly 'c05d22e5-9a84-4a95-83c7-77ef598647ed'
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+    
+    // Set the API key as a header with the specific name required by Highlightly
+    headers['c05d22e5-9a84-4a95-83c7-77ef598647ed'] = apiToken;
+    
     const response = await fetch(targetUrl.toString(), {
       method: req.method,
-      headers: {
-        // Using the correct header name from the Highlightly documentation
-        'c05d22e5-9a84-4a95-83c7-77ef598647ed': apiToken,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
+      headers: headers,
       body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined,
     });
 
