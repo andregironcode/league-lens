@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
-import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
 import { MatchHighlight, League } from '@/types';
+import { getRecentHighlights, getHighlightsByLeague } from '@/services/highlightlyService';
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
@@ -13,21 +13,23 @@ const Index = () => {
     recommended: true,
     leagues: true
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch recommended highlights
-        const recommendedData = await getRecommendedHighlights();
+        const recommendedData = await getRecentHighlights(5);
         setRecommendedHighlights(recommendedData);
         setLoading(prev => ({ ...prev, recommended: false }));
 
         // Fetch league highlights
-        const leaguesData = await getLeagueHighlights();
+        const leaguesData = await getHighlightsByLeague();
         setLeagues(leaguesData);
         setLoading(prev => ({ ...prev, leagues: false }));
       } catch (error) {
         console.error('Error fetching highlights:', error);
+        setError('Failed to load data. Please try again later.');
         setLoading({ recommended: false, leagues: false });
       }
     };
@@ -56,13 +58,32 @@ const Index = () => {
       <Header />
       
       <main className="pt-16 pb-10">
+        {/* Error message */}
+        {error && (
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mb-8">
+            <div className="bg-red-900/50 border border-red-700 text-white p-4 rounded-lg">
+              <p>{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-2 bg-red-700 hover:bg-red-600 px-4 py-1 rounded text-sm"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* Hero Carousel - Wider layout */}
         <section className="mb-12">
           <div className="w-full mx-auto px-0 sm:px-0">
             {loading.recommended ? (
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
-            ) : (
+            ) : recommendedHighlights.length > 0 ? (
               <HeroCarousel highlights={recommendedHighlights} />
+            ) : (
+              <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg flex items-center justify-center">
+                <p className="text-gray-400">No highlights available</p>
+              </div>
             )}
           </div>
         </section>
@@ -83,9 +104,15 @@ const Index = () => {
                   ))}
                 </div>
               )
-              : leagues.map(league => (
-                <LeagueSection key={league.id} league={league} />
-              ))
+              : leagues.length > 0 ? (
+                leagues.map(league => (
+                  <LeagueSection key={league.id} league={league} />
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-400">No leagues available</p>
+                </div>
+              )
             }
           </div>
         </section>
@@ -99,7 +126,7 @@ const Index = () => {
               © {new Date().getFullYear()} Score90. All rights reserved.
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              All videos are sourced from official channels and we do not host any content.
+              All videos are sourced from official channels via Highlightly API.
             </p>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 export interface Team {
   id: string;
   name: string;
@@ -93,5 +94,46 @@ export interface ScoreBatMatch {
     };
     duration: string;
     views: number;
+  };
+}
+
+// Highlightly API specific types
+export interface HighlightlyMatch {
+  id: string;
+  date: string;
+  status: string;
+  homeTeam: Team;
+  awayTeam: Team;
+  score: {
+    fullTime: {
+      home: number;
+      away: number;
+    }
+  };
+  venue?: {
+    id: string;
+    name: string;
+  };
+  competition: {
+    id: string;
+    name: string;
+    logo: string;
+  };
+}
+
+export interface HighlightlyHighlight {
+  id: string;
+  title: string;
+  date: string;
+  thumbnailUrl: string;
+  embedUrl: string;
+  homeTeam: Team;
+  awayTeam: Team;
+  homeGoals: number;
+  awayGoals: number;
+  competition: {
+    id: string;
+    name: string;
+    logo: string;
   };
 }
