@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
@@ -123,7 +122,7 @@ const Index = () => {
               )}
               
               <div className="mt-3 flex justify-between items-center">
-                <span className="text-xs text-gray-400">Failed to connect to soccer.highlightly.net</span>
+                <span className="text-xs text-gray-400">Failed to connect to API proxy</span>
                 <div className="flex space-x-2">
                   <Button 
                     onClick={() => fetchData()} 
@@ -137,12 +136,13 @@ const Index = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      console.log('API_BASE_URL:', 'https://soccer.highlightly.net');
-                      console.log('API_KEY:', 'c05d22e5-9a84-4a95-83c7-77ef598647ed');
-                      console.log('API_KEY header format used:', 'Authorization: Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+                      console.log('Using API Proxy:');
+                      console.log('- Frontend calls: /api/highlights');
+                      console.log('- Proxy target: https://soccer.highlightly.net/highlights');
+                      console.log('- Auth header added by proxy: Authorization: Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
                       toast({
                         title: "Debug Info",
-                        description: "Check the browser console for API connection details",
+                        description: "Check the browser console for API proxy details",
                       });
                     }}
                   >

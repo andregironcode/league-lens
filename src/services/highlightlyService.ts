@@ -1,15 +1,16 @@
-
 import { MatchHighlight, League, Team } from '@/types';
 
-const API_BASE_URL = 'https://soccer.highlightly.net';
-const API_KEY = 'c05d22e5-9aa5-4a95-83c7-77ef598647ed';
+// Use our local proxy instead of direct API calls
+const API_BASE_URL = '/api';
+// API key is now handled by the proxy server
+const API_KEY = 'c05d22e5-9a84-4a95-83c7-77ef598647ed';
 
 // Control flag to disable mock data
 const USE_MOCK_DATA = false;
 
-// Helper function to make authenticated requests to the Highlightly API
+// Helper function to make authenticated requests to the Highlightly API via our proxy
 async function fetchFromAPI(endpoint: string, params: Record<string, string> = {}) {
-  const url = new URL(`${API_BASE_URL}${endpoint}`);
+  const url = new URL(`${API_BASE_URL}${endpoint}`, window.location.origin);
   
   // Add query parameters
   Object.keys(params).forEach(key => {
@@ -20,24 +21,18 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   
   const fullUrl = url.toString();
   
-  // Log the full request details for debugging
-  const headers = {
-    'Authorization': `Bearer ${API_KEY}`
-  };
-  
-  console.log(`🔍 Highlightly API Request:
+  // Log the request details for debugging
+  console.log(`🔍 Proxy API Request:
   URL: ${fullUrl}
-  Headers: ${JSON.stringify(headers, null, 2)}
-  Method: GET`);
+  Method: GET
+  Target: https://soccer.highlightly.net${endpoint}`);
   
   try {
-    // Using Bearer prefix with API key as specified in the documentation
-    const response = await fetch(fullUrl, {
-      headers: headers
-    });
+    // No need to include headers as proxy handles authentication
+    const response = await fetch(fullUrl);
     
-    // Log full response details for debugging
-    console.log(`📥 API Response Status: ${response.status} ${response.statusText}`);
+    // Log response details for debugging
+    console.log(`📥 Proxy Response Status: ${response.status} ${response.statusText}`);
     
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text available');
@@ -46,13 +41,13 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     }
     
     const data = await response.json();
-    console.log(`✅ Highlightly API Response (${endpoint}): ${JSON.stringify(data).substring(0, 500)}...`);
+    console.log(`✅ API Response (${endpoint}): ${JSON.stringify(data).substring(0, 500)}...`);
     return data;
   } catch (error) {
-    console.error('❌ Error fetching from Highlightly API:', error);
+    console.error('❌ Error fetching from API:', error);
     // Check for network connectivity issues vs API errors
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      console.error('🌐 Network error: Check your internet connection or CORS settings');
+      console.error('🌐 Network error: Check your internet connection or proxy settings');
     }
     throw error;
   }
