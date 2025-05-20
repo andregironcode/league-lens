@@ -1,3 +1,4 @@
+
 import { MatchHighlight, League, Team } from '@/types';
 
 // Use Supabase Edge Function as a proxy instead of direct API access
@@ -36,7 +37,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
       
       if (response.status === 403) {
-        console.error('💡 403 FORBIDDEN - Authorization might be incorrect. Check API token in Supabase secrets.');
+        console.error('💡 403 FORBIDDEN - Authorization might be incorrect. Check API token format in Supabase Edge Function.');
       }
       
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -425,6 +426,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
       console.log('✅ Response is valid JSON');
     } catch (e) {
       console.error('❌ Response is not valid JSON:', e);
+      console.log('Raw response:', text);
     }
     
     if (response.ok) {
@@ -444,7 +446,7 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
         details: {
           responseText: text.substring(0, 500),
           headers: responseHeaders,
-          errorType: response.status === 403 ? 'API Key Error - Check Supabase secret' : 'Proxy Error'
+          errorType: response.status === 403 ? 'API Authentication Error - Check header format in Edge Function' : 'Proxy Error'
         }
       };
     }

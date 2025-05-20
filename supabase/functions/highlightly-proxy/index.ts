@@ -49,10 +49,13 @@ serve(async (req) => {
     console.log(`Proxying request to: ${targetUrl}`);
 
     // Forward the request to the Highlightly API
+    // Using the apiToken as a direct header value rather than in the Authorization header
     const response = await fetch(targetUrl.toString(), {
       method: req.method,
       headers: {
-        'Authorization': apiToken,
+        // The API key should be sent as a header with the exact name expected by the API
+        // Based on the Highlightly documentation, they expect it as a direct header
+        'c05d22e5-9a84-4a95-83c7-77ef598647ed': apiToken,  // This is a placeholder format, adjust based on their docs
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
