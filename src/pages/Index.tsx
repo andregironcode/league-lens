@@ -7,7 +7,7 @@ import { MatchHighlight, League } from '@/types';
 import { getRecentHighlights, getHighlightsByLeague } from '@/services/highlightlyService';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, Bug } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
@@ -18,6 +18,7 @@ const Index = () => {
     leagues: true
   });
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -28,6 +29,7 @@ const Index = () => {
     try {
       // Reset error state on new fetch
       setError(null);
+      setDebugInfo(null);
       setLoading({
         recommended: true,
         leagues: true
@@ -70,7 +72,9 @@ const Index = () => {
       setLoading(prev => ({ ...prev, leagues: false }));
     } catch (error) {
       console.error('❌ Error fetching highlights:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setError('Failed to load data from Highlightly API. Please check your network connection or try again later.');
+      setDebugInfo(`Error details: ${errorMessage}`);
       setLoading({ recommended: false, leagues: false });
       
       toast({
@@ -102,7 +106,7 @@ const Index = () => {
       <Header />
       
       <main className="pt-16 pb-10">
-        {/* Error message */}
+        {/* Error message with debug info */}
         {error && (
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mb-8">
             <div className="bg-red-900/50 border border-red-700 text-white p-4 rounded-lg">
@@ -111,16 +115,40 @@ const Index = () => {
                 <p className="font-semibold">Highlightly API Error</p>
               </div>
               <p>{error}</p>
+              
+              {debugInfo && (
+                <div className="mt-3 p-2 bg-black/30 rounded text-xs font-mono overflow-auto max-h-32">
+                  {debugInfo}
+                </div>
+              )}
+              
               <div className="mt-3 flex justify-between items-center">
                 <span className="text-xs text-gray-400">Failed to connect to soccer.highlightly.net</span>
-                <Button 
-                  onClick={() => fetchData()} 
-                  variant="destructive"
-                  size="sm"
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Try Again
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={() => fetchData()} 
+                    variant="destructive"
+                    size="sm"
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log('API_BASE_URL:', 'https://soccer.highlightly.net');
+                      console.log('API_KEY format:', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+                      toast({
+                        title: "Debug Info",
+                        description: "Check the browser console for API connection details",
+                      });
+                    }}
+                  >
+                    <Bug className="mr-2 h-4 w-4" />
+                    Debug
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

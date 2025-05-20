@@ -1,3 +1,4 @@
+
 import { MatchHighlight, League, Team } from '@/types';
 
 const API_BASE_URL = 'https://soccer.highlightly.net';
@@ -17,14 +18,18 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     }
   });
   
-  console.log(`🔍 Highlightly API Request: ${url.toString()}`);
+  const fullUrl = url.toString();
+  console.log(`🔍 Highlightly API Request: ${fullUrl}`);
   
   try {
-    const response = await fetch(url.toString(), {
+    const response = await fetch(fullUrl, {
       headers: {
-        'Authorization': API_KEY
+        'Authorization': `Bearer ${API_KEY}`
       }
     });
+    
+    // Log full response details for debugging
+    console.log(`📥 API Response Status: ${response.status} ${response.statusText}`);
     
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text available');
