@@ -1,3 +1,4 @@
+
 import { MatchHighlight, League, Team } from '@/types';
 
 // Use Supabase Edge Function as a proxy instead of direct API access
@@ -36,7 +37,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
       
       if (response.status === 403) {
-        console.error('💡 403 FORBIDDEN - Authentication error. Highlightly API requires specific header format: "c05d22e5-9a84-4a95-83c7-77ef598647ed" header with API key as value.');
+        console.error('💡 403 FORBIDDEN - Authentication error. Highlightly direct subscription requires the API key to be the VALUE of a header named "c05d22e5-9a84-4a95-83c7-77ef598647ed"');
       }
       
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
