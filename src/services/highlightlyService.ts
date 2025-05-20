@@ -1,3 +1,4 @@
+
 import { MatchHighlight, League, Team } from '@/types';
 
 // Use our local proxy instead of direct API calls
@@ -23,7 +24,8 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     // Make the request - the proxy automatically adds the Authorization header
     const response = await fetch(fullUrl, {
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
     });
     
@@ -35,7 +37,7 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
       
       if (response.status === 403) {
-        console.error('💡 This is likely an authorization issue. Check that the Bearer token is correctly formatted.');
+        console.error('💡 This is likely an authorization issue. Check that the Authorization header is correctly sent with Bearer token.');
       }
       
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -404,12 +406,16 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
     // Make a simple request to the highlights endpoint with limit=1
     const response = await fetch('/api/highlights?limit=1', {
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
     });
     
     console.log(`Test request status: ${response.status} ${response.statusText}`);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Log response headers in a cleaner format
+    const responseHeaders = Object.fromEntries(response.headers.entries());
+    console.log('Response headers:', responseHeaders);
     
     const text = await response.text();
     console.log('Response preview:', text.length > 500 ? text.substring(0, 500) + '...' : text);
@@ -428,7 +434,8 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
         message: `API connection successful (${response.status} ${response.statusText})`,
         details: {
           contentType: response.headers.get('content-type'),
-          dataPreview: jsonData ? 'Valid JSON received' : 'Invalid JSON format'
+          dataPreview: jsonData ? 'Valid JSON received' : 'Invalid JSON format',
+          responseData: jsonData ? jsonData : text.substring(0, 500)
         }
       };
     } else {
@@ -437,7 +444,8 @@ export async function testApiConnection(): Promise<{success: boolean, message: s
         message: `API error: ${response.status} ${response.statusText}`,
         details: {
           responseText: text.substring(0, 500),
-          headers: Object.fromEntries(response.headers.entries())
+          headers: responseHeaders,
+          errorType: response.status === 403 ? 'Authorization Error - Check Bearer token format' : 'API Error'
         }
       };
     }

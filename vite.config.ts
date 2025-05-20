@@ -17,8 +17,7 @@ export default defineConfig(({ mode }) => ({
         configure: (proxy, _options) => {
           proxy.on('proxyReq', function(proxyReq, req, _res) {
             // Set the Authorization header with Bearer prefix
-            const authHeader = 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed';
-            proxyReq.setHeader('Authorization', authHeader);
+            proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
             
             // Set Content-Type header to application/json
             proxyReq.setHeader('Content-Type', 'application/json');
@@ -27,13 +26,24 @@ export default defineConfig(({ mode }) => ({
             console.log(`🚀 Forwarding ${req.method} ${req.url} to Highlightly`);
             
             // Log all outgoing request headers for debugging
-            const headers: Record<string, string> = {};
-            const headerNames = proxyReq.getHeaderNames();
-            headerNames.forEach(name => {
-              headers[name] = proxyReq.getHeader(name).toString();
-            });
-            
-            console.log('🔐 Proxy outgoing request headers to Highlightly:', headers);
+            try {
+              const headers: Record<string, string> = {};
+              const headerNames = proxyReq.getHeaderNames();
+              
+              // Fix TypeScript error - add null check for headerNames
+              if (headerNames && headerNames.length > 0) {
+                headerNames.forEach(name => {
+                  const headerValue = proxyReq.getHeader(name);
+                  if (headerValue !== undefined) {
+                    headers[name] = headerValue.toString();
+                  }
+                });
+              }
+              
+              console.log('🔐 Proxy outgoing request headers to Highlightly:', headers);
+            } catch (err) {
+              console.error('Error logging headers:', err);
+            }
           });
           
           proxy.on('proxyRes', function(proxyRes, req, _res) {

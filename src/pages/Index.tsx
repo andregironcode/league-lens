@@ -19,6 +19,7 @@ const Index = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  // Initialize to false to always use the real API by default
   const [useMockData, setUseMockData] = useState<boolean>(false);
   const { toast } = useToast();
 
@@ -36,14 +37,15 @@ const Index = () => {
         leagues: true
       });
       
+      // Only use mock data when explicitly toggled by the user
       if (useMockData) {
-        // When mock data is explicitly requested, use it
+        console.log("📦 Using mock data as requested by user");
         importMockData();
         return;
       }
       
       // Fetch recommended highlights
-      console.log("🔍 Fetching recommended highlights...");
+      console.log("🔍 Fetching recommended highlights from Highlightly API...");
       try {
         const recommendedData = await getRecentHighlights(5);
         
@@ -65,7 +67,7 @@ const Index = () => {
         
         toast({
           title: "API Connection Error",
-          description: "Failed to fetch highlights. Check your network connection or try again.",
+          description: "Failed to fetch highlights. Check the API connection or try again.",
           variant: "destructive"
         });
       } finally {
@@ -187,7 +189,7 @@ const Index = () => {
                       console.log('Debugging Highlightly API Connection:');
                       
                       try {
-                        // Use the new test function
+                        // Use the enhanced test function
                         const result = await testApiConnection();
                         
                         if (result.success) {
