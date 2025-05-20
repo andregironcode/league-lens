@@ -14,35 +14,21 @@ export default defineConfig(({ mode }) => ({
         target: 'https://soccer.highlightly.net',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
-        headers: { 
-          'Authorization': 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
         configure: (proxy, _options) => {
           proxy.on('proxyReq', function(proxyReq, req, _res) {
-            console.log('🔍 SETTING HEADERS FOR PROXYING REQUEST TO HIGHLIGHTLY...');
+            console.log('🔍 STARTING PROXY REQUEST TO HIGHLIGHTLY...');
             
-            // Set all required headers first with correct casing
+            // Set all required headers directly before sending
             proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
             proxyReq.setHeader('Content-Type', 'application/json');
             proxyReq.setHeader('Accept', 'application/json');
             
-            // CRITICAL DEBUG: Verify Authorization header right before sending
-            console.log('🔑 CRITICAL - Authorization header:', proxyReq.getHeader('Authorization'));
-            // Try also checking with lowercase (for troubleshooting)
-            console.log('🔑 CRITICAL - authorization header (lowercase key):', proxyReq.getHeader('authorization'));
-            console.log('📝 CRITICAL - Content-Type header:', proxyReq.getHeader('Content-Type'));
-            console.log('📥 CRITICAL - Accept header:', proxyReq.getHeader('Accept'));
-            
-            // Log the complete URL for debugging (without using req.protocol)
+            // Log the complete URL for debugging
             const fullUrl = `${req.method} http://${req.headers.host}${req.url} → ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`;
             console.log(`🚀 PROXY REQUEST: ${fullUrl}`);
             
-            // Check what headers the original request had
-            console.log('📤 Original request headers:', req.headers);
-            
-            // Log all outgoing request headers for debugging
+            // FINAL HEADERS LOG - Verify all headers right before request is sent
+            console.log('🔐 FINAL OUTGOING HEADERS TO HIGHLIGHTLY:');
             try {
               const headers: Record<string, string> = {};
               const headerNames = proxyReq.getHeaderNames();
@@ -56,31 +42,23 @@ export default defineConfig(({ mode }) => ({
                 });
                 
                 // Log in nicely formatted way
-                console.log('🔐 OUTGOING PROXY HEADERS TO HIGHLIGHTLY:');
                 Object.entries(headers).forEach(([name, value]) => {
                   console.log(`   ${name}: ${value}`);
                 });
                 
-                // CRITICAL: Extra verification for Authorization header with exact casing
+                // CRITICAL: Final verification for Authorization header
                 if (headers['Authorization']) {
-                  console.log('✅ VERIFICATION - Authorization header is present with exact casing');
+                  console.log('✅ FINAL CHECK - Authorization header is present');
                   console.log(`   Value: ${headers['Authorization']}`);
-                  // Verify Bearer prefix
-                  if (headers['Authorization'].startsWith('Bearer ')) {
-                    console.log('✅ VERIFICATION - Bearer prefix is present');
-                  } else {
-                    console.error('❌ ERROR - Bearer prefix is MISSING!');
-                  }
                 } else {
-                  console.error('❌ ERROR - Authorization header with exact casing is MISSING!');
+                  console.error('❌ ERROR - Authorization header is MISSING in final check!');
+                  
                   // Check if it's present with different casing
                   const authHeader = Object.keys(headers).find(key => key.toLowerCase() === 'authorization');
                   if (authHeader) {
                     console.log(`⚠️ WARNING - Found header with different casing: ${authHeader}: ${headers[authHeader]}`);
                   }
                 }
-              } else {
-                console.warn('⚠️ No header names available in proxyReq');
               }
             } catch (err) {
               console.error('❌ Error logging headers:', err);
@@ -88,11 +66,11 @@ export default defineConfig(({ mode }) => ({
           });
           
           proxy.on('proxyRes', function(proxyRes, req, _res) {
-            // Get the status code safely (it will be undefined if there's no response)
+            // Get the status code safely
             const statusCode = proxyRes?.statusCode || 0;
             console.log(`🔄 PROXY RESPONSE: ${req.method} ${req.url} → ${statusCode}`);
             
-            // Log response headers explicitly
+            // Log response headers
             console.log('📋 Response headers from Highlightly:');
             Object.entries(proxyRes.headers).forEach(([name, value]) => {
               console.log(`   ${name}: ${value}`);
@@ -114,20 +92,6 @@ export default defineConfig(({ mode }) => ({
                   console.error('1. The Authorization header was correctly set to Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
                   console.error('2. The token is still valid and has the correct permissions');
                   console.error('3. The Highlightly API expects additional authentication parameters');
-                  console.error('4. The exact headers sent with this request were:');
-                  try {
-                    // Try to access the original proxy request headers (may not be available here)
-                    const reqHeaderNames = req.rawHeaders || [];
-                    for (let i = 0; i < reqHeaderNames.length; i += 2) {
-                      const name = reqHeaderNames[i];
-                      const value = reqHeaderNames[i + 1];
-                      if (name && value) {
-                        console.error(`   ${name}: ${value}`);
-                      }
-                    }
-                  } catch (err) {
-                    console.error('   Unable to log original request headers:', err);
-                  }
                 }
               });
             }
