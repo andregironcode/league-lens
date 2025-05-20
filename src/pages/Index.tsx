@@ -5,6 +5,9 @@ import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
 import { MatchHighlight, League } from '@/types';
 import { getRecentHighlights, getHighlightsByLeague } from '@/services/highlightlyService';
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
@@ -16,26 +19,33 @@ const Index = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch recommended highlights
-        const recommendedData = await getRecentHighlights(5);
-        setRecommendedHighlights(recommendedData);
-        setLoading(prev => ({ ...prev, recommended: false }));
-
-        // Fetch league highlights
-        const leaguesData = await getHighlightsByLeague();
-        setLeagues(leaguesData);
-        setLoading(prev => ({ ...prev, leagues: false }));
-      } catch (error) {
-        console.error('Error fetching highlights:', error);
-        setError('Failed to load data. Please try again later.');
-        setLoading({ recommended: false, leagues: false });
-      }
-    };
-
     fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      // Reset error state on new fetch
+      setError(null);
+      
+      // Fetch recommended highlights
+      console.log("Fetching recommended highlights...");
+      const recommendedData = await getRecentHighlights(5);
+      console.log(`Retrieved ${recommendedData.length} recommended highlights`);
+      setRecommendedHighlights(recommendedData);
+      setLoading(prev => ({ ...prev, recommended: false }));
+
+      // Fetch league highlights
+      console.log("Fetching league highlights...");
+      const leaguesData = await getHighlightsByLeague();
+      console.log(`Retrieved ${leaguesData.length} leagues with highlights`);
+      setLeagues(leaguesData);
+      setLoading(prev => ({ ...prev, leagues: false }));
+    } catch (error) {
+      console.error('Error fetching highlights:', error);
+      setError('Failed to load data. Please try again later.');
+      setLoading({ recommended: false, leagues: false });
+    }
+  };
 
   // Helper function for skeleton loading
   const renderSkeleton = (count: number, featured = false) => {
@@ -62,13 +72,21 @@ const Index = () => {
         {error && (
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mb-8">
             <div className="bg-red-900/50 border border-red-700 text-white p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <AlertTriangle className="h-5 w-5 mr-2 text-red-400" />
+                <p className="font-semibold">Data Loading Error</p>
+              </div>
               <p>{error}</p>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="mt-2 bg-red-700 hover:bg-red-600 px-4 py-1 rounded text-sm"
-              >
-                Retry
-              </button>
+              <div className="mt-3 flex justify-between items-center">
+                <span className="text-xs text-gray-400">Using fallback data for display</span>
+                <Button 
+                  onClick={() => fetchData()} 
+                  variant="destructive"
+                  size="sm"
+                >
+                  Try Again
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -81,8 +99,12 @@ const Index = () => {
             ) : recommendedHighlights.length > 0 ? (
               <HeroCarousel highlights={recommendedHighlights} />
             ) : (
-              <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg flex items-center justify-center">
-                <p className="text-gray-400">No highlights available</p>
+              <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg flex flex-col items-center justify-center p-6">
+                <h3 className="text-xl font-semibold mb-2 text-gray-300">No Highlights Available</h3>
+                <p className="text-gray-400 text-center max-w-lg mb-4">
+                  Unable to load the latest football highlights at this time. We're showing placeholder content for demonstration.
+                </p>
+                <Button onClick={() => fetchData()}>Refresh Content</Button>
               </div>
             )}
           </div>
@@ -91,29 +113,33 @@ const Index = () => {
         {/* Leagues Section */}
         <section id="leagues" className="mb-16">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-            {loading.leagues 
-              ? (
-                <div className="space-y-10">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="h-8 bg-highlight-200 rounded w-48 mb-6"></div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {renderSkeleton(3)}
-                      </div>
+            {loading.leagues ? (
+              <div className="space-y-10">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-8 bg-highlight-200 rounded w-48 mb-6"></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {renderSkeleton(3)}
                     </div>
-                  ))}
-                </div>
-              )
-              : leagues.length > 0 ? (
-                leagues.map(league => (
+                  </div>
+                ))}
+              </div>
+            ) : leagues.length > 0 ? (
+              <>
+                <h2 className="text-2xl font-bold mb-6 text-white">Popular Leagues</h2>
+                {leagues.map(league => (
                   <LeagueSection key={league.id} league={league} />
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-400">No leagues available</p>
-                </div>
-              )
-            }
+                ))}
+              </>
+            ) : (
+              <div className="bg-highlight-800 rounded-lg p-8 text-center">
+                <h3 className="text-xl font-semibold mb-3 text-gray-300">No Leagues Available</h3>
+                <p className="text-gray-400 mb-6 max-w-lg mx-auto">
+                  We couldn't load league data at this time. Check back later or try refreshing the page.
+                </p>
+                <Button onClick={() => fetchData()}>Refresh Leagues</Button>
+              </div>
+            )}
           </div>
         </section>
       </main>

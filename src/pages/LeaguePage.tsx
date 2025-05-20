@@ -6,10 +6,11 @@ import { League, MatchHighlight, HighlightlyMatch, HighlightlyHighlight } from '
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
 import HighlightlyMatchCard from '@/components/HighlightlyMatchCard';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getMatches } from '@/services/highlightlyService';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const getCountryFlag = (leagueId: string): string => {
   const flagMap: Record<string, string> = {
@@ -33,17 +34,27 @@ const LeaguePage = () => {
   const [loading, setLoading] = useState(true);
   const [highlightlyMatches, setHighlightlyMatches] = useState<HighlightlyMatch[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchLeagueData = async () => {
+      setFetchError(null);
       try {
+        console.log(`Fetching league data for leagueId: ${leagueId}`);
         const leaguesData = await getLeagueHighlights();
+        console.log(`Fetched ${leaguesData.length} leagues`);
+        
         const leagueData = leaguesData.find(l => l.id === leagueId);
         
         if (leagueData) {
+          console.log(`Found league: ${leagueData.name} with ${leagueData.highlights.length} highlights`);
           setLeague(leagueData);
+        } else {
+          console.log(`League with ID ${leagueId} not found`);
+          setFetchError(`League with ID ${leagueId} not found`);
         }
+        
         setLoading(false);
         
         if (leagueId === 'pl') {
@@ -51,6 +62,7 @@ const LeaguePage = () => {
         }
       } catch (error) {
         console.error('Error fetching league data:', error);
+        setFetchError('Failed to load league data');
         setLoading(false);
       }
     };
@@ -72,7 +84,10 @@ const LeaguePage = () => {
     try {
       // Get today's matches for the selected league
       const today = new Date().toISOString().split('T')[0];
+      console.log(`Fetching matches for date: ${today} and leagueId: ${leagueId}`);
+      
       const data = await getMatches(today, leagueId);
+      console.log(`Fetched ${data.length} matches for ${leagueId} on ${today}`, data);
       
       if (data && Array.isArray(data)) {
         setHighlightlyMatches(data);
@@ -108,6 +123,25 @@ const LeaguePage = () => {
               </Button>
             </Link>
           </div>
+
+          {fetchError && (
+            <div className="bg-red-900/40 border border-red-800 rounded-lg p-4 mb-8">
+              <div className="flex items-center mb-2">
+                <AlertCircle className="mr-2 h-5 w-5 text-red-400" />
+                <h3 className="font-medium">Error</h3>
+              </div>
+              <p className="text-sm text-gray-300">{fetchError}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-3"
+                onClick={() => window.location.reload()}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reload Page
+              </Button>
+            </div>
+          )}
 
           {loading ? (
             <div className="animate-pulse space-y-4">
@@ -145,18 +179,24 @@ const LeaguePage = () => {
                       disabled={matchesLoading}
                       size="sm"
                     >
-                      {matchesLoading ? 'Refreshing...' : 'Refresh Matches'}
+                      {matchesLoading ? (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                          Refreshing...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Refresh Matches
+                        </>
+                      )}
                     </Button>
                   </div>
                   
                   {matchesLoading && highlightlyMatches.length === 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className="animate-pulse">
-                          <div className="aspect-video bg-highlight-800 rounded-lg mb-2"></div>
-                          <div className="h-5 bg-highlight-800 rounded w-3/4 mb-2"></div>
-                          <div className="h-4 bg-highlight-800 rounded w-1/2"></div>
-                        </div>
+                        <Skeleton key={i} className="h-40 rounded-lg" />
                       ))}
                     </div>
                   ) : highlightlyMatches.length > 0 ? (
@@ -180,7 +220,15 @@ const LeaguePage = () => {
                     </div>
                   ) : (
                     <div className="bg-highlight-800 p-6 rounded-lg text-center">
-                      <p className="text-gray-400">No live matches available right now. Check back later or refresh.</p>
+                      <p className="text-gray-400 mb-3">No live matches available right now.</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={fetchHighlightlyMatches}
+                        size="sm"
+                      >
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Try Again
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -189,13 +237,19 @@ const LeaguePage = () => {
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-300">Highlights</h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {league.highlights.map((highlight: MatchHighlight) => (
-                    <div key={highlight.id} className="transform transition-all duration-300 hover:scale-105">
-                      <HighlightCard highlight={highlight} />
-                    </div>
-                  ))}
-                </div>
+                {league.highlights.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {league.highlights.map((highlight: MatchHighlight) => (
+                      <div key={highlight.id} className="transform transition-all duration-300 hover:scale-105">
+                        <HighlightCard highlight={highlight} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-highlight-800 p-6 rounded-lg text-center">
+                    <p className="text-gray-400">No highlights available for this league yet.</p>
+                  </div>
+                )}
               </div>
             </>
           ) : (
