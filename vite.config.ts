@@ -15,17 +15,41 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
-          proxy.on('proxyReq', function(proxyReq, _req, _res) {
-            // Add the Authorization header to each request
+          proxy.on('proxyReq', function(proxyReq, req, _res) {
+            // Add the Authorization header to each request (with Bearer prefix)
             proxyReq.setHeader('Authorization', 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+            
+            // Log the complete outgoing request headers for debugging
+            console.log(`🔐 Proxy outgoing request headers to Highlightly:`, 
+              Object.fromEntries(proxyReq.getHeaders())
+            );
+            
+            console.log(`🚀 Forwarding ${req.method} ${req.url} to Highlightly`);
           });
           
           proxy.on('proxyRes', function(proxyRes, req, _res) {
-            console.log(`🔄 Proxy: ${req.method} ${req.url} -> ${proxyRes.statusCode}`);
+            const statusCode = proxyRes.statusCode;
+            console.log(`🔄 Proxy response from Highlightly: ${req.method} ${req.url} -> ${statusCode}`);
+            
+            // Log response headers
+            console.log('📋 Response headers:', proxyRes.headers);
+            
+            // For error responses, collect and log the response body
+            if (statusCode >= 400) {
+              let responseBody = '';
+              proxyRes.on('data', (chunk) => {
+                responseBody += chunk;
+              });
+              
+              proxyRes.on('end', () => {
+                console.error(`❌ Error response body from Highlightly (${statusCode}):`, responseBody);
+              });
+            }
           });
           
-          proxy.on('error', function(err, _req, _res) {
+          proxy.on('error', function(err, req, _res) {
             console.error('🔥 Proxy error:', err);
+            console.error(`Failed request: ${req.method} ${req.url}`);
           });
         }
       }

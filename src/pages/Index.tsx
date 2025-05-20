@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
@@ -6,7 +7,7 @@ import { MatchHighlight, League } from '@/types';
 import { getRecentHighlights, getHighlightsByLeague } from '@/services/highlightlyService';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Bug } from "lucide-react";
+import { AlertTriangle, RefreshCw, Bug, Code } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
@@ -136,18 +137,66 @@ const Index = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      console.log('Using API Proxy:');
+                      console.log('Debugging API Connection:');
+                      console.log('Proxy Setup:');
                       console.log('- Frontend calls: /api/highlights');
                       console.log('- Proxy target: https://soccer.highlightly.net/highlights');
-                      console.log('- Auth header added by proxy: Authorization: Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+                      console.log('- Auth header: Authorization: Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed');
+                      
+                      // Make a test request to check headers
+                      fetch('/api/highlights?limit=1')
+                        .then(response => {
+                          console.log('Test request status:', response.status);
+                          console.log('Response headers:', 
+                            Object.fromEntries(response.headers.entries())
+                          );
+                          return response.text();
+                        })
+                        .then(text => {
+                          console.log('Response preview:', 
+                            text.length > 500 ? text.substring(0, 500) + '...' : text
+                          );
+                        })
+                        .catch(err => console.error('Test request failed:', err));
+                      
                       toast({
                         title: "Debug Info",
-                        description: "Check the browser console for API proxy details",
+                        description: "API connection details logged to console",
                       });
                     }}
                   >
                     <Bug className="mr-2 h-4 w-4" />
-                    Debug
+                    Debug API
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      // Show mock data
+                      setError(null);
+                      setDebugInfo(null);
+                      
+                      // Import mock data services
+                      import('@/services/highlightService').then(mockService => {
+                        mockService.getRecommendedHighlights().then(mockHighlights => {
+                          setRecommendedHighlights(mockHighlights);
+                          setLoading(prev => ({ ...prev, recommended: false }));
+                        });
+                        
+                        mockService.getLeagueHighlights().then(mockLeagues => {
+                          setLeagues(mockLeagues);
+                          setLoading(prev => ({ ...prev, leagues: false }));
+                        });
+                        
+                        toast({
+                          title: "Using Mock Data",
+                          description: "Switched to mock data while API issues are resolved",
+                        });
+                      });
+                    }}
+                  >
+                    <Code className="mr-2 h-4 w-4" />
+                    Use Mock Data
                   </Button>
                 </div>
               </div>
