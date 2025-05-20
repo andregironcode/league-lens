@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
 import { MatchHighlight, League } from '@/types';
-import { getRecentHighlights, getHighlightsByLeague } from '@/services/highlightlyService';
+import { getRecentHighlights, getHighlightsByLeague, testApiConnection } from '@/services/highlightlyService';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw, Bug, Code } from "lucide-react";
@@ -178,38 +178,41 @@ const Index = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      console.log('Debugging API Connection:');
-                      console.log('- Making test request to API with correct authorization header');
-                      
-                      // Make a test request to check headers
-                      fetch('/api/highlights?limit=1')
-                        .then(response => {
-                          console.log('Test request status:', response.status);
-                          console.log('Response headers:', 
-                            Object.fromEntries(response.headers.entries())
-                          );
-                          return response.text();
-                        })
-                        .then(text => {
-                          console.log('Response preview:', 
-                            text.length > 500 ? text.substring(0, 500) + '...' : text
-                          );
-                          
-                          // Try to parse as JSON to see if it's valid
-                          try {
-                            JSON.parse(text);
-                            console.log('✅ Response is valid JSON');
-                          } catch (e) {
-                            console.error('❌ Response is not valid JSON:', e);
-                          }
-                        })
-                        .catch(err => console.error('Test request failed:', err));
-                      
+                    onClick={async () => {
                       toast({
-                        title: "Debug Info",
-                        description: "API connection details logged to console",
+                        title: "Testing API Connection",
+                        description: "Checking connection to Highlightly API...",
                       });
+                      
+                      console.log('Debugging Highlightly API Connection:');
+                      
+                      try {
+                        // Use the new test function
+                        const result = await testApiConnection();
+                        
+                        if (result.success) {
+                          toast({
+                            title: "API Connection Success",
+                            description: result.message,
+                          });
+                        } else {
+                          toast({
+                            title: "API Connection Failed",
+                            description: result.message,
+                            variant: "destructive"
+                          });
+                        }
+                        
+                        // Show detailed info in the debug section
+                        setDebugInfo(JSON.stringify(result.details, null, 2));
+                      } catch (err) {
+                        console.error('Error testing API:', err);
+                        toast({
+                          title: "Test Failed",
+                          description: "Error running API test. Check console for details.",
+                          variant: "destructive"
+                        });
+                      }
                     }}
                   >
                     <Bug className="mr-2 h-4 w-4" />

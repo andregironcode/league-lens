@@ -20,14 +20,17 @@ export default defineConfig(({ mode }) => ({
             const authHeader = 'Bearer c05d22e5-9a84-4a95-83c7-77ef598647ed';
             proxyReq.setHeader('Authorization', authHeader);
             
+            // Set Content-Type header to application/json
+            proxyReq.setHeader('Content-Type', 'application/json');
+            
             // Log the complete request including URL
             console.log(`🚀 Forwarding ${req.method} ${req.url} to Highlightly`);
             
             // Log all outgoing request headers for debugging
-            const headers = {};
+            const headers: Record<string, string> = {};
             const headerNames = proxyReq.getHeaderNames();
             headerNames.forEach(name => {
-              headers[name] = proxyReq.getHeader(name);
+              headers[name] = proxyReq.getHeader(name).toString();
             });
             
             console.log('🔐 Proxy outgoing request headers to Highlightly:', headers);

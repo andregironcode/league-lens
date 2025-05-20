@@ -21,7 +21,11 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
   
   try {
     // Make the request - the proxy automatically adds the Authorization header
-    const response = await fetch(fullUrl);
+    const response = await fetch(fullUrl, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
     
     // Log response details
     console.log(`📥 API Response: ${response.status} ${response.statusText}`);
@@ -29,6 +33,11 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error text available');
       console.error(`❌ API error (${response.status}): ${response.statusText}`, errorText);
+      
+      if (response.status === 403) {
+        console.error('💡 This is likely an authorization issue. Check that the Bearer token is correctly formatted.');
+      }
+      
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
@@ -48,6 +57,12 @@ async function fetchFromAPI(endpoint: string, params: Record<string, string> = {
     }
   } catch (error) {
     console.error('❌ Error fetching from API:', error);
+    
+    // Check for specific network errors
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('🌐 Network error: Check your internet connection or proxy settings');
+    }
+    
     throw error;
   }
 }
@@ -378,5 +393,60 @@ export async function checkHighlightGeoRestrictions(highlightId: string): Promis
   } catch (error) {
     console.error(`Error checking geo restrictions for highlight ${highlightId}:`, error);
     return false;
+  }
+}
+
+// Update the debug function to make a test request with explicit headers
+export async function testApiConnection(): Promise<{success: boolean, message: string, details?: any}> {
+  try {
+    console.log('🔍 Testing API connection to Highlightly...');
+    
+    // Make a simple request to the highlights endpoint with limit=1
+    const response = await fetch('/api/highlights?limit=1', {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    console.log(`Test request status: ${response.status} ${response.statusText}`);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    const text = await response.text();
+    console.log('Response preview:', text.length > 500 ? text.substring(0, 500) + '...' : text);
+    
+    let jsonData = null;
+    try {
+      jsonData = JSON.parse(text);
+      console.log('✅ Response is valid JSON');
+    } catch (e) {
+      console.error('❌ Response is not valid JSON:', e);
+    }
+    
+    if (response.ok) {
+      return {
+        success: true,
+        message: `API connection successful (${response.status} ${response.statusText})`,
+        details: {
+          contentType: response.headers.get('content-type'),
+          dataPreview: jsonData ? 'Valid JSON received' : 'Invalid JSON format'
+        }
+      };
+    } else {
+      return {
+        success: false,
+        message: `API error: ${response.status} ${response.statusText}`,
+        details: {
+          responseText: text.substring(0, 500),
+          headers: Object.fromEntries(response.headers.entries())
+        }
+      };
+    }
+  } catch (error) {
+    console.error('Test request failed:', error);
+    return {
+      success: false,
+      message: `Connection error: ${error instanceof Error ? error.message : String(error)}`,
+      details: { error }
+    };
   }
 }
