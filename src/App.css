@@ -85,7 +85,6 @@ html, body {
   .hero-carousel-container {
     border-radius: 12px;
     margin: 0 20px;
-    padding: 0 10%; /* Add padding for side teasers */
   }
 }
 
