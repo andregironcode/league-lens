@@ -50,7 +50,13 @@ const Index = () => {
       // Fetch recommended highlights
       console.log("🔍 Fetching recommended highlights from Highlightly API...");
       try {
-        const recommendedData = await getRecentHighlights(5);
+        const proxyUrl = "https://cctqwyhoryahdauqcetf.supabase.co/functions/v1/highlightly-proxy/highlights?limit=5&date=2025-05-21";
+const res = await fetch(proxyUrl);
+
+if (!res.ok) throw new Error(`Proxy returned status ${res.status}`);
+
+const recommendedData = await res.json();
+
         
         if (recommendedData.length === 0) {
           console.warn("⚠️ No recommended highlights received from API");
