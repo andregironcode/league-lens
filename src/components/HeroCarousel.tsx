@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
 import { MatchHighlight } from '@/types';
@@ -128,6 +128,12 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
 
   const highlights = exampleGames;
   const currentHighlight = highlights[currentIndex];
+  
+  // Calculate prev and next indices for teasers
+  const prevIndex = currentIndex === 0 ? highlights.length - 1 : currentIndex - 1;
+  const nextIndex = currentIndex === highlights.length - 1 ? 0 : currentIndex + 1;
+  const prevHighlight = highlights[prevIndex];
+  const nextHighlight = highlights[nextIndex];
 
   useEffect(() => {
     setIsScrolling(false);
@@ -185,12 +191,33 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
   };
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
+    <div className="hero-carousel-container relative w-full overflow-hidden bg-[#222222] rounded-xl shadow-lg min-h-[550px] border border-highlight-700/10">
+      {/* "For You" Badge */}
       <div className="absolute top-4 left-4 z-30 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2 text-white flex items-center">
         <Flame className="w-4 h-4 mr-2 text-[#FFC30B]" />
         <span className="text-sm font-medium">For You</span>
       </div>
       
+      {/* Side teasers - only visible on desktop */}
+      <div className="hidden md:block absolute left-0 top-0 bottom-0 w-[10%] z-20 cursor-pointer" onClick={handlePrevSlide}>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#000000] to-transparent z-10"></div>
+        <img
+          src={prevHighlight.thumbnailUrl}
+          alt=""
+          className="w-full h-full object-cover opacity-30"
+        />
+      </div>
+      
+      <div className="hidden md:block absolute right-0 top-0 bottom-0 w-[10%] z-20 cursor-pointer" onClick={handleNextSlide}>
+        <div className="absolute inset-0 bg-gradient-to-l from-[#000000] to-transparent z-10"></div>
+        <img
+          src={nextHighlight.thumbnailUrl}
+          alt=""
+          className="w-full h-full object-cover opacity-30"
+        />
+      </div>
+      
+      {/* Main slide content */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/70 to-transparent z-10"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/80 to-transparent z-10"></div>
@@ -294,7 +321,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
             </div>
           </div>
 
-          <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
+          <div className="hero-video-container w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
             <iframe
               src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`}
               title={currentHighlight.title}
@@ -305,6 +332,7 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         </div>
       </div>
 
+      {/* Navigation indicators */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
         {highlights.map((_, index) => (
           <button
@@ -318,21 +346,23 @@ const HeroCarousel = ({ highlights: propHighlights }: HeroCarouselProps) => {
         ))}
       </div>
 
+      {/* Navigation buttons with updated styles to work well with the side teasers */}
       <button
-        className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
+        className="absolute left-2 md:left-10 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white z-30 hover:bg-black/70 transition-colors hero-nav-button"
         onClick={handlePrevSlide}
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-6 h-6" />
       </button>
       <button
-        className="absolute right-2 md:right-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors"
+        className="absolute right-2 md:right-10 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white z-30 hover:bg-black/70 transition-colors hero-nav-button"
         onClick={handleNextSlide}
         aria-label="Next slide"
       >
         <ChevronRight className="w-6 h-6" />
       </button>
 
+      {/* Comments dialog */}
       <Dialog open={showComments} onOpenChange={handleCloseComments}>
         <DialogContent className="sm:max-w-md bg-[#222222] border-gray-700">
           <div className="p-4">

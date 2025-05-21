@@ -1,23 +1,5 @@
 import { MatchHighlight, League, Team, TableRow, Fixture, TeamDetails } from '@/types';
 
-// New function to fetch data from ScoreBat API for Premier League
-export const fetchPremierLeagueFromScoreBat = async (): Promise<any> => {
-  try {
-    const response = await fetch('https://www.scorebat.com/video-api/v3/competition/england-premier-league/?token=MTk1NDQ4XzE3NDExMTE1MDBfMzZhOThmNzNlODQ0ODk1NTA2NzFhNWE0YTJjZjE5NWU0MWFhMzY1MA==');
-    
-    if (!response.ok) {
-      throw new Error(`API returned status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('ScoreBat API Response:', data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching from ScoreBat:', error);
-    throw error;
-  }
-};
-
 // In a real application, this would be fetched from an actual API
 // For now, we'll use mock data to simulate the API response
 

@@ -3,12 +3,8 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
+import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
 import { MatchHighlight, League } from '@/types';
-import { getRecentHighlights, getHighlightsByLeague } from '@/services/highlightlyService';
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Bug, Code } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
@@ -17,115 +13,27 @@ const Index = () => {
     recommended: true,
     leagues: true
   });
-  const [error, setError] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string | null>(null);
-  const [useMockData, setUseMockData] = useState<boolean>(false);
-  const { toast } = useToast();
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch recommended highlights
+        const recommendedData = await getRecommendedHighlights();
+        setRecommendedHighlights(recommendedData);
+        setLoading(prev => ({ ...prev, recommended: false }));
+
+        // Fetch league highlights
+        const leaguesData = await getLeagueHighlights();
+        setLeagues(leaguesData);
+        setLoading(prev => ({ ...prev, leagues: false }));
+      } catch (error) {
+        console.error('Error fetching highlights:', error);
+        setLoading({ recommended: false, leagues: false });
+      }
+    };
+
     fetchData();
-  }, [useMockData]);
-
-  const fetchData = async () => {
-    try {
-      // Reset error state on new fetch
-      setError(null);
-      setDebugInfo(null);
-      setLoading({
-        recommended: true,
-        leagues: true
-      });
-      
-      if (useMockData) {
-        // When mock data is explicitly requested, use it
-        importMockData();
-        return;
-      }
-      
-      // Fetch recommended highlights
-      console.log("🔍 Fetching recommended highlights...");
-      try {
-        const recommendedData = await getRecentHighlights(5);
-        
-        if (recommendedData.length === 0) {
-          console.warn("⚠️ No recommended highlights received from API");
-          toast({
-            title: "No Highlights Available",
-            description: "The API returned no highlights. This could be a temporary issue.",
-            variant: "destructive"
-          });
-        } else {
-          console.log(`✅ Retrieved ${recommendedData.length} recommended highlights`);
-          setRecommendedHighlights(recommendedData);
-        }
-      } catch (error) {
-        console.error('Failed to fetch recommended highlights:', error);
-        setError('Failed to load highlights from Highlightly API. Please check the network tab for details.');
-        setDebugInfo(`Error details: ${error instanceof Error ? error.message : String(error)}`);
-        
-        toast({
-          title: "API Connection Error",
-          description: "Failed to fetch highlights. Check your network connection or try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(prev => ({ ...prev, recommended: false }));
-      }
-
-      // Fetch league highlights
-      console.log("🔍 Fetching league highlights...");
-      try {
-        const leaguesData = await getHighlightsByLeague();
-        
-        if (leaguesData.length === 0) {
-          console.warn("⚠️ No leagues with highlights received from API");
-        } else {
-          console.log(`✅ Retrieved ${leaguesData.length} leagues with highlights`);
-          setLeagues(leaguesData);
-        }
-      } catch (error) {
-        console.error('Failed to fetch league highlights:', error);
-        // Don't set the error state if we already have an error from recommended highlights
-        if (!error) {
-          setError('Failed to load league data from Highlightly API.');
-          setDebugInfo(`Error details: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      } finally {
-        setLoading(prev => ({ ...prev, leagues: false }));
-      }
-    } catch (error) {
-      console.error('❌ Error in fetch operation:', error);
-      setError('Failed to load data from Highlightly API. Please check your network connection or try again later.');
-      setDebugInfo(`Error details: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setLoading({ recommended: false, leagues: false });
-      
-      toast({
-        title: "API Connection Error",
-        description: "Failed to connect to the Highlightly football API. Please try again later.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Import mock data when needed
-  const importMockData = () => {
-    import('@/services/highlightService').then(mockService => {
-      mockService.getRecommendedHighlights().then(mockHighlights => {
-        setRecommendedHighlights(mockHighlights);
-        setLoading(prev => ({ ...prev, recommended: false }));
-        
-        toast({
-          title: "Using Mock Data",
-          description: "Displaying mock highlights data",
-        });
-      });
-      
-      mockService.getLeagueHighlights().then(mockLeagues => {
-        setLeagues(mockLeagues);
-        setLoading(prev => ({ ...prev, leagues: false }));
-      });
-    });
-  };
+  }, []);
 
   // Helper function for skeleton loading
   const renderSkeleton = (count: number, featured = false) => {
@@ -148,115 +56,13 @@ const Index = () => {
       <Header />
       
       <main className="pt-16 pb-10">
-        {/* Error message with debug info */}
-        {error && (
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mb-8">
-            <div className="bg-red-900/50 border border-red-700 text-white p-4 rounded-lg">
-              <div className="flex items-center mb-2">
-                <AlertTriangle className="h-5 w-5 mr-2 text-red-400" />
-                <p className="font-semibold">Highlightly API Error</p>
-              </div>
-              <p>{error}</p>
-              
-              {debugInfo && (
-                <div className="mt-3 p-2 bg-black/30 rounded text-xs font-mono overflow-auto max-h-32">
-                  {debugInfo}
-                </div>
-              )}
-              
-              <div className="mt-3 flex justify-between items-center">
-                <span className="text-xs text-gray-400">Failed to connect to API proxy</span>
-                <div className="flex space-x-2">
-                  <Button 
-                    onClick={() => fetchData()} 
-                    variant="destructive"
-                    size="sm"
-                  >
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Try Again
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      console.log('Debugging API Connection:');
-                      console.log('- Making test request to API with correct authorization header');
-                      
-                      // Make a test request to check headers
-                      fetch('/api/highlights?limit=1')
-                        .then(response => {
-                          console.log('Test request status:', response.status);
-                          console.log('Response headers:', 
-                            Object.fromEntries(response.headers.entries())
-                          );
-                          return response.text();
-                        })
-                        .then(text => {
-                          console.log('Response preview:', 
-                            text.length > 500 ? text.substring(0, 500) + '...' : text
-                          );
-                          
-                          // Try to parse as JSON to see if it's valid
-                          try {
-                            JSON.parse(text);
-                            console.log('✅ Response is valid JSON');
-                          } catch (e) {
-                            console.error('❌ Response is not valid JSON:', e);
-                          }
-                        })
-                        .catch(err => console.error('Test request failed:', err));
-                      
-                      toast({
-                        title: "Debug Info",
-                        description: "API connection details logged to console",
-                      });
-                    }}
-                  >
-                    <Bug className="mr-2 h-4 w-4" />
-                    Debug API
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setUseMockData(true);
-                      setError(null);
-                      setDebugInfo(null);
-                      
-                      toast({
-                        title: "Using Mock Data",
-                        description: "Switched to mock data while API issues are resolved",
-                      });
-                    }}
-                  >
-                    <Code className="mr-2 h-4 w-4" />
-                    Use Mock Data
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
         {/* Hero Carousel - Wider layout */}
         <section className="mb-12">
           <div className="w-full mx-auto px-0 sm:px-0">
             {loading.recommended ? (
               <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg animate-pulse"></div>
-            ) : recommendedHighlights.length > 0 ? (
-              <HeroCarousel highlights={recommendedHighlights} />
             ) : (
-              <div className="w-full h-[50vh] max-h-[550px] bg-highlight-800 rounded-lg flex flex-col items-center justify-center p-6">
-                <h3 className="text-xl font-semibold mb-2 text-gray-300">No Highlights Available</h3>
-                <p className="text-gray-400 text-center max-w-lg mb-4">
-                  Unable to load highlights from the Highlightly API. This could be due to network issues, 
-                  API limitations, or no content being available at this time.
-                </p>
-                <Button onClick={() => fetchData()}>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh Content
-                </Button>
-              </div>
+              <HeroCarousel highlights={recommendedHighlights} />
             )}
           </div>
         </section>
@@ -264,37 +70,23 @@ const Index = () => {
         {/* Leagues Section */}
         <section id="leagues" className="mb-16">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-            {loading.leagues ? (
-              <div className="space-y-10">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-8 bg-highlight-200 rounded w-48 mb-6"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {renderSkeleton(3)}
+            {loading.leagues 
+              ? (
+                <div className="space-y-10">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-8 bg-highlight-200 rounded w-48 mb-6"></div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {renderSkeleton(3)}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : leagues.length > 0 ? (
-              <>
-                <h2 className="text-2xl font-bold mb-6 text-white">Popular Leagues</h2>
-                {leagues.map(league => (
-                  <LeagueSection key={league.id} league={league} />
-                ))}
-              </>
-            ) : (
-              <div className="bg-highlight-800 rounded-lg p-8 text-center">
-                <h3 className="text-xl font-semibold mb-3 text-gray-300">No Leagues Available</h3>
-                <p className="text-gray-400 mb-6 max-w-lg mx-auto">
-                  We couldn't load league data from the Highlightly API. This could be due to network issues,
-                  API limitations, or no content being available at this time.
-                </p>
-                <Button onClick={() => fetchData()}>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh Leagues
-                </Button>
-              </div>
-            )}
+                  ))}
+                </div>
+              )
+              : leagues.map(league => (
+                <LeagueSection key={league.id} league={league} />
+              ))
+            }
           </div>
         </section>
       </main>
@@ -307,7 +99,7 @@ const Index = () => {
               © {new Date().getFullYear()} Score90. All rights reserved.
             </p>
             <p className="text-xs text-gray-500 mt-2">
-              All videos are sourced from official channels via Highlightly API.
+              All videos are sourced from official channels and we do not host any content.
             </p>
           </div>
         </div>
