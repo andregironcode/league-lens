@@ -4,12 +4,11 @@ import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
 import { MatchHighlight, League } from '@/types';
-import { getRecentHighlights, getHighlightsByLeague, testApiConnection } from '@/services/highlightlyService';
+import { getRecentHighlights, getHighlightsByLeague } from '@/services/highlightlyService';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Bug, Code, Info } from "lucide-react";
+import { AlertTriangle, RefreshCw, Bug, Code } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const Index = () => {
   const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
@@ -20,8 +19,6 @@ const Index = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
-  const [apiTestResults, setApiTestResults] = useState<any | null>(null);
-  // Initialize to false to always use the real API by default
   const [useMockData, setUseMockData] = useState<boolean>(false);
   const { toast } = useToast();
 
@@ -34,29 +31,21 @@ const Index = () => {
       // Reset error state on new fetch
       setError(null);
       setDebugInfo(null);
-      setApiTestResults(null);
       setLoading({
         recommended: true,
         leagues: true
       });
       
-      // Only use mock data when explicitly toggled by the user
       if (useMockData) {
-        console.log("📦 Using mock data as requested by user");
+        // When mock data is explicitly requested, use it
         importMockData();
         return;
       }
       
       // Fetch recommended highlights
-      console.log("🔍 Fetching recommended highlights from Highlightly API...");
+      console.log("🔍 Fetching recommended highlights...");
       try {
-        const proxyUrl = "/functions/v1/highlightly-proxy/highlights?limit=5&date=2025-05-21";
-const res = await fetch(proxyUrl);
-
-if (!res.ok) throw new Error(`Proxy returned status ${res.status}`);
-
-const recommendedData = await res.json();
-
+        const recommendedData = await getRecentHighlights(5);
         
         if (recommendedData.length === 0) {
           console.warn("⚠️ No recommended highlights received from API");
@@ -71,22 +60,14 @@ const recommendedData = await res.json();
         }
       } catch (error) {
         console.error('Failed to fetch recommended highlights:', error);
-        setError('Failed to load highlights from Highlightly API. Please check the API response structure in the debug information.');
+        setError('Failed to load highlights from Highlightly API. Please check the network tab for details.');
         setDebugInfo(`Error details: ${error instanceof Error ? error.message : String(error)}`);
         
         toast({
           title: "API Connection Error",
-          description: "Failed to fetch highlights. Check the API connection or try again.",
+          description: "Failed to fetch highlights. Check your network connection or try again.",
           variant: "destructive"
         });
-        
-        // Try to get API test results to help diagnose the issue
-        try {
-          const testResult = await testApiConnection();
-          setApiTestResults(testResult);
-        } catch (testError) {
-          console.error('Error testing API connection:', testError);
-        }
       } finally {
         setLoading(prev => ({ ...prev, recommended: false }));
       }
@@ -177,54 +158,14 @@ const recommendedData = await res.json();
               </div>
               <p>{error}</p>
               
-              {/* Enhanced Debug Information */}
-              <Accordion type="single" collapsible className="mt-3">
-                <AccordionItem value="debug-info">
-                  <AccordionTrigger className="text-sm text-gray-300">
-                    <Info className="h-4 w-4 mr-2" /> 
-                    Detailed Debug Information
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {debugInfo && (
-                      <div className="mt-3 p-2 bg-black/30 rounded text-xs font-mono overflow-auto max-h-32">
-                        {debugInfo}
-                      </div>
-                    )}
-                    
-                    {apiTestResults && (
-                      <div className="mt-3">
-                        <h4 className="text-sm font-semibold mb-2">API Test Results:</h4>
-                        <div className="p-2 bg-black/30 rounded text-xs font-mono overflow-auto max-h-64">
-                          <p className="mb-1"><b>Status:</b> {apiTestResults.success ? '✅ Success' : '❌ Failed'}</p>
-                          <p className="mb-1"><b>Message:</b> {apiTestResults.message}</p>
-                          <p className="mb-1"><b>Response Status:</b> {apiTestResults.details?.status}</p>
-                          
-                          {apiTestResults.details?.responseStucture && (
-                            <div className="mt-2">
-                              <p className="font-bold">Response Structure:</p>
-                              <pre className="whitespace-pre-wrap">
-                                {JSON.stringify(apiTestResults.details.responseStucture, null, 2)}
-                              </pre>
-                            </div>
-                          )}
-                          
-                          {apiTestResults.details?.sampleData && (
-                            <div className="mt-2">
-                              <p className="font-bold">Sample Data:</p>
-                              <pre className="whitespace-pre-wrap">
-                                {JSON.stringify(apiTestResults.details.sampleData, null, 2)}
-                              </pre>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              {debugInfo && (
+                <div className="mt-3 p-2 bg-black/30 rounded text-xs font-mono overflow-auto max-h-32">
+                  {debugInfo}
+                </div>
+              )}
               
               <div className="mt-3 flex justify-between items-center">
-                <span className="text-xs text-gray-400">Failed to retrieve highlights from API</span>
+                <span className="text-xs text-gray-400">Failed to connect to API proxy</span>
                 <div className="flex space-x-2">
                   <Button 
                     onClick={() => fetchData()} 
@@ -237,42 +178,38 @@ const recommendedData = await res.json();
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={async () => {
+                    onClick={() => {
+                      console.log('Debugging API Connection:');
+                      console.log('- Making test request to API with correct authorization header');
+                      
+                      // Make a test request to check headers
+                      fetch('/api/highlights?limit=1')
+                        .then(response => {
+                          console.log('Test request status:', response.status);
+                          console.log('Response headers:', 
+                            Object.fromEntries(response.headers.entries())
+                          );
+                          return response.text();
+                        })
+                        .then(text => {
+                          console.log('Response preview:', 
+                            text.length > 500 ? text.substring(0, 500) + '...' : text
+                          );
+                          
+                          // Try to parse as JSON to see if it's valid
+                          try {
+                            JSON.parse(text);
+                            console.log('✅ Response is valid JSON');
+                          } catch (e) {
+                            console.error('❌ Response is not valid JSON:', e);
+                          }
+                        })
+                        .catch(err => console.error('Test request failed:', err));
+                      
                       toast({
-                        title: "Testing API Connection",
-                        description: "Checking connection to Highlightly API...",
+                        title: "Debug Info",
+                        description: "API connection details logged to console",
                       });
-                      
-                      console.log('Debugging Highlightly API Connection:');
-                      
-                      try {
-                        // Use the enhanced test function
-                        const result = await testApiConnection();
-                        setApiTestResults(result);
-                        
-                        if (result.success) {
-                          toast({
-                            title: "API Connection Success",
-                            description: result.message,
-                          });
-                        } else {
-                          toast({
-                            title: "API Connection Failed",
-                            description: result.message,
-                            variant: "destructive"
-                          });
-                        }
-                        
-                        // Show detailed info in the debug section
-                        setDebugInfo(JSON.stringify(result.details, null, 2));
-                      } catch (err) {
-                        console.error('Error testing API:', err);
-                        toast({
-                          title: "Test Failed",
-                          description: "Error running API test. Check console for details.",
-                          variant: "destructive"
-                        });
-                      }
                     }}
                   >
                     <Bug className="mr-2 h-4 w-4" />
@@ -285,7 +222,6 @@ const recommendedData = await res.json();
                       setUseMockData(true);
                       setError(null);
                       setDebugInfo(null);
-                      setApiTestResults(null);
                       
                       toast({
                         title: "Using Mock Data",
