@@ -1,19 +1,9 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, User, X, Bell, Settings, Bookmark, Sun, Moon, PencilIcon } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MatchHighlight } from '@/types';
 import { searchHighlights } from '@/services/highlightService';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback, DefaultProfileImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -22,11 +12,7 @@ const Header = () => {
   const [searchResults, setSearchResults] = useState<MatchHighlight[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [username, setUsername] = useState('User Name');
-  const [isEditingUsername, setIsEditingUsername] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const usernameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,30 +79,6 @@ const Header = () => {
     setSearchQuery('');
     setSearchResults([]);
     setShowResults(false);
-  };
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
-  const handleEditUsername = () => {
-    setIsEditingUsername(true);
-    setTimeout(() => {
-      usernameInputRef.current?.focus();
-      usernameInputRef.current?.select();
-    }, 100);
-  };
-
-  const handleUsernameChange = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (usernameInputRef.current?.value.trim()) {
-      setUsername(usernameInputRef.current.value);
-    }
-    setIsEditingUsername(false);
-  };
-
-  const handleEditProfilePicture = () => {
-    console.log('Opening profile picture edit dialog');
   };
 
   return (
@@ -212,106 +174,6 @@ const Header = () => {
               </div>
             )}
           </div>
-        </div>
-
-        <div className="flex items-center pl-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="p-2 rounded-full bg-highlight-800/50 hover:bg-highlight-700/50 transition-colors"
-                aria-label="User profile"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://github.com/shadcn.png" alt="User" />
-                  <AvatarFallback outlineStyle>
-                    <img 
-                      src={DefaultProfileImage} 
-                      alt="User" 
-                      className="h-full w-full object-cover"
-                    />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#333333] border-[#444444] text-white">
-              <DropdownMenuLabel className="flex flex-col items-center py-4">
-                <div className="relative mb-2">
-                  <Avatar 
-                    className="h-16 w-16 cursor-pointer hover:opacity-90 transition-opacity"
-                    showEditButton
-                    onEditClick={handleEditProfilePicture}
-                  >
-                    <AvatarImage src="https://github.com/shadcn.png" alt="User" />
-                    <AvatarFallback outlineStyle>
-                      <img 
-                        src={DefaultProfileImage} 
-                        alt="User" 
-                        className="h-full w-full object-cover"
-                      />
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                
-                {isEditingUsername ? (
-                  <form onSubmit={handleUsernameChange} className="flex items-center mb-1">
-                    <input
-                      ref={usernameInputRef}
-                      type="text"
-                      defaultValue={username}
-                      className="text-base bg-[#444444] px-2 py-1 rounded text-center focus:outline-none focus:ring-1 focus:ring-[#FFC30B]"
-                      onBlur={handleUsernameChange}
-                    />
-                  </form>
-                ) : (
-                  <div className="flex items-center mb-1">
-                    <span className="text-base font-medium">{username}</span>
-                    <button 
-                      onClick={handleEditUsername}
-                      className="ml-2 p-1 hover:bg-[#444444] rounded-full transition-colors"
-                    >
-                      <PencilIcon size={12} className="text-gray-400" />
-                    </button>
-                  </div>
-                )}
-                
-                <span className="text-xs text-gray-400">user@example.com</span>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-[#444444]" />
-              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
-                <Bell className="mr-2 h-4 w-4" />
-                <span>Notifications</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]">
-                <Bookmark className="mr-2 h-4 w-4" />
-                <span>Saved Games</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-[#444444]" />
-              <DropdownMenuItem 
-                className="cursor-pointer hover:bg-[#444444] focus:bg-[#444444]"
-                onClick={toggleTheme}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center">
-                    {isDarkMode ? 
-                      <Sun className="mr-2 h-4 w-4" /> : 
-                      <Moon className="mr-2 h-4 w-4" />
-                    }
-                    <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                  </div>
-                  <div className={`w-8 h-4 rounded-full relative ${isDarkMode ? 'bg-[#FFC30B]' : 'bg-[#555555]'}`}>
-                    <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${
-                      isDarkMode ? 'bg-white right-0.5' : 'bg-white left-0.5'
-                    }`}></div>
-                  </div>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     </header>
