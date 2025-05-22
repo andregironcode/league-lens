@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -96,7 +97,7 @@ const Header = () => {
             />
           </Link>
 
-          <div ref={searchRef} className="relative flex-1 max-w-xl md:max-w-2xl">
+          <div ref={searchRef} className="relative flex-1 max-w-md md:max-w-xl">
             <div className="flex items-center bg-[#333333] rounded-full w-full">
               <Search size={22} className={`ml-4 ${isSearching ? 'text-[#FFC30B]' : 'text-gray-400'} flex-shrink-0`} />
               <input
