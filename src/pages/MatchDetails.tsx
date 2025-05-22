@@ -55,6 +55,64 @@ const MatchDetails = () => {
     fetchMatch();
   }, [id]);
 
+  // Generate mock goalscorers based on match score
+  const generateMockGoalscorers = (match: MatchHighlight | null) => {
+    if (!match) return { home: [], away: [] };
+    
+    const homeGoals = [];
+    const awayGoals = [];
+    
+    // Generate random player names for home team
+    const homePlayerNames = [
+      "Alexander", "James", "Wilson", "Thompson", "Martinez",
+      "Rodriguez", "Jackson", "Williams", "Davies", "Johnson"
+    ];
+    
+    // Generate random player names for away team
+    const awayPlayerNames = [
+      "Smith", "Brown", "Miller", "Garcia", "Lee",
+      "Walker", "Harris", "Clark", "Lewis", "Young"
+    ];
+    
+    // Generate random minutes for goals
+    const generateMinutes = (count: number) => {
+      const minutes = [];
+      for (let i = 0; i < count; i++) {
+        // Goals typically happen between 1-90 minutes
+        minutes.push(Math.floor(Math.random() * 90) + 1);
+      }
+      // Sort minutes in ascending order
+      return minutes.sort((a, b) => a - b);
+    };
+    
+    const homeMinutes = generateMinutes(match.score.home);
+    const awayMinutes = generateMinutes(match.score.away);
+    
+    // Create goal objects for home team
+    for (let i = 0; i < match.score.home; i++) {
+      const playerIndex = Math.floor(Math.random() * homePlayerNames.length);
+      homeGoals.push({
+        player: homePlayerNames[playerIndex],
+        minute: homeMinutes[i],
+        isPenalty: Math.random() > 0.8, // 20% chance of being a penalty
+        isOwnGoal: false // We'll handle own goals separately
+      });
+    }
+    
+    // Create goal objects for away team
+    for (let i = 0; i < match.score.away; i++) {
+      const playerIndex = Math.floor(Math.random() * awayPlayerNames.length);
+      awayGoals.push({
+        player: awayPlayerNames[playerIndex],
+        minute: awayMinutes[i],
+        isPenalty: Math.random() > 0.8, // 20% chance of being a penalty
+        isOwnGoal: false
+      });
+    }
+    
+    return { home: homeGoals, away: awayGoals };
+  };
+
   const getYoutubeVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
     const match = url.match(regex);
@@ -82,6 +140,9 @@ const MatchDetails = () => {
   const handleTeamClick = (teamId: string) => {
     navigate(`/team/${teamId}`);
   };
+
+  // Generate mock goalscorers data
+  const goalscorers = generateMockGoalscorers(match);
 
   if (loading) {
     return (
@@ -129,50 +190,21 @@ const MatchDetails = () => {
           Back to Home
         </button>
 
-        <div className="mb-8 w-full">
-          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
-            <iframe
-              className="w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
-              title={match.title}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
-          </div>
+        {/* Competition name */}
+        <div className="mb-4">
+          <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
+            {match.competition.name}
+          </span>
         </div>
 
-        <section className="mb-4">
-          <div className="mb-4">
-            <span className="inline-block bg-[#222222] text-white text-sm px-3 py-1 rounded-full">
-              {match.competition.name}
-            </span>
+        {/* Team names, logos, and score section */}
+        <section className="mb-8 bg-[#222222] rounded-xl p-6 shadow-sm">
+          <div className="flex flex-col justify-center items-center mb-4">
+            <span className="text-sm font-medium bg-[#333333] px-3 py-1 rounded-full text-white mb-3">FT</span>
           </div>
-          
-          <h1 className="text-2xl md:text-3xl font-bold mb-4 text-white">
-            {match.title}
-          </h1>
-          
-          <div className="flex flex-wrap items-center text-sm text-gray-400 mb-4 space-x-6">
-            <div className="flex items-center">
-              <Calendar size={16} className="mr-2" />
-              <span>{exactDate}</span>
-            </div>
-            <div className="flex items-center">
-              <Clock size={16} className="mr-2" />
-              <span>{formattedDate}</span>
-            </div>
-            <div className="flex items-center">
-              <Eye size={16} className="mr-2" />
-              <span>{new Intl.NumberFormat('en-US').format(match.views)} views</span>
-            </div>
-          </div>
-        </section>
-
-        <section className="mb-6 bg-[#222222] rounded-xl p-6 shadow-sm">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div 
-              className="flex flex-col items-center mb-6 md:mb-0 cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex flex-col items-center mb-6 md:mb-0 cursor-pointer hover:opacity-80 transition-opacity md:w-1/3 md:items-end"
               onClick={() => handleTeamClick(match.homeTeam.id)}
             >
               <img 
@@ -189,14 +221,14 @@ const MatchDetails = () => {
               </span>
             </div>
             
-            <div className="flex items-center mb-6 md:mb-0">
+            <div className="flex items-center mb-6 md:mb-0 md:w-1/3 justify-center">
               <span className="text-4xl md:text-5xl font-bold px-4 text-center text-white">
                 {match.score.home} <span className="text-gray-400">-</span> {match.score.away}
               </span>
             </div>
             
             <div 
-              className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity md:w-1/3 md:items-start"
               onClick={() => handleTeamClick(match.awayTeam.id)}
             >
               <img 
@@ -211,6 +243,115 @@ const MatchDetails = () => {
               <span className="font-semibold text-lg mt-2 text-white hover:text-[#FFC30B] transition-colors">
                 {match.awayTeam.name}
               </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Match title */}
+        <h1 className="text-xl md:text-2xl font-bold mb-4 text-white">
+          {match.title}
+        </h1>
+
+        {/* Video player */}
+        <div className="mb-8 w-full">
+          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
+            <iframe
+              className="w-full h-full"
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+              title={match.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+
+        {/* Goalscorers section */}
+        <section className="mb-8 bg-[#222222] rounded-xl p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-center text-white">Goalscorers</h3>
+          
+          <div className="flex flex-col md:flex-row justify-between">
+            <div className="md:w-[48%] mb-4 md:mb-0">
+              {/* Home team goalscorers */}
+              <h4 className="text-md font-medium mb-3 flex items-center text-white">
+                <img 
+                  src={match.homeTeam.logo} 
+                  alt={match.homeTeam.name} 
+                  className="w-5 h-5 object-contain mr-2"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                  }}
+                />
+                {match.homeTeam.name}
+              </h4>
+              <div className="space-y-2">
+                {goalscorers.home.length > 0 ? (
+                  goalscorers.home.map((goal, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-[#191919] rounded">
+                      <span className="text-white text-sm">{goal.player}</span>
+                      <div className="flex items-center">
+                        {goal.isPenalty && <span className="text-xs bg-[#333333] px-1 rounded mr-2">P</span>}
+                        <span className="text-sm text-gray-400">{goal.minute}'</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-2 bg-[#191919] rounded">
+                    <span className="text-gray-400 text-sm">No goals</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="md:w-[48%]">
+              {/* Away team goalscorers */}
+              <h4 className="text-md font-medium mb-3 flex items-center text-white justify-end">
+                {match.awayTeam.name}
+                <img 
+                  src={match.awayTeam.logo}
+                  alt={match.awayTeam.name} 
+                  className="w-5 h-5 object-contain ml-2"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                  }}
+                />
+              </h4>
+              <div className="space-y-2">
+                {goalscorers.away.length > 0 ? (
+                  goalscorers.away.map((goal, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-[#191919] rounded">
+                      <div className="flex items-center">
+                        <span className="text-sm text-gray-400">{goal.minute}'</span>
+                        {goal.isPenalty && <span className="text-xs bg-[#333333] px-1 rounded ml-2">P</span>}
+                      </div>
+                      <span className="text-white text-sm">{goal.player}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-2 bg-[#191919] rounded">
+                    <span className="text-gray-400 text-sm">No goals</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <section className="mb-4">
+          <div className="flex flex-wrap items-center text-sm text-gray-400 mb-4 space-x-6">
+            <div className="flex items-center">
+              <Calendar size={16} className="mr-2" />
+              <span>{exactDate}</span>
+            </div>
+            <div className="flex items-center">
+              <Clock size={16} className="mr-2" />
+              <span>{formattedDate}</span>
+            </div>
+            <div className="flex items-center">
+              <Eye size={16} className="mr-2" />
+              <span>{new Intl.NumberFormat('en-US').format(match.views)} views</span>
             </div>
           </div>
         </section>
