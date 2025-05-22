@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -97,15 +96,15 @@ const Header = () => {
             />
           </Link>
 
-          <div ref={searchRef} className="relative flex-1 max-w-xl">
+          <div ref={searchRef} className="relative flex-1 max-w-xl md:max-w-2xl">
             <div className="flex items-center bg-[#333333] rounded-full w-full">
-              <Search size={20} className={`ml-4 ${isSearching ? 'text-[#FFC30B]' : 'text-gray-400'} flex-shrink-0`} />
+              <Search size={22} className={`ml-4 ${isSearching ? 'text-[#FFC30B]' : 'text-gray-400'} flex-shrink-0`} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for teams or matches"
-                className="bg-transparent text-white placeholder:text-gray-400 w-full pl-3 pr-4 py-2 rounded-full focus:outline-none"
+                className="bg-transparent text-white placeholder:text-gray-400 w-full pl-3 pr-4 py-2.5 rounded-full focus:outline-none text-base"
                 onFocus={() => {
                   if (searchResults.length > 0) {
                     setShowResults(true);
@@ -117,7 +116,7 @@ const Header = () => {
                   onClick={clearSearch}
                   className="mr-4 text-gray-400 hover:text-white"
                 >
-                  <X size={16} />
+                  <X size={18} />
                 </button>
               )}
             </div>
