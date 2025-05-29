@@ -11,8 +11,11 @@
  * - Uses proxy server to avoid CORS issues
  */
 
-// Use our local proxy server URL from environment variables
-const PROXY_URL = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001/api/highlightly';
+// Use our local proxy server URL for development and Vercel API for production
+const isDevelopment = import.meta.env.DEV;
+const PROXY_URL = isDevelopment 
+  ? (import.meta.env.VITE_PROXY_URL || 'http://localhost:3001/api/highlightly')
+  : '/api/highlightly';
 
 // No headers needed as the proxy server will handle authentication
 const headers = {

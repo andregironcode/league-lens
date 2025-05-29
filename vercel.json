@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "api/highlightly.js": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/highlightly/(.*)",
+      "destination": "/api/highlightly?path=$1"
+    }
+  ],
+  "env": {
+    "HIGHLIGHTLY_API_KEY": "@highlightly_api_key"
+  }
+} 
