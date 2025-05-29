@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import type { LeagueWithMatches, Match } from '@/types';
 
@@ -8,9 +9,12 @@ interface RecentMatchesSectionProps {
 }
 
 const MatchCard: React.FC<{ match: Match }> = React.memo(({ match }) => {
+  const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const matchDate = new Date(match.date);
   const now = new Date();
   const isUpcoming = matchDate > now;
+  const isFinished = match.status === 'finished';
   
   // Memoize the time display to prevent flashing - only update every minute
   const timeDisplay = useMemo(() => {
@@ -18,6 +22,19 @@ const MatchCard: React.FC<{ match: Match }> = React.memo(({ match }) => {
       ? `${formatDistanceToNow(matchDate, { addSuffix: true })}`
       : formatDistanceToNow(matchDate, { addSuffix: true });
   }, [matchDate.getTime(), Math.floor(now.getTime() / 60000)]); // Update every minute
+  
+  const handleMatchClick = async () => {
+    if (isFinished && !isNavigating) {
+      try {
+        setIsNavigating(true);
+        console.log(`[MatchCard] Navigating to match details for ID: ${match.id}`);
+        navigate(`/match/${match.id}`);
+      } catch (error) {
+        console.error('Navigation error:', error);
+        setIsNavigating(false);
+      }
+    }
+  };
   
   const getStatusBadge = () => {
     switch (match.status) {
@@ -45,7 +62,23 @@ const MatchCard: React.FC<{ match: Match }> = React.memo(({ match }) => {
   };
 
   return (
-    <div className="bg-gray-800/60 rounded-xl p-5 hover:bg-gray-800/80 transition-all duration-200 border border-gray-700/50 hover:border-gray-600/50 shadow-lg">
+    <div 
+      className={`bg-gray-800/60 rounded-xl p-5 transition-all duration-200 border border-gray-700/50 shadow-lg ${
+        isFinished 
+          ? isNavigating 
+            ? 'bg-gray-700/60 border-yellow-500/50 cursor-wait opacity-75' 
+            : 'hover:bg-gray-800/80 hover:border-gray-600/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98]'
+          : 'hover:bg-gray-800/80 hover:border-gray-600/50'
+      }`}
+      onClick={handleMatchClick}
+      title={
+        isFinished 
+          ? isNavigating 
+            ? 'Loading match details...' 
+            : 'Click to view match details'
+          : undefined
+      }
+    >
       {/* League and Status Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
@@ -128,6 +161,11 @@ const MatchCard: React.FC<{ match: Match }> = React.memo(({ match }) => {
         <div>{timeDisplay}</div>
         {match.venue && (
           <div className="mt-1 text-gray-500">📍 {match.venue}</div>
+        )}
+        {isFinished && (
+          <div className="mt-2 text-gray-500 text-xs opacity-70">
+            {isNavigating ? 'Loading...' : 'Click for details'}
+          </div>
         )}
       </div>
     </div>

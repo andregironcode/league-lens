@@ -334,8 +334,7 @@ export const highlightlyService = {
       // Step 3a: First fetch all highlights for the date
       console.log(`[Highlightly] Fetching all highlights for date: ${formattedDate}`);
       const allHighlightsResponse = await highlightlyClient.getHighlights({
-        date: formattedDate,
-        limit: '40' // Maximum allowed by the Highlightly API
+        date: formattedDate
       });
       
       if (!allHighlightsResponse.data || !Array.isArray(allHighlightsResponse.data)) {
@@ -445,8 +444,7 @@ export const highlightlyService = {
       } else {
         console.log(`[Highlightly] Fetching highlights for ${league.name}`);
         const response = await highlightlyClient.getHighlights({
-          date: formattedDate,
-          limit: '25'
+          date: formattedDate
         });
 
         if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
@@ -883,8 +881,26 @@ export const highlightlyService = {
                 }
               }
               
+              // Generate match ID with debug logging
+              const matchId = match.fixture?.id?.toString() || match.id?.toString() || `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+              
+              // Debug logging for ID generation
+              console.log(`[Highlightly] Match ID generation debug:`, {
+                originalMatch: {
+                  fixtureId: match.fixture?.id,
+                  matchId: match.id,
+                  generatedId: matchId
+                },
+                teams: {
+                  home: match.homeTeam?.name || match.teams?.home?.name,
+                  away: match.awayTeam?.name || match.teams?.away?.name
+                },
+                score: `${homeScore}-${awayScore}`,
+                league: league.name
+              });
+              
               return {
-                id: match.fixture?.id?.toString() || match.id?.toString() || `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                id: matchId,
                 homeTeam: {
                   id: match.homeTeam?.id?.toString() || match.teams?.home?.id?.toString() || `home-${Date.now()}`,
                   name: match.homeTeam?.name || match.teams?.home?.name || 'Home Team',
@@ -962,69 +978,309 @@ export const highlightlyService = {
     try {
       console.log(`[Highlightly] Fetching match by ID: ${id}`);
       
-      // Try to get the match first
-      const matchResponse = await highlightlyClient.getMatchById(id);
-      if (!matchResponse.data) {
-        console.log(`[Highlightly] No match found with ID: ${id}, falling back to mock service`);
-        return mockService.getMatchById(id);
-      }
-
-      // Try to get highlights for this match
-      const highlightsResponse = await highlightlyClient.getHighlights({
-        match: id,
-        limit: '1'
-      });
-
-      if (!highlightsResponse.data || !Array.isArray(highlightsResponse.data) || highlightsResponse.data.length === 0) {
-        console.log(`[Highlightly] No highlights found for match ${id}, falling back to mock service`);
-        return mockService.getMatchById(id);
-      }
-
-      const highlight = highlightsResponse.data[0];
-      
-      // Transform to MatchHighlight format
-      const titleParts = highlight.title?.split(' vs ') || [];
-      const homeTeamName = titleParts[0]?.trim() || 'Unknown Team';
-      const awayTeamName = titleParts[1]?.trim() || 'Unknown Team';
-      
-      let homeScore = 0;
-      let awayScore = 0;
-      if (highlight.title) {
-        const scoreMatch = highlight.title.match(/(\d+)\s*-\s*(\d+)/);
-        if (scoreMatch) {
-          homeScore = parseInt(scoreMatch[1], 10);
-          awayScore = parseInt(scoreMatch[2], 10);
+      // STRATEGY 1: Get match data first, then find highlights by date
+      try {
+        console.log(`[Highlightly] Strategy 1: Getting match data first for ID: ${id}`);
+        const matchResponse = await highlightlyClient.getMatchById(id);
+        
+        // DEBUG: Log the full match response to understand the structure
+        console.log(`[Highlightly] Full match response for ${id}:`, JSON.stringify(matchResponse, null, 2));
+        
+        // Handle array response format from matches API
+        let matchData = null;
+        if (Array.isArray(matchResponse) && matchResponse.length > 0) {
+          matchData = matchResponse[0];
+        } else if (matchResponse && typeof matchResponse === 'object' && !Array.isArray(matchResponse)) {
+          matchData = matchResponse.data || matchResponse;
         }
+        
+        console.log(`[Highlightly] Match data exists:`, !!matchData);
+        console.log(`[Highlightly] Match data type:`, typeof matchData);
+        console.log(`[Highlightly] Match data sample:`, matchData ? JSON.stringify(matchData).substring(0, 200) + '...' : 'null');
+        
+        if (matchData) {
+          console.log(`[Highlightly] ✅ Strategy 1: Match data found, proceeding with date-based search`);
+          const match = matchData;
+          
+          // Extract team information from events array since that's where team data is stored
+          const teams = new Set();
+          const teamMap = new Map();
+          if (match.events && Array.isArray(match.events)) {
+            match.events.forEach((event: any) => {
+              if (event.team && event.team.name) {
+                teams.add(event.team.name);
+                teamMap.set(event.team.name, {
+                  id: event.team.id,
+                  name: event.team.name,
+                  logo: event.team.logo
+                });
+              }
+            });
+          }
+          
+          const teamNames = Array.from(teams);
+          const homeTeamName: string = (teamNames[0] as string) || 'Home Team';
+          const awayTeamName: string = (teamNames[1] as string) || 'Away Team';
+          const homeTeamData = teamMap.get(homeTeamName);
+          const awayTeamData = teamMap.get(awayTeamName);
+          
+          console.log(`[Highlightly] Found match data for ${id}:`, {
+            teamsFromEvents: teamNames,
+            homeTeam: homeTeamName,
+            awayTeam: awayTeamName,
+            venue: match.venue?.name,
+            eventCount: match.events?.length || 0
+          });
+          
+          // Use current date as fallback since the API response doesn't seem to have explicit match date
+          const matchDate = new Date(); // We'll use today's date as a reasonable fallback
+          const formattedDate = matchDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+          
+          console.log(`[Highlightly] Searching for highlights on date: ${formattedDate}`);
+          
+          // Get highlights for this date
+          const highlightsResponse = await highlightlyClient.getHighlights({
+            date: formattedDate
+          });
+
+          if (highlightsResponse.data && Array.isArray(highlightsResponse.data) && highlightsResponse.data.length > 0) {
+            console.log(`[Highlightly] Found ${highlightsResponse.data.length} highlights for ${formattedDate}`);
+            
+            // Try to find a highlight that matches this specific match
+            const matchingHighlight = highlightsResponse.data.find((highlight: any) => {
+              if (!highlight.title) return false;
+              
+              const title = highlight.title.toLowerCase();
+              const homeTeamLower = homeTeamName.toLowerCase();
+              const awayTeamLower = awayTeamName.toLowerCase();
+              
+              // Check if both team names appear in the highlight title
+              const hasHomeTeam = title.includes(homeTeamLower) || 
+                                  title.includes(homeTeamLower.split(' ')[0]) || // First word only
+                                  (homeTeamLower.includes('fc') && title.includes(homeTeamLower.replace(' fc', '').replace('fc ', '')));
+              
+              const hasAwayTeam = title.includes(awayTeamLower) || 
+                                  title.includes(awayTeamLower.split(' ')[0]) || // First word only  
+                                  (awayTeamLower.includes('fc') && title.includes(awayTeamLower.replace(' fc', '').replace('fc ', '')));
+              
+              return hasHomeTeam && hasAwayTeam;
+            });
+
+            if (matchingHighlight) {
+              console.log(`[Highlightly] ✅ Strategy 1 SUCCESS: Found matching highlight: ${matchingHighlight.title}`);
+              
+              // Extract score from match data
+              let homeScore = 0;
+              let awayScore = 0;
+              
+              if (match.score?.fulltime) {
+                homeScore = match.score.fulltime.home || 0;
+                awayScore = match.score.fulltime.away || 0;
+              } else if (match.state?.score?.current) {
+                const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+                if (scoreMatch) {
+                  homeScore = parseInt(scoreMatch[1], 10);
+                  awayScore = parseInt(scoreMatch[2], 10);
+                }
+              } else if (matchingHighlight.title) {
+                // Fallback: extract score from highlight title
+                const scoreMatch = matchingHighlight.title.match(/(\d+)\s*-\s*(\d+)/);
+                if (scoreMatch) {
+                  homeScore = parseInt(scoreMatch[1], 10);
+                  awayScore = parseInt(scoreMatch[2], 10);
+                }
+              }
+
+              return {
+                id: matchingHighlight.id || id,
+                title: matchingHighlight.title || `${homeTeamName} vs ${awayTeamName}`,
+                date: matchingHighlight.date ? new Date(matchingHighlight.date).toISOString() : matchDate.toISOString(),
+                thumbnailUrl: matchingHighlight.thumbnail || matchingHighlight.image || 'https://via.placeholder.com/300x200?text=Match+Highlight',
+                videoUrl: matchingHighlight.url || matchingHighlight.embedUrl || '',
+                duration: matchingHighlight.duration || '0:00',
+                views: matchingHighlight.views || Math.floor(Math.random() * 10000),
+                homeTeam: {
+                  id: homeTeamData?.id?.toString() || `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+                  name: homeTeamName,
+                  logo: homeTeamData?.logo || '/teams/default.png'
+                },
+                awayTeam: {
+                  id: awayTeamData?.id?.toString() || `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+                  name: awayTeamName,
+                  logo: awayTeamData?.logo || '/teams/default.png'
+                },
+                score: {
+                  home: homeScore,
+                  away: awayScore
+                },
+                competition: {
+                  id: match.league?.id?.toString() || match.competition?.id || 'unknown-competition',
+                  name: match.league?.name || match.competition?.name || 'Unknown Competition',
+                  logo: match.league?.logo || match.competition?.logo || '/leagues/default.png'
+                }
+              };
+            } else {
+              console.log(`[Highlightly] ❌ Strategy 1: No matching highlight found for ${homeTeamName} vs ${awayTeamName} on ${formattedDate}`);
+              
+              // Return match data without video highlight
+              let homeScore = 0;
+              let awayScore = 0;
+              
+              if (match.score?.fulltime) {
+                homeScore = match.score.fulltime.home || 0;
+                awayScore = match.score.fulltime.away || 0;
+              } else if (match.state?.score?.current) {
+                const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+                if (scoreMatch) {
+                  homeScore = parseInt(scoreMatch[1], 10);
+                  awayScore = parseInt(scoreMatch[2], 10);
+                }
+              }
+
+              return {
+                id: match.id || id,
+                title: `${homeTeamName} vs ${awayTeamName}`,
+                date: matchDate.toISOString(),
+                thumbnailUrl: 'https://via.placeholder.com/300x200?text=Match+Details',
+                videoUrl: '',
+                duration: '0:00',
+                views: Math.floor(Math.random() * 10000),
+                homeTeam: {
+                  id: homeTeamData?.id?.toString() || `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+                  name: homeTeamName,
+                  logo: homeTeamData?.logo || '/teams/default.png'
+                },
+                awayTeam: {
+                  id: awayTeamData?.id?.toString() || `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+                  name: awayTeamName,
+                  logo: awayTeamData?.logo || '/teams/default.png'
+                },
+                score: {
+                  home: homeScore,
+                  away: awayScore
+                },
+                competition: {
+                  id: match.league?.id?.toString() || match.competition?.id || 'unknown-competition',
+                  name: match.league?.name || match.competition?.name || 'Unknown Competition',
+                  logo: match.league?.logo || match.competition?.logo || '/leagues/default.png'
+                }
+              };
+            }
+          } else {
+            console.log(`[Highlightly] ❌ Strategy 1: No highlights found for date: ${formattedDate}`);
+          }
+        } else {
+          console.log(`[Highlightly] ❌ Strategy 1 failed: No match data found in response for ID: ${id}`);
+          console.log(`[Highlightly] Match response was:`, matchResponse);
+        }
+        console.log(`[Highlightly] ❌ Strategy 1: Completed but did not return - continuing to Strategy 2`);
+      } catch (error) {
+        console.log(`[Highlightly] ❌ Strategy 1 failed with error:`, error);
       }
 
-      return {
-        id: highlight.id || id,
-        title: highlight.title || 'Unnamed Match',
-        date: highlight.date ? new Date(highlight.date).toISOString() : new Date().toISOString(),
-        thumbnailUrl: highlight.thumbnail || highlight.image || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
-        videoUrl: highlight.url || highlight.embedUrl || '',
-        duration: highlight.duration || '0:00',
-        views: highlight.views || Math.floor(Math.random() * 10000),
-        homeTeam: {
-          id: `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
-          name: homeTeamName,
-          logo: '/teams/default.png'
-        },
-        awayTeam: {
-          id: `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
-          name: awayTeamName,
-          logo: '/teams/default.png'
-        },
-        score: {
-          home: homeScore,
-          away: awayScore
-        },
-        competition: {
-          id: highlight.competitionId || 'unknown-competition',
-          name: highlight.competition || 'Unknown Competition',
-          logo: highlight.competitionLogo || '/leagues/default.png'
+      // STRATEGY 2: Try searching recent highlights with different date ranges
+      try {
+        console.log(`[Highlightly] Strategy 2: Searching recent highlights across multiple dates`);
+        
+        // Try the last few days to find potential matches
+        const dates = [];
+        for (let i = 0; i < 7; i++) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          dates.push(date.toISOString().split('T')[0]);
         }
-      };
+        
+        for (const dateStr of dates) {
+          try {
+            const highlightsResponse = await highlightlyClient.getHighlights({
+              date: dateStr,
+              limit: '20'
+            });
+
+            if (highlightsResponse.data && Array.isArray(highlightsResponse.data)) {
+              console.log(`[Highlightly] Found ${highlightsResponse.data.length} highlights for ${dateStr}`);
+              
+              // DEBUG: Log some highlight samples to understand structure
+              if (highlightsResponse.data.length > 0) {
+                console.log(`[Highlightly] Sample highlight structure for ${dateStr}:`, 
+                  JSON.stringify(highlightsResponse.data[0]).substring(0, 300) + '...');
+              }
+              
+              // Look for highlights that might be related to this match ID
+              const potentialMatch = highlightsResponse.data.find((highlight: any) => {
+                console.log(`[Highlightly] Checking highlight for match ID ${id}:`, {
+                  highlightId: highlight.id,
+                  matchId: highlight.matchId,
+                  fixtureId: highlight.fixtureId,
+                  url: highlight.url,
+                  title: highlight.title
+                });
+                
+                return highlight.matchId === id || 
+                       highlight.fixtureId === id || 
+                       highlight.id === id ||
+                       (highlight.url && highlight.url.includes(id));
+              });
+
+              if (potentialMatch) {
+                console.log(`[Highlightly] Found potential match on ${dateStr}:`, potentialMatch.title);
+                
+                const titleParts = potentialMatch.title?.split(' vs ') || [];
+                const homeTeamName = titleParts[0]?.trim() || 'Unknown Team';
+                const awayTeamName = titleParts[1]?.trim() || 'Unknown Team';
+                
+                let homeScore = 0;
+                let awayScore = 0;
+                if (potentialMatch.title) {
+                  const scoreMatch = potentialMatch.title.match(/(\d+)\s*-\s*(\d+)/);
+                  if (scoreMatch) {
+                    homeScore = parseInt(scoreMatch[1], 10);
+                    awayScore = parseInt(scoreMatch[2], 10);
+                  }
+                }
+
+                return {
+                  id: potentialMatch.id || id,
+                  title: potentialMatch.title || 'Unnamed Match',
+                  date: potentialMatch.date ? new Date(potentialMatch.date).toISOString() : new Date().toISOString(),
+                  thumbnailUrl: potentialMatch.thumbnail || potentialMatch.image || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
+                  videoUrl: potentialMatch.url || potentialMatch.embedUrl || '',
+                  duration: potentialMatch.duration || '0:00',
+                  views: potentialMatch.views || Math.floor(Math.random() * 10000),
+                  homeTeam: {
+                    id: `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+                    name: homeTeamName,
+                    logo: '/teams/default.png'
+                  },
+                  awayTeam: {
+                    id: `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+                    name: awayTeamName,
+                    logo: '/teams/default.png'
+                  },
+                  score: {
+                    home: homeScore,
+                    away: awayScore
+                  },
+                  competition: {
+                    id: potentialMatch.competitionId || 'unknown-competition',
+                    name: potentialMatch.competition || 'Unknown Competition',
+                    logo: potentialMatch.competitionLogo || '/leagues/default.png'
+                  }
+                };
+              }
+            }
+          } catch (dateError) {
+            console.log(`[Highlightly] No highlights found for ${dateStr}`);
+          }
+        }
+      } catch (error) {
+        console.log(`[Highlightly] Strategy 2 failed:`, error);
+      }
+
+      // STRATEGY 3: All strategies failed, fall back to mock service
+      console.log(`[Highlightly] All strategies failed for match ID: ${id}, falling back to mock service`);
+      return mockService.getMatchById(id);
+
     } catch (error) {
       console.error(`[Highlightly] Error fetching match by ID: ${id}`, error);
       console.log('[Highlightly] Falling back to mock service');
