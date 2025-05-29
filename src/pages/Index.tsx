@@ -1,17 +1,19 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
-import { getRecommendedHighlights, getLeagueHighlights, getActiveService } from '@/services/serviceAdapter';
-import { MatchHighlight, League } from '@/types';
+import RecentMatchesSection from '@/components/RecentMatchesSection';
+import { getRecommendedHighlights, getLeagueHighlights, getRecentMatchesForTopLeagues, getActiveService } from '@/services/serviceAdapter';
+import { MatchHighlight, League, LeagueWithMatches } from '@/types';
 
 function Index() {
   const [recommendedHighlights, setRecommendedHighlights] = React.useState<MatchHighlight[]>([]);
   const [leagues, setLeagues] = React.useState<League[]>([]);
+  const [recentMatches, setRecentMatches] = React.useState<LeagueWithMatches[]>([]);
   const [loading, setLoading] = React.useState({
     recommended: true,
-    leagues: true
+    leagues: true,
+    matches: true
   });
 
   React.useEffect(() => {
@@ -22,13 +24,18 @@ function Index() {
         setRecommendedHighlights(recommendedData);
         setLoading(prev => ({ ...prev, recommended: false }));
 
+        // Fetch recent matches for top leagues
+        const matchesData = await getRecentMatchesForTopLeagues();
+        setRecentMatches(matchesData);
+        setLoading(prev => ({ ...prev, matches: false }));
+
         // Fetch league highlights
         const leaguesData = await getLeagueHighlights();
         setLeagues(leaguesData);
         setLoading(prev => ({ ...prev, leagues: false }));
       } catch (error) {
-        console.error('Error fetching highlights:', error);
-        setLoading({ recommended: false, leagues: false });
+        console.error('Error fetching data:', error);
+        setLoading({ recommended: false, leagues: false, matches: false });
       }
     };
 
@@ -66,6 +73,12 @@ function Index() {
             )}
           </div>
         </section>
+
+        {/* Recent Matches Section */}
+        <RecentMatchesSection 
+          leaguesWithMatches={recentMatches} 
+          loading={loading.matches} 
+        />
 
         {/* Leagues Section */}
         <section id="leagues" className="mb-16">

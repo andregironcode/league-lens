@@ -131,7 +131,7 @@ export const highlightlyService = {
           
           // Get matches for this league for the 2025 season
           const matchesResponse = await highlightlyClient.getMatches({
-            league: leagueId,
+            leagueId: leagueId, // ✅ Fixed parameter name
             season: '2025', // Specifically requested 2025 season
             limit: '10'
           });
@@ -142,6 +142,12 @@ export const highlightlyService = {
           }
           
           console.log(`[Highlightly] Found ${matchesResponse.data.length} matches for ${leagueName}`);
+          
+          // DEBUG: Log first match structure to understand the API response
+          if (matchesResponse.data.length > 0) {
+            console.log(`[Highlightly] Sample match structure for ${leagueName}:`, 
+              JSON.stringify(matchesResponse.data[0], null, 2));
+          }
           
           // For each match, fetch the associated highlights
           for (const match of matchesResponse.data) {
@@ -266,10 +272,61 @@ export const highlightlyService = {
       
       console.log(`[Highlightly] Found ${leaguesResponse.data.length} leagues`);
       
-      // Step 2: Prioritize top leagues
-      const prioritizedLeagues = this.prioritizeLeagues(leaguesResponse.data, topLeagueNames, topLeagueIds);
-      const topLeagues = prioritizedLeagues.slice(0, 6); // Get top 6 leagues to include LaLiga
-      console.log(`[Highlightly] Top leagues: ${topLeagues.map(league => league.name).join(', ')}`);
+      // Step 2: Identify top 5 European domestic leagues we want to show
+      const targetLeagueNames = [
+        'Premier League',
+        'English Premier League', 
+        'La Liga',
+        'LaLiga',
+        'Serie A',
+        'Bundesliga',
+        'Ligue 1'
+      ];
+      
+      // Find matching leagues, but exclude Champions League variations
+      const targetLeagues = leaguesResponse.data.filter((league: any) => {
+        if (!league.name) return false;
+        
+        const leagueName = league.name.toLowerCase();
+        
+        // Exclude all Champions League variations
+        if (leagueName.includes('champions league') || 
+            leagueName.includes('champions cup') ||
+            leagueName.includes('uefa champions') ||
+            leagueName.includes('caf champions') ||
+            leagueName.includes('concacaf champions') ||
+            leagueName.includes('afc champions') ||
+            leagueName.includes('ofc champions')) {
+          return false;
+        }
+        
+        // Only include if it matches our target European domestic leagues
+        return targetLeagueNames.some(target => {
+          const targetLower = target.toLowerCase();
+          
+          // For Serie A, ensure it's not Brazilian Serie A
+          if (target === 'Serie A') {
+            return leagueName.includes('serie a') && 
+                   !leagueName.includes('brasil') && 
+                   !leagueName.includes('brazil') &&
+                   !leagueName.includes('brasileir');
+          }
+          
+          // For Premier League, prefer English Premier League
+          if (target === 'Premier League') {
+            return leagueName.includes('premier league') &&
+                   (leagueName.includes('english') || 
+                    leagueName.includes('england') ||
+                    !leagueName.includes('australian') &&
+                    !leagueName.includes('south african'));
+          }
+          
+          return leagueName.includes(targetLower);
+        });
+      });
+      
+      console.log(`[Highlightly] Found ${targetLeagues.length} target European domestic leagues:`, 
+        targetLeagues.map((l: any) => `${l.name} (ID: ${l.id})`));
       
       // Step 3: Fetch highlights for each top league
       const leaguesWithHighlights: League[] = [];
@@ -293,7 +350,7 @@ export const highlightlyService = {
       }
       
       // Step 3b: Process each league to find matches
-      for (const league of topLeagues) {
+      for (const league of targetLeagues) {
         console.log(`[Highlightly] Processing league: ${league.name} (ID: ${league.id})`);
         
         // Filter highlights for this league
@@ -538,211 +595,68 @@ export const highlightlyService = {
       const response = await highlightlyClient.getHighlights({
         date: formattedDate,
         limit: '25'
-    
-    // Log the highlight structure to help debug
-    if (highlights.length > 0) {
-      console.log(`[Highlightly] Highlight structure sample:`, 
-        JSON.stringify(highlights[0]).substring(0, 200) + '...');
-    }
-
-    // Define league name variations map for common leagues
-    const leagueVariations: {[key: string]: string[]} = {
-      // Premier League variations (England ID: 33973)
-      '33973': ['premier league', 'epl', 'english premier league'],
-      // LaLiga variations (Spain ID: 2486)
-      '2486': ['laliga', 'la liga', 'spanish league', 'primera division'],
-      // Serie A variations (Italy/Brazil - clarify with specific ID check)
-      '61205': ['serie a', 'brazilian serie a', 'brasileirão', 'brasileirao'],
-      // Italian Serie A should be a different ID - using the one from logs
-      '94': ['serie a', 'italian serie a', 'seria a', 'calcio'],
-      // Bundesliga variations 
-      '67162': ['bundesliga', 'german bundesliga'],
-      // Ligue 1 variations
-      '52695': ['ligue 1', 'french ligue 1'],
-      // Champions League variations (ID 2 from our research)
-      '2': ['champions league', 'ucl', 'uefa champions league'],
-    };
-    
-    // Get variations for this specific league
-    const currentLeagueVariations = leagueVariations[league.id.toString()] || [];
-    currentLeagueVariations.push(league.name.toLowerCase());
-    
-    console.log(`[Highlightly] Looking for league: ${league.name} with ID: ${league.id}`);
-    console.log(`[Highlightly] Using name variations: ${currentLeagueVariations.join(', ')}`);
-
-    // Filter highlights by league using multiple possible paths
-    const leagueHighlights = highlights.filter((highlight: any) => {
-      // 1. BEST: Exact league ID match (most reliable)
-      if (highlight.match?.league?.id && 
-          highlight.match.league.id.toString() === league.id.toString()) {
-        console.log(`[Highlightly] Found highlight with exact league ID match for: ${league.name}`);
-        return true;
+      });
+      
+      if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+        console.log('[Highlightly] No general highlights found, falling back to mock data');
+        return mockService.getLeagueHighlights();
       }
       
-      // 2. League name match in match.league.name
-      if (highlight.match?.league?.name && typeof highlight.match.league.name === 'string') {
-        const highlightLeagueName = highlight.match.league.name.toLowerCase();
-        if (currentLeagueVariations.some(variation => highlightLeagueName.includes(variation))) {
-          return true;
-        }
-      }
+      const highlights: MatchHighlight[] = [];
       
-      // 3. Check in competition field
-      if (highlight.competition && typeof highlight.competition === 'string') {
-        const competitionName = highlight.competition.toLowerCase();
-        if (currentLeagueVariations.some(variation => competitionName.includes(variation))) {
-          return true;
-        }
-      }
-      
-      // 4. Last resort: Check in title field
-      if (highlight.title && typeof highlight.title === 'string') {
-        const highlightTitle = highlight.title.toLowerCase();
-        if (currentLeagueVariations.some(variation => highlightTitle.includes(variation))) {
-          return true;
-        }
-      }
-      
-      return false;
-    });
-    
-    if (leagueHighlights.length === 0) {
-      console.log(`[Highlightly] No highlights found for league: ${league.name}`);
-      return [];
-    }
-    
-    console.log(`[Highlightly] Found ${leagueHighlights.length} highlights for ${league.name}`);
-    
-    return leagueHighlights.map((highlight: any): MatchHighlight => {
-      // Extract team names
-      let homeTeamName = 'Unknown Team';
-      let awayTeamName = 'Unknown Team';
-      
-      if (highlight.title) {
+      response.data.forEach((highlight: any) => {
+        if (!highlight.title) return;
+        
+        // Extract team names
         const titleParts = highlight.title.split(' vs ');
-        homeTeamName = titleParts[0]?.trim() || 'Unknown Team';
-        awayTeamName = titleParts[1]?.trim() || 'Unknown Team';
-      }
-      
-      // Extract score if available in the title
-      let homeScore = 0;
-      let awayScore = 0;
-      if (highlight.title) {
+        const homeTeamName = titleParts[0]?.trim() || 'Unknown Team';
+        const awayTeamName = titleParts[1]?.trim() || 'Unknown Team';
+        
+        // Extract score
+        let homeScore = 0;
+        let awayScore = 0;
         const scoreMatch = highlight.title.match(/(\d+)\s*-\s*(\d+)/);
         if (scoreMatch) {
           homeScore = parseInt(scoreMatch[1], 10);
           awayScore = parseInt(scoreMatch[2], 10);
         }
-      }
-      
-      return {
-        id: highlight.id || `highlight-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        title: highlight.title || 'Unnamed Highlight',
-        date: highlight.date ? new Date(highlight.date).toISOString() : new Date().toISOString(),
-        thumbnailUrl: highlight.thumbnail || highlight.image || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
-        videoUrl: highlight.url || highlight.embedUrl || '',
-        duration: highlight.duration || '0:00',
-        views: highlight.views || Math.floor(Math.random() * 10000),
-        homeTeam: {
-          id: `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
-          name: homeTeamName,
-          logo: '/teams/default.png'
-        },
-        awayTeam: {
-          id: `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
-          name: awayTeamName,
-          logo: '/teams/default.png'
-        },
-        score: {
-          home: homeScore,
-          away: awayScore
-        },
-        competition: {
-          id: league.id || 'unknown-league',
-          name: league.name || 'Unknown League',
-          logo: league.logo || '/leagues/default.png'
-        }
-      };
-    });
-    
-    return leagueHighlights;
-    
-  } catch (error) {
-    console.error(`[Highlightly] Error fetching highlights for ${league.name}:`, error);
-    return [];
-  }
-},
-
-/**
- * Helper method to fetch general highlights when league-specific ones aren't available
- */
-async fetchGeneralHighlights(formattedDate: string): Promise<League[]> {
-  try {
-    const response = await highlightlyClient.getHighlights({
-      date: formattedDate,
-      limit: '25'
-    });
-    
-    if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-      console.log('[Highlightly] No general highlights found, falling back to mock data');
-      return mockService.getLeagueHighlights();
-    }
-    
-    const highlights: MatchHighlight[] = [];
-    
-    response.data.forEach((highlight: any) => {
-      if (!highlight.title) return;
-      
-      // Extract team names
-      const titleParts = highlight.title.split(' vs ');
-      const homeTeamName = titleParts[0]?.trim() || 'Unknown Team';
-      const awayTeamName = titleParts[1]?.trim() || 'Unknown Team';
-      
-      // Extract score
-      let homeScore = 0;
-      let awayScore = 0;
-      const scoreMatch = highlight.title.match(/(\d+)\s*-\s*(\d+)/);
-      if (scoreMatch) {
-        homeScore = parseInt(scoreMatch[1], 10);
-        awayScore = parseInt(scoreMatch[2], 10);
-      }
-      
-      highlights.push({
-        id: highlight.id || `highlight-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        title: highlight.title,
-        date: highlight.date ? new Date(highlight.date).toISOString() : new Date().toISOString(),
-        thumbnailUrl: highlight.thumbnail || highlight.image || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
-        videoUrl: highlight.url || highlight.embedUrl || highlight.video || '',
-        duration: highlight.duration || '0:00',
-        views: highlight.views || Math.floor(Math.random() * 10000),
-        homeTeam: {
-          id: `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
-          name: homeTeamName,
-          logo: '/teams/default.png'
-        },
-        awayTeam: {
-          id: `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
-          name: awayTeamName,
-          logo: '/teams/default.png'
-        },
-        score: {
-          home: homeScore,
-          away: awayScore
-        },
-        competition: {
-          id: 'popular-highlights',
-          name: 'Popular Highlights',
-          logo: '/leagues/default.png'
-        }
+        
+        highlights.push({
+          id: highlight.id || `highlight-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          title: highlight.title,
+          date: highlight.date ? new Date(highlight.date).toISOString() : new Date().toISOString(),
+          thumbnailUrl: highlight.thumbnail || highlight.image || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
+          videoUrl: highlight.url || highlight.embedUrl || highlight.video || '',
+          duration: highlight.duration || '0:00',
+          views: highlight.views || Math.floor(Math.random() * 10000),
+          homeTeam: {
+            id: `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+            name: homeTeamName,
+            logo: '/teams/default.png'
+          },
+          awayTeam: {
+            id: `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+            name: awayTeamName,
+            logo: '/teams/default.png'
+          },
+          score: {
+            home: homeScore,
+            away: awayScore
+          },
+          competition: {
+            id: 'popular-highlights',
+            name: 'Popular Highlights',
+            logo: '/leagues/default.png'
+          }
+        });
       });
-    });
-    
-    return [{
-      id: 'popular-highlights',
-      name: 'Popular Highlights',
-      logo: '/leagues/default.png',
-      highlights
-    }];
+      
+      return [{
+        id: 'popular-highlights',
+        name: 'Popular Highlights',
+        logo: '/leagues/default.png',
+        highlights
+      }];
     } catch (error) {
       console.error('Error fetching general highlights:', error);
       console.log('[Highlightly] Falling back to mock data for general highlights');
@@ -781,14 +695,14 @@ async fetchGeneralHighlights(formattedDate: string): Promise<League[]> {
     return {
       id: match.id || `fixture-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       homeTeam: {
-        id: match.teams?.home?.id || 'home-team',
-        name: match.teams?.home?.name || 'Home Team',
-        logo: match.teams?.home?.logo || 'https://via.placeholder.com/50x50?text=Team'
+        id: match.homeTeam?.id?.toString() || match.teams?.home?.id?.toString() || `home-${Date.now()}`,
+        name: match.homeTeam?.name || match.teams?.home?.name || 'Home Team',
+        logo: match.homeTeam?.logo || match.teams?.home?.logo || '/teams/default.png'
       },
       awayTeam: {
-        id: match.teams?.away?.id || 'away-team',
-        name: match.teams?.away?.name || 'Away Team',
-        logo: match.teams?.away?.logo || 'https://via.placeholder.com/50x50?text=Team'
+        id: match.awayTeam?.id?.toString() || match.teams?.away?.id?.toString() || `away-${Date.now()}`,
+        name: match.awayTeam?.name || match.teams?.away?.name || 'Away Team',
+        logo: match.awayTeam?.logo || match.teams?.away?.logo || '/teams/default.png'
       },
       date: match.fixture?.date || new Date().toISOString(),
       competition: match.league?.name || 'Unknown League',
@@ -814,14 +728,492 @@ async fetchGeneralHighlights(formattedDate: string): Promise<League[]> {
     }
     
     return i + "th";
+  },
+
+  /**
+   * Get recent matches for top 5 leagues
+   * Uses the correct API approach: get leagues first, then matches for each league
+   */
+  async getRecentMatchesForTopLeagues(): Promise<import('@/types').LeagueWithMatches[]> {
+    try {
+      console.log('[Highlightly] Fetching recent match results using proper API approach');
+      
+      // Step 1: Get all available leagues
+      console.log('[Highlightly] Step 1: Fetching all leagues');
+      const leaguesResponse = await highlightlyClient.getLeagues();
+      
+      if (!leaguesResponse.data || !Array.isArray(leaguesResponse.data)) {
+        console.error('[Highlightly] No leagues data found');
+        return [];
+      }
+      
+      console.log(`[Highlightly] Found ${leaguesResponse.data.length} leagues`);
+      
+      // Step 2: Identify top 5 European domestic leagues we want to show
+      const targetLeagueNames = [
+        'Premier League',
+        'English Premier League', 
+        'La Liga',
+        'LaLiga',
+        'Serie A',
+        'Bundesliga',
+        'Ligue 1'
+      ];
+      
+      // Find matching leagues, but exclude Champions League variations
+      const targetLeagues = leaguesResponse.data.filter((league: any) => {
+        if (!league.name) return false;
+        
+        const leagueName = league.name.toLowerCase();
+        
+        // Exclude all Champions League variations
+        if (leagueName.includes('champions league') || 
+            leagueName.includes('champions cup') ||
+            leagueName.includes('uefa champions') ||
+            leagueName.includes('caf champions') ||
+            leagueName.includes('concacaf champions') ||
+            leagueName.includes('afc champions') ||
+            leagueName.includes('ofc champions')) {
+          return false;
+        }
+        
+        // Only include if it matches our target European domestic leagues
+        return targetLeagueNames.some(target => {
+          const targetLower = target.toLowerCase();
+          
+          // For Serie A, ensure it's not Brazilian Serie A
+          if (target === 'Serie A') {
+            return leagueName.includes('serie a') && 
+                   !leagueName.includes('brasil') && 
+                   !leagueName.includes('brazil') &&
+                   !leagueName.includes('brasileir');
+          }
+          
+          // For Premier League, prefer English Premier League
+          if (target === 'Premier League') {
+            return leagueName.includes('premier league') &&
+                   (leagueName.includes('english') || 
+                    leagueName.includes('england') ||
+                    !leagueName.includes('australian') &&
+                    !leagueName.includes('south african'));
+          }
+          
+          return leagueName.includes(targetLower);
+        });
+      });
+      
+      console.log(`[Highlightly] Found ${targetLeagues.length} target European domestic leagues:`, 
+        targetLeagues.map((l: any) => `${l.name} (ID: ${l.id})`));
+      
+      // Step 3: Get recent matches for each target league (limit to 5)
+      const leaguesWithMatches: import('@/types').LeagueWithMatches[] = [];
+      
+      for (const league of targetLeagues.slice(0, 5)) { // Limit to exactly 5 leagues
+        try {
+          console.log(`[Highlightly] Fetching matches for ${league.name} (ID: ${league.id})`);
+          
+          // Use the correct leagueId parameter from the API documentation
+          const matchesResponse = await highlightlyClient.getMatches({
+            leagueId: league.id.toString(), // ✅ Correct parameter name
+            limit: '20' // Get more matches to ensure we have finished ones
+          });
+          
+          if (!matchesResponse.data || !Array.isArray(matchesResponse.data)) {
+            console.log(`[Highlightly] No matches found for ${league.name}`);
+            continue;
+          }
+          
+          console.log(`[Highlightly] Found ${matchesResponse.data.length} matches for ${league.name}`);
+          
+          // DEBUG: Log first match structure to understand the API response
+          if (matchesResponse.data.length > 0) {
+            console.log(`[Highlightly] Sample match structure for ${league.name}:`, 
+              JSON.stringify(matchesResponse.data[0], null, 2));
+          }
+          
+          // Step 4: Filter for finished matches with scores
+          const finishedMatches = matchesResponse.data.filter((match: any) => {
+            // Debug: Log each match to understand structure
+            console.log(`[Highlightly] Checking match:`, {
+              id: match.id,
+              stateDescription: match.state?.description,
+              scoreCurrent: match.state?.score?.current,
+              clock: match.state?.clock
+            });
+            
+            // Check if match is finished - use the correct state.description field
+            const isFinished = 
+              match.state?.description === 'Finished' ||
+              match.state?.description === 'Finished after penalties' ||
+              match.state?.description === 'Finished after extra time';
+            
+            // Check for score data - use state.score.current
+            const hasScore = 
+              match.state?.score?.current && 
+              match.state.score.current !== null &&
+              match.state.score.current.includes(' - ');
+            
+            console.log(`[Highlightly] Match ${match.id}: finished=${isFinished}, hasScore=${hasScore}`);
+            
+            return isFinished && hasScore;
+          });
+          
+          console.log(`[Highlightly] Found ${finishedMatches.length} finished matches with scores for ${league.name}`);
+          
+          if (finishedMatches.length === 0) {
+            continue; // Skip leagues with no finished matches
+          }
+          
+          // Step 5: Transform matches to our format
+          const transformedMatches: import('@/types').Match[] = finishedMatches
+            .slice(0, 5) // Limit to 5 most recent per league
+            .map((match: any) => {
+              const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || new Date());
+              
+              // Extract score data
+              let homeScore = 0;
+              let awayScore = 0;
+              
+              // Parse score from state.score.current (e.g., "2 - 0")
+              if (match.state?.score?.current) {
+                const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+                if (scoreMatch) {
+                  homeScore = parseInt(scoreMatch[1], 10);
+                  awayScore = parseInt(scoreMatch[2], 10);
+                }
+              }
+              
+              return {
+                id: match.fixture?.id?.toString() || match.id?.toString() || `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                homeTeam: {
+                  id: match.homeTeam?.id?.toString() || match.teams?.home?.id?.toString() || `home-${Date.now()}`,
+                  name: match.homeTeam?.name || match.teams?.home?.name || 'Home Team',
+                  logo: match.homeTeam?.logo || match.teams?.home?.logo || '/teams/default.png'
+                },
+                awayTeam: {
+                  id: match.awayTeam?.id?.toString() || match.teams?.away?.id?.toString() || `away-${Date.now()}`,
+                  name: match.awayTeam?.name || match.teams?.away?.name || 'Away Team',
+                  logo: match.awayTeam?.logo || match.teams?.away?.logo || '/teams/default.png'
+                },
+                date: matchDate.toISOString(),
+                time: matchDate.toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  hour12: false 
+                }),
+                status: 'finished',
+                score: {
+                  home: homeScore,
+                  away: awayScore
+                },
+                competition: {
+                  id: league.id.toString(),
+                  name: league.name,
+                  logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                },
+                venue: match.fixture?.venue?.name || match.venue?.name || match.venue || undefined
+              };
+            })
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Most recent first
+          
+          // Add to results
+          leaguesWithMatches.push({
+            id: league.id.toString(),
+            name: league.name,
+            logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            matches: transformedMatches
+          });
+          
+          console.log(`[Highlightly] Successfully processed ${transformedMatches.length} matches for ${league.name}`);
+          
+        } catch (error) {
+          console.error(`[Highlightly] Error fetching matches for ${league.name}:`, error);
+          continue; // Continue with other leagues
+        }
+      }
+      
+      // Step 6: Sort leagues by priority (top 5 European leagues)
+      const priorityOrder = ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1'];
+      leaguesWithMatches.sort((a, b) => {
+        const aIndex = priorityOrder.findIndex(p => a.name.toLowerCase().includes(p.toLowerCase()));
+        const bIndex = priorityOrder.findIndex(p => b.name.toLowerCase().includes(p.toLowerCase()));
+        
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        return a.name.localeCompare(b.name);
+      });
+      
+      console.log(`[Highlightly] Successfully fetched match results for ${leaguesWithMatches.length} leagues:`,
+        leaguesWithMatches.map(l => `${l.name} (${l.matches.length} matches)`));
+      
+      return leaguesWithMatches;
+      
+    } catch (error) {
+      console.error('[Highlightly] Error in getRecentMatchesForTopLeagues:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Get match by ID
+   */
+  async getMatchById(id: string): Promise<MatchHighlight | null> {
+    try {
+      console.log(`[Highlightly] Fetching match by ID: ${id}`);
+      
+      // Try to get the match first
+      const matchResponse = await highlightlyClient.getMatchById(id);
+      if (!matchResponse.data) {
+        console.log(`[Highlightly] No match found with ID: ${id}, falling back to mock service`);
+        return mockService.getMatchById(id);
+      }
+
+      // Try to get highlights for this match
+      const highlightsResponse = await highlightlyClient.getHighlights({
+        match: id,
+        limit: '1'
+      });
+
+      if (!highlightsResponse.data || !Array.isArray(highlightsResponse.data) || highlightsResponse.data.length === 0) {
+        console.log(`[Highlightly] No highlights found for match ${id}, falling back to mock service`);
+        return mockService.getMatchById(id);
+      }
+
+      const highlight = highlightsResponse.data[0];
+      
+      // Transform to MatchHighlight format
+      const titleParts = highlight.title?.split(' vs ') || [];
+      const homeTeamName = titleParts[0]?.trim() || 'Unknown Team';
+      const awayTeamName = titleParts[1]?.trim() || 'Unknown Team';
+      
+      let homeScore = 0;
+      let awayScore = 0;
+      if (highlight.title) {
+        const scoreMatch = highlight.title.match(/(\d+)\s*-\s*(\d+)/);
+        if (scoreMatch) {
+          homeScore = parseInt(scoreMatch[1], 10);
+          awayScore = parseInt(scoreMatch[2], 10);
+        }
+      }
+
+      return {
+        id: highlight.id || id,
+        title: highlight.title || 'Unnamed Match',
+        date: highlight.date ? new Date(highlight.date).toISOString() : new Date().toISOString(),
+        thumbnailUrl: highlight.thumbnail || highlight.image || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
+        videoUrl: highlight.url || highlight.embedUrl || '',
+        duration: highlight.duration || '0:00',
+        views: highlight.views || Math.floor(Math.random() * 10000),
+        homeTeam: {
+          id: `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+          name: homeTeamName,
+          logo: '/teams/default.png'
+        },
+        awayTeam: {
+          id: `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+          name: awayTeamName,
+          logo: '/teams/default.png'
+        },
+        score: {
+          home: homeScore,
+          away: awayScore
+        },
+        competition: {
+          id: highlight.competitionId || 'unknown-competition',
+          name: highlight.competition || 'Unknown Competition',
+          logo: highlight.competitionLogo || '/leagues/default.png'
+        }
+      };
+    } catch (error) {
+      console.error(`[Highlightly] Error fetching match by ID: ${id}`, error);
+      console.log('[Highlightly] Falling back to mock service');
+      return mockService.getMatchById(id);
+    }
+  },
+
+  /**
+   * Get team highlights
+   */
+  async getTeamHighlights(teamId: string): Promise<MatchHighlight[]> {
+    try {
+      console.log(`[Highlightly] Fetching highlights for team: ${teamId}`);
+      
+      // Try to get highlights with team parameter
+      const response = await highlightlyClient.getHighlights({
+        team: teamId,
+        limit: '20'
+      });
+
+      if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+        console.log(`[Highlightly] No highlights found for team ${teamId}, falling back to mock service`);
+        return mockService.getTeamHighlights(teamId);
+      }
+
+      return response.data.map((highlight: any): MatchHighlight => {
+        const titleParts = highlight.title?.split(' vs ') || [];
+        const homeTeamName = titleParts[0]?.trim() || 'Unknown Team';
+        const awayTeamName = titleParts[1]?.trim() || 'Unknown Team';
+        
+        let homeScore = 0;
+        let awayScore = 0;
+        if (highlight.title) {
+          const scoreMatch = highlight.title.match(/(\d+)\s*-\s*(\d+)/);
+          if (scoreMatch) {
+            homeScore = parseInt(scoreMatch[1], 10);
+            awayScore = parseInt(scoreMatch[2], 10);
+          }
+        }
+
+        return {
+          id: highlight.id || `highlight-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          title: highlight.title || 'Unnamed Highlight',
+          date: highlight.date ? new Date(highlight.date).toISOString() : new Date().toISOString(),
+          thumbnailUrl: highlight.thumbnail || highlight.image || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
+          videoUrl: highlight.url || highlight.embedUrl || '',
+          duration: highlight.duration || '0:00',
+          views: highlight.views || Math.floor(Math.random() * 10000),
+          homeTeam: {
+            id: `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+            name: homeTeamName,
+            logo: '/teams/default.png'
+          },
+          awayTeam: {
+            id: `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+            name: awayTeamName,
+            logo: '/teams/default.png'
+          },
+          score: {
+            home: homeScore,
+            away: awayScore
+          },
+          competition: {
+            id: highlight.competitionId || 'unknown-competition',
+            name: highlight.competition || 'Unknown Competition',
+            logo: highlight.competitionLogo || '/leagues/default.png'
+          }
+        };
+      });
+    } catch (error) {
+      console.error(`[Highlightly] Error fetching team highlights for ${teamId}:`, error);
+      console.log('[Highlightly] Falling back to mock service');
+      return mockService.getTeamHighlights(teamId);
+    }
+  },
+
+  /**
+   * Get team details
+   */
+  async getTeamDetails(teamId: string): Promise<TeamDetails | null> {
+    try {
+      console.log(`[Highlightly] Fetching team details for: ${teamId}`);
+      
+      // For now, fall back to mock service as team details require complex aggregation
+      // This could be implemented with multiple API calls to get standings, fixtures, etc.
+      console.log('[Highlightly] Team details not fully implemented, falling back to mock service');
+      return mockService.getTeamDetails(teamId);
+    } catch (error) {
+      console.error(`[Highlightly] Error fetching team details for ${teamId}:`, error);
+      return mockService.getTeamDetails(teamId);
+    }
+  },
+
+  /**
+   * Search highlights
+   */
+  async searchHighlights(query: string): Promise<MatchHighlight[]> {
+    try {
+      console.log(`[Highlightly] Searching highlights with query: ${query}`);
+      
+      // Get recent highlights and filter by query on client side
+      // The API doesn't seem to have a direct search endpoint
+      const response = await highlightlyClient.getHighlights({
+        limit: '50' // Get more results to filter from
+      });
+
+      if (!response.data || !Array.isArray(response.data)) {
+        console.log('[Highlightly] No search results found, falling back to mock service');
+        return mockService.searchHighlights(query);
+      }
+
+      const searchQuery = query.toLowerCase();
+      const filteredHighlights = response.data.filter((highlight: any) => {
+        return highlight.title?.toLowerCase().includes(searchQuery) ||
+               highlight.competition?.toLowerCase().includes(searchQuery);
+      });
+
+      if (filteredHighlights.length === 0) {
+        console.log('[Highlightly] No matches found for search query, falling back to mock service');
+        return mockService.searchHighlights(query);
+      }
+
+      return filteredHighlights.map((highlight: any): MatchHighlight => {
+        const titleParts = highlight.title?.split(' vs ') || [];
+        const homeTeamName = titleParts[0]?.trim() || 'Unknown Team';
+        const awayTeamName = titleParts[1]?.trim() || 'Unknown Team';
+        
+        let homeScore = 0;
+        let awayScore = 0;
+        if (highlight.title) {
+          const scoreMatch = highlight.title.match(/(\d+)\s*-\s*(\d+)/);
+          if (scoreMatch) {
+            homeScore = parseInt(scoreMatch[1], 10);
+            awayScore = parseInt(scoreMatch[2], 10);
+          }
+        }
+
+        return {
+          id: highlight.id || `highlight-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          title: highlight.title || 'Unnamed Highlight',
+          date: highlight.date ? new Date(highlight.date).toISOString() : new Date().toISOString(),
+          thumbnailUrl: highlight.thumbnail || highlight.image || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
+          videoUrl: highlight.url || highlight.embedUrl || '',
+          duration: highlight.duration || '0:00',
+          views: highlight.views || Math.floor(Math.random() * 10000),
+          homeTeam: {
+            id: `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+            name: homeTeamName,
+            logo: '/teams/default.png'
+          },
+          awayTeam: {
+            id: `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+            name: awayTeamName,
+            logo: '/teams/default.png'
+          },
+          score: {
+            home: homeScore,
+            away: awayScore
+          },
+          competition: {
+            id: highlight.competitionId || 'unknown-competition',
+            name: highlight.competition || 'Unknown Competition',
+            logo: highlight.competitionLogo || '/leagues/default.png'
+          }
+        };
+      });
+    } catch (error) {
+      console.error(`[Highlightly] Error searching highlights:`, error);
+      console.log('[Highlightly] Falling back to mock service');
+      return mockService.searchHighlights(query);
+    }
   }
 };
 
 // Export functions individually for easier importing
 export const {
   getRecommendedHighlights,
-  getLeagueHighlights
+  getLeagueHighlights,
+  getRecentMatchesForTopLeagues,
+  getMatchById,
+  getTeamHighlights,
+  getTeamDetails,
+  searchHighlights
 } = {
   getRecommendedHighlights: highlightlyService.getRecommendedHighlights.bind(highlightlyService),
-  getLeagueHighlights: highlightlyService.getLeagueHighlights.bind(highlightlyService)
+  getLeagueHighlights: highlightlyService.getLeagueHighlights.bind(highlightlyService),
+  getRecentMatchesForTopLeagues: highlightlyService.getRecentMatchesForTopLeagues.bind(highlightlyService),
+  getMatchById: highlightlyService.getMatchById.bind(highlightlyService),
+  getTeamHighlights: highlightlyService.getTeamHighlights.bind(highlightlyService),
+  getTeamDetails: highlightlyService.getTeamDetails.bind(highlightlyService),
+  searchHighlights: highlightlyService.searchHighlights.bind(highlightlyService)
 };

@@ -184,14 +184,19 @@ export const highlightlyClient = {
    * Get all matches with optional filters
    */
   async getMatches(params: {
+    leagueName?: string;
+    leagueId?: string;
     date?: string;
-    country?: string;
-    league?: string;
-    team?: string;
     timezone?: string;
+    season?: string;
+    homeTeamId?: string;
+    awayTeamId?: string;
+    homeTeamName?: string;
+    awayTeamName?: string;
+    countryCode?: string;
+    countryName?: string;
     limit?: string;
     offset?: string;
-    season?: string; // Added season parameter for 2025 season support
   }) {
     return apiRequest<any>('/matches', params);
   },

@@ -1,8 +1,26 @@
-
 export interface Team {
   id: string;
   name: string;
   logo: string;
+}
+
+export interface Match {
+  id: string;
+  homeTeam: Team;
+  awayTeam: Team;
+  date: string;
+  time?: string;
+  status: string; // 'finished', 'live', 'upcoming'
+  score?: {
+    home: number;
+    away: number;
+  };
+  competition: {
+    id: string;
+    name: string;
+    logo: string;
+  };
+  venue?: string;
 }
 
 export interface MatchHighlight {
@@ -31,6 +49,13 @@ export interface League {
   name: string;
   logo: string;
   highlights: MatchHighlight[];
+}
+
+export interface LeagueWithMatches {
+  id: string;
+  name: string;
+  logo: string;
+  matches: Match[];
 }
 
 export interface TableRow {

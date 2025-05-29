@@ -1,7 +1,7 @@
 import * as mockService from './highlightService';
 import * as supabaseService from './supabaseService';
 import * as highlightlyService from './highlightlyService';
-import type { MatchHighlight, League, TeamDetails } from '@/types';
+import type { MatchHighlight, League, TeamDetails, LeagueWithMatches } from '@/types';
 
 /**
  * Service Type
@@ -75,7 +75,9 @@ export const serviceAdapter = {
       case 'mock':
         return mockService.getMatchById(id);
       case 'supabase':
-        return supabaseService.getMatchById(id);
+        // Note: supabase service returns different format, would need transformation
+        console.log('[ServiceAdapter] getMatchById not fully implemented for supabase, using mock service');
+        return mockService.getMatchById(id);
       case 'highlightly':
         return highlightlyService.getMatchById(id);
       default:
@@ -91,7 +93,9 @@ export const serviceAdapter = {
       case 'mock':
         return mockService.getTeamHighlights(teamId);
       case 'supabase':
-        return supabaseService.getTeamHighlights(teamId);
+        // Note: supabase service returns different format, would need transformation
+        console.log('[ServiceAdapter] getTeamHighlights not fully implemented for supabase, using mock service');
+        return mockService.getTeamHighlights(teamId);
       case 'highlightly':
         return highlightlyService.getTeamHighlights(teamId);
       default:
@@ -129,6 +133,22 @@ export const serviceAdapter = {
       default:
         return mockService.searchHighlights(query);
     }
+  },
+
+  /**
+   * Get recent matches for top leagues
+   */
+  async getRecentMatchesForTopLeagues(): Promise<LeagueWithMatches[]> {
+    switch (activeService) {
+      case 'highlightly':
+        return highlightlyService.getRecentMatchesForTopLeagues();
+      case 'mock':
+      case 'supabase':
+      default:
+        // For now, only supported in highlightly service
+        // Could implement fallbacks for other services later
+        return [];
+    }
   }
 };
 
@@ -140,6 +160,7 @@ export const {
   getTeamHighlights,
   getTeamDetails,
   searchHighlights,
+  getRecentMatchesForTopLeagues,
   setActiveService,
   getActiveService
 } = {
@@ -149,6 +170,7 @@ export const {
   getTeamHighlights: (teamId: string) => serviceAdapter.getTeamHighlights(teamId),
   getTeamDetails: (teamId: string) => serviceAdapter.getTeamDetails(teamId),
   searchHighlights: (query: string) => serviceAdapter.searchHighlights(query),
+  getRecentMatchesForTopLeagues: () => serviceAdapter.getRecentMatchesForTopLeagues(),
   setActiveService: (serviceType: ServiceType) => serviceAdapter.setActiveService(serviceType),
   getActiveService: () => serviceAdapter.getActiveService()
 };
