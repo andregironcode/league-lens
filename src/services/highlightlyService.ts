@@ -533,20 +533,49 @@ export const highlightlyService = {
   /**
    * Helper method to fetch general highlights when league-specific ones aren't available
    */
-  async fetchGeneralHighlights(formattedDate: string): Promise<League[]> {
+  async fetchGeneralHighlights(formattedDate: string, league?: any): Promise<League[]> {
     try {
       const response = await highlightlyClient.getHighlights({
         date: formattedDate,
         limit: '25'
+      });
+      
+      // Transform API data to match our application model
+      const highlights = response.data || [];
     
-    // Log the highlight structure to help debug
-    if (highlights.length > 0) {
-      console.log(`[Highlightly] Highlight structure sample:`, 
-        JSON.stringify(highlights[0]).substring(0, 200) + '...');
-    }
+      // Log the highlight structure to help debug
+      if (highlights.length > 0) {
+        console.log(`[Highlightly] Highlight structure sample:`, 
+          JSON.stringify(highlights[0]).substring(0, 200) + '...');
+      }
 
-    // Define league name variations map for common leagues
-    const leagueVariations: {[key: string]: string[]} = {
+      // If no league is provided, return a default league with the highlights
+      if (!league) {
+        return [{
+          id: 'general',
+          name: 'General Highlights',
+          logo: '/leagues/default.png',
+          highlights: highlights.map((highlight: any) => {
+            // Transform to MatchHighlight format
+            return {
+              id: highlight.id || `highlight-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              title: highlight.title || 'Unnamed Highlight',
+              date: highlight.date || new Date().toISOString(),
+              thumbnailUrl: highlight.thumbnail || 'https://via.placeholder.com/300x200?text=No+Thumbnail',
+              videoUrl: highlight.url || '',
+              duration: highlight.duration || '0:00',
+              views: highlight.views || 0,
+              homeTeam: { id: 'unknown', name: 'Unknown Team', logo: '/teams/default.png' },
+              awayTeam: { id: 'unknown', name: 'Unknown Team', logo: '/teams/default.png' },
+              score: { home: 0, away: 0 },
+              competition: { id: 'unknown', name: 'Unknown Competition', logo: '/leagues/default.png' }
+            };
+          })
+        }];
+      }
+
+      // Define league name variations map for common leagues
+      const leagueVariations: {[key: string]: string[]} = {
       // Premier League variations (England ID: 33973)
       '33973': ['premier league', 'epl', 'english premier league'],
       // LaLiga variations (Spain ID: 2486)
