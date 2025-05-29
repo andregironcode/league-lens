@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Eye, Share2, Shirt, BarChart4 } from 'lucide-react';
 import Header from '@/components/Header';
-import { getMatchById } from '@/services/highlightService';
+import { getMatchById, getActiveService } from '@/services/serviceAdapter';
 import { MatchHighlight } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";

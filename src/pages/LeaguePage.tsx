@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getLeagueHighlights } from '@/services/highlightService';
+import { getLeagueHighlights, getActiveService } from '@/services/serviceAdapter';
 import { League, MatchHighlight } from '@/types';
 import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';

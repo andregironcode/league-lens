@@ -1,20 +1,20 @@
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import LeagueSection from '@/components/LeagueSection';
-import { getRecommendedHighlights, getLeagueHighlights } from '@/services/highlightService';
+import { getRecommendedHighlights, getLeagueHighlights, getActiveService } from '@/services/serviceAdapter';
 import { MatchHighlight, League } from '@/types';
 
-const Index = () => {
-  const [recommendedHighlights, setRecommendedHighlights] = useState<MatchHighlight[]>([]);
-  const [leagues, setLeagues] = useState<League[]>([]);
-  const [loading, setLoading] = useState({
+function Index() {
+  const [recommendedHighlights, setRecommendedHighlights] = React.useState<MatchHighlight[]>([]);
+  const [leagues, setLeagues] = React.useState<League[]>([]);
+  const [loading, setLoading] = React.useState({
     recommended: true,
     leagues: true
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch recommended highlights

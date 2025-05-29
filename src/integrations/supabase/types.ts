@@ -6,10 +6,192 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
-      [_ in never]: never
+      teams: {
+        Row: {
+          id: string
+          name: string
+          logo: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          logo: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          logo?: string
+          created_at?: string
+        }
+      }
+      competitions: {
+        Row: {
+          id: string
+          name: string
+          logo: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          logo: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          logo?: string
+          created_at?: string
+        }
+      }
+      match_highlights: {
+        Row: {
+          id: string
+          title: string
+          date: string
+          thumbnail_url: string
+          video_url: string
+          duration: string
+          views: number
+          home_team_id: string
+          away_team_id: string
+          home_score: number
+          away_score: number
+          competition_id: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          title: string
+          date: string
+          thumbnail_url: string
+          video_url: string
+          duration: string
+          views: number
+          home_team_id: string
+          away_team_id: string
+          home_score: number
+          away_score: number
+          competition_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          date?: string
+          thumbnail_url?: string
+          video_url?: string
+          duration?: string
+          views?: number
+          home_team_id?: string
+          away_team_id?: string
+          home_score?: number
+          away_score?: number
+          competition_id?: string
+          created_at?: string
+        }
+      }
+      league_tables: {
+        Row: {
+          id: string
+          team_id: string
+          competition_id: string
+          position: number
+          played: number
+          won: number
+          drawn: number
+          lost: number
+          goals_for: number
+          goals_against: number
+          goal_difference: number
+          points: number
+          created_at: string
+        }
+        Insert: {
+          id: string
+          team_id: string
+          competition_id: string
+          position: number
+          played: number
+          won: number
+          drawn: number
+          lost: number
+          goals_for: number
+          goals_against: number
+          goal_difference: number
+          points: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          team_id?: string
+          competition_id?: string
+          position?: number
+          played?: number
+          won?: number
+          drawn?: number
+          lost?: number
+          goals_for?: number
+          goals_against?: number
+          goal_difference?: number
+          points?: number
+          created_at?: string
+        }
+      }
+      fixtures: {
+        Row: {
+          id: string
+          home_team_id: string
+          away_team_id: string
+          date: string
+          competition_id: string
+          venue: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          home_team_id: string
+          away_team_id: string
+          date: string
+          competition_id: string
+          venue: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          home_team_id?: string
+          away_team_id?: string
+          date?: string
+          competition_id?: string
+          venue?: string
+          created_at?: string
+        }
+      }
+      team_competitions: {
+        Row: {
+          id: string
+          team_id: string
+          competition_id: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          team_id: string
+          competition_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          team_id?: string
+          competition_id?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -26,113 +208,30 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+// Type helpers for easier usage
+type Tables = Database['public']['Tables']
 
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+// Derived types for each table
+export type Team = Tables['teams']['Row']
+export type TeamInsert = Tables['teams']['Insert']
+export type TeamUpdate = Tables['teams']['Update']
 
-export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+export type Competition = Tables['competitions']['Row']
+export type CompetitionInsert = Tables['competitions']['Insert']
+export type CompetitionUpdate = Tables['competitions']['Update']
 
-export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+export type MatchHighlight = Tables['match_highlights']['Row']
+export type MatchHighlightInsert = Tables['match_highlights']['Insert']
+export type MatchHighlightUpdate = Tables['match_highlights']['Update']
 
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+export type LeagueTable = Tables['league_tables']['Row']
+export type LeagueTableInsert = Tables['league_tables']['Insert']
+export type LeagueTableUpdate = Tables['league_tables']['Update']
 
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+export type Fixture = Tables['fixtures']['Row']
+export type FixtureInsert = Tables['fixtures']['Insert']
+export type FixtureUpdate = Tables['fixtures']['Update']
 
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const
+export type TeamCompetition = Tables['team_competitions']['Row']
+export type TeamCompetitionInsert = Tables['team_competitions']['Insert']
+export type TeamCompetitionUpdate = Tables['team_competitions']['Update']

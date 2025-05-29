@@ -6,7 +6,7 @@ import Header from '@/components/Header';
 import HighlightCard from '@/components/HighlightCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getTeamHighlights, getTeamDetails } from '@/services/highlightService';
+import { getTeamHighlights, getTeamDetails, getActiveService } from '@/services/serviceAdapter';
 import { MatchHighlight, Team, TeamDetails } from '@/types';
 
 const TeamPage = () => {

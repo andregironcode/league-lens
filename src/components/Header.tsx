@@ -3,7 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MatchHighlight } from '@/types';
-import { searchHighlights } from '@/services/highlightService';
+import { searchHighlights, getActiveService } from '@/services/serviceAdapter';
+import ServiceSwitcher from './ServiceSwitcher';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -88,7 +89,7 @@ const Header = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center flex-1 space-x-4 md:space-x-6">
+        <div className="flex items-center space-x-4 md:space-x-6">
           <Link to="/" className="flex-shrink-0 transition-transform duration-200 hover:scale-110">
             <img 
               src="/lovable-uploads/3f69b4d3-7c25-4f74-a779-c3f73cd73d08.png" 
@@ -174,6 +175,9 @@ const Header = () => {
               </div>
             )}
           </div>
+        </div>
+        <div className="hidden md:block">
+          <ServiceSwitcher />
         </div>
       </div>
     </header>
