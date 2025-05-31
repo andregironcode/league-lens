@@ -3,37 +3,31 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Eye, Share2, Shirt, BarChart4 } from 'lucide-react';
 import Header from '@/components/Header';
 import { getMatchById, getActiveService } from '@/services/serviceAdapter';
-import { MatchHighlight } from '@/types';
+import { MatchHighlight, EnhancedMatchHighlight, Player } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
+
 const MatchDetails = () => {
-  const {
-    id
-  } = useParams<{
-    id: string;
-  }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [match, setMatch] = useState<MatchHighlight | null>(null);
+  const [match, setMatch] = useState<EnhancedMatchHighlight | null>(null);
   const [loading, setLoading] = useState(true);
   const [formattedDate, setFormattedDate] = useState('');
   const [exactDate, setExactDate] = useState('');
   const [activeTab, setActiveTab] = useState('stats');
   const videoContainerRef = useRef<HTMLDivElement>(null);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
   useEffect(() => {
     const fetchMatch = async () => {
       try {
         if (!id) return;
         setLoading(true);
-        const matchData = await getMatchById(id);
+        const matchData = await getMatchById(id) as EnhancedMatchHighlight;
         setMatch(matchData);
         if (matchData) {
           const date = new Date(matchData.date);
-          setFormattedDate(formatDistanceToNow(date, {
-            addSuffix: true
-          }));
+          setFormattedDate(formatDistanceToNow(date, { addSuffix: true }));
           setExactDate(date.toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -50,67 +44,104 @@ const MatchDetails = () => {
     fetchMatch();
   }, [id]);
 
-  // Generate mock goalscorers based on match score
-  const generateMockGoalscorers = (match: MatchHighlight | null) => {
-    if (!match) return {
-      home: [],
-      away: []
-    };
+  // Generate mock goalscorers based on match events or score
+  const generateGoalscorers = (match: EnhancedMatchHighlight | null) => {
+    if (!match) return { home: [], away: [] };
+
+    // If we have events data, use that
+    if (match.events && match.events.length > 0) {
+      const goalEvents = match.events.filter(event => 
+        event.type === 'Goal' || 
+        event.type === 'Penalty' || 
+        event.type === 'Own Goal'
+      );
+
+      const homeGoals = goalEvents
+        .filter(event => event.team.id === match.homeTeam.id)
+        .map(event => ({
+          player: event.player,
+          minute: parseInt(event.time) || 0,
+          isPenalty: event.type === 'Penalty',
+          isOwnGoal: event.type === 'Own Goal'
+        }));
+
+      const awayGoals = goalEvents
+        .filter(event => event.team.id === match.awayTeam.id)
+        .map(event => ({
+          player: event.player,
+          minute: parseInt(event.time) || 0,
+          isPenalty: event.type === 'Penalty',
+          isOwnGoal: event.type === 'Own Goal'
+        }));
+
+      if (homeGoals.length > 0 || awayGoals.length > 0) {
+        return { home: homeGoals, away: awayGoals };
+      }
+    }
+
+    // Fallback to mock data if no events available
     const homeGoals = [];
     const awayGoals = [];
+    const homePlayerNames = ["Alexander", "James", "Wilson", "Thompson", "Martinez"];
+    const awayPlayerNames = ["Smith", "Brown", "Miller", "Garcia", "Lee"];
 
-    // Generate random player names for home team
-    const homePlayerNames = ["Alexander", "James", "Wilson", "Thompson", "Martinez", "Rodriguez", "Jackson", "Williams", "Davies", "Johnson"];
-
-    // Generate random player names for away team
-    const awayPlayerNames = ["Smith", "Brown", "Miller", "Garcia", "Lee", "Walker", "Harris", "Clark", "Lewis", "Young"];
-
-    // Generate random minutes for goals
     const generateMinutes = (count: number) => {
       const minutes = [];
       for (let i = 0; i < count; i++) {
-        // Goals typically happen between 1-90 minutes
         minutes.push(Math.floor(Math.random() * 90) + 1);
       }
-      // Sort minutes in ascending order
       return minutes.sort((a, b) => a - b);
     };
+
     const homeMinutes = generateMinutes(match.score.home);
     const awayMinutes = generateMinutes(match.score.away);
 
-    // Create goal objects for home team
     for (let i = 0; i < match.score.home; i++) {
-      const playerIndex = Math.floor(Math.random() * homePlayerNames.length);
       homeGoals.push({
-        player: homePlayerNames[playerIndex],
+        player: homePlayerNames[Math.floor(Math.random() * homePlayerNames.length)],
         minute: homeMinutes[i],
         isPenalty: Math.random() > 0.8,
-        // 20% chance of being a penalty
-        isOwnGoal: false // We'll handle own goals separately
-      });
-    }
-
-    // Create goal objects for away team
-    for (let i = 0; i < match.score.away; i++) {
-      const playerIndex = Math.floor(Math.random() * awayPlayerNames.length);
-      awayGoals.push({
-        player: awayPlayerNames[playerIndex],
-        minute: awayMinutes[i],
-        isPenalty: Math.random() > 0.8,
-        // 20% chance of being a penalty
         isOwnGoal: false
       });
     }
-    return {
-      home: homeGoals,
-      away: awayGoals
-    };
+
+    for (let i = 0; i < match.score.away; i++) {
+      awayGoals.push({
+        player: awayPlayerNames[Math.floor(Math.random() * awayPlayerNames.length)],
+        minute: awayMinutes[i],
+        isPenalty: Math.random() > 0.8,
+        isOwnGoal: false
+      });
+    }
+
+    return { home: homeGoals, away: awayGoals };
   };
-  const getYoutubeVideoId = (url: string): string => {
-    const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
-    const match = url.match(regex);
-    return match ? match[1] : '';
+
+  const getVideoEmbedUrl = (url: string): string => {
+    if (!url) return '';
+    
+    console.log('[MatchDetails] Processing video URL:', url);
+    
+    // If it's already an embed URL, use it
+    if (url.includes('embed')) {
+      console.log('[MatchDetails] Already embed URL:', url);
+      return url;
+    }
+    
+    // Extract YouTube video ID
+    const youtubeRegex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch) {
+      const videoId = youtubeMatch[1];
+      console.log('[MatchDetails] YouTube video ID:', videoId);
+      return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`;
+    }
+    
+    // For other video URLs, try to use them directly
+    console.log('[MatchDetails] Using direct video URL:', url);
+    return url;
   };
+
   const handleGoBack = () => {
     navigate(-1);
   };
@@ -130,7 +161,8 @@ const MatchDetails = () => {
   };
 
   // Generate mock goalscorers data
-  const goalscorers = generateMockGoalscorers(match);
+  const goalscorers = generateGoalscorers(match);
+  
   if (loading) {
     return <div className="min-h-screen bg-black pt-20 px-4 sm:px-6">
         <Header />
@@ -142,6 +174,7 @@ const MatchDetails = () => {
         </div>
       </div>;
   }
+
   if (!match) {
     return <div className="min-h-screen bg-black pt-20 px-4 sm:px-6">
         <Header />
@@ -154,7 +187,7 @@ const MatchDetails = () => {
         </div>
       </div>;
   }
-  const videoId = getYoutubeVideoId(match.videoUrl);
+
   return <div className="min-h-screen bg-black text-white pt-16 pb-16">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -210,7 +243,24 @@ const MatchDetails = () => {
         {/* Video player */}
         <div className="mb-8 w-full">
           <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
-            <iframe className="w-full h-full" src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`} title={match.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+            {match.videoUrl ? (
+              <iframe 
+                className="w-full h-full" 
+                src={getVideoEmbedUrl(match.videoUrl)} 
+                title={match.title} 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                <div className="text-center text-gray-400">
+                  <div className="mb-2">📹</div>
+                  <p className="text-sm">Video highlight not available</p>
+                  <p className="text-xs mt-1">Check back later for match highlights</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -295,129 +345,233 @@ const MatchDetails = () => {
           </div>
           
           <div className="bg-[#222222] rounded-b-lg p-6">
-            {activeTab === 'stats' ? <>
+            {activeTab === 'stats' ? (
+              <div>
                 <h3 className="text-lg font-semibold mb-6 text-center text-white">Match Statistics</h3>
                 
-                <div className="mb-6">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-white">55%</span>
-                    <span className="text-sm font-medium text-center text-white">Possession</span>
-                    <span className="text-sm text-white">45%</span>
+                {match.statistics && match.statistics.length >= 2 ? (
+                  // Display real statistics from API
+                  <div className="space-y-6">
+                    {match.statistics[0].statistics.map((stat, index) => {
+                      const homeValue = stat.value;
+                      const awayValue = match.statistics![1]?.statistics[index]?.value || 0;
+                      
+                      // Calculate percentages for visual bars
+                      let homePercent = 50;
+                      let awayPercent = 50;
+                      
+                      if (typeof homeValue === 'number' && typeof awayValue === 'number') {
+                        const total = homeValue + awayValue;
+                        if (total > 0) {
+                          homePercent = (homeValue / total) * 100;
+                          awayPercent = (awayValue / total) * 100;
+                        }
+                      }
+                      
+                      return (
+                        <div key={index} className="mb-6">
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm text-white">{homeValue}</span>
+                            <span className="text-sm font-medium text-center text-white">{stat.displayName}</span>
+                            <span className="text-sm text-white">{awayValue}</span>
+                          </div>
+                          <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                            <div className="flex h-full">
+                              <div className="bg-[#FFC30B] h-full" style={{ width: `${homePercent}%` }}></div>
+                              <div className="bg-white h-full" style={{ width: `${awayPercent}%` }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                    <div className="flex h-full">
-                      <div className="bg-[#FFC30B] h-full" style={{
-                    width: '55%'
-                  }}></div>
-                      <div className="bg-white h-full" style={{
-                    width: '45%'
-                  }}></div>
+                ) : (
+                  // Fallback to mock statistics
+                  <div>
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm text-white">55%</span>
+                        <span className="text-sm font-medium text-center text-white">Possession</span>
+                        <span className="text-sm text-white">45%</span>
+                      </div>
+                      <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                        <div className="flex h-full">
+                          <div className="bg-[#FFC30B] h-full" style={{ width: '55%' }}></div>
+                          <div className="bg-white h-full" style={{ width: '45%' }}></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="mb-6">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-white">15</span>
-                    <span className="text-sm font-medium text-center text-white">Shots</span>
-                    <span className="text-sm text-white">12</span>
-                  </div>
-                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                    <div className="flex h-full">
-                      <div className="bg-[#FFC30B] h-full" style={{
-                    width: '56%'
-                  }}></div>
-                      <div className="bg-white h-full" style={{
-                    width: '44%'
-                  }}></div>
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm text-white">15</span>
+                        <span className="text-sm font-medium text-center text-white">Shots</span>
+                        <span className="text-sm text-white">12</span>
+                      </div>
+                      <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                        <div className="flex h-full">
+                          <div className="bg-[#FFC30B] h-full" style={{ width: '56%' }}></div>
+                          <div className="bg-white h-full" style={{ width: '44%' }}></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="mb-6">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-white">6</span>
-                    <span className="text-sm font-medium text-center text-white">Shots on Target</span>
-                    <span className="text-sm text-white">4</span>
-                  </div>
-                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                    <div className="flex h-full">
-                      <div className="bg-[#FFC30B] h-full" style={{
-                    width: '60%'
-                  }}></div>
-                      <div className="bg-white h-full" style={{
-                    width: '40%'
-                  }}></div>
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm text-white">6</span>
+                        <span className="text-sm font-medium text-center text-white">Shots on Target</span>
+                        <span className="text-sm text-white">4</span>
+                      </div>
+                      <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                        <div className="flex h-full">
+                          <div className="bg-[#FFC30B] h-full" style={{ width: '60%' }}></div>
+                          <div className="bg-white h-full" style={{ width: '40%' }}></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="mb-6">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-white">8</span>
-                    <span className="text-sm font-medium text-center text-white">Corners</span>
-                    <span className="text-sm text-white">5</span>
-                  </div>
-                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                    <div className="flex h-full">
-                      <div className="bg-[#FFC30B] h-full" style={{
-                    width: '62%'
-                  }}></div>
-                      <div className="bg-white h-full" style={{
-                    width: '38%'
-                  }}></div>
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm text-white">8</span>
+                        <span className="text-sm font-medium text-center text-white">Corners</span>
+                        <span className="text-sm text-white">5</span>
+                      </div>
+                      <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                        <div className="flex h-full">
+                          <div className="bg-[#FFC30B] h-full" style={{ width: '62%' }}></div>
+                          <div className="bg-white h-full" style={{ width: '38%' }}></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="mb-0">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-white">10</span>
-                    <span className="text-sm font-medium text-center text-white">Fouls</span>
-                    <span className="text-sm text-white">12</span>
-                  </div>
-                  <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
-                    <div className="flex h-full">
-                      <div className="bg-[#FFC30B] h-full" style={{
-                    width: '45%'
-                  }}></div>
-                      <div className="bg-white h-full" style={{
-                    width: '55%'
-                  }}></div>
+                    <div className="mb-0">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm text-white">10</span>
+                        <span className="text-sm font-medium text-center text-white">Fouls</span>
+                        <span className="text-sm text-white">12</span>
+                      </div>
+                      <div className="w-full h-2 bg-[#191919] rounded-full overflow-hidden">
+                        <div className="flex h-full">
+                          <div className="bg-[#FFC30B] h-full" style={{ width: '45%' }}></div>
+                          <div className="bg-white h-full" style={{ width: '55%' }}></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </> : <div className="flex flex-col md:flex-row justify-between">
-                <div className="md:w-[48%] mb-6 md:mb-0">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
-                    <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-6 h-6 object-contain mr-2" onError={e => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                }} />
-                    {match.homeTeam.name}
-                  </h3>
-                  <div className="space-y-2">
-                    {["1. Alisson", "66. Alexander-Arnold", "4. Van Dijk (C)", "32. Matip", "26. Robertson", "3. Fabinho", "6. Thiago", "14. Henderson", "11. Salah", "20. Jota", "10. Mané"].map((player, index) => <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
-                        <span className="text-white text-sm">{player}</span>
-                      </div>)}
-                  </div>
-                </div>
-                
-                <div className="md:w-[48%]">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
-                    <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-6 h-6 object-contain mr-2" onError={e => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                }} />
-                    {match.awayTeam.name}
-                  </h3>
-                  <div className="space-y-2">
-                    {["32. Ramsdale", "18. Tomiyasu", "4. White", "6. Gabriel", "3. Tierney", "5. Partey", "34. Xhaka", "7. Saka", "8. Ødegaard (C)", "35. Martinelli", "9. Lacazette"].map((player, index) => <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
-                        <span className="text-white text-sm">{player}</span>
-                      </div>)}
-                  </div>
-                </div>
-              </div>}
+                )}
+              </div>
+            ) : (
+              // Lineups tab
+              <div className="flex flex-col md:flex-row justify-between">
+                {match.lineups ? (
+                  // Display real lineups from API
+                  <>
+                    <div className="md:w-[48%] mb-6 md:mb-0">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
+                        <img src={match.lineups.homeTeam.logo} alt={match.lineups.homeTeam.name} className="w-6 h-6 object-contain mr-2" onError={e => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                        }} />
+                        {match.lineups.homeTeam.name}
+                        <span className="ml-2 text-sm text-gray-400">({match.lineups.homeTeam.formation})</span>
+                      </h3>
+                      <div className="space-y-2">
+                        {match.lineups.homeTeam.initialLineup.flat().map((player: Player, index: number) => (
+                          <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
+                            <span className="text-white text-sm">{player.number}. {player.name}</span>
+                            <span className="ml-auto text-xs text-gray-400">{player.position}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {match.lineups.homeTeam.substitutes.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="text-md font-medium mb-2 text-gray-300">Substitutes</h4>
+                          <div className="space-y-1">
+                            {match.lineups.homeTeam.substitutes.map((player: Player, index: number) => (
+                              <div key={index} className="flex items-center p-1 bg-[#191919] rounded text-sm">
+                                <span className="text-gray-300">{player.number}. {player.name}</span>
+                                <span className="ml-auto text-xs text-gray-500">{player.position}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="md:w-[48%]">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
+                        <img src={match.lineups.awayTeam.logo} alt={match.lineups.awayTeam.name} className="w-6 h-6 object-contain mr-2" onError={e => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                        }} />
+                        {match.lineups.awayTeam.name}
+                        <span className="ml-2 text-sm text-gray-400">({match.lineups.awayTeam.formation})</span>
+                      </h3>
+                      <div className="space-y-2">
+                        {match.lineups.awayTeam.initialLineup.flat().map((player: Player, index: number) => (
+                          <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
+                            <span className="text-white text-sm">{player.number}. {player.name}</span>
+                            <span className="ml-auto text-xs text-gray-400">{player.position}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {match.lineups.awayTeam.substitutes.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="text-md font-medium mb-2 text-gray-300">Substitutes</h4>
+                          <div className="space-y-1">
+                            {match.lineups.awayTeam.substitutes.map((player: Player, index: number) => (
+                              <div key={index} className="flex items-center p-1 bg-[#191919] rounded text-sm">
+                                <span className="text-gray-300">{player.number}. {player.name}</span>
+                                <span className="ml-auto text-xs text-gray-500">{player.position}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  // Fallback to mock lineups
+                  <>
+                    <div className="md:w-[48%] mb-6 md:mb-0">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
+                        <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-6 h-6 object-contain mr-2" onError={e => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                        }} />
+                        {match.homeTeam.name}
+                      </h3>
+                      <div className="space-y-2">
+                        {["1. Alisson", "66. Alexander-Arnold", "4. Van Dijk (C)", "32. Matip", "26. Robertson", "3. Fabinho", "6. Thiago", "14. Henderson", "11. Salah", "20. Jota", "10. Mané"].map((player, index) => (
+                          <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
+                            <span className="text-white text-sm">{player}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="md:w-[48%]">
+                      <h3 className="text-lg font-semibold mb-4 flex items-center text-white">
+                        <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-6 h-6 object-contain mr-2" onError={e => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                        }} />
+                        {match.awayTeam.name}
+                      </h3>
+                      <div className="space-y-2">
+                        {["32. Ramsdale", "18. Tomiyasu", "4. White", "6. Gabriel", "3. Tierney", "5. Partey", "34. Xhaka", "7. Saka", "8. Ødegaard (C)", "35. Martinelli", "9. Lacazette"].map((player, index) => (
+                          <div key={index} className="flex items-center p-2 bg-[#191919] rounded">
+                            <span className="text-white text-sm">{player}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

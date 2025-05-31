@@ -165,10 +165,16 @@ export const highlightlyClient = {
    */
   async getHighlights(params: {
     date?: string;
-    country?: string;
-    league?: string;
-    team?: string;
+    countryCode?: string;
+    countryName?: string;
+    leagueName?: string;
+    leagueId?: string;
+    season?: string;
     match?: string;
+    homeTeamId?: string;
+    awayTeamId?: string;
+    homeTeamName?: string;
+    awayTeamName?: string;
     timezone?: string;
     limit?: string;
     offset?: string;
@@ -281,5 +287,33 @@ export const highlightlyClient = {
     h2h: string; // Format: "teamId1-teamId2"
   }) {
     return apiRequest<any>('/fixtures/h2h', params);
+  },
+
+  /**
+   * Get lineups by match ID
+   */
+  async getLineups(matchId: string) {
+    return apiRequest<any>(`/lineups/${matchId}`);
+  },
+
+  /**
+   * Get match statistics by match ID
+   */
+  async getStatistics(matchId: string) {
+    return apiRequest<any>(`/statistics/${matchId}`);
+  },
+
+  /**
+   * Get live events by match ID
+   */
+  async getLiveEvents(matchId: string) {
+    return apiRequest<any>(`/events/${matchId}`);
+  },
+
+  /**
+   * Get geo restrictions for a highlight
+   */
+  async getHighlightGeoRestrictions(highlightId: string) {
+    return apiRequest<any>(`/highlights/${highlightId}/geo`);
   }
 };

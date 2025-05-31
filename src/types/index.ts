@@ -89,3 +89,53 @@ export interface TeamDetails {
   europeanTable: TableRow[];
   fixtures: Fixture[];
 }
+
+export interface Player {
+  name: string;
+  number: number;
+  position: string;
+}
+
+export interface Lineups {
+  homeTeam: {
+    id: string;
+    name: string;
+    logo: string;
+    formation: string;
+    initialLineup: Player[][];
+    substitutes: Player[];
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+    logo: string;
+    formation: string;
+    initialLineup: Player[][];
+    substitutes: Player[];
+  };
+}
+
+export interface MatchStatistic {
+  value: number | string;
+  displayName: string;
+}
+
+export interface TeamStatistics {
+  team: Team;
+  statistics: MatchStatistic[];
+}
+
+export interface MatchEvent {
+  team: Team;
+  time: string;
+  type: string;
+  player: string;
+  assist?: string;
+  substituted?: string;
+}
+
+export interface EnhancedMatchHighlight extends MatchHighlight {
+  lineups?: Lineups;
+  statistics?: TeamStatistics[];
+  events?: MatchEvent[];
+}
