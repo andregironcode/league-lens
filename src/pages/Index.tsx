@@ -3,7 +3,7 @@ import { MatchHighlight, League } from '@/types';
 import { serviceAdapter } from '@/services/serviceAdapter';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
-import MatchesSection from '@/components/MatchesSection';
+import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
 import DateFilter from '@/components/DateFilter';
 import LeagueSection from '@/components/LeagueSection';
 
@@ -168,7 +168,7 @@ const Index: React.FC = () => {
 
         {/* Date-filtered Matches Section */}
         {selectedDate && (
-          <MatchesSection 
+          <MatchFeedByLeague 
             leaguesWithMatches={dateMatches}
             loading={dateMatchesLoading}
             selectedDate={selectedDate}

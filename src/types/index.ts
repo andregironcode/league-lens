@@ -4,6 +4,12 @@ export interface Team {
   logo: string;
 }
 
+export interface Country {
+  code: string;
+  name: string;
+  logo?: string;
+}
+
 export interface Match {
   id: string;
   homeTeam: Team;
@@ -21,6 +27,12 @@ export interface Match {
     logo: string;
   };
   venue?: string;
+  fixture?: {
+    date: string;
+    status: {
+      short: string;
+    };
+  };
 }
 
 export interface MatchHighlight {
@@ -48,6 +60,7 @@ export interface League {
   id: string;
   name: string;
   logo: string;
+  country?: Country;
   highlights: MatchHighlight[];
 }
 
@@ -55,6 +68,7 @@ export interface LeagueWithMatches {
   id: string;
   name: string;
   logo: string;
+  country?: Country;
   matches: Match[];
 }
 

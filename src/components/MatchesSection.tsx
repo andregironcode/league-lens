@@ -203,16 +203,21 @@ const CollapsibleLeague: React.FC<CollapsibleLeagueProps> = ({ league, defaultEx
         className="w-full flex items-center justify-between p-5 hover:bg-gray-700/30 transition-colors text-left"
       >
         <div className="flex items-center space-x-4">
-          <img 
-            src={league.logo} 
+          <img
+            src={league.logo || `https://cdn.scoresite.com/logos/leagues/${league.id}.png`}
             alt={league.name}
-            className="w-10 h-10 object-contain flex-shrink-0"
+            loading="lazy"
             onError={(e) => {
               const target = e.currentTarget;
-              if (!target.src.includes('/leagues/default.png')) {
-                target.src = '/leagues/default.png';
+              // If this is the first fallback attempt, try scoresite URL
+              if (target.src !== `https://cdn.scoresite.com/logos/leagues/${league.id}.png`) {
+                target.src = `https://cdn.scoresite.com/logos/leagues/${league.id}.png`;
+              } else {
+                // Final fallback to default icon
+                target.src = '/icons/default-league.svg';
               }
             }}
+            className="w-6 h-6 object-contain"
           />
           <div className="flex-1">
             <h3 className="text-xl font-bold text-white">{league.name}</h3>

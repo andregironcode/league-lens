@@ -1738,16 +1738,16 @@ export const highlightlyService = {
     try {
       console.log(`[Highlightly] Fetching matches for date: ${dateString}`);
       
-      // Define league mapping for proper attribution and logos
-      const leagueMapping = new Map<string, { name: string, logo: string, priority: number }>([
+      // Define league mapping for proper attribution and priority (logos now loaded dynamically)
+      const leagueMapping = new Map<string, { name: string, priority: number }>([
         // Top domestic leagues with known IDs
-        ['33973', { name: 'Premier League', logo: '/leagues/premier-league.png', priority: 1 }],
-        ['2486', { name: 'La Liga', logo: '/leagues/la-liga.png', priority: 2 }],
-        ['94', { name: 'Serie A', logo: '/leagues/serie-a.png', priority: 3 }],
-        ['67162', { name: 'Bundesliga', logo: '/leagues/bundesliga.png', priority: 4 }],
-        ['52695', { name: 'Ligue 1', logo: '/leagues/ligue-1.png', priority: 5 }],
-        ['61205', { name: 'Brasileirão Serie A', logo: '/leagues/brasileirao.png', priority: 6 }],
-        ['2', { name: 'UEFA Champions League', logo: '/leagues/champions-league.png', priority: 7 }],
+        ['33973', { name: 'Premier League', priority: 1 }],
+        ['2486', { name: 'La Liga', priority: 2 }],
+        ['94', { name: 'Serie A', priority: 3 }],
+        ['67162', { name: 'Bundesliga', priority: 4 }],
+        ['52695', { name: 'Ligue 1', priority: 5 }],
+        ['61205', { name: 'Brasileirão Serie A', priority: 6 }],
+        ['2', { name: 'UEFA Champions League', priority: 7 }],
         // Additional mappings can be added as needed
       ]);
       
@@ -1781,6 +1781,7 @@ export const highlightlyService = {
         const leagueId = (match.league?.id || match.competition?.id || match.tournament?.id)?.toString();
         const apiLeagueName = match.league?.name || match.competition?.name || match.tournament?.name || 'Unknown League';
         const apiLeagueLogo = match.league?.logo || match.competition?.logo || match.tournament?.logo;
+        const apiCountry = match.league?.country || match.competition?.country || match.tournament?.country;
         
         if (!leagueId) {
           console.log(`[Highlightly] Skipping match without league ID: ${match.id}`);
@@ -1795,8 +1796,13 @@ export const highlightlyService = {
           leagueInfo = {
             id: leagueId,
             name: mappedLeague.name,
-            logo: mappedLeague.logo,
-            priority: mappedLeague.priority
+            logo: this.getLeagueLogoFromName(mappedLeague.name, apiLeagueLogo, leagueId),
+            priority: mappedLeague.priority,
+            country: apiCountry ? {
+              code: apiCountry.code,
+              name: apiCountry.name,
+              logo: apiCountry.logo
+            } : undefined
           };
           console.log(`[Highlightly] ✅ Mapped match to known league: ${mappedLeague.name} (ID: ${leagueId})`);
         } else {
@@ -1804,8 +1810,13 @@ export const highlightlyService = {
           leagueInfo = {
             id: leagueId,
             name: apiLeagueName,
-            logo: this.getLeagueLogoFromName(apiLeagueName, apiLeagueLogo),
-            priority: 999 // Lower priority for unmapped leagues
+            logo: this.getLeagueLogoFromName(apiLeagueName, apiLeagueLogo, leagueId),
+            priority: 999, // Lower priority for unmapped leagues
+            country: apiCountry ? {
+              code: apiCountry.code,
+              name: apiCountry.name,
+              logo: apiCountry.logo
+            } : undefined
           };
           console.log(`[Highlightly] 📝 Using API data for unmapped league: ${apiLeagueName} (ID: ${leagueId})`);
         }
@@ -1842,6 +1853,7 @@ export const highlightlyService = {
             id: leagueId,
             name: leagueInfo.name,
             logo: leagueInfo.logo,
+            country: leagueInfo.country,
             matches: processedMatches
           });
           console.log(`[Highlightly] ✅ Added ${processedMatches.length} matches for ${leagueInfo.name}`);
@@ -1874,53 +1886,26 @@ export const highlightlyService = {
   },
 
   /**
-   * Get league logo from name with proper fallback handling
+   * Get league logo URL with dynamic online sources
    */
-  getLeagueLogoFromName(leagueName: string, apiLogo?: string): string {
-    // If API provides a logo, use it
+  getLeagueLogoFromName(leagueName: string, apiLogo?: string, leagueId?: string): string {
+    // 1. First priority: Use API-provided logo if available
     if (apiLogo && apiLogo.length > 0) {
+      console.log(`[Highlightly] Using API logo for ${leagueName}: ${apiLogo}`);
       return apiLogo;
     }
     
-    // Logo mapping for common league names
-    const nameToLogo: {[key: string]: string} = {
-      'premier league': '/leagues/premier-league.png',
-      'english premier league': '/leagues/premier-league.png',
-      'la liga': '/leagues/la-liga.png',
-      'laliga': '/leagues/la-liga.png',
-      'serie a': '/leagues/serie-a.png',
-      'italian serie a': '/leagues/serie-a.png',
-      'bundesliga': '/leagues/bundesliga.png',
-      'german bundesliga': '/leagues/bundesliga.png',
-      'ligue 1': '/leagues/ligue-1.png',
-      'french ligue 1': '/leagues/ligue-1.png',
-      'champions league': '/leagues/champions-league.png',
-      'uefa champions league': '/leagues/champions-league.png',
-      'europa league': '/leagues/europa-league.png',
-      'uefa europa league': '/leagues/europa-league.png',
-      'brasileirao': '/leagues/brasileirao.png',
-      'brazilian serie a': '/leagues/brasileirao.png',
-      'eredivisie': '/leagues/eredivisie.png',
-      'mls': '/leagues/mls.png',
-      'major league soccer': '/leagues/mls.png',
-    };
-    
-    const lowerName = leagueName.toLowerCase();
-    
-    // Check for exact matches first
-    if (nameToLogo[lowerName]) {
-      return nameToLogo[lowerName];
+    // 2. Second priority: Use scoresite CDN with league ID if available
+    if (leagueId && leagueId.length > 0) {
+      const scoresiteUrl = `https://cdn.scoresite.com/logos/leagues/${leagueId}.png`;
+      console.log(`[Highlightly] Using scoresite logo for ${leagueName} (ID: ${leagueId}): ${scoresiteUrl}`);
+      return scoresiteUrl;
     }
     
-    // Check for partial matches
-    for (const [key, logo] of Object.entries(nameToLogo)) {
-      if (lowerName.includes(key) || key.includes(lowerName)) {
-        return logo;
-      }
-    }
-    
-    // Fallback to default logo
-    return '/leagues/default.png';
+    // 3. Fallback: Return a placeholder that will trigger UI fallback to default icon
+    // The UI component will handle the final fallback to /icons/default-league.svg
+    console.log(`[Highlightly] No logo available for ${leagueName}, UI will use default icon`);
+    return '';
   },
 
   /**
