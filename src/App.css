@@ -1,9 +1,8 @@
-
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
 }
 
 .logo {
@@ -44,10 +43,29 @@
 
 /* Add dark background to body and html */
 html, body {
-  background-color: #222222;
+  background-color: #111111;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Mobile-first responsive design */
+* {
+  box-sizing: border-box;
+}
+
+/* Ensure touch targets are at least 44px */
+button, a, input, select, textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Improve scrolling on mobile */
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 /* Add marquee animation for scrolling text */
@@ -98,4 +116,93 @@ html, body {
 .hero-nav-button {
   background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
+}
+
+/* Custom scrollbar styles for webkit browsers */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Hide scrollbar for Firefox */
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  /* Reduce padding on mobile */
+  .mobile-reduced-padding {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Improve text readability on mobile */
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  /* Better touch targets on mobile */
+  .touch-friendly {
+    padding: 12px;
+    margin: 4px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 641px) and (max-width: 1023px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1024px) {
+  body {
+    font-size: 16px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Ensure crisp images on retina displays */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* Focus styles for accessibility */
+*:focus {
+  outline: 2px solid #FFC30B;
+  outline-offset: 2px;
+}
+
+/* Remove focus outline for mouse users */
+.js-focus-visible *:focus:not(.focus-visible) {
+  outline: none;
 }

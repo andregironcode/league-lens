@@ -75,46 +75,41 @@ const LeagueFilterSidebar: React.FC<LeagueFilterSidebarProps> = ({
         )}
       </div>
       
-      {/* Scrollable League List */}
+      {/* Top Leagues Section */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-2">
-          {IMPORTANT_LEAGUES.map((league) => {
-            const isSelected = selectedLeagueId === league.id;
-            const hasMatchesForLeague = availableLeagueIdsSet.has(league.id);
-            const isDisabled = hasMatches && !hasMatchesForLeague;
-            
-            return (
-              <button
-                key={league.id}
-                onClick={() => handleLeagueClick(league.id)}
-                disabled={isDisabled}
-                className={`
-                  w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200
-                  ${isSelected 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : isDisabled 
-                      ? 'text-gray-500 cursor-not-allowed opacity-50' 
-                      : 'hover:bg-[#1f1f1f] text-gray-300 hover:text-white'
-                  }
-                `}
-              >
-                <img
-                  src={league.logoUrl}
-                  alt={league.name}
-                  className={`w-6 h-6 object-contain flex-shrink-0 ${isDisabled ? 'grayscale' : ''}`}
-                  onError={(e) => e.currentTarget.src = '/icons/default.svg'}
-                />
-                <div className="flex-1 text-left">
-                  <span className="text-sm font-medium truncate block">
-                    {league.name}
-                  </span>
-                  {hasMatches && hasMatchesForLeague && (
-                    <span className="text-xs text-green-400">Available</span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+        <div className="w-full px-4 py-2">
+          <h6 className="text-white text-xs font-semibold uppercase mb-2">Top Leagues</h6>
+          <ul className="space-y-1">
+            {IMPORTANT_LEAGUES.map((league) => {
+              const isSelected = selectedLeagueId === league.id;
+              const hasMatchesForLeague = availableLeagueIdsSet.has(league.id);
+              const isDisabled = hasMatches && !hasMatchesForLeague;
+              
+              return (
+                <li
+                  key={league.id}
+                  onClick={() => !isDisabled && handleLeagueClick(league.id)}
+                  className={`
+                    flex items-center gap-2 px-3 py-2 rounded cursor-pointer transition-colors
+                    ${isSelected 
+                      ? 'bg-[#2a2a2a] border-l-2 border-white' 
+                      : isDisabled 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'hover:bg-[#1f1f1f]'
+                    }
+                  `}
+                >
+                  <img
+                    src={league.logoUrl}
+                    alt={league.name}
+                    className={`w-6 h-6 object-contain rounded-full ${isDisabled ? 'grayscale' : ''}`}
+                    onError={(e) => e.currentTarget.src = '/icons/default.svg'}
+                  />
+                  <span className="text-white text-sm">{league.name}</span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
         
         {/* Help text when no matches */}
