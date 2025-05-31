@@ -1825,27 +1825,28 @@ export const highlightlyService = {
       // Enhanced league mapping with the CORRECT priority league IDs
       const leagueMapping = new Map<string, { name: string, priority: number }>([
         // Top competitions and tournaments - FIXED IDs
-        ['2486', { name: 'UEFA Champions League', priority: 1 }],  // FIXED
-        ['3337', { name: 'UEFA Europa League', priority: 3 }],     // FIXED  
+        ['2486', { name: 'UEFA Champions League', priority: 1 }],  // FIXED - Champions League
+        ['3337', { name: 'UEFA Europa League', priority: 3 }],     // FIXED - Europa League
         ['1', { name: 'FIFA World Cup', priority: 2 }],
         
         // Top domestic leagues
         ['39', { name: 'Premier League', priority: 4 }],
-        ['140', { name: 'La Liga', priority: 5 }],
+        ['140', { name: 'La Liga', priority: 5 }],                 // La Liga has its own ID 140
         ['135', { name: 'Serie A', priority: 6 }],
         ['78', { name: 'Bundesliga', priority: 7 }],
         ['61', { name: 'Ligue 1', priority: 8 }],
         ['94', { name: 'Liga Portugal', priority: 9 }],
         ['216087', { name: 'Major League Soccer', priority: 10 }], // Added correct MLS ID
+        ['307', { name: 'Saudi Pro League', priority: 11 }],
         
         // Legacy mappings for backward compatibility (in case API sometimes returns these)
         ['2', { name: 'UEFA Champions League', priority: 1 }],     // Legacy fallback
         ['3', { name: 'UEFA Europa League', priority: 3 }],       // Legacy fallback
         ['33973', { name: 'Premier League', priority: 4 }],
-        ['2486', { name: 'La Liga', priority: 5 }],               // This might be conflicting - need to check
+        // REMOVED: ['2486', { name: 'La Liga', priority: 5 }], // This was conflicting with Champions League
         ['67162', { name: 'Bundesliga', priority: 7 }],
         ['52695', { name: 'Ligue 1', priority: 8 }],
-        ['61205', { name: 'Brasileirão Serie A', priority: 11 }]
+        ['61205', { name: 'Brasileirão Serie A', priority: 12 }]
       ]);
       
       // STEP 1: Fetch all matches for the specified date in one API call
@@ -1938,6 +1939,13 @@ export const highlightlyService = {
         if (leagueId === '2486' || apiLeagueName.toLowerCase().includes('champions league')) {
           championsLeagueMatchCount++;
           console.log(`[Highlightly] 🏆 FOUND Champions League match: ${match.homeTeam?.name || match.teams?.home?.name} vs ${match.awayTeam?.name || match.teams?.away?.name} (League ID: ${leagueId})`);
+          console.log(`[Highlightly] 🏆 Champions League match details:`, {
+            matchId: match.id,
+            date: match.date,
+            status: match.state?.description || match.status,
+            leagueId: leagueId,
+            leagueName: apiLeagueName
+          });
         }
         
         // Apply priority filtering - only include matches from priority leagues OR with priority teams
