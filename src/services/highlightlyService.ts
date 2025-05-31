@@ -226,148 +226,7 @@ export const highlightlyService = {
   /**
    * Original implementation using leagues endpoint
    */
-  async getLeagueHighlights(): Promise<League[]> {
-    try {
-      // Define top 5 European domestic leagues in priority order
-      const topLeagueNames = [
-        'Premier League', // England
-        'LaLiga',        // Spain
-        'La Liga',       // Alternative name
-        'Serie A',       // Italy
-        'Bundesliga',    // Germany
-        'Ligue 1',       // France
-      ];
-      
-      // Define exact league IDs for major leagues
-      const topLeagueIds = {
-        'Premier League': 33973,    // England
-        'LaLiga': 2486,            // Spain
-        'Serie A': 61205,          // Italy (but might be Brazilian)
-        'Italian Serie A': 94,     // Italy
-        'Bundesliga': 67162,       // Germany
-        'Ligue 1': 52695,          // France
-      };
-
-      // Get date from a week ago in YYYY-MM-DD format to ensure we have highlights available
-      const date = new Date();
-      date.setDate(date.getDate() - 7); // Go back 7 days
-      const formattedDate = date.toISOString().split('T')[0];
-      
-      // Step 1: Get all leagues
-      console.log(`[Highlightly] Fetching available leagues...`);
-      const leaguesResponse = await highlightlyClient.getLeagues();
-      
-      if (!leaguesResponse.data || !Array.isArray(leaguesResponse.data)) {
-        console.error('Invalid leagues response format:', leaguesResponse);
-        console.log('[Highlightly] Falling back to mock data for league highlights');
-        return mockService.getLeagueHighlights();
-      }
-      
-      console.log(`[Highlightly] Found ${leaguesResponse.data.length} leagues`);
-      
-      // Step 2: Identify exactly the top 5 European domestic leagues
-      const targetLeagues = leaguesResponse.data.filter((league: any) => {
-        if (!league.name) return false;
-        
-        const leagueName = league.name.toLowerCase();
-        
-        // Exclude all Champions League variations
-        if (leagueName.includes('champions league') || 
-            leagueName.includes('champions cup') ||
-            leagueName.includes('uefa champions') ||
-            leagueName.includes('caf champions') ||
-            leagueName.includes('concacaf champions') ||
-            leagueName.includes('afc champions') ||
-            leagueName.includes('ofc champions')) {
-          return false;
-        }
-        
-        // Only include if it matches our target European domestic leagues
-        return topLeagueNames.some(target => {
-          const targetLower = target.toLowerCase();
-          
-          // For Serie A, ensure it's not Brazilian Serie A
-          if (target === 'Serie A') {
-            return leagueName.includes('serie a') && 
-                   !leagueName.includes('brasil') && 
-                   !leagueName.includes('brazil') &&
-                   !leagueName.includes('brasileir');
-          }
-          
-          // For Premier League, prefer English Premier League
-          if (target === 'Premier League') {
-            return leagueName.includes('premier league') &&
-                   (leagueName.includes('english') || 
-                    leagueName.includes('england') ||
-                    !leagueName.includes('australian') &&
-                    !leagueName.includes('south african'));
-          }
-          
-          return leagueName.includes(targetLower);
-        });
-      });
-      
-      // Sort by priority and limit to exactly 5 leagues
-      const prioritizedLeagues = this.prioritizeLeagues(targetLeagues, topLeagueNames, topLeagueIds);
-      const top5Leagues = prioritizedLeagues.slice(0, 5); // LIMIT TO EXACTLY 5
-      
-      console.log(`[Highlightly] Selected top 5 European domestic leagues:`, 
-        top5Leagues.map((l: any) => `${l.name} (ID: ${l.id})`));
-      
-      // Step 3: Fetch highlights for each top 5 league
-      const leaguesWithHighlights: League[] = [];
-      
-      // Step 3a: First fetch all highlights for the date
-      console.log(`[Highlightly] Fetching all highlights for date: ${formattedDate}`);
-      const allHighlightsResponse = await highlightlyClient.getHighlights({
-        date: formattedDate
-      });
-      
-      if (!allHighlightsResponse.data || !Array.isArray(allHighlightsResponse.data)) {
-        console.log('[Highlightly] No highlights found, falling back to mock data');
-        return mockService.getLeagueHighlights();
-      }
-      
-      // Step 3b: Process each of the top 5 leagues to find matches
-      for (const league of top5Leagues) {
-        console.log(`[Highlightly] Processing league: ${league.name} (ID: ${league.id})`);
-        
-        // Filter highlights for this league
-        const leagueHighlights = await this.fetchLeagueHighlights(league, formattedDate, allHighlightsResponse.data);
-        
-        if (leagueHighlights.length > 0) {
-          leaguesWithHighlights.push({
-            id: league.id,
-            name: league.name,
-            logo: league.logo || '/leagues/default.png',
-            highlights: leagueHighlights
-          });
-          console.log(`[Highlightly] Added ${leagueHighlights.length} highlights for ${league.name}`);
-        }
-        
-        // If we have 5 leagues with highlights, stop
-        if (leaguesWithHighlights.length >= 5) {
-          break;
-        }
-      }
-      
-      // Step 4: Return exactly 5 leagues with highlights
-      const finalResult = leaguesWithHighlights.slice(0, 5);
-      console.log(`[Highlightly] Returning exactly ${finalResult.length} leagues (top 5 only)`);
-      
-      if (finalResult.length > 0) {
-        return finalResult;
-      }
-      
-      // Step 5: Fallback to general highlights if no league-specific highlights found
-      console.log('[Highlightly] No league highlights found, trying general highlights');
-      return this.fetchGeneralHighlights(formattedDate);
-    } catch (error) {
-      console.error('Error fetching league highlights:', error);
-      console.log('[Highlightly] Falling back to mock data for league highlights');
-      return mockService.getLeagueHighlights();
-    }
-  },
+  
 
   /**
    * Helper function to prioritize leagues based on the predefined order
@@ -1875,7 +1734,6 @@ export const highlightlyService = {
 // Export functions individually for easier importing
 export const {
   getRecommendedHighlights,
-  getLeagueHighlights,
   getRecentMatchesForTopLeagues,
   getMatchById,
   getTeamHighlights,
@@ -1883,7 +1741,6 @@ export const {
   searchHighlights
 } = {
   getRecommendedHighlights: highlightlyService.getRecommendedHighlights.bind(highlightlyService),
-  getLeagueHighlights: highlightlyService.getLeagueHighlights.bind(highlightlyService),
   getRecentMatchesForTopLeagues: highlightlyService.getRecentMatchesForTopLeagues.bind(highlightlyService),
   getMatchById: highlightlyService.getMatchById.bind(highlightlyService),
   getTeamHighlights: highlightlyService.getTeamHighlights.bind(highlightlyService),
