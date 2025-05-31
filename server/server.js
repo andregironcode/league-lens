@@ -35,17 +35,16 @@ app.get('/api/health', (req, res) => {
 
 // Proxy middleware for Highlightly API
 app.use('/api/highlightly', async (req, res) => {
+  // Parse the URL to separate path from query string - declare at top of function scope
+  const urlParts = req.url.split('?');
+  const pathPart = urlParts[0].replace(/^\/?/, '');
+  const queryPart = urlParts.length > 1 ? `?${urlParts[1]}` : '';
+  
+  // Construct the full URL to the Highlightly API
+  const requestUrl = pathPart ? `${HIGHLIGHTLY_API_URL}/${pathPart}${queryPart}` : HIGHLIGHTLY_API_URL;
+  
   try {
-    // Parse the URL to separate path from query string
-    const urlParts = req.url.split('?');
-    const pathPart = urlParts[0].replace(/^\/?/, '');
-    const queryPart = urlParts.length > 1 ? `?${urlParts[1]}` : '';
-    
-    // Construct the full URL to the Highlightly API
-    // Ensure we don't include the leading slash if the URL already has one
-    const url = pathPart ? `${HIGHLIGHTLY_API_URL}/${pathPart}${queryPart}` : HIGHLIGHTLY_API_URL;
-    
-    console.log(`Mapped endpoint ${req.url} to ${url}`);
+    console.log(`Mapped endpoint ${req.url} to ${requestUrl}`);
     
     // Prepare headers for Highlightly API
     // Try both standard API key auth and RapidAPI-style headers
@@ -57,7 +56,7 @@ app.use('/api/highlightly', async (req, res) => {
     
     console.log('Using API key:', HIGHLIGHTLY_API_KEY ? '✓ Configured' : '✗ Missing');
     
-    console.log(`Proxying request to: ${url}`);
+    console.log(`Proxying request to: ${requestUrl}`);
     
     try {
       // Forward the request to the Highlightly API
@@ -65,10 +64,10 @@ app.use('/api/highlightly', async (req, res) => {
       // This prevents duplicate parameters like 'limit=25,25'
       const response = await axios({
         method: req.method,
-        url,
+        url: requestUrl,
         headers,
         data: req.method !== 'GET' ? req.body : undefined,
-        timeout: 10000, // 10 seconds timeout
+        timeout: 30000, // Increased to 30 seconds timeout to handle slow API responses
       });
       
       // Return the API response to the client
@@ -78,7 +77,7 @@ app.use('/api/highlightly', async (req, res) => {
       console.error('Axios request failed:', axiosError.message);
       
       if (axiosError.code === 'ENOTFOUND') {
-        console.error(`DNS resolution failed for ${url} - API endpoint might not exist`);
+        console.error(`DNS resolution failed for ${requestUrl} - API endpoint might not exist`);
         return res.status(502).json({
           error: true,
           message: 'API endpoint not found - DNS resolution failed',
@@ -88,12 +87,22 @@ app.use('/api/highlightly', async (req, res) => {
       }
       
       if (axiosError.code === 'ECONNREFUSED') {
-        console.error(`Connection refused for ${url} - API endpoint might be down`);
+        console.error(`Connection refused for ${requestUrl} - API endpoint might be down`);
         return res.status(502).json({
           error: true,
           message: 'API endpoint refused connection - service might be down',
           details: axiosError.message,
           code: 'CONNECTION_REFUSED'
+        });
+      }
+      
+      if (axiosError.code === 'ECONNABORTED' || axiosError.message.includes('timeout')) {
+        console.error(`Request timeout for ${requestUrl} - API is taking too long to respond`);
+        return res.status(504).json({
+          error: true,
+          message: 'API request timeout - the service is taking too long to respond',
+          details: axiosError.message,
+          code: 'TIMEOUT'
         });
       }
       
@@ -118,12 +127,15 @@ app.use('/api/highlightly', async (req, res) => {
       });
     } else if (error.request) {
       // The request was made but no response was received
-      const requestUrl = pathPart ? `${HIGHLIGHTLY_API_URL}/${pathPart}${queryPart}` : HIGHLIGHTLY_API_URL;
       console.error('No response received from API');
       console.error('Request details:', JSON.stringify({
         method: req.method,
-        url: requestUrl,
-        headers: headers
+        url: requestUrl, // Now properly scoped
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': HIGHLIGHTLY_API_KEY ? '***' : 'Missing',
+          'x-rapidapi-key': HIGHLIGHTLY_API_KEY ? '***' : 'Missing'
+        }
       }, null, 2));
       
       res.status(502).json({
