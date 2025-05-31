@@ -7,6 +7,7 @@ interface MatchFeedByLeagueProps {
   loading?: boolean;
   selectedDate?: string;
   isToday?: boolean;
+  selectedLeagueId?: string | null;
 }
 
 const LoadingSkeleton: React.FC = () => (
@@ -83,7 +84,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   leaguesWithMatches, 
   loading = false,
   selectedDate,
-  isToday = false
+  isToday = false,
+  selectedLeagueId = null
 }) => {
   const dateLabel = selectedDate ? formatSelectedDate(selectedDate) : 'Matches';
   
@@ -102,12 +104,47 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     );
   }
 
-  // Only show leagues that have matches (never render empty leagues)
-  const leaguesWithActualMatches = leaguesWithMatches.filter(league => 
+  // Filter leagues based on selected league ID
+  let filteredLeagues = leaguesWithMatches.filter(league => 
     league.matches && league.matches.length > 0
   );
 
-  if (leaguesWithActualMatches.length === 0) {
+  if (selectedLeagueId) {
+    filteredLeagues = filteredLeagues.filter(league => league.id === selectedLeagueId);
+  }
+
+  // Handle edge case: selected league has no matches
+  if (selectedLeagueId && filteredLeagues.length === 0) {
+    // Find the league name for better UX
+    const selectedLeague = leaguesWithMatches.find(league => league.id === selectedLeagueId);
+    const leagueName = selectedLeague?.name || 'this league';
+    
+    return (
+      <section className="mb-16">
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-white">
+              {dateLabel} Matches
+            </h2>
+          </div>
+          <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">No matches for {leagueName} today</h3>
+            <p className="text-gray-400">
+              Try selecting a different league or date to see more matches.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Handle case: no leagues at all
+  if (filteredLeagues.length === 0) {
     return (
       <section className="mb-16">
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
@@ -133,8 +170,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   }
 
   // Calculate statistics for display
-  const totalMatches = leaguesWithActualMatches.reduce((total, league) => total + league.matches.length, 0);
-  const liveMatches = leaguesWithActualMatches.reduce((total, league) => 
+  const totalMatches = filteredLeagues.reduce((total, league) => total + league.matches.length, 0);
+  const liveMatches = filteredLeagues.reduce((total, league) => 
     total + league.matches.filter(m => 
       m.fixture?.status?.short === 'LIVE' || m.status === 'live'
     ).length, 0);
@@ -151,20 +188,25 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                 {liveMatches} LIVE
               </span>
             )}
+            {selectedLeagueId && (
+              <span className="ml-3 px-3 py-1 bg-blue-600 text-white text-sm rounded-full font-medium">
+                Filtered
+              </span>
+            )}
           </h2>
           <div className="text-right">
             <div className="text-lg font-semibold text-white">
               {totalMatches} {totalMatches === 1 ? 'match' : 'matches'}
             </div>
             <div className="text-sm text-gray-400">
-              across {leaguesWithActualMatches.length} {leaguesWithActualMatches.length === 1 ? 'league' : 'leagues'}
+              across {filteredLeagues.length} {filteredLeagues.length === 1 ? 'league' : 'leagues'}
             </div>
           </div>
         </div>
         
         {/* League Cards */}
         <div className="space-y-6">
-          {leaguesWithActualMatches.map((league) => (
+          {filteredLeagues.map((league) => (
             <LeagueCard key={league.id} league={league} />
           ))}
         </div>
