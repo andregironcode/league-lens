@@ -7,10 +7,22 @@ interface LeagueCardProps {
 }
 
 const LeagueCard: React.FC<LeagueCardProps> = ({ league }) => {
-  // Helper function to get country flag URL using flagsapi.com
-  const getCountryFlagUrl = (countryCode?: string): string => {
-    if (!countryCode) return '/icons/default-flag.svg';
-    return `https://flagsapi.com/${countryCode}/flat/24.png`;
+  // Enhanced country flag function - always returns a valid flag
+  const getCountryFlagUrl = (countryCode?: string, countryName?: string): string => {
+    if (!countryCode) {
+      // Generate a text-based flag if no country code
+      const initials = countryName ? countryName.slice(0, 2).toUpperCase() : '??';
+      return `data:image/svg+xml,${encodeURIComponent(`
+        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" fill="#1f2937" rx="3"/>
+          <text x="12" y="15" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#9ca3af">
+            ${initials}
+          </text>
+        </svg>
+      `)}`;
+    }
+    // Use reliable flag API
+    return `https://flagsapi.com/${countryCode.toUpperCase()}/flat/24.png`;
   };
 
   // Helper function to get league logo with proper scoresite CDN fallbacks
@@ -31,14 +43,11 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ league }) => {
         <div className="flex items-center justify-between">
           {/* Country Flag + Country Name + League Name */}
           <div className="flex items-center gap-2 px-4 py-1">
-            {league.country?.code && (
-              <img
-                src={getCountryFlagUrl(league.country.code)}
-                alt={league.country.name || 'Country flag'}
-                className="w-5 h-5 object-contain rounded-sm"
-                onError={(e) => e.currentTarget.src = '/icons/default-flag.svg'}
-              />
-            )}
+            <img
+              src={getCountryFlagUrl(league.country?.code, league.country?.name)}
+              alt={league.country?.name || 'Country flag'}
+              className="w-5 h-5 object-contain rounded-sm"
+            />
             {league.country?.name && (
               <span className="text-gray-300 text-sm font-medium">{league.country.name}</span>
             )}
