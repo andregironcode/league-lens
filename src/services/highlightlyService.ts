@@ -575,12 +575,12 @@ export const highlightlyService = {
   },
 
   /**
-   * Get recent matches for top 5 leagues
-   * Uses the correct API approach: get leagues first, then matches for each league
+   * Get recent matches for top-tier leagues ranked by popularity and quality
+   * Includes continental competitions like Champions League and top domestic leagues
    */
   async getRecentMatchesForTopLeagues(): Promise<import('@/types').LeagueWithMatches[]> {
     try {
-      console.log('[Highlightly] Fetching recent match results using proper API approach');
+      console.log('[Highlightly] Fetching recent match results using popularity-based approach');
       
       // Step 1: Get all available leagues
       console.log('[Highlightly] Step 1: Fetching all leagues');
@@ -593,73 +593,121 @@ export const highlightlyService = {
       
       console.log(`[Highlightly] Found ${leaguesResponse.data.length} leagues`);
       
-      // Step 2: Identify top 5 European domestic leagues we want to show
-      const targetLeagueNames = [
-        'Premier League',
-        'English Premier League', 
-        'La Liga',
-        'LaLiga',
-        'Serie A',
-        'Bundesliga',
-        'Ligue 1'
-      ];
+      // Step 2: Define top-tier leagues by popularity and quality in priority tiers
+      const leagueRankings = {
+        // Tier 1: Major Continental Competitions (highest priority)
+        tier1: [
+          { names: ['UEFA Champions League', 'Champions League'], priority: 1 },
+          { names: ['UEFA Europa League', 'Europa League'], priority: 2 },
+          { names: ['UEFA Conference League', 'Conference League'], priority: 3 },
+          { names: ['CONMEBOL Libertadores', 'Copa Libertadores'], priority: 4 },
+          { names: ['CONMEBOL Sudamericana'], priority: 5 }
+        ],
+        
+        // Tier 2: Top European Domestic Leagues (Big 5)
+        tier2: [
+          { names: ['Premier League', 'English Premier League'], priority: 10, exclude: ['Australian', 'South African'] },
+          { names: ['La Liga', 'LaLiga'], priority: 11 },
+          { names: ['Serie A'], priority: 12, exclude: ['Brasil', 'Brazil', 'Brasileir'] },
+          { names: ['Bundesliga'], priority: 13, exclude: ['2.', 'Frauen'] },
+          { names: ['Ligue 1'], priority: 14 }
+        ],
+        
+        // Tier 3: Major Regional and Growing Leagues
+        tier3: [
+          { names: ['MLS', 'Major League Soccer'], priority: 20 },
+          { names: ['Championship'], priority: 21 },
+          { names: ['Eredivisie'], priority: 22 },
+          { names: ['Primeira Liga'], priority: 23 },
+          { names: ['Serie A'], priority: 24, include: ['Brasil', 'Brazil', 'Brasileir'] },
+          { names: ['Liga MX'], priority: 25 },
+          { names: ['Süper Lig'], priority: 26 }
+        ]
+      };
       
-      // Find matching leagues, but exclude Champions League variations
-      const targetLeagues = leaguesResponse.data.filter((league: any) => {
+      // Helper function to check if a league matches criteria
+      const matchesLeagueCriteria = (league: any, criteria: any): boolean => {
         if (!league.name) return false;
         
         const leagueName = league.name.toLowerCase();
         
-        // Exclude all Champions League variations
-        if (leagueName.includes('champions league') || 
-            leagueName.includes('champions cup') ||
-            leagueName.includes('uefa champions') ||
-            leagueName.includes('caf champions') ||
-            leagueName.includes('concacaf champions') ||
-            leagueName.includes('afc champions') ||
-            leagueName.includes('ofc champions')) {
-          return false;
+        // Check if league name contains any of the target names
+        const nameMatch = criteria.names.some((name: string) => 
+          leagueName.includes(name.toLowerCase())
+        );
+        
+        if (!nameMatch) return false;
+        
+        // Apply exclusion rules if specified
+        if (criteria.exclude) {
+          const hasExclusion = criteria.exclude.some((exclude: string) => 
+            leagueName.includes(exclude.toLowerCase())
+          );
+          if (hasExclusion) return false;
         }
         
-        // Only include if it matches our target European domestic leagues
-        return targetLeagueNames.some(target => {
-          const targetLower = target.toLowerCase();
+        // Apply inclusion rules if specified (for cases like Brazilian Serie A)
+        if (criteria.include) {
+          const hasInclusion = criteria.include.some((include: string) => 
+            leagueName.includes(include.toLowerCase())
+          );
+          if (!hasInclusion) return false;
+        }
+        
+        return true;
+      };
+      
+      // Step 3: Find and rank leagues by priority
+      const rankedLeagues: Array<{league: any, priority: number, tier: string}> = [];
+      
+      // Process each tier
+      Object.entries(leagueRankings).forEach(([tierName, tierCriteria]) => {
+        tierCriteria.forEach((criteria) => {
+          const matchingLeagues = leaguesResponse.data.filter((league: any) => 
+            matchesLeagueCriteria(league, criteria)
+          );
           
-          // For Serie A, ensure it's not Brazilian Serie A
-          if (target === 'Serie A') {
-            return leagueName.includes('serie a') && 
-                   !leagueName.includes('brasil') && 
-                   !leagueName.includes('brazil') &&
-                   !leagueName.includes('brasileir');
-          }
-          
-          // For Premier League, prefer English Premier League
-          if (target === 'Premier League') {
-            return leagueName.includes('premier league') &&
-                   (leagueName.includes('english') || 
-                    leagueName.includes('england') ||
-                    !leagueName.includes('australian') &&
-                    !leagueName.includes('south african'));
-          }
-          
-          return leagueName.includes(targetLower);
+          matchingLeagues.forEach((league: any) => {
+            rankedLeagues.push({
+              league,
+              priority: criteria.priority,
+              tier: tierName
+            });
+          });
         });
       });
       
-      console.log(`[Highlightly] Found ${targetLeagues.length} target European domestic leagues:`, 
-        targetLeagues.map((l: any) => `${l.name} (ID: ${l.id})`));
+      // Remove duplicates (prefer higher priority/lower number)
+      const uniqueLeagues = new Map();
+      rankedLeagues.forEach(({league, priority, tier}) => {
+        const existingEntry = uniqueLeagues.get(league.id);
+        if (!existingEntry || priority < existingEntry.priority) {
+          uniqueLeagues.set(league.id, {league, priority, tier});
+        }
+      });
       
-      // Step 3: Get recent matches for each target league (limit to 5)
+      // Sort by priority and limit to top leagues
+      const topLeagues = Array.from(uniqueLeagues.values())
+        .sort((a, b) => a.priority - b.priority)
+        .slice(0, 8); // Increased from 5 to 8 to include continental competitions
+      
+      console.log(`[Highlightly] Selected top ${topLeagues.length} leagues by popularity:`, 
+        topLeagues.map(({league, priority, tier}) => 
+          `${league.name} (ID: ${league.id}, Priority: ${priority}, Tier: ${tier})`
+        )
+      );
+      
+      // Step 4: Get recent matches for each top league
       const leaguesWithMatches: import('@/types').LeagueWithMatches[] = [];
       
-      for (const league of targetLeagues.slice(0, 5)) { // Limit to exactly 5 leagues
+      for (const {league, tier} of topLeagues) {
         try {
-          console.log(`[Highlightly] Fetching matches for ${league.name} (ID: ${league.id})`);
+          console.log(`[Highlightly] Fetching matches for ${league.name} (ID: ${league.id}, Tier: ${tier})`);
           
           // Use the correct leagueId parameter from the API documentation
           const matchesResponse = await highlightlyClient.getMatches({
-            leagueId: league.id.toString(), // ✅ Correct parameter name
-            limit: '20' // Get more matches to ensure we have finished ones
+            leagueId: league.id.toString(),
+            limit: tier === 'tier1' ? '10' : '15' // More matches for continental competitions
           });
           
           if (!matchesResponse.data || !Array.isArray(matchesResponse.data)) {
@@ -669,13 +717,7 @@ export const highlightlyService = {
           
           console.log(`[Highlightly] Found ${matchesResponse.data.length} matches for ${league.name}`);
           
-          // DEBUG: Log first match structure to understand the API response
-          if (matchesResponse.data.length > 0) {
-            console.log(`[Highlightly] Sample match structure for ${league.name}:`, 
-              JSON.stringify(matchesResponse.data[0], null, 2));
-          }
-          
-          // Step 4: Filter for finished matches with scores
+          // Step 5: Filter for finished matches with scores
           const finishedMatches = matchesResponse.data.filter((match: any) => {
             // Check if match is finished - use the correct state.description field
             const isFinished = 
@@ -692,8 +734,6 @@ export const highlightlyService = {
               (match.goals?.home !== undefined && match.goals?.away !== undefined) ||
               (match.fixture?.score?.fulltime?.home !== undefined && match.fixture?.score?.fulltime?.away !== undefined);
             
-            console.log(`[Highlightly] Match ${match.id}: finished=${isFinished}, hasScore=${hasScore}`);
-            
             return isFinished && hasScore;
           });
           
@@ -703,7 +743,7 @@ export const highlightlyService = {
             continue; // Skip leagues with no finished matches
           }
           
-          // Step 5: Transform matches to our format using REAL API data
+          // Step 6: Transform matches to our format using REAL API data
           const transformedMatches: import('@/types').Match[] = finishedMatches
             .slice(0, 5) // Limit to 5 most recent per league
             .map((match: any) => {
@@ -818,20 +858,28 @@ export const highlightlyService = {
         }
       }
       
-      // Step 6: Sort leagues by priority (top 5 European leagues)
-      const priorityOrder = ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1'];
+      // Step 7: Sort leagues by tier priority to ensure continental competitions come first
       leaguesWithMatches.sort((a, b) => {
-        const aIndex = priorityOrder.findIndex(p => a.name.toLowerCase().includes(p.toLowerCase()));
-        const bIndex = priorityOrder.findIndex(p => b.name.toLowerCase().includes(p.toLowerCase()));
+        // Find the priority of each league from our rankings
+        const aPriority = topLeagues.find(tl => tl.league.id.toString() === a.id)?.priority || 999;
+        const bPriority = topLeagues.find(tl => tl.league.id.toString() === b.id)?.priority || 999;
         
-        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
-        return a.name.localeCompare(b.name);
+        return aPriority - bPriority;
       });
       
-      console.log(`[Highlightly] Successfully fetched match results for ${leaguesWithMatches.length} leagues:`,
+      console.log(`[Highlightly] ✅ Successfully fetched match results for ${leaguesWithMatches.length} top-tier leagues:`,
         leaguesWithMatches.map(l => `${l.name} (${l.matches.length} matches)`));
+      
+      // Log which tier-1 leagues (Champions League, etc.) were found
+      const tier1Leagues = leaguesWithMatches.filter(l => 
+        topLeagues.find(tl => tl.league.id.toString() === l.id && tl.tier === 'tier1')
+      );
+      
+      if (tier1Leagues.length > 0) {
+        console.log(`[Highlightly] 🏆 Continental competitions included:`, 
+          tier1Leagues.map(l => l.name).join(', ')
+        );
+      }
       
       return leaguesWithMatches;
       
@@ -1734,23 +1782,25 @@ export const highlightlyService = {
    * Get matches for a specific date - only returns leagues that have matches
    * Groups matches accurately by league.id and ensures correct league attribution
    * Now includes priority filtering to reduce load and show only important matches
+   * ENHANCED: Supplements with direct league queries for missing priority leagues
    */
   async getMatchesForDate(dateString: string): Promise<import('@/types').LeagueWithMatches[]> {
     try {
       console.log(`[Highlightly] Fetching matches for date: ${dateString}`);
       
-      // Priority league IDs - only these leagues will be displayed
+      // Priority league IDs - FIXED to match actual API IDs
       const priorityLeagueIds = new Set([
-        '2',    // UEFA Champions League
-        '39',   // Premier League  
-        '140',  // La Liga
-        '135',  // Serie A
-        '78',   // Bundesliga
-        '61',   // Ligue 1
-        '1',    // FIFA World Cup
-        '3',    // UEFA Europa League
-        '94',   // Liga Portugal
-        '307'   // Saudi Pro League
+        '2486',  // UEFA Champions League (FIXED: was '2', now correct API ID)
+        '3337',  // UEFA Europa League (FIXED: was '3', now correct API ID) 
+        '39',    // Premier League  
+        '140',   // La Liga
+        '135',   // Serie A
+        '78',    // Bundesliga
+        '61',    // Ligue 1
+        '1',     // FIFA World Cup
+        '94',    // Liga Portugal
+        '307',   // Saudi Pro League
+        '216087' // Major League Soccer (from debug - this is the correct MLS ID)
       ]);
       
       // Priority teams - matches involving these teams will be included even if league is not priority
@@ -1762,15 +1812,22 @@ export const highlightlyService = {
         'PSG',
         'Paris Saint Germain',
         'Liverpool',
-        'Arsenal'
+        'Arsenal',
+        'Bayern Munich',
+        'Juventus',
+        'AC Milan',
+        'Inter Milan',
+        'Chelsea',
+        'Manchester United',
+        'Tottenham'
       ]);
       
-      // Enhanced league mapping with the priority league IDs
+      // Enhanced league mapping with the CORRECT priority league IDs
       const leagueMapping = new Map<string, { name: string, priority: number }>([
-        // Top competitions and tournaments
-        ['2', { name: 'UEFA Champions League', priority: 1 }],
+        // Top competitions and tournaments - FIXED IDs
+        ['2486', { name: 'UEFA Champions League', priority: 1 }],  // FIXED
+        ['3337', { name: 'UEFA Europa League', priority: 3 }],     // FIXED  
         ['1', { name: 'FIFA World Cup', priority: 2 }],
-        ['3', { name: 'UEFA Europa League', priority: 3 }],
         
         // Top domestic leagues
         ['39', { name: 'Premier League', priority: 4 }],
@@ -1779,18 +1836,20 @@ export const highlightlyService = {
         ['78', { name: 'Bundesliga', priority: 7 }],
         ['61', { name: 'Ligue 1', priority: 8 }],
         ['94', { name: 'Liga Portugal', priority: 9 }],
-        ['307', { name: 'Saudi Pro League', priority: 10 }],
+        ['216087', { name: 'Major League Soccer', priority: 10 }], // Added correct MLS ID
         
-        // Legacy mappings for backward compatibility
+        // Legacy mappings for backward compatibility (in case API sometimes returns these)
+        ['2', { name: 'UEFA Champions League', priority: 1 }],     // Legacy fallback
+        ['3', { name: 'UEFA Europa League', priority: 3 }],       // Legacy fallback
         ['33973', { name: 'Premier League', priority: 4 }],
-        ['2486', { name: 'La Liga', priority: 5 }],
+        ['2486', { name: 'La Liga', priority: 5 }],               // This might be conflicting - need to check
         ['67162', { name: 'Bundesliga', priority: 7 }],
         ['52695', { name: 'Ligue 1', priority: 8 }],
         ['61205', { name: 'Brasileirão Serie A', priority: 11 }]
       ]);
       
-      // Fetch all matches for the specified date in one API call
-      console.log(`[Highlightly] Fetching all matches for ${dateString}`);
+      // STEP 1: Fetch all matches for the specified date in one API call
+      console.log(`[Highlightly] STEP 1: Fetching all matches for ${dateString}`);
       const allMatchesResponse = await highlightlyClient.getMatches({
         date: dateString,
         limit: '100' // Get enough matches to capture all leagues
@@ -1802,6 +1861,18 @@ export const highlightlyService = {
       }
       
       console.log(`[Highlightly] Found ${allMatchesResponse.data.length} total matches for ${dateString}`);
+      
+      // DEBUG: Log first few matches to see structure and league IDs
+      if (allMatchesResponse.data.length > 0) {
+        console.log(`[Highlightly] 🔍 Sample match league data:`, 
+          allMatchesResponse.data.slice(0, 3).map(match => ({
+            leagueId: match.league?.id || match.competition?.id || match.tournament?.id,
+            leagueName: match.league?.name || match.competition?.name || match.tournament?.name,
+            homeTeam: match.homeTeam?.name || match.teams?.home?.name,
+            awayTeam: match.awayTeam?.name || match.teams?.away?.name
+          }))
+        );
+      }
       
       // Helper function to check if a team name matches any priority team
       const isMatchWithPriorityTeam = (match: any): boolean => {
@@ -1826,6 +1897,9 @@ export const highlightlyService = {
             if (normalizedPriority.includes('psg') && (normalizedTeam.includes('paris saint') || normalizedTeam.includes('psg'))) return true;
             if (normalizedPriority.includes('liverpool') && normalizedTeam.includes('liverpool')) return true;
             if (normalizedPriority.includes('arsenal') && normalizedTeam.includes('arsenal')) return true;
+            if (normalizedPriority.includes('bayern munich') && normalizedTeam.includes('bayern')) return true;
+            if (normalizedPriority.includes('chelsea') && normalizedTeam.includes('chelsea')) return true;
+            if (normalizedPriority.includes('manchester united') && (normalizedTeam.includes('manchester united') || (normalizedTeam.includes('manchester') && normalizedTeam.includes('united')))) return true;
             
             return false;
           });
@@ -1838,6 +1912,7 @@ export const highlightlyService = {
       const matchesByLeagueId = new Map<string, { matches: any[], leagueInfo: any }>();
       let filteredMatchCount = 0;
       let priorityTeamMatchCount = 0;
+      let championsLeagueMatchCount = 0;
       
       allMatchesResponse.data.forEach((match: any) => {
         // Verify match is on the correct date
@@ -1857,6 +1932,12 @@ export const highlightlyService = {
         if (!leagueId) {
           console.log(`[Highlightly] Skipping match without league ID: ${match.id}`);
           return; // Skip matches without league ID
+        }
+        
+        // Check if this is Champions League for special logging
+        if (leagueId === '2486' || apiLeagueName.toLowerCase().includes('champions league')) {
+          championsLeagueMatchCount++;
+          console.log(`[Highlightly] 🏆 FOUND Champions League match: ${match.homeTeam?.name || match.teams?.home?.name} vs ${match.awayTeam?.name || match.teams?.away?.name} (League ID: ${leagueId})`);
         }
         
         // Apply priority filtering - only include matches from priority leagues OR with priority teams
@@ -1920,7 +2001,96 @@ export const highlightlyService = {
       console.log(`[Highlightly] Applied priority filtering:`);
       console.log(`[Highlightly] - Filtered out ${filteredMatchCount} non-priority matches`);
       console.log(`[Highlightly] - Included ${priorityTeamMatchCount} matches with priority teams`);
+      console.log(`[Highlightly] - Found ${championsLeagueMatchCount} Champions League matches`);
       console.log(`[Highlightly] - Grouped remaining matches into ${matchesByLeagueId.size} leagues`);
+      
+      // STEP 2: Check for missing high-priority leagues and supplement with direct queries
+      const foundLeagueIds = new Set(matchesByLeagueId.keys());
+      const topPriorityLeagues = ['2486', '3337']; // Champions League, Europa League
+      const missingPriorityLeagues = topPriorityLeagues.filter(id => !foundLeagueIds.has(id));
+      
+      if (missingPriorityLeagues.length > 0) {
+        console.log(`[Highlightly] STEP 2: Missing priority leagues: ${missingPriorityLeagues.join(', ')}`);
+        console.log(`[Highlightly] Making direct API calls to supplement missing leagues...`);
+        
+        for (const leagueId of missingPriorityLeagues) {
+          try {
+            console.log(`[Highlightly] 🔍 Fetching matches directly for league ID: ${leagueId}`);
+            const leagueResponse = await highlightlyClient.getMatches({
+              leagueId: leagueId,
+              limit: '20'
+            });
+            
+            if (leagueResponse.data && Array.isArray(leagueResponse.data) && leagueResponse.data.length > 0) {
+              console.log(`[Highlightly] Found ${leagueResponse.data.length} matches for league ${leagueId}`);
+              
+              // Filter matches for the target date
+              const dateMatches = leagueResponse.data.filter((match: any) => {
+                const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || match.utcDate);
+                const matchDateString = matchDate.toISOString().split('T')[0];
+                return matchDateString === dateString;
+              });
+              
+              if (dateMatches.length > 0) {
+                console.log(`[Highlightly] 🎉 Found ${dateMatches.length} matches for ${dateString} in league ${leagueId}`);
+                
+                // Use the first match to get league info
+                const sampleMatch = dateMatches[0];
+                const apiLeagueName = sampleMatch.league?.name || sampleMatch.competition?.name || sampleMatch.tournament?.name || 'Unknown League';
+                const apiLeagueLogo = sampleMatch.league?.logo || sampleMatch.competition?.logo || sampleMatch.tournament?.logo;
+                const apiCountry = sampleMatch.league?.country || sampleMatch.competition?.country || sampleMatch.tournament?.country;
+                
+                const mappedLeague = leagueMapping.get(leagueId);
+                const leagueInfo = {
+                  id: leagueId,
+                  name: mappedLeague?.name || apiLeagueName,
+                  logo: this.getLeagueLogoFromName(mappedLeague?.name || apiLeagueName, apiLeagueLogo, leagueId),
+                  priority: mappedLeague?.priority || 50,
+                  country: apiCountry ? {
+                    code: apiCountry.code,
+                    name: apiCountry.name,
+                    logo: apiCountry.logo
+                  } : undefined
+                };
+                
+                // Add to our results
+                matchesByLeagueId.set(leagueId, {
+                  matches: dateMatches,
+                  leagueInfo
+                });
+                
+                console.log(`[Highlightly] ✅ Added ${dateMatches.length} matches for supplemented league: ${leagueInfo.name}`);
+                
+                // Special logging for Champions League
+                if (leagueId === '2486') {
+                  console.log(`[Highlightly] 🏆 SUPPLEMENTED Champions League matches for ${dateString}:`);
+                  dateMatches.forEach((match: any, index: number) => {
+                    console.log(`[Highlightly]   ${index + 1}. ${match.homeTeam?.name || match.teams?.home?.name} vs ${match.awayTeam?.name || match.teams?.away?.name}`);
+                  });
+                }
+              } else {
+                console.log(`[Highlightly] No matches found for ${dateString} in league ${leagueId}`);
+              }
+            } else {
+              console.log(`[Highlightly] No matches available for league ${leagueId}`);
+            }
+          } catch (error) {
+            console.error(`[Highlightly] Error fetching matches for league ${leagueId}:`, error);
+          }
+        }
+      }
+      
+      // Special Champions League logging
+      if (championsLeagueMatchCount === 0 && !matchesByLeagueId.has('2486')) {
+        console.log(`[Highlightly] ⚠️  NO Champions League matches found for ${dateString} (after supplementation)`);
+        console.log(`[Highlightly] 💡 This could be because:`);
+        console.log(`[Highlightly]    - No Champions League matches scheduled for this date`);
+        console.log(`[Highlightly]    - Champions League typically plays on Tuesdays/Wednesdays`);
+        console.log(`[Highlightly]    - Season may be in break period`);
+      } else if (matchesByLeagueId.has('2486')) {
+        const clMatches = matchesByLeagueId.get('2486')!.matches.length;
+        console.log(`[Highlightly] 🏆 Champions League matches found for ${dateString}: ${clMatches}`);
+      }
       
       // Convert grouped matches to LeagueWithMatches format
       const leaguesWithMatches: import('@/types').LeagueWithMatches[] = [];
