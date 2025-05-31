@@ -1798,6 +1798,15 @@ export const highlightlyService = {
         '78',    // Bundesliga
         '61',    // Ligue 1
         '1',     // FIFA World Cup
+        '5',     // UEFA Nations League
+        '960',   // UEFA European Championship Qualifiers
+        '21',    // World Cup Qualifiers (Europe)
+        '26',    // World Cup Qualifiers (Asia)
+        '32',    // World Cup Qualifiers (South America)
+        '29',    // World Cup Qualifiers (Africa)
+        '28',    // World Cup Qualifiers (North America)
+        '31',    // World Cup Qualifiers (Oceania)
+        '10',    // International Friendlies
         '94',    // Liga Portugal
         '307',   // Saudi Pro League
         '216087' // Major League Soccer (from debug - this is the correct MLS ID)
@@ -1828,6 +1837,17 @@ export const highlightlyService = {
         ['2486', { name: 'UEFA Champions League', priority: 1 }],  // FIXED - Champions League
         ['3337', { name: 'UEFA Europa League', priority: 3 }],     // FIXED - Europa League
         ['1', { name: 'FIFA World Cup', priority: 2 }],
+        
+        // International competitions
+        ['5', { name: 'UEFA Nations League', priority: 12 }],
+        ['960', { name: 'European Championship Qualifiers', priority: 13 }],
+        ['21', { name: 'World Cup Qualifiers - Europe', priority: 14 }],
+        ['26', { name: 'World Cup Qualifiers - Asia', priority: 15 }],
+        ['32', { name: 'World Cup Qualifiers - South America', priority: 16 }],
+        ['29', { name: 'World Cup Qualifiers - Africa', priority: 17 }],
+        ['28', { name: 'World Cup Qualifiers - North America', priority: 18 }],
+        ['31', { name: 'World Cup Qualifiers - Oceania', priority: 19 }],
+        ['10', { name: 'International Friendlies', priority: 20 }],
         
         // Top domestic leagues
         ['39', { name: 'Premier League', priority: 4 }],
@@ -2388,6 +2408,15 @@ export const highlightlyService = {
       'UEFA Europa League': '/leagues/europa-league.png',
       'UEFA Conference League': '/leagues/conference-league.png',
       'FIFA World Cup': '/leagues/world-cup.png',
+      'UEFA Nations League': '/leagues/nations-league.png',
+      'European Championship Qualifiers': '/leagues/euro-qualifiers.png',
+      'World Cup Qualifiers - Europe': '/leagues/wc-qualifiers-europe.png',
+      'World Cup Qualifiers - Asia': '/leagues/wc-qualifiers-asia.png',
+      'World Cup Qualifiers - South America': '/leagues/wc-qualifiers-conmebol.png',
+      'World Cup Qualifiers - Africa': '/leagues/wc-qualifiers-africa.png',
+      'World Cup Qualifiers - North America': '/leagues/wc-qualifiers-concacaf.png',
+      'World Cup Qualifiers - Oceania': '/leagues/wc-qualifiers-oceania.png',
+      'International Friendlies': '/leagues/international-friendlies.png',
       'Euro Championship': '/leagues/euro.png',
       'Copa America': '/leagues/copa-america.png',
       'Africa Cup of Nations': '/leagues/afcon.png',

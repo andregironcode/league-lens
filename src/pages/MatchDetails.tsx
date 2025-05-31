@@ -13,6 +13,7 @@ const MatchDetails = () => {
   const [match, setMatch] = useState<EnhancedMatchHighlight | null>(null);
   const [loading, setLoading] = useState(true);
   const [navigating, setNavigating] = useState(false);
+  const [videoLoadError, setVideoLoadError] = useState(false);
   const [formattedDate, setFormattedDate] = useState('');
   const [exactDate, setExactDate] = useState('');
   const [activeTab, setActiveTab] = useState('stats');
@@ -30,6 +31,7 @@ const MatchDetails = () => {
         
         if (isMounted) {
           setMatch(matchData);
+          setVideoLoadError(false);
           if (matchData) {
             const date = new Date(matchData.date);
             setFormattedDate(formatDistanceToNow(date, { addSuffix: true }));
@@ -58,6 +60,49 @@ const MatchDetails = () => {
       isMounted = false;
     };
   }, [id]);
+
+  const isValidVideoUrl = (url: string): boolean => {
+    if (!url || typeof url !== 'string') {
+      console.log('[MatchDetails] Invalid video URL - empty or not string:', url);
+      return false;
+    }
+    
+    console.log('[MatchDetails] Checking video URL:', url);
+    
+    // List of problematic domains that often refuse connections
+    const blockedDomains = [
+      'streamff.com',
+      'streamff.net',
+      'streamff.org',
+      'streamff.tv',
+      'streamable.com',
+      'dailymotion.com'
+    ];
+    
+    // Check if URL contains any blocked domains (more thorough check)
+    const urlLowerCase = url.toLowerCase();
+    const containsBlockedDomain = blockedDomains.some(domain => {
+      const isBlocked = urlLowerCase.includes(domain);
+      if (isBlocked) {
+        console.log(`[MatchDetails] Blocked video URL - contains ${domain}:`, url);
+      }
+      return isBlocked;
+    });
+    
+    if (containsBlockedDomain) {
+      return false;
+    }
+    
+    // Basic URL validation
+    try {
+      const urlObj = new URL(url);
+      console.log('[MatchDetails] Valid video URL:', url, 'Host:', urlObj.hostname);
+      return true;
+    } catch (error) {
+      console.log('[MatchDetails] Invalid video URL format:', url, 'Error:', error);
+      return false;
+    }
+  };
 
   const getVideoEmbedUrl = (url: string): string => {
     if (!url) return '';
@@ -180,10 +225,23 @@ const MatchDetails = () => {
         {/* Match title */}
         
 
-        {/* Video player */}
-        <div className="mb-8 w-full">
-          <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
-            {match.videoUrl ? (
+        {/* Video player - only show if video is valid and available */}
+        {(() => {
+          // Debug logging for video URL validation
+          if (match.videoUrl) {
+            console.log('[MatchDetails] Video URL found:', match.videoUrl);
+            console.log('[MatchDetails] isValidVideoUrl:', isValidVideoUrl(match.videoUrl));
+            console.log('[MatchDetails] videoLoadError:', videoLoadError);
+            console.log('[MatchDetails] contains streamff:', match.videoUrl.toLowerCase().includes('streamff'));
+          }
+          
+          return match.videoUrl && 
+                 isValidVideoUrl(match.videoUrl) && 
+                 !videoLoadError && 
+                 !match.videoUrl.toLowerCase().includes('streamff');
+        })() && (
+          <div className="mb-8 w-full">
+            <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
               <iframe 
                 className="w-full h-full" 
                 src={getVideoEmbedUrl(match.videoUrl)} 
@@ -191,138 +249,185 @@ const MatchDetails = () => {
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
+                onError={() => {
+                  console.log('[MatchDetails] Video failed to load');
+                  setVideoLoadError(true);
+                }}
+                onLoad={() => {
+                  console.log('[MatchDetails] Video loaded successfully');
+                }}
               />
-            ) : (
-              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                <div className="text-center text-gray-400">
-                  <div className="mb-2">📹</div>
-                  <p className="text-sm">Video highlight not available</p>
-                  <p className="text-xs mt-1">Check back later for match highlights</p>
+            </div>
+          </div>
+        )}
+
+        {/* Match Events Timeline section - Modern Timeline Design */}
+        <section className="mb-8">
+          <div className="bg-gradient-to-br from-[#1a1a1a] to-[#111111] rounded-xl p-6 shadow-xl border border-gray-800/30">
+            <div className="flex items-center justify-center mb-8">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-[#FFC30B] to-[#FFD700] rounded-full flex items-center justify-center shadow-lg">
+                  <span className="text-black text-lg font-bold">⚡</span>
                 </div>
+                <h3 className="text-2xl font-bold text-white">Match Events</h3>
+              </div>
+            </div>
+            
+            {match.events && match.events.length > 0 ? (
+              <div className="relative">
+                {/* Central timeline line with gradient */}
+                <div className="absolute left-1/2 transform -translate-x-0.5 h-full w-1 bg-gradient-to-b from-[#FFC30B] via-gray-600 to-[#FFC30B] opacity-60 shadow-sm"></div>
+                
+                <div className="space-y-4">
+                  {match.events
+                    .sort((a, b) => {
+                      const getMinute = (time: string) => {
+                        const match = time.match(/(\d+)(?:\+(\d+))?/);
+                        if (match) {
+                          const base = parseInt(match[1]);
+                          const added = match[2] ? parseInt(match[2]) : 0;
+                          return base + added;
+                        }
+                        return parseInt(time) || 0;
+                      };
+                      return getMinute(a.time) - getMinute(b.time);
+                    })
+                    .map((event, index) => {
+                      const getEventStyle = (type: string) => {
+                        switch (type) {
+                          case 'Goal': 
+                            return { 
+                              icon: '⚽', 
+                              bg: 'bg-gradient-to-r from-green-500 to-green-600',
+                              glow: 'shadow-green-500/50'
+                            };
+                          case 'Penalty': 
+                            return { 
+                              icon: '🥅', 
+                              bg: 'bg-gradient-to-r from-green-600 to-green-700',
+                              glow: 'shadow-green-600/50'
+                            };
+                          case 'Own Goal': 
+                            return { 
+                              icon: '😬', 
+                              bg: 'bg-gradient-to-r from-orange-500 to-orange-600',
+                              glow: 'shadow-orange-500/50'
+                            };
+                          case 'Yellow Card': 
+                            return { 
+                              icon: '🟨', 
+                              bg: 'bg-gradient-to-r from-yellow-500 to-yellow-600',
+                              glow: 'shadow-yellow-500/50'
+                            };
+                          case 'Red Card': 
+                            return { 
+                              icon: '🟥', 
+                              bg: 'bg-gradient-to-r from-red-500 to-red-600',
+                              glow: 'shadow-red-500/50'
+                            };
+                          case 'Substitution': 
+                            return { 
+                              icon: '🔄', 
+                              bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
+                              glow: 'shadow-blue-500/50'
+                            };
+                          default: 
+                            return { 
+                              icon: '📋', 
+                              bg: 'bg-gradient-to-r from-gray-500 to-gray-600',
+                              glow: 'shadow-gray-500/50'
+                            };
+                        }
+                      };
+
+                      const eventStyle = getEventStyle(event.type);
+                      const isHomeTeam = event.team.id.toString() === match.homeTeam.id.toString();
+                      
+                      return (
+                        <div key={index} className="relative flex items-center">
+                          {/* Timeline dot with animation */}
+                          <div className="absolute left-1/2 transform -translate-x-1/2 z-20">
+                            <div className={`w-8 h-8 ${eventStyle.bg} rounded-full flex items-center justify-center shadow-lg ${eventStyle.glow} border-2 border-white/20 transition-all duration-300 hover:scale-110`}>
+                              <span className="text-white text-sm">{eventStyle.icon}</span>
+                            </div>
+                            {/* Pulse animation for goals */}
+                            {(event.type === 'Goal' || event.type === 'Penalty') && (
+                              <div className="absolute inset-0 w-8 h-8 bg-green-500 rounded-full animate-ping opacity-20"></div>
+                            )}
+                          </div>
+                          
+                          {/* Team-specific sides with cards at ultra-extreme distance from center line */}
+                          <div className="w-full flex justify-center">
+                            <div className={`w-56 ${isHomeTeam ? 'mr-[20rem]' : 'ml-[20rem]'}`}>
+                              <div className={`bg-gradient-to-r ${
+                                isHomeTeam 
+                                  ? 'from-[#2a2a2a] to-[#1f1f1f] border-l-2 border-[#FFC30B]' 
+                                  : 'from-[#1f1f1f] to-[#2a2a2a] border-r-2 border-white'
+                              } rounded-lg p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm`}>
+                                
+                                {/* Compact header with time and event type */}
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className={`flex items-center space-x-2 ${!isHomeTeam ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                                    <span className={`text-sm font-bold px-2 py-1 rounded-full ${
+                                      event.type === 'Goal' || event.type === 'Penalty' 
+                                        ? 'bg-green-500 text-white' 
+                                        : event.type === 'Red Card' 
+                                        ? 'bg-red-500 text-white'
+                                        : event.type === 'Yellow Card'
+                                        ? 'bg-yellow-500 text-black'
+                                        : 'bg-gray-600 text-white'
+                                    }`}>
+                                      {event.time}'
+                                    </span>
+                                    <span className="text-white/80 font-medium text-xs uppercase tracking-wider">{event.type}</span>
+                                  </div>
+                                </div>
+                                
+                                {/* Compact player and team info */}
+                                <div className={`flex items-center space-x-2 ${!isHomeTeam ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                                  <div className="flex-shrink-0">
+                                    <img 
+                                      src={event.team.logo} 
+                                      alt={event.team.name} 
+                                      className="w-5 h-5 object-contain rounded-full bg-white/10 p-0.5" 
+                                      onError={e => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                                      }} 
+                                    />
+                                  </div>
+                                  <div className={`flex-1 min-w-0 ${!isHomeTeam ? 'text-right' : ''}`}>
+                                    <p className="text-white font-semibold text-sm leading-tight truncate">{event.player}</p>
+                                    {event.type === 'Goal' && event.assist && (
+                                      <p className="text-green-300 text-xs opacity-90 truncate">
+                                        <span className="font-medium">Assist:</span> {event.assist}
+                                      </p>
+                                    )}
+                                    {event.type === 'Substitution' && event.substituted && (
+                                      <p className="text-red-300 text-xs opacity-90 truncate">
+                                        <span className="font-medium">Out:</span> {event.substituted}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-700/50 rounded-full mb-4">
+                  <span className="text-gray-400 text-2xl">📋</span>
+                </div>
+                <p className="text-gray-400 text-lg">No match events available</p>
+                <p className="text-gray-500 text-sm mt-2">Events will appear here when the match begins</p>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Match Events Timeline section */}
-        <section className="mb-8 bg-[#222222] rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-center text-white">Match Events</h3>
-          
-          {match.events && match.events.length > 0 ? (
-            <div className="space-y-3">
-              {match.events
-                .sort((a, b) => {
-                  // Sort events by time (handle formats like "45+1", "90+4")
-                  const getMinute = (time: string) => {
-                    const match = time.match(/(\d+)(?:\+(\d+))?/);
-                    if (match) {
-                      const base = parseInt(match[1]);
-                      const added = match[2] ? parseInt(match[2]) : 0;
-                      return base + added;
-                    }
-                    return parseInt(time) || 0;
-                  };
-                  return getMinute(a.time) - getMinute(b.time);
-                })
-                .map((event, index) => {
-                  const getEventIcon = (type: string) => {
-                    switch (type) {
-                      case 'Goal': return '⚽';
-                      case 'Penalty': return '⚽';
-                      case 'Own Goal': return '⚽';
-                      case 'Yellow Card': return '🟨';
-                      case 'Red Card': return '🟥';
-                      case 'Substitution': return '↔️';
-                      default: return '📋';
-                    }
-                  };
-
-                  const getEventColor = (type: string) => {
-                    switch (type) {
-                      case 'Goal': 
-                      case 'Penalty':
-                      case 'Own Goal': 
-                        return 'text-green-400';
-                      case 'Yellow Card': return 'text-yellow-400';
-                      case 'Red Card': return 'text-red-400';
-                      case 'Substitution': return 'text-blue-400';
-                      default: return 'text-gray-400';
-                    }
-                  };
-
-                  const isHomeTeam = event.team.id.toString() === match.homeTeam.id.toString();
-                  
-                  return (
-                    <div key={index} className={`flex items-center p-3 bg-[#191919] rounded-lg ${isHomeTeam ? 'flex-row' : 'flex-row-reverse'}`}>
-                      {/* Team logo */}
-                      <img 
-                        src={event.team.logo} 
-                        alt={event.team.name} 
-                        className="w-6 h-6 object-contain flex-shrink-0" 
-                        onError={e => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                        }} 
-                      />
-                      
-                      {/* Event content */}
-                      <div className={`flex-1 ${isHomeTeam ? 'ml-3' : 'mr-3'} ${isHomeTeam ? 'text-left' : 'text-right'}`}>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">{getEventIcon(event.type)}</span>
-                          <span className={`text-sm font-medium ${getEventColor(event.type)}`}>
-                            {event.type}
-                          </span>
-                          <span className="text-sm text-gray-400 font-mono">
-                            {event.time}'
-                          </span>
-                        </div>
-                        
-                        <div className="mt-1">
-                          <span className="text-white text-sm font-medium">
-                            {event.player}
-                          </span>
-                          
-                          {/* Additional event details */}
-                          {event.type === 'Goal' && event.assist && (
-                            <span className="text-gray-400 text-xs ml-2">
-                              (Assist: {event.assist})
-                            </span>
-                          )}
-                          
-                          {event.type === 'Penalty' && event.assist && (
-                            <span className="text-gray-400 text-xs ml-2">
-                              (Assist: {event.assist})
-                            </span>
-                          )}
-                          
-                          {event.type === 'Substitution' && event.substituted && (
-                            <div className="text-gray-400 text-xs mt-1">
-                              <span className="text-green-400">IN:</span> {event.player} • 
-                              <span className="text-red-400 ml-1">OUT:</span> {event.substituted}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Time on the opposite side */}
-                      <div className={`flex-shrink-0 ${isHomeTeam ? 'ml-auto' : 'mr-auto'}`}>
-                        <span className="text-xs text-gray-500 font-mono bg-[#333333] px-2 py-1 rounded">
-                          {event.time}'
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-400 text-sm">
-                <div className="mb-2">📋</div>
-                <p>No detailed match events available</p>
-                <p className="text-xs mt-1">Event timeline will be shown when data is available</p>
-              </div>
-            </div>
-          )}
         </section>
         
         <section className="mb-4">
