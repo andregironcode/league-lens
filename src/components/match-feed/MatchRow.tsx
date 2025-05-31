@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Match } from '@/types';
 import LiveBadge from './LiveBadge';
 
@@ -7,6 +8,9 @@ interface MatchRowProps {
 }
 
 const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
+  const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
+  
   // Determine match status from fixture status or fallback to match status
   const fixtureStatus = match.fixture?.status?.short;
   const isLive = fixtureStatus === 'LIVE' || match.status === 'live';
@@ -36,8 +40,40 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
     return 'KO';
   };
 
+  // Handle match click - navigate to match details for finished matches or live matches
+  const handleMatchClick = async () => {
+    if ((isFinished || isLive) && !isNavigating) {
+      try {
+        setIsNavigating(true);
+        console.log(`[MatchRow] Navigating to match details for ID: ${match.id}`);
+        navigate(`/match/${match.id}`);
+      } catch (error) {
+        console.error('Navigation error:', error);
+        setIsNavigating(false);
+      }
+    }
+  };
+
+  const canClick = isFinished || isLive;
+
   return (
-    <div className="flex items-center justify-between p-4 hover:bg-gray-700/30 transition-colors rounded-lg">
+    <div 
+      className={`flex items-center justify-between p-4 transition-colors rounded-lg ${
+        canClick 
+          ? isNavigating 
+            ? 'bg-gray-700/60 cursor-wait opacity-75' 
+            : 'hover:bg-gray-700/30 cursor-pointer hover:scale-[1.01] active:scale-[0.99]'
+          : 'hover:bg-gray-700/30'
+      }`}
+      onClick={handleMatchClick}
+      title={
+        canClick 
+          ? isNavigating 
+            ? 'Loading match details...' 
+            : 'Click to view match details'
+          : undefined
+      }
+    >
       {/* Kickoff Time */}
       <div className="flex items-center space-x-4 min-w-0 flex-1">
         <div className="text-gray-400 text-sm font-medium min-w-[3rem]">
@@ -100,6 +136,13 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
           {getStatusDisplay()}
         </span>
         {isLive && <LiveBadge />}
+        
+        {/* Click indicator for interactive matches */}
+        {canClick && (
+          <div className="text-gray-500 text-xs opacity-70">
+            {isNavigating ? 'Loading...' : 'Click for details'}
+          </div>
+        )}
       </div>
     </div>
   );

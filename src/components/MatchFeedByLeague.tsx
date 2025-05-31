@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LeagueWithMatches, Match } from '@/types';
 
 interface MatchFeedByLeagueProps {
@@ -10,6 +11,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   leaguesWithMatches,
   selectedLeagueId
 }) => {
+  const navigate = useNavigate();
+  
   // Filter leagues based on selected league ID
   let filteredLeagues = leaguesWithMatches;
   if (selectedLeagueId) {
@@ -72,6 +75,24 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     return name.substring(0, maxLength - 1) + '…';
   };
 
+  // Handle match click
+  const handleMatchClick = (match: Match) => {
+    const isLive = match.status === 'live' || match.fixture?.status?.short === 'LIVE';
+    const isFinished = match.status === 'finished' || match.fixture?.status?.short === 'FT';
+    
+    if (isLive || isFinished) {
+      console.log(`[MatchFeedByLeague] Navigating to match details for ID: ${match.id}`);
+      navigate(`/match/${match.id}`);
+    }
+  };
+
+  // Check if match is clickable
+  const isMatchClickable = (match: Match): boolean => {
+    const isLive = match.status === 'live' || match.fixture?.status?.short === 'LIVE';
+    const isFinished = match.status === 'finished' || match.fixture?.status?.short === 'FT';
+    return isLive || isFinished;
+  };
+
   if (filteredLeagues.length === 0) {
     return (
       <div className="text-center py-12">
@@ -93,7 +114,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
       {filteredLeagues.map((league) => (
         <div key={league.id} className="bg-[#1a1a1a] rounded-lg sm:rounded-xl overflow-hidden">
           {/* League Header */}
-          <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-700/30">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-700/30">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               {/* Country Flag */}
               {league.country?.code && (
@@ -129,11 +150,18 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
             {league.matches.map((match) => {
               const status = getMatchStatus(match);
               const scoreDisplay = getScoreDisplay(match);
+              const clickable = isMatchClickable(match);
               
               return (
                 <div 
                   key={match.id}
-                  className="bg-[#121212] rounded-md px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm hover:bg-[#1a1a1a] transition-colors cursor-pointer touch-manipulation"
+                  className={`bg-[#121212] rounded-md px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm transition-colors touch-manipulation ${
+                    clickable 
+                      ? 'hover:bg-[#1a1a1a] cursor-pointer hover:scale-[1.01] active:scale-[0.99]' 
+                      : 'hover:bg-[#1a1a1a]'
+                  }`}
+                  onClick={() => clickable && handleMatchClick(match)}
+                  title={clickable ? 'Click to view match details' : undefined}
                 >
                   {/* Mobile Layout */}
                   <div className="sm:hidden">
@@ -148,7 +176,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                     </div>
                     
                     {/* Middle Row - Teams and Score */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       {/* Home Team */}
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <img 
@@ -180,15 +208,24 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                         />
                       </div>
                     </div>
+                    
+                    {/* Click indicator for mobile */}
+                    {clickable && (
+                      <div className="text-center mt-2 text-xs text-gray-500 opacity-70">
+                        Tap for details
+                      </div>
+                    )}
                   </div>
 
                   {/* Desktop Layout */}
-                  <div className="hidden sm:flex justify-between items-center">
-                    {/* Left Side - Time and Home Team */}
+                  <div className="hidden sm:flex items-center justify-between gap-4">
+                    {/* Time */}
+                    <div className="text-sm text-gray-400 font-medium min-w-[4rem]">
+                      {formatMatchTime(match)}
+                    </div>
+                    
+                    {/* Home Team */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="text-sm text-gray-400 min-w-[50px]">
-                        {formatMatchTime(match)}
-                      </span>
                       <img 
                         src={match.homeTeam.logo} 
                         alt={match.homeTeam.name}
@@ -200,14 +237,14 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                       </span>
                     </div>
                     
-                    {/* Center - Score or VS */}
-                    <div className="text-white text-lg font-bold px-4">
+                    {/* Score */}
+                    <div className="text-white text-sm font-bold px-4">
                       {scoreDisplay}
                     </div>
                     
-                    {/* Right Side - Away Team and Status */}
+                    {/* Away Team */}
                     <div className="flex items-center gap-3 flex-1 min-w-0 justify-end">
-                      <span className="text-sm text-white font-medium truncate">
+                      <span className="text-sm text-white font-medium truncate text-right">
                         {match.awayTeam.name}
                       </span>
                       <img 
@@ -216,9 +253,18 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                         className="w-6 h-6 object-contain flex-shrink-0"
                         onError={(e) => e.currentTarget.src = '/icons/default.svg'}
                       />
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${status.className}`}>
+                    </div>
+                    
+                    {/* Status */}
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full font-semibold ${status.className}`}>
                         {status.text}
                       </span>
+                      {clickable && (
+                        <div className="text-xs text-gray-500 opacity-70">
+                          Click for details
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
