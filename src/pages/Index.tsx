@@ -165,25 +165,21 @@ const Index: React.FC = () => {
 
         {/* Date Filter */}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-white mb-4">Browse Matches by Date</h2>
-            <p className="text-gray-400 text-sm mb-6">
-              Select a date to view past results, live matches, and upcoming fixtures from the top 10 leagues worldwide.
-            </p>
-          </div>
           <DateFilter onDateSelect={handleDateSelect} selectedDate={selectedDate} />
         </div>
 
         {/* Date-filtered Matches Section with integrated filter */}
         {selectedDate && (
-          <MatchFeedByLeague 
-            leaguesWithMatches={dateMatches}
-            loading={dateMatchesLoading}
-            selectedDate={selectedDate}
-            isToday={isToday}
-            selectedLeagueId={selectedLeagueId}
-            onLeagueSelect={handleLeagueSelect}
-          />
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+            <MatchFeedByLeague 
+              leaguesWithMatches={dateMatches}
+              loading={dateMatchesLoading}
+              selectedDate={selectedDate}
+              isToday={isToday}
+              selectedLeagueId={selectedLeagueId}
+              onLeagueSelect={handleLeagueSelect}
+            />
+          </div>
         )}
 
         {/* Show message when no date is selected (shouldn't happen now, but good fallback) */}

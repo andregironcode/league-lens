@@ -189,14 +189,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   if (loading) {
     return (
       <section className="mb-16">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-white">
-              {dateLabel} Matches
-            </h2>
-          </div>
-          <LoadingSkeleton />
-        </div>
+        <LoadingSkeleton />
       </section>
     );
   }
@@ -218,23 +211,16 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     
     return (
       <section className="mb-16">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-white">
-              {dateLabel} Matches
-            </h2>
+        <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+          <div className="text-gray-400 mb-4">
+            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">No matches for {leagueName} today</h3>
-            <p className="text-gray-400">
-              Try selecting a different league or date to see more matches.
-            </p>
-          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">No matches for {leagueName} today</h3>
+          <p className="text-gray-400">
+            Try selecting a different league or date to see more matches.
+          </p>
         </div>
       </section>
     );
@@ -244,23 +230,16 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   if (filteredLeagues.length === 0) {
     return (
       <section className="mb-16">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-white">
-              {dateLabel} Matches
-            </h2>
+        <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+          <div className="text-gray-400 mb-4">
+            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+            </svg>
           </div>
-          <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">No matches found</h3>
-            <p className="text-gray-400">
-              No matches scheduled for {dateLabel.toLowerCase()}.
-            </p>
-          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">No matches found</h3>
+          <p className="text-gray-400">
+            No matches scheduled for {dateLabel.toLowerCase()}.
+          </p>
         </div>
       </section>
     );
@@ -325,10 +304,9 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     };
 
     return (
-      <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-700/30 sticky top-6">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-white mb-2">Filter by League</h3>
-          <p className="text-sm text-gray-400">Click a league to filter matches</p>
+      <div className="sticky top-6">
+        <div className="mb-4 text-center">
+          <h3 className="text-lg font-semibold text-white mb-2">Top Leagues</h3>
           {selectedLeagueId && (
             <button
               onClick={() => onLeagueSelect?.(null)}
@@ -400,64 +378,51 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
 
   return (
     <section className="mb-16">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-white">
-            {dateLabel} Matches
-            {isToday && liveMatches > 0 && (
-              <span className="ml-3 px-3 py-1 bg-yellow-500 text-black text-sm rounded-full font-bold">
-                {liveMatches} LIVE
-              </span>
-            )}
-            {selectedLeagueId && (
-              <span className="ml-3 px-3 py-1 bg-blue-600 text-white text-sm rounded-full font-medium">
-                Filtered
-              </span>
-            )}
-          </h2>
-          <div className="text-right">
-            <div className="text-lg font-semibold text-white">
-              {totalMatches} {totalMatches === 1 ? 'match' : 'matches'}
-            </div>
-            <div className="text-sm text-gray-400">
-              {filteredLeagues.length} {filteredLeagues.length === 1 ? 'league' : 'leagues'}
+      {/* Main content with filter */}
+      <div className="flex gap-8">
+        {/* Matches content - made smaller to accommodate filter */}
+        <div className="flex-1 min-w-0">
+          <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+            <div className="space-y-6">
+              {filteredLeagues.map((league) => {
+                // Auto-expand leagues with live matches
+                const hasLiveMatches = league.matches.some(m => 
+                  m.fixture?.status?.short === 'LIVE' || m.status === 'live'
+                );
+                
+                return (
+                  <LeagueCard 
+                    key={league.id} 
+                    league={league}
+                    defaultExpanded={hasLiveMatches}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Main content with filter */}
-        <div className="flex gap-8">
-          {/* Matches content - made smaller to accommodate filter */}
-          <div className="flex-1 min-w-0">
-            <div className="space-y-6">
-              {filteredLeagues.map((league) => (
-                <LeagueCard 
-                  key={league.id} 
-                  league={league}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Filter sidebar */}
-          <div className="w-80 flex-shrink-0 hidden lg:block">
+        {/* Filter sidebar */}
+        <div className="w-80 flex-shrink-0 hidden lg:block">
+          <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
             <LeagueFilter />
           </div>
         </div>
+      </div>
 
-        {/* Mobile filter - show as expandable section */}
-        <div className="lg:hidden mt-6">
-          <details className="bg-[#1a1a1a] rounded-lg border border-gray-700/30">
-            <summary className="px-6 py-4 cursor-pointer font-medium text-white hover:bg-[#2a2a2a] transition-colors">
+      {/* Mobile filter - show as expandable section */}
+      <div className="lg:hidden mt-6">
+        <div className="border border-gray-600/40 rounded-xl bg-transparent">
+          <details className="overflow-hidden">
+            <summary className="px-8 py-6 cursor-pointer font-medium text-white hover:bg-gray-800/20 transition-colors">
               <div className="flex items-center justify-between">
-                <span>Filter by League</span>
+                <span>Top Leagues</span>
                 <svg className="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
             </summary>
-            <div className="px-6 pb-6">
+            <div className="px-8 pb-6">
               <LeagueFilter />
             </div>
           </details>
