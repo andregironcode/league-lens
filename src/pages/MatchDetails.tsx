@@ -12,6 +12,7 @@ const MatchDetails = () => {
   const navigate = useNavigate();
   const [match, setMatch] = useState<EnhancedMatchHighlight | null>(null);
   const [loading, setLoading] = useState(true);
+  const [navigating, setNavigating] = useState(false);
   const [formattedDate, setFormattedDate] = useState('');
   const [exactDate, setExactDate] = useState('');
   const [activeTab, setActiveTab] = useState('stats');
@@ -19,29 +20,43 @@ const MatchDetails = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchMatch = async () => {
       try {
         if (!id) return;
         setLoading(true);
         const matchData = await getMatchById(id) as EnhancedMatchHighlight;
-        setMatch(matchData);
-        if (matchData) {
-          const date = new Date(matchData.date);
-          setFormattedDate(formatDistanceToNow(date, { addSuffix: true }));
-          setExactDate(date.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          }));
+        
+        if (isMounted) {
+          setMatch(matchData);
+          if (matchData) {
+            const date = new Date(matchData.date);
+            setFormattedDate(formatDistanceToNow(date, { addSuffix: true }));
+            setExactDate(date.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }));
+          }
         }
       } catch (error) {
-        console.error('Error fetching match details:', error);
+        if (isMounted) {
+          console.error('Error fetching match details:', error);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+    
     fetchMatch();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   const getVideoEmbedUrl = (url: string): string => {
@@ -70,7 +85,8 @@ const MatchDetails = () => {
   };
 
   const handleGoBack = () => {
-    navigate(-1);
+    setNavigating(true);
+    navigate('/');
   };
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -104,9 +120,9 @@ const MatchDetails = () => {
         <Header />
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-2xl font-semibold text-white">Match not found</h1>
-          <button onClick={handleGoBack} className="mt-4 flex items-center mx-auto text-sm font-medium px-4 py-2 rounded-md bg-highlight-800 hover:bg-highlight-700 transition-colors text-white">
+          <button onClick={handleGoBack} className={`mt-4 flex items-center mx-auto text-sm font-medium px-4 py-2 rounded-md bg-highlight-800 hover:bg-highlight-700 transition-colors text-white ${navigating ? 'opacity-50 cursor-wait' : ''}`} disabled={navigating}>
             <ArrowLeft size={16} className="mr-2" />
-            Go back
+            {navigating ? 'Going back...' : 'Go back'}
           </button>
         </div>
       </div>;
@@ -115,9 +131,9 @@ const MatchDetails = () => {
   return <div className="min-h-screen bg-black text-white pt-16 pb-16">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <button onClick={handleGoBack} className="flex items-center mb-6 text-sm font-medium hover:underline transition-colors text-white">
+        <button onClick={handleGoBack} className={`flex items-center mb-6 text-sm font-medium transition-colors ${navigating ? 'opacity-50 cursor-wait' : 'hover:underline'} text-white`} disabled={navigating}>
           <ArrowLeft size={16} className="mr-2" />
-          Back to Home
+          {navigating ? 'Going back...' : 'Back to Home'}
         </button>
 
         {/* Competition name */}

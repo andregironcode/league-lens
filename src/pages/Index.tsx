@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MatchHighlight } from '@/types';
 import { serviceAdapter } from '@/services/serviceAdapter';
 import Header from '@/components/Header';
@@ -11,7 +11,7 @@ const Index: React.FC = () => {
   const [dateMatches, setDateMatches] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [dateMatchesLoading, setDateMatchesLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -19,8 +19,10 @@ const Index: React.FC = () => {
   const liveUpdateInterval = useRef<NodeJS.Timeout | null>(null);
   const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
-  // Initial data load
+  // Load highlights immediately on mount
   useEffect(() => {
+    let isMounted = true;
+    
     const loadInitialData = async () => {
       try {
         setLoading(true);
@@ -28,31 +30,39 @@ const Index: React.FC = () => {
 
         console.log('[Index] Loading initial data...');
 
-        // Load featured highlights
         const highlightsData = await serviceAdapter.getRecommendedHighlights().catch(err => {
           console.error('[Index] Error loading highlights:', err);
           return [];
         });
 
-        console.log('[Index] Initial data loaded:', {
-          highlights: highlightsData.length
-        });
-
-        setFeaturedHighlights(highlightsData);
+        if (isMounted) {
+          console.log('[Index] Initial data loaded:', {
+            highlights: highlightsData.length
+          });
+          setFeaturedHighlights(highlightsData);
+        }
 
       } catch (err) {
-        console.error('[Index] Error during initial load:', err);
-        setError('Failed to load initial data');
+        if (isMounted) {
+          console.error('[Index] Error during initial load:', err);
+          setError('Failed to load initial data');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadInitialData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Load matches for selected date
-  const loadMatchesForDate = async (dateString: string) => {
+  // Load matches for selected date - memoized to prevent infinite loops
+  const loadMatchesForDate = useCallback(async (dateString: string) => {
     try {
       setDateMatchesLoading(true);
       console.log(`[Index] Loading matches for date: ${dateString}`);
@@ -68,20 +78,20 @@ const Index: React.FC = () => {
     } finally {
       setDateMatchesLoading(false);
     }
-  };
+  }, []); // No dependencies needed - function is pure
 
-  // Handle date selection
-  const handleDateSelect = (dateString: string) => {
+  // Handle date selection - memoized to prevent infinite loops in DateFilter
+  const handleDateSelect = useCallback((dateString: string) => {
     console.log(`[Index] Date selected: ${dateString}`);
     setSelectedDate(dateString);
     loadMatchesForDate(dateString);
-  };
+  }, [loadMatchesForDate]); // Only depends on loadMatchesForDate (which is also memoized)
 
-  // Handle league filter selection
-  const handleLeagueSelect = (leagueId: string | null) => {
+  // Handle league filter selection - memoized for consistency
+  const handleLeagueSelect = useCallback((leagueId: string | null) => {
     console.log(`[Index] League filter selected: ${leagueId}`);
     setSelectedLeagueId(leagueId);
-  };
+  }, []);
 
   // Set up live updates for today's matches
   useEffect(() => {
@@ -108,7 +118,7 @@ const Index: React.FC = () => {
         liveUpdateInterval.current = null;
       }
     }
-  }, [isToday, selectedDate]);
+  }, [isToday, selectedDate, loadMatchesForDate]); // Added loadMatchesForDate dependency
 
   // Clean up interval on unmount
   useEffect(() => {

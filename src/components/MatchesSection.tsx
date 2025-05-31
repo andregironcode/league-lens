@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { LeagueWithMatches } from '@/types';
 
 interface MatchesSectionProps {
@@ -9,98 +10,131 @@ interface MatchesSectionProps {
 }
 
 const LoadingSkeleton: React.FC = () => (
-  <div className="space-y-8">
+  <div className="space-y-6">
     {[1, 2, 3].map((i) => (
-      <div key={i} className="animate-pulse">
-        <div className="flex items-center space-x-4 mb-6">
-          <div className="w-10 h-10 bg-gray-700 rounded"></div>
-          <div className="flex-1">
-            <div className="h-6 bg-gray-700 rounded w-48 mb-2"></div>
-            <div className="h-4 bg-gray-600 rounded w-32"></div>
+      <div key={i} className="border border-gray-700/50 rounded-lg overflow-hidden bg-gray-800/30 animate-pulse">
+        <div className="p-5">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="w-6 h-6 bg-gray-700 rounded"></div>
+            <div className="h-6 bg-gray-700 rounded w-48"></div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((j) => (
-            <div key={j} className="bg-gray-800 rounded-lg p-4">
-              <div className="h-4 bg-gray-700 rounded w-24 mb-3"></div>
-              <div className="flex justify-between items-center mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-gray-700 rounded"></div>
-                  <div className="h-4 bg-gray-700 rounded w-20"></div>
-                </div>
-                <div className="h-6 bg-gray-700 rounded w-16"></div>
-                <div className="flex items-center space-x-2">
-                  <div className="h-4 bg-gray-700 rounded w-20"></div>
-                  <div className="w-6 h-6 bg-gray-700 rounded"></div>
-                </div>
-              </div>
-              <div className="h-3 bg-gray-700 rounded w-full"></div>
-            </div>
-          ))}
+        <div className="px-5 pb-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((j) => (
+              <div key={j} className="h-32 bg-gray-700/50 rounded-lg"></div>
+            ))}
+          </div>
         </div>
       </div>
     ))}
   </div>
 );
 
-const getMatchStatusColor = (status: string) => {
-  switch (status) {
+const getMatchStatusColor = (status: string): string => {
+  switch (status?.toLowerCase()) {
     case 'live':
-      return 'text-red-500 bg-red-500/10 border-red-500/20';
+    case '1h':
+    case '2h':
+    case 'ht':
+      return 'text-red-400 bg-red-500/10 border-red-500/20';
     case 'finished':
-      return 'text-green-500 bg-green-500/10 border-green-500/20';
-    case 'upcoming':
-      return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+    case 'ft':
+    case 'aet':
+    case 'pen':
+      return 'text-green-400 bg-green-500/10 border-green-500/20';
     default:
-      return 'text-gray-500 bg-gray-500/10 border-gray-500/20';
+      return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
   }
 };
 
-const getMatchStatusText = (status: string, time?: string) => {
-  switch (status) {
+const getMatchStatusText = (status: string, time?: string): string => {
+  switch (status?.toLowerCase()) {
     case 'live':
+    case '1h':
+    case '2h':
+    case 'ht':
       return 'LIVE';
     case 'finished':
+    case 'ft':
+    case 'aet':
+    case 'pen':
       return 'FT';
-    case 'upcoming':
-      return time || 'TBD';
     default:
-      return status?.toUpperCase() || 'TBD';
+      return time || 'KO';
   }
 };
 
 const formatSelectedDate = (dateString: string): string => {
-  const date = new Date(dateString);
+  const date = new Date(dateString + 'T00:00:00');
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
   
-  const isToday = date.toDateString() === today.toDateString();
-  const isYesterday = date.toDateString() === yesterday.toDateString();
-  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+  const dateOnly = (d: Date) => d.toDateString();
   
-  if (isToday) return 'Today';
-  if (isYesterday) return 'Yesterday';
-  if (isTomorrow) return 'Tomorrow';
-  
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'long', 
-    day: 'numeric' 
-  });
+  if (dateOnly(date) === dateOnly(today)) {
+    return "Today's";
+  } else if (dateOnly(date) === dateOnly(yesterday)) {
+    return "Yesterday's";
+  } else if (dateOnly(date) === dateOnly(tomorrow)) {
+    return "Tomorrow's";
+  } else {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      month: 'long', 
+      day: 'numeric'
+    }) + "'s";
+  }
 };
 
 const MatchCard: React.FC<{ match: any }> = ({ match }) => {
+  const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
+  
   const statusColor = getMatchStatusColor(match.status);
   const statusText = getMatchStatusText(match.status, match.time);
   const isLive = match.status === 'live';
+  const isFinished = match.status === 'finished';
+  
+  // Handle match click
+  const handleMatchClick = async () => {
+    if ((isFinished || isLive) && !isNavigating) {
+      try {
+        setIsNavigating(true);
+        console.log(`[MatchCard] Navigating to match details for ID: ${match.id}`);
+        navigate(`/match/${match.id}`);
+      } catch (error) {
+        console.error('Navigation error:', error);
+        setIsNavigating(false);
+      }
+    }
+  };
+
+  const canClick = isFinished || isLive;
   
   return (
-    <div className={`bg-gray-800/50 rounded-lg p-4 hover:bg-gray-800/70 transition-colors cursor-pointer border ${
-      isLive ? 'border-red-500/50 bg-red-900/10' : 'border-gray-700/50'
-    }`}>
+    <div 
+      className={`bg-gray-800/50 rounded-lg p-4 transition-colors border ${
+        isLive ? 'border-red-500/50 bg-red-900/10' : 'border-gray-700/50'
+      } ${
+        canClick 
+          ? isNavigating 
+            ? 'cursor-wait opacity-75' 
+            : 'hover:bg-gray-800/70 cursor-pointer hover:scale-[1.01] active:scale-[0.99]'
+          : 'hover:bg-gray-800/70'
+      }`}
+      onClick={handleMatchClick}
+      title={
+        canClick 
+          ? isNavigating 
+            ? 'Loading match details...' 
+            : 'Click to view match details'
+          : undefined
+      }
+    >
       {/* Match Status with Enhanced LIVE Badge */}
       <div className="flex justify-between items-center mb-3">
         <span className={`px-2 py-1 rounded text-xs font-medium border ${statusColor}`}>
@@ -115,7 +149,7 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
       </div>
       
       {/* Teams and Score */}
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2 flex-1">
           <img 
             src={match.homeTeam.logo} 
@@ -173,6 +207,13 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
       {isLive && (
         <div className="mt-3 h-1 bg-red-600/20 rounded-full overflow-hidden">
           <div className="h-full bg-red-500 rounded-full animate-pulse"></div>
+        </div>
+      )}
+      
+      {/* Click indicator for interactive matches */}
+      {canClick && (
+        <div className="mt-2 text-center text-xs text-gray-500 opacity-70">
+          {isNavigating ? 'Loading...' : 'Click for details'}
         </div>
       )}
     </div>
