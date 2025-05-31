@@ -818,25 +818,20 @@ export const highlightlyService = {
           
           // Step 4: Filter for finished matches with scores
           const finishedMatches = matchesResponse.data.filter((match: any) => {
-            // Debug: Log each match to understand structure
-            console.log(`[Highlightly] Checking match:`, {
-              id: match.id,
-              stateDescription: match.state?.description,
-              scoreCurrent: match.state?.score?.current,
-              clock: match.state?.clock
-            });
-            
             // Check if match is finished - use the correct state.description field
             const isFinished = 
               match.state?.description === 'Finished' ||
               match.state?.description === 'Finished after penalties' ||
-              match.state?.description === 'Finished after extra time';
+              match.state?.description === 'Finished after extra time' ||
+              match.fixture?.status?.long === 'Match Finished' ||
+              match.fixture?.status?.short === 'FT';
             
-            // Check for score data - use state.score.current
+            // Check for score data - use multiple possible score fields
             const hasScore = 
-              match.state?.score?.current && 
-              match.state.score.current !== null &&
-              match.state.score.current.includes(' - ');
+              (match.state?.score?.current && match.state.score.current.includes(' - ')) ||
+              (match.score?.fulltime?.home !== undefined && match.score?.fulltime?.away !== undefined) ||
+              (match.goals?.home !== undefined && match.goals?.away !== undefined) ||
+              (match.fixture?.score?.fulltime?.home !== undefined && match.fixture?.score?.fulltime?.away !== undefined);
             
             console.log(`[Highlightly] Match ${match.id}: finished=${isFinished}, hasScore=${hasScore}`);
             
@@ -849,55 +844,84 @@ export const highlightlyService = {
             continue; // Skip leagues with no finished matches
           }
           
-          // Step 5: Transform matches to our format
+          // Step 5: Transform matches to our format using REAL API data
           const transformedMatches: import('@/types').Match[] = finishedMatches
             .slice(0, 5) // Limit to 5 most recent per league
             .map((match: any) => {
-              const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || new Date());
+              // Extract date from multiple possible fields
+              const matchDate = new Date(
+                match.date || 
+                match.fixture?.date || 
+                match.kickoff || 
+                match.utcDate || 
+                new Date()
+              );
               
-              // Extract score data
+              // Extract score data from multiple possible fields
               let homeScore = 0;
               let awayScore = 0;
               
-              // Parse score from state.score.current (e.g., "2 - 0")
+              // Try different score field structures
               if (match.state?.score?.current) {
+                // Parse score from state.score.current (e.g., "2 - 0")
                 const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
                 if (scoreMatch) {
                   homeScore = parseInt(scoreMatch[1], 10);
                   awayScore = parseInt(scoreMatch[2], 10);
                 }
+              } else if (match.score?.fulltime) {
+                // Use score.fulltime structure
+                homeScore = match.score.fulltime.home || 0;
+                awayScore = match.score.fulltime.away || 0;
+              } else if (match.goals) {
+                // Use goals structure
+                homeScore = match.goals.home || 0;
+                awayScore = match.goals.away || 0;
+              } else if (match.fixture?.score?.fulltime) {
+                // Use fixture.score.fulltime structure
+                homeScore = match.fixture.score.fulltime.home || 0;
+                awayScore = match.fixture.score.fulltime.away || 0;
               }
               
-              // Generate match ID with debug logging
-              const matchId = match.fixture?.id?.toString() || match.id?.toString() || `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+              // Extract team information from multiple possible structures
+              const homeTeam = {
+                id: (match.homeTeam?.id || match.teams?.home?.id || match.fixture?.teams?.home?.id || `home-${Date.now()}`).toString(),
+                name: match.homeTeam?.name || match.teams?.home?.name || match.fixture?.teams?.home?.name || 'Home Team',
+                logo: match.homeTeam?.logo || match.teams?.home?.logo || match.fixture?.teams?.home?.logo || '/teams/default.png'
+              };
               
-              // Debug logging for ID generation
-              console.log(`[Highlightly] Match ID generation debug:`, {
-                originalMatch: {
-                  fixtureId: match.fixture?.id,
-                  matchId: match.id,
-                  generatedId: matchId
-                },
-                teams: {
-                  home: match.homeTeam?.name || match.teams?.home?.name,
-                  away: match.awayTeam?.name || match.teams?.away?.name
-                },
+              const awayTeam = {
+                id: (match.awayTeam?.id || match.teams?.away?.id || match.fixture?.teams?.away?.id || `away-${Date.now()}`).toString(),
+                name: match.awayTeam?.name || match.teams?.away?.name || match.fixture?.teams?.away?.name || 'Away Team',
+                logo: match.awayTeam?.logo || match.teams?.away?.logo || match.fixture?.teams?.away?.logo || '/teams/default.png'
+              };
+              
+              // Generate match ID from multiple possible fields
+              const matchId = (
+                match.fixture?.id || 
+                match.id || 
+                match.match_id || 
+                `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+              ).toString();
+              
+              // Extract venue information
+              const venue = match.fixture?.venue?.name || match.venue?.name || match.venue || undefined;
+              
+              // Debug logging for match data extraction
+              console.log(`[Highlightly] ✅ REAL MATCH DATA for ${homeTeam.name} vs ${awayTeam.name}:`, {
+                matchId,
                 score: `${homeScore}-${awayScore}`,
-                league: league.name
+                date: matchDate.toISOString(),
+                venue,
+                league: league.name,
+                homeTeam: homeTeam.name,
+                awayTeam: awayTeam.name
               });
               
               return {
                 id: matchId,
-                homeTeam: {
-                  id: match.homeTeam?.id?.toString() || match.teams?.home?.id?.toString() || `home-${Date.now()}`,
-                  name: match.homeTeam?.name || match.teams?.home?.name || 'Home Team',
-                  logo: match.homeTeam?.logo || match.teams?.home?.logo || '/teams/default.png'
-                },
-                awayTeam: {
-                  id: match.awayTeam?.id?.toString() || match.teams?.away?.id?.toString() || `away-${Date.now()}`,
-                  name: match.awayTeam?.name || match.teams?.away?.name || 'Away Team',
-                  logo: match.awayTeam?.logo || match.teams?.away?.logo || '/teams/default.png'
-                },
+                homeTeam,
+                awayTeam,
                 date: matchDate.toISOString(),
                 time: matchDate.toLocaleTimeString('en-US', { 
                   hour: '2-digit', 
@@ -914,7 +938,7 @@ export const highlightlyService = {
                   name: league.name,
                   logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`
                 },
-                venue: match.fixture?.venue?.name || match.venue?.name || match.venue || undefined
+                venue
               };
             })
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Most recent first
@@ -965,14 +989,14 @@ export const highlightlyService = {
     try {
       console.log(`[Highlightly] Fetching match by ID: ${id}`);
       
-      // STRATEGY 1: Get match data first, then fetch lineups, statistics, and events
+      // STRATEGY 1: Get match data first, then fetch additional details
       try {
         console.log(`[Highlightly] Strategy 1: Getting comprehensive match data for ID: ${id}`);
         const matchResponse = await highlightlyClient.getMatchById(id);
         
         console.log(`[Highlightly] Full match response for ${id}:`, JSON.stringify(matchResponse, null, 2));
         
-        // Handle array response format from matches API
+        // Handle different response formats from matches API
         let matchData = null;
         if (Array.isArray(matchResponse) && matchResponse.length > 0) {
           matchData = matchResponse[0];
@@ -981,13 +1005,35 @@ export const highlightlyService = {
         }
         
         if (matchData) {
-          console.log(`[Highlightly] ✅ Strategy 1: Match data found, fetching additional details`);
+          console.log(`[Highlightly] ✅ Strategy 1: Match data found, processing real data`);
           const match = matchData;
           
-          // Extract team information from events array since that's where team data is stored
-          const teams = new Set();
-          const teamMap = new Map();
-          if (match.events && Array.isArray(match.events)) {
+          // Extract team information from multiple possible structures
+          let homeTeamName = 'Home Team';
+          let awayTeamName = 'Away Team';
+          let homeTeamData = null;
+          let awayTeamData = null;
+          
+          // Try different team data structures
+          if (match.homeTeam && match.awayTeam) {
+            homeTeamName = match.homeTeam.name || 'Home Team';
+            awayTeamName = match.awayTeam.name || 'Away Team';
+            homeTeamData = match.homeTeam;
+            awayTeamData = match.awayTeam;
+          } else if (match.teams?.home && match.teams?.away) {
+            homeTeamName = match.teams.home.name || 'Home Team';
+            awayTeamName = match.teams.away.name || 'Away Team';
+            homeTeamData = match.teams.home;
+            awayTeamData = match.teams.away;
+          } else if (match.fixture?.teams?.home && match.fixture?.teams?.away) {
+            homeTeamName = match.fixture.teams.home.name || 'Home Team';
+            awayTeamName = match.fixture.teams.away.name || 'Away Team';
+            homeTeamData = match.fixture.teams.home;
+            awayTeamData = match.fixture.teams.away;
+          } else if (match.events && Array.isArray(match.events)) {
+            // Extract team information from events array as fallback
+            const teams = new Set();
+            const teamMap = new Map();
             match.events.forEach((event: any) => {
               if (event.team && event.team.name) {
                 teams.add(event.team.name);
@@ -998,22 +1044,39 @@ export const highlightlyService = {
                 });
               }
             });
+            
+            const teamNames = Array.from(teams);
+            homeTeamName = (teamNames[0] as string) || 'Home Team';
+            awayTeamName = (teamNames[1] as string) || 'Away Team';
+            homeTeamData = teamMap.get(homeTeamName);
+            awayTeamData = teamMap.get(awayTeamName);
           }
           
-          const teamNames = Array.from(teams);
-          const homeTeamName: string = (teamNames[0] as string) || 'Home Team';
-          const awayTeamName: string = (teamNames[1] as string) || 'Away Team';
-          const homeTeamData = teamMap.get(homeTeamName);
-          const awayTeamData = teamMap.get(awayTeamName);
+          console.log(`[Highlightly] Found match teams: ${homeTeamName} vs ${awayTeamName}`);
           
-          console.log(`[Highlightly] Found match data for ${id}:`, {
-            teamsFromEvents: teamNames,
-            homeTeam: homeTeamName,
-            awayTeam: awayTeamName,
-            venue: match.venue?.name,
-            eventCount: match.events?.length || 0
-          });
-
+          // Extract score from multiple possible structures
+          let homeScore = 0;
+          let awayScore = 0;
+          
+          if (match.score?.fulltime) {
+            homeScore = match.score.fulltime.home || 0;
+            awayScore = match.score.fulltime.away || 0;
+          } else if (match.state?.score?.current) {
+            const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+            if (scoreMatch) {
+              homeScore = parseInt(scoreMatch[1], 10);
+              awayScore = parseInt(scoreMatch[2], 10);
+            }
+          } else if (match.goals) {
+            homeScore = match.goals.home || 0;
+            awayScore = match.goals.away || 0;
+          } else if (match.fixture?.score?.fulltime) {
+            homeScore = match.fixture.score.fulltime.home || 0;
+            awayScore = match.fixture.score.fulltime.away || 0;
+          }
+          
+          console.log(`[Highlightly] ✅ REAL MATCH SCORE: ${homeTeamName} ${homeScore}-${awayScore} ${awayTeamName}`);
+          
           // Parallel fetch of additional data (lineups, statistics, events)
           const [lineupsResponse, statisticsResponse, eventsResponse, highlightsResponse] = await Promise.allSettled([
             highlightlyClient.getLineups(id).catch(e => {
@@ -1028,16 +1091,14 @@ export const highlightlyService = {
               console.log(`[Highlightly] Events not available for match ${id}:`, e.message);
               return null;
             }),
-            // Try multiple strategies to find highlight video for this match
+            // Try to find highlight video for this match
             this.findMatchHighlightVideo(id, homeTeamName, awayTeamName)
           ]);
 
-          // Process lineups
+          // Process lineups, statistics, and events with real data
           let lineups = null;
           if (lineupsResponse.status === 'fulfilled' && lineupsResponse.value) {
             const lineupsData = lineupsResponse.value;
-            console.log(`[Highlightly] Lineups data:`, JSON.stringify(lineupsData).substring(0, 200) + '...');
-            
             if (lineupsData.homeTeam && lineupsData.awayTeam) {
               lineups = {
                 homeTeam: {
@@ -1060,12 +1121,9 @@ export const highlightlyService = {
             }
           }
 
-          // Process statistics
           let statistics = null;
           if (statisticsResponse.status === 'fulfilled' && statisticsResponse.value) {
             const statsData = statisticsResponse.value;
-            console.log(`[Highlightly] Statistics data:`, JSON.stringify(statsData).substring(0, 200) + '...');
-            
             if (Array.isArray(statsData)) {
               statistics = statsData.map((teamStat: any) => ({
                 team: {
@@ -1078,51 +1136,102 @@ export const highlightlyService = {
             }
           }
 
-          // Process events
           let events = null;
           if (eventsResponse.status === 'fulfilled' && eventsResponse.value) {
             const eventsData = eventsResponse.value;
-            console.log(`[Highlightly] Events data:`, JSON.stringify(eventsData).substring(0, 200) + '...');
+            console.log(`[Highlightly] Raw events data:`, JSON.stringify(eventsData, null, 2));
             
             if (Array.isArray(eventsData)) {
-              events = eventsData.map((event: any) => ({
-                team: {
-                  id: event.team?.id || 'unknown',
-                  name: event.team?.name || 'Unknown Team',
-                  logo: event.team?.logo || '/teams/default.png'
-                },
-                time: event.time || '0',
-                type: event.type || 'Unknown',
-                player: event.player || 'Unknown Player',
-                assist: event.assist,
-                substituted: event.substituted
-              }));
+              events = eventsData.map((event: any) => {
+                // Extract player name from multiple possible structures
+                let playerName = 'Unknown Player';
+                
+                if (event.player && typeof event.player === 'string') {
+                  playerName = event.player;
+                } else if (event.player?.name) {
+                  playerName = event.player.name;
+                } else if (event.playerName) {
+                  playerName = event.playerName;
+                } else if (event.detail?.player?.name) {
+                  playerName = event.detail.player.name;
+                } else if (event.detail?.player) {
+                  playerName = event.detail.player;
+                } else if (event.players && Array.isArray(event.players) && event.players.length > 0) {
+                  // Sometimes multiple players are involved, take the first one
+                  playerName = event.players[0].name || event.players[0];
+                }
+                
+                // Extract assist player if available
+                let assistPlayer = null;
+                if (event.assist && typeof event.assist === 'string') {
+                  assistPlayer = event.assist;
+                } else if (event.assist?.name) {
+                  assistPlayer = event.assist.name;
+                } else if (event.assistPlayer) {
+                  assistPlayer = event.assistPlayer;
+                } else if (event.detail?.assist?.name) {
+                  assistPlayer = event.detail.assist.name;
+                } else if (event.detail?.assist) {
+                  assistPlayer = event.detail.assist;
+                }
+                
+                // Extract substitution info if available
+                let substitutedPlayer = null;
+                if (event.substituted && typeof event.substituted === 'string') {
+                  substitutedPlayer = event.substituted;
+                } else if (event.substituted?.name) {
+                  substitutedPlayer = event.substituted.name;
+                } else if (event.detail?.substituted?.name) {
+                  substitutedPlayer = event.detail.substituted.name;
+                } else if (event.detail?.substituted) {
+                  substitutedPlayer = event.detail.substituted;
+                }
+                
+                // Log goalscorer information for debugging
+                if (event.type === 'Goal' || 
+                    event.type === 'Penalty' || 
+                    event.type?.toLowerCase().includes('goal') ||
+                    event.type?.toLowerCase().includes('penalty')) {
+                  console.log(`[Highlightly] ⚽ GOAL EVENT: ${playerName} (${event.time}') for ${event.team?.name}`);
+                }
+                
+                return {
+                  team: {
+                    id: event.team?.id || 'unknown',
+                    name: event.team?.name || 'Unknown Team',
+                    logo: event.team?.logo || '/teams/default.png'
+                  },
+                  time: event.time || event.minute || '0',
+                  type: event.type || 'Unknown',
+                  player: playerName,
+                  assist: assistPlayer,
+                  substituted: substitutedPlayer
+                };
+              });
+              
+              console.log(`[Highlightly] ✅ Processed ${events.length} events with goalscorers:`, 
+                events.filter(e => 
+                  e.type === 'Goal' || 
+                  e.type === 'Penalty' || 
+                  e.type?.toLowerCase().includes('goal') ||
+                  e.type?.toLowerCase().includes('penalty')
+                ).map(e => `${e.player} (${e.time}')`));
             }
           }
 
-          // Process highlight video
           let videoUrl = '';
           if (highlightsResponse.status === 'fulfilled' && highlightsResponse.value) {
             videoUrl = highlightsResponse.value;
-            console.log(`[Highlightly] Found video URL from highlight search:`, videoUrl);
           }
 
-          // Extract score from match data
-          let homeScore = 0;
-          let awayScore = 0;
-          
-          if (match.score?.fulltime) {
-            homeScore = match.score.fulltime.home || 0;
-            awayScore = match.score.fulltime.away || 0;
-          } else if (match.state?.score?.current) {
-            const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
-            if (scoreMatch) {
-              homeScore = parseInt(scoreMatch[1], 10);
-              awayScore = parseInt(scoreMatch[2], 10);
-            }
-          }
-
-          const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || new Date());
+          // Extract match date
+          const matchDate = new Date(
+            match.date || 
+            match.fixture?.date || 
+            match.kickoff || 
+            match.utcDate || 
+            new Date()
+          );
 
           const enhancedMatch: any = {
             id: match.id || id,
@@ -1133,12 +1242,12 @@ export const highlightlyService = {
             duration: '0:00',
             views: Math.floor(Math.random() * 10000),
             homeTeam: {
-              id: homeTeamData?.id?.toString() || `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+              id: (homeTeamData?.id || `team-${homeTeamName.toLowerCase().replace(/\s+/g, '-')}`).toString(),
               name: homeTeamName,
               logo: homeTeamData?.logo || '/teams/default.png'
             },
             awayTeam: {
-              id: awayTeamData?.id?.toString() || `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`,
+              id: (awayTeamData?.id || `team-${awayTeamName.toLowerCase().replace(/\s+/g, '-')}`).toString(),
               name: awayTeamName,
               logo: awayTeamData?.logo || '/teams/default.png'
             },
@@ -1147,7 +1256,7 @@ export const highlightlyService = {
               away: awayScore
             },
             competition: {
-              id: match.league?.id?.toString() || match.competition?.id || 'unknown-competition',
+              id: (match.league?.id || match.competition?.id || 'unknown-competition').toString(),
               name: match.league?.name || match.competition?.name || 'Unknown Competition',
               logo: match.league?.logo || match.competition?.logo || '/leagues/default.png'
             },
@@ -1156,7 +1265,7 @@ export const highlightlyService = {
             events
           };
 
-          console.log(`[Highlightly] ✅ Strategy 1 SUCCESS: Enhanced match details created for ${id}`);
+          console.log(`[Highlightly] ✅ Strategy 1 SUCCESS: Enhanced match details created for ${id} with REAL data`);
           return enhancedMatch;
         }
       } catch (error) {

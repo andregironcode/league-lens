@@ -44,79 +44,6 @@ const MatchDetails = () => {
     fetchMatch();
   }, [id]);
 
-  // Generate mock goalscorers based on match events or score
-  const generateGoalscorers = (match: EnhancedMatchHighlight | null) => {
-    if (!match) return { home: [], away: [] };
-
-    // If we have events data, use that
-    if (match.events && match.events.length > 0) {
-      const goalEvents = match.events.filter(event => 
-        event.type === 'Goal' || 
-        event.type === 'Penalty' || 
-        event.type === 'Own Goal'
-      );
-
-      const homeGoals = goalEvents
-        .filter(event => event.team.id === match.homeTeam.id)
-        .map(event => ({
-          player: event.player,
-          minute: parseInt(event.time) || 0,
-          isPenalty: event.type === 'Penalty',
-          isOwnGoal: event.type === 'Own Goal'
-        }));
-
-      const awayGoals = goalEvents
-        .filter(event => event.team.id === match.awayTeam.id)
-        .map(event => ({
-          player: event.player,
-          minute: parseInt(event.time) || 0,
-          isPenalty: event.type === 'Penalty',
-          isOwnGoal: event.type === 'Own Goal'
-        }));
-
-      if (homeGoals.length > 0 || awayGoals.length > 0) {
-        return { home: homeGoals, away: awayGoals };
-      }
-    }
-
-    // Fallback to mock data if no events available
-    const homeGoals = [];
-    const awayGoals = [];
-    const homePlayerNames = ["Alexander", "James", "Wilson", "Thompson", "Martinez"];
-    const awayPlayerNames = ["Smith", "Brown", "Miller", "Garcia", "Lee"];
-
-    const generateMinutes = (count: number) => {
-      const minutes = [];
-      for (let i = 0; i < count; i++) {
-        minutes.push(Math.floor(Math.random() * 90) + 1);
-      }
-      return minutes.sort((a, b) => a - b);
-    };
-
-    const homeMinutes = generateMinutes(match.score.home);
-    const awayMinutes = generateMinutes(match.score.away);
-
-    for (let i = 0; i < match.score.home; i++) {
-      homeGoals.push({
-        player: homePlayerNames[Math.floor(Math.random() * homePlayerNames.length)],
-        minute: homeMinutes[i],
-        isPenalty: Math.random() > 0.8,
-        isOwnGoal: false
-      });
-    }
-
-    for (let i = 0; i < match.score.away; i++) {
-      awayGoals.push({
-        player: awayPlayerNames[Math.floor(Math.random() * awayPlayerNames.length)],
-        minute: awayMinutes[i],
-        isPenalty: Math.random() > 0.8,
-        isOwnGoal: false
-      });
-    }
-
-    return { home: homeGoals, away: awayGoals };
-  };
-
   const getVideoEmbedUrl = (url: string): string => {
     if (!url) return '';
     
@@ -160,9 +87,6 @@ const MatchDetails = () => {
     navigate(`/team/${teamId}`);
   };
 
-  // Generate mock goalscorers data
-  const goalscorers = generateGoalscorers(match);
-  
   if (loading) {
     return <div className="min-h-screen bg-black pt-20 px-4 sm:px-6">
         <Header />
@@ -264,55 +188,125 @@ const MatchDetails = () => {
           </div>
         </div>
 
-        {/* Goalscorers section */}
+        {/* Match Events Timeline section */}
         <section className="mb-8 bg-[#222222] rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-center text-white">Goalscorers</h3>
+          <h3 className="text-lg font-semibold mb-4 text-center text-white">Match Events</h3>
           
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="md:w-[48%] mb-4 md:mb-0">
-              {/* Home team goalscorers */}
-              <h4 className="text-md font-medium mb-3 flex items-center text-white">
-                <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-5 h-5 object-contain mr-2" onError={e => {
-                const target = e.target as HTMLImageElement;
-                target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-              }} />
-                {match.homeTeam.name}
-              </h4>
-              <div className="space-y-2">
-                {goalscorers.home.length > 0 ? goalscorers.home.map((goal, index) => <div key={index} className="flex items-center justify-between p-2 bg-[#191919] rounded">
-                      <span className="text-white text-sm">{goal.player}</span>
-                      <div className="flex items-center">
-                        {goal.isPenalty && <span className="text-xs bg-[#333333] px-1 rounded mr-2">P</span>}
-                        <span className="text-sm text-gray-400">{goal.minute}'</span>
+          {match.events && match.events.length > 0 ? (
+            <div className="space-y-3">
+              {match.events
+                .sort((a, b) => {
+                  // Sort events by time (handle formats like "45+1", "90+4")
+                  const getMinute = (time: string) => {
+                    const match = time.match(/(\d+)(?:\+(\d+))?/);
+                    if (match) {
+                      const base = parseInt(match[1]);
+                      const added = match[2] ? parseInt(match[2]) : 0;
+                      return base + added;
+                    }
+                    return parseInt(time) || 0;
+                  };
+                  return getMinute(a.time) - getMinute(b.time);
+                })
+                .map((event, index) => {
+                  const getEventIcon = (type: string) => {
+                    switch (type) {
+                      case 'Goal': return '⚽';
+                      case 'Penalty': return '⚽';
+                      case 'Own Goal': return '⚽';
+                      case 'Yellow Card': return '🟨';
+                      case 'Red Card': return '🟥';
+                      case 'Substitution': return '↔️';
+                      default: return '📋';
+                    }
+                  };
+
+                  const getEventColor = (type: string) => {
+                    switch (type) {
+                      case 'Goal': 
+                      case 'Penalty':
+                      case 'Own Goal': 
+                        return 'text-green-400';
+                      case 'Yellow Card': return 'text-yellow-400';
+                      case 'Red Card': return 'text-red-400';
+                      case 'Substitution': return 'text-blue-400';
+                      default: return 'text-gray-400';
+                    }
+                  };
+
+                  const isHomeTeam = event.team.id.toString() === match.homeTeam.id.toString();
+                  
+                  return (
+                    <div key={index} className={`flex items-center p-3 bg-[#191919] rounded-lg ${isHomeTeam ? 'flex-row' : 'flex-row-reverse'}`}>
+                      {/* Team logo */}
+                      <img 
+                        src={event.team.logo} 
+                        alt={event.team.name} 
+                        className="w-6 h-6 object-contain flex-shrink-0" 
+                        onError={e => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                        }} 
+                      />
+                      
+                      {/* Event content */}
+                      <div className={`flex-1 ${isHomeTeam ? 'ml-3' : 'mr-3'} ${isHomeTeam ? 'text-left' : 'text-right'}`}>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">{getEventIcon(event.type)}</span>
+                          <span className={`text-sm font-medium ${getEventColor(event.type)}`}>
+                            {event.type}
+                          </span>
+                          <span className="text-sm text-gray-400 font-mono">
+                            {event.time}'
+                          </span>
+                        </div>
+                        
+                        <div className="mt-1">
+                          <span className="text-white text-sm font-medium">
+                            {event.player}
+                          </span>
+                          
+                          {/* Additional event details */}
+                          {event.type === 'Goal' && event.assist && (
+                            <span className="text-gray-400 text-xs ml-2">
+                              (Assist: {event.assist})
+                            </span>
+                          )}
+                          
+                          {event.type === 'Penalty' && event.assist && (
+                            <span className="text-gray-400 text-xs ml-2">
+                              (Assist: {event.assist})
+                            </span>
+                          )}
+                          
+                          {event.type === 'Substitution' && event.substituted && (
+                            <div className="text-gray-400 text-xs mt-1">
+                              <span className="text-green-400">IN:</span> {event.player} • 
+                              <span className="text-red-400 ml-1">OUT:</span> {event.substituted}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>) : <div className="p-2 bg-[#191919] rounded">
-                    <span className="text-gray-400 text-sm">No goals</span>
-                  </div>}
+                      
+                      {/* Time on the opposite side */}
+                      <div className={`flex-shrink-0 ${isHomeTeam ? 'ml-auto' : 'mr-auto'}`}>
+                        <span className="text-xs text-gray-500 font-mono bg-[#333333] px-2 py-1 rounded">
+                          {event.time}'
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-gray-400 text-sm">
+                <div className="mb-2">📋</div>
+                <p>No detailed match events available</p>
+                <p className="text-xs mt-1">Event timeline will be shown when data is available</p>
               </div>
             </div>
-            
-            <div className="md:w-[48%]">
-              {/* Away team goalscorers */}
-              <h4 className="text-md font-medium mb-3 flex items-center text-white justify-end">
-                {match.awayTeam.name}
-                <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-5 h-5 object-contain ml-2" onError={e => {
-                const target = e.target as HTMLImageElement;
-                target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-              }} />
-              </h4>
-              <div className="space-y-2">
-                {goalscorers.away.length > 0 ? goalscorers.away.map((goal, index) => <div key={index} className="flex items-center justify-between p-2 bg-[#191919] rounded">
-                      <div className="flex items-center">
-                        <span className="text-sm text-gray-400">{goal.minute}'</span>
-                        {goal.isPenalty && <span className="text-xs bg-[#333333] px-1 rounded ml-2">P</span>}
-                      </div>
-                      <span className="text-white text-sm">{goal.player}</span>
-                    </div>) : <div className="p-2 bg-[#191919] rounded">
-                    <span className="text-gray-400 text-sm">No goals</span>
-                  </div>}
-              </div>
-            </div>
-          </div>
+          )}
         </section>
         
         <section className="mb-4">
