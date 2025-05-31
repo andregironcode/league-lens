@@ -11,24 +11,99 @@ interface MatchFeedByLeagueProps {
   onLeagueSelect?: (leagueId: string | null) => void;
 }
 
+// Enhanced logo mapping function - prioritizes multiple external sources for best reliability
+const getLeagueLogo = (leagueId: string, leagueName: string, apiLogo?: string): string => {
+  // Priority 1: Use API logo if it exists and looks valid
+  if (apiLogo && apiLogo.trim() && !apiLogo.includes('placeholder') && !apiLogo.includes('default')) {
+    return apiLogo;
+  }
+
+  // Priority 2: Use reliable external CDN sources for major leagues
+  const externalLogos: Record<string, string> = {
+    // UEFA Competitions
+    '2486': 'https://media.api-sports.io/football/leagues/2.png', // Champions League
+    '2': 'https://media.api-sports.io/football/leagues/2.png', // Champions League
+    '3337': 'https://media.api-sports.io/football/leagues/3.png', // Europa League
+    '3': 'https://media.api-sports.io/football/leagues/3.png', // Europa League
+    '1': 'https://media.api-sports.io/football/leagues/1.png', // World Cup
+    
+    // Top European Leagues
+    '39': 'https://media.api-sports.io/football/leagues/39.png', // Premier League
+    '140': 'https://media.api-sports.io/football/leagues/140.png', // La Liga
+    '135': 'https://media.api-sports.io/football/leagues/135.png', // Serie A
+    '78': 'https://media.api-sports.io/football/leagues/78.png', // Bundesliga
+    '61': 'https://media.api-sports.io/football/leagues/61.png', // Ligue 1
+    
+    // Other Major Leagues
+    '216087': 'https://media.api-sports.io/football/leagues/253.png', // MLS
+    '94': 'https://media.api-sports.io/football/leagues/94.png', // Liga Portugal
+    '307': 'https://media.api-sports.io/football/leagues/307.png', // Saudi Pro League
+  };
+
+  // Priority 2: Use external logo if available
+  if (externalLogos[leagueId]) {
+    return externalLogos[leagueId];
+  }
+
+  // Priority 3: Try API-Sports generic league endpoint
+  if (leagueId && leagueId.match(/^\d+$/)) {
+    return `https://media.api-sports.io/football/leagues/${leagueId}.png`;
+  }
+
+  // Priority 4: Try alternative sources based on league name
+  const nameBasedLogos: Record<string, string> = {
+    'champions league': 'https://media.api-sports.io/football/leagues/2.png',
+    'europa league': 'https://media.api-sports.io/football/leagues/3.png',
+    'premier league': 'https://media.api-sports.io/football/leagues/39.png',
+    'la liga': 'https://media.api-sports.io/football/leagues/140.png',
+    'serie a': 'https://media.api-sports.io/football/leagues/135.png',
+    'bundesliga': 'https://media.api-sports.io/football/leagues/78.png',
+    'ligue 1': 'https://media.api-sports.io/football/leagues/61.png',
+    'major league soccer': 'https://media.api-sports.io/football/leagues/253.png',
+    'mls': 'https://media.api-sports.io/football/leagues/253.png',
+  };
+
+  const normalizedName = leagueName.toLowerCase();
+  for (const [key, logo] of Object.entries(nameBasedLogos)) {
+    if (normalizedName.includes(key)) {
+      return logo;
+    }
+  }
+
+  // Priority 5: Generate a professional text-based logo as final fallback
+  return `data:image/svg+xml,${encodeURIComponent(`
+    <svg width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" fill="url(#bg)" rx="8"/>
+      <rect width="36" height="36" x="2" y="2" fill="none" rx="6" stroke="#4b5563" stroke-width="1"/>
+      <text x="20" y="26" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#ffffff">
+        ${leagueName.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
+      </text>
+    </svg>
+  `)}`;
+};
+
 // League filters data for the integrated filter
 const LEAGUE_FILTERS = [
   // Top competitions and tournaments
-  { id: '2', name: 'UEFA Champions League', logoUrl: 'https://cdn.scoresite.com/tournaments/2.png' },
-  { id: '2486', name: 'UEFA Champions League', logoUrl: 'https://cdn.scoresite.com/tournaments/2.png' },
-  { id: '1', name: 'FIFA World Cup', logoUrl: 'https://cdn.scoresite.com/tournaments/1.png' },
-  { id: '3', name: 'UEFA Europa League', logoUrl: 'https://cdn.scoresite.com/tournaments/3.png' },
-  { id: '3337', name: 'UEFA Europa League', logoUrl: 'https://cdn.scoresite.com/tournaments/3.png' },
+  { id: '2486', name: 'UEFA Champions League', logoUrl: 'https://media.api-sports.io/football/leagues/2.png' },
+  { id: '1', name: 'FIFA World Cup', logoUrl: 'https://media.api-sports.io/football/leagues/1.png' },
+  { id: '3337', name: 'UEFA Europa League', logoUrl: 'https://media.api-sports.io/football/leagues/3.png' },
   
   // Top domestic leagues
-  { id: '39', name: 'Premier League', logoUrl: 'https://cdn.scoresite.com/logos/leagues/39.png' },
-  { id: '140', name: 'La Liga', logoUrl: 'https://cdn.scoresite.com/logos/leagues/140.png' },
-  { id: '135', name: 'Serie A', logoUrl: 'https://cdn.scoresite.com/logos/leagues/135.png' },
-  { id: '78', name: 'Bundesliga', logoUrl: 'https://cdn.scoresite.com/logos/leagues/78.png' },
-  { id: '61', name: 'Ligue 1', logoUrl: 'https://cdn.scoresite.com/logos/leagues/61.png' },
-  { id: '216087', name: 'Major League Soccer', logoUrl: 'https://cdn.scoresite.com/logos/leagues/216087.png' },
-  { id: '94', name: 'Liga Portugal', logoUrl: 'https://cdn.scoresite.com/logos/leagues/94.png' },
-  { id: '307', name: 'Saudi Pro League', logoUrl: 'https://cdn.scoresite.com/logos/leagues/307.png' }
+  { id: '39', name: 'Premier League', logoUrl: 'https://media.api-sports.io/football/leagues/39.png' },
+  { id: '140', name: 'La Liga', logoUrl: 'https://media.api-sports.io/football/leagues/140.png' },
+  { id: '135', name: 'Serie A', logoUrl: 'https://media.api-sports.io/football/leagues/135.png' },
+  { id: '78', name: 'Bundesliga', logoUrl: 'https://media.api-sports.io/football/leagues/78.png' },
+  { id: '61', name: 'Ligue 1', logoUrl: 'https://media.api-sports.io/football/leagues/61.png' },
+  { id: '216087', name: 'Major League Soccer', logoUrl: 'https://media.api-sports.io/football/leagues/253.png' },
+  { id: '94', name: 'Liga Portugal', logoUrl: 'https://media.api-sports.io/football/leagues/94.png' },
+  { id: '307', name: 'Saudi Pro League', logoUrl: 'https://media.api-sports.io/football/leagues/307.png' }
 ];
 
 const LoadingSkeleton: React.FC = () => (
@@ -200,7 +275,43 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
 
   // Create filter component
   const LeagueFilter: React.FC = () => {
-    const availableLeagueIdsSet = new Set(leaguesWithMatches.map(league => league.id));
+    // Create a map of available leagues with their data
+    const availableLeaguesMap = new Map();
+    leaguesWithMatches.forEach(league => {
+      if (league.matches && league.matches.length > 0) {
+        const liveMatchCount = league.matches.filter(m => 
+          m.fixture?.status?.short === 'LIVE' || m.status === 'live'
+        ).length;
+        
+        availableLeaguesMap.set(league.id, {
+          id: league.id,
+          name: league.name,
+          logoUrl: getLeagueLogo(league.id, league.name, league.logo),
+          matchCount: league.matches.length,
+          liveMatchCount: liveMatchCount,
+          hasLiveMatches: liveMatchCount > 0
+        });
+      }
+    });
+
+    // Get dynamic league list based on available matches, sorted by priority
+    const dynamicLeagues = Array.from(availableLeaguesMap.values()).sort((a, b) => {
+      // First sort by live matches (live matches first)
+      if (a.hasLiveMatches && !b.hasLiveMatches) return -1;
+      if (!a.hasLiveMatches && b.hasLiveMatches) return 1;
+      
+      // Then sort by predefined priority from LEAGUE_FILTERS
+      const aFilter = LEAGUE_FILTERS.find(f => f.id === a.id);
+      const bFilter = LEAGUE_FILTERS.find(f => f.id === b.id);
+      
+      const aPriority = aFilter ? LEAGUE_FILTERS.indexOf(aFilter) : 999;
+      const bPriority = bFilter ? LEAGUE_FILTERS.indexOf(bFilter) : 999;
+      
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      
+      // Finally sort by match count (more matches first)
+      return b.matchCount - a.matchCount;
+    });
 
     const handleLeagueClick = (leagueId: string) => {
       if (!onLeagueSelect) return;
@@ -229,44 +340,58 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
         </div>
         
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {LEAGUE_FILTERS.map((league) => {
-            const isSelected = selectedLeagueId === league.id;
-            const hasMatchesForLeague = availableLeagueIdsSet.has(league.id);
-            const isDisabled = !hasMatchesForLeague;
-            
-            return (
-              <button
-                key={league.id}
-                onClick={() => !isDisabled && handleLeagueClick(league.id)}
-                className={`
-                  w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors
-                  ${isSelected 
-                    ? 'bg-blue-600 text-white' 
-                    : isDisabled 
-                      ? 'opacity-40 cursor-not-allowed' 
+          {dynamicLeagues.length > 0 ? (
+            dynamicLeagues.map((league) => {
+              const isSelected = selectedLeagueId === league.id;
+              
+              return (
+                <button
+                  key={league.id}
+                  onClick={() => handleLeagueClick(league.id)}
+                  className={`
+                    w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors
+                    ${isSelected 
+                      ? 'bg-blue-600 text-white' 
                       : 'hover:bg-[#2a2a2a] text-gray-300'
-                  }
-                `}
-                disabled={isDisabled}
-              >
-                <img
-                  src={league.logoUrl}
-                  alt={league.name}
-                  className={`w-5 h-5 object-contain rounded-sm ${isDisabled ? 'grayscale' : ''}`}
-                  onError={(e) => e.currentTarget.src = '/icons/default.svg'}
-                />
-                <span className="text-sm font-medium truncate">{league.name}</span>
-                {isSelected && (
-                  <div className="w-2 h-2 bg-white rounded-full ml-auto flex-shrink-0"></div>
-                )}
-              </button>
-            );
-          })}
+                    }
+                  `}
+                >
+                  <img
+                    src={league.logoUrl}
+                    alt={league.name}
+                    className="w-5 h-5 object-contain rounded-sm"
+                    style={{ minWidth: '20px', minHeight: '20px' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{league.name}</div>
+                    <div className="text-xs text-gray-400">
+                      {league.matchCount} {league.matchCount === 1 ? 'match' : 'matches'}
+                      {league.hasLiveMatches && (
+                        <span className="ml-2 px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
+                          {league.liveMatchCount} LIVE
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
+                  )}
+                  {league.hasLiveMatches && !isSelected && (
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                  )}
+                </button>
+              );
+            })
+          ) : (
+            <div className="text-center text-gray-500 py-4">
+              <p className="text-sm">No leagues available</p>
+            </div>
+          )}
         </div>
         
         <div className="mt-4 pt-4 border-t border-gray-700/30">
           <div className="text-xs text-gray-500">
-            {availableLeagueIdsSet.size} leagues available
+            {dynamicLeagues.length} {dynamicLeagues.length === 1 ? 'league' : 'leagues'} with matches
           </div>
         </div>
       </div>

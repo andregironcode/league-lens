@@ -7,6 +7,66 @@ interface MatchRowProps {
   match: Match;
 }
 
+// Enhanced team logo function - ensures we always have a proper logo from external sources
+const getTeamLogo = (teamName: string, teamLogo?: string, teamId?: string): string => {
+  // Priority 1: Use API-provided logo if it exists and looks valid
+  if (teamLogo && teamLogo.trim() && !teamLogo.includes('placeholder') && !teamLogo.includes('default')) {
+    return teamLogo;
+  }
+
+  // Priority 2: Try multiple external CDN sources with team ID
+  if (teamId) {
+    const externalSources = [
+      `https://media.api-sports.io/football/teams/${teamId}.png`,
+      `https://www.thesportsdb.com/images/media/team/badge/${teamId}.png`,
+      `https://api.sofascore.app/api/v1/team/${teamId}/image`,
+      `https://images.fotmob.com/image_resources/logo/teamlogo/${teamId}.png`
+    ];
+    // Return first external source
+    return externalSources[0];
+  }
+
+  // Priority 3: Try constructing URL from team name for well-known teams
+  const sluggedName = teamName.toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-');
+
+  const nameBasedSources = [
+    `https://www.thesportsdb.com/images/media/team/badge/${sluggedName}.png`,
+    `https://logos-world.net/wp-content/uploads/2020/06/${sluggedName}-logo.png`,
+    `https://1000logos.net/wp-content/uploads/2018/06/${sluggedName}-Logo.png`
+  ];
+
+  // Return first name-based source
+  if (nameBasedSources.length > 0) {
+    return nameBasedSources[0];
+  }
+
+  // Priority 4: Generate a professional text-based logo as final fallback
+  const initials = teamName
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .slice(0, 3)
+    .toUpperCase();
+
+  // Create a color based on team name for consistency
+  const colors = ['#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af'];
+  const colorIndex = teamName.length % colors.length;
+
+  return `data:image/svg+xml,${encodeURIComponent(`
+    <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="12" fill="${colors[colorIndex]}"/>
+      <circle cx="12" cy="12" r="10" fill="#1f2937" stroke="#374151" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="8" fill="none" stroke="#4b5563" stroke-width="0.5"/>
+      <text x="12" y="16" font-family="Arial, sans-serif" font-size="7" font-weight="bold" text-anchor="middle" fill="#ffffff">
+        ${initials}
+      </text>
+    </svg>
+  `)}`;
+};
+
 const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
@@ -83,11 +143,10 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
         {/* Home Team */}
         <div className="flex items-center space-x-2 min-w-0 flex-1">
           <img 
-            src={match.homeTeam.logo} 
+            src={getTeamLogo(match.homeTeam.name, match.homeTeam.logo, match.homeTeam.id)} 
             alt={match.homeTeam.name}
             className="w-6 h-6 object-contain flex-shrink-0"
             loading="lazy"
-            onError={(e) => e.currentTarget.src = '/icons/default.svg'}
           />
           <span className="text-white text-sm font-medium truncate">
             {match.homeTeam.name}
@@ -115,11 +174,10 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
             {match.awayTeam.name}
           </span>
           <img 
-            src={match.awayTeam.logo} 
+            src={getTeamLogo(match.awayTeam.name, match.awayTeam.logo, match.awayTeam.id)} 
             alt={match.awayTeam.name}
             className="w-6 h-6 object-contain flex-shrink-0"
             loading="lazy"
-            onError={(e) => e.currentTarget.src = '/icons/default.svg'}
           />
         </div>
       </div>
