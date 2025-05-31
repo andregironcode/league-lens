@@ -101,7 +101,7 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
   
   // Handle match click
   const handleMatchClick = async () => {
-    if ((isFinished || isLive) && !isNavigating) {
+    if (!isNavigating) {
       try {
         setIsNavigating(true);
         console.log(`[MatchCard] Navigating to match details for ID: ${match.id}`);
@@ -113,7 +113,7 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
     }
   };
 
-  const canClick = isFinished || isLive;
+  const canClick = true; // All matches are now clickable
   
   return (
     <div 

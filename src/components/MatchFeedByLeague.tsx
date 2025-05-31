@@ -77,20 +77,13 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
 
   // Handle match click
   const handleMatchClick = (match: Match) => {
-    const isLive = match.status === 'live' || match.fixture?.status?.short === 'LIVE';
-    const isFinished = match.status === 'finished' || match.fixture?.status?.short === 'FT';
-    
-    if (isLive || isFinished) {
-      console.log(`[MatchFeedByLeague] Navigating to match details for ID: ${match.id}`);
-      navigate(`/match/${match.id}`);
-    }
+    console.log(`[MatchFeedByLeague] Navigating to match details for ID: ${match.id}`);
+    navigate(`/match/${match.id}`);
   };
 
-  // Check if match is clickable
+  // Check if match is clickable - all matches are now clickable
   const isMatchClickable = (match: Match): boolean => {
-    const isLive = match.status === 'live' || match.fixture?.status?.short === 'LIVE';
-    const isFinished = match.status === 'finished' || match.fixture?.status?.short === 'FT';
-    return isLive || isFinished;
+    return true;
   };
 
   if (filteredLeagues.length === 0) {

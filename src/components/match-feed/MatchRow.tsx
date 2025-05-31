@@ -100,9 +100,9 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
     return 'KO';
   };
 
-  // Handle match click - navigate to match details for finished matches or live matches
+  // Handle match click - navigate to match details for all match types (finished, live, and upcoming)
   const handleMatchClick = async () => {
-    if ((isFinished || isLive) && !isNavigating) {
+    if (!isNavigating) {
       try {
         setIsNavigating(true);
         console.log(`[MatchRow] Navigating to match details for ID: ${match.id}`);
@@ -114,7 +114,7 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
     }
   };
 
-  const canClick = isFinished || isLive;
+  const canClick = true; // All matches are now clickable
 
   return (
     <div 
@@ -195,15 +195,13 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
         </span>
         {isLive && <LiveBadge />}
         
-        {/* Click indicator for interactive matches */}
-        {canClick && (
-          <div className="text-gray-500 text-xs opacity-70">
-            {isNavigating ? 'Loading...' : 'Click for details'}
-          </div>
-        )}
+        {/* Click indicator for all matches */}
+        <div className="text-gray-500 text-xs opacity-70">
+          {isNavigating ? 'Loading...' : 'Click for details'}
+        </div>
       </div>
     </div>
   );
 };
 
-export default MatchRow; 
+export default MatchRow;
