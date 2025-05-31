@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -88,25 +87,29 @@ const Header = () => {
         scrolled ? 'bg-[#222222]/95 backdrop-blur-md shadow-sm' : 'bg-[#222222]/80 backdrop-blur-sm'
       }`}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-4 md:space-x-6">
-          <Link to="/" className="flex-shrink-0 transition-transform duration-200 hover:scale-110">
+      <div className="max-w-7xl mx-auto flex items-center">
+        {/* Logo - Left Side */}
+        <div className="flex-shrink-0">
+          <Link to="/" className="flex items-center transition-transform duration-200 hover:scale-110">
             <img 
               src="/lovable-uploads/3f69b4d3-7c25-4f74-a779-c3f73cd73d08.png" 
               alt="Score 90" 
-              className="h-7 md:h-8" 
+              className="h-8 md:h-9" 
             />
           </Link>
+        </div>
 
-          <div ref={searchRef} className="relative flex-1 max-w-md md:max-w-xl">
-            <div className="flex items-center bg-[#333333] rounded-full w-full">
-              <Search size={22} className={`ml-4 ${isSearching ? 'text-[#FFC30B]' : 'text-gray-400'} flex-shrink-0`} />
+        {/* Search Bar - Center */}
+        <div className="flex-1 flex justify-center px-8">
+          <div ref={searchRef} className="relative w-full max-w-2xl">
+            <div className="flex items-center bg-[#333333] rounded-full w-full shadow-lg border border-gray-600/30">
+              <Search size={24} className={`ml-5 ${isSearching ? 'text-[#FFC30B]' : 'text-gray-400'} flex-shrink-0`} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for teams or matches"
-                className="bg-transparent text-white placeholder:text-gray-400 w-full pl-3 pr-4 py-2.5 rounded-full focus:outline-none text-base"
+                className="bg-transparent text-white placeholder:text-gray-400 w-full pl-4 pr-5 py-3.5 rounded-full focus:outline-none text-lg font-medium"
                 onFocus={() => {
                   if (searchResults.length > 0) {
                     setShowResults(true);
@@ -116,21 +119,27 @@ const Header = () => {
               {searchQuery && (
                 <button 
                   onClick={clearSearch}
-                  className="mr-4 text-gray-400 hover:text-white"
+                  className="mr-5 text-gray-400 hover:text-white transition-colors duration-200"
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               )}
             </div>
 
             {showResults && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#333333] rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#333333] rounded-xl shadow-xl border border-gray-600/30 max-h-[80vh] overflow-y-auto z-50">
                 {isSearching ? (
-                  <div className="p-4 text-center text-gray-300">
-                    Searching...
+                  <div className="p-6 text-center text-gray-300">
+                    <div className="inline-flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#FFC30B]"></div>
+                      <span>Searching...</span>
+                    </div>
                   </div>
                 ) : searchResults.length === 0 ? (
-                  <div className="p-4 text-center text-gray-300">
+                  <div className="p-6 text-center text-gray-300">
+                    <div className="text-gray-400 mb-2">
+                      <Search size={24} className="mx-auto opacity-50" />
+                    </div>
                     No results found
                   </div>
                 ) : (
@@ -139,35 +148,35 @@ const Header = () => {
                       <div 
                         key={result.id}
                         onClick={() => handleResultClick(result.id)}
-                        className="px-4 py-2 hover:bg-[#444444] cursor-pointer"
+                        className="px-6 py-3 hover:bg-[#444444] cursor-pointer transition-colors duration-200 border-b border-gray-600/20 last:border-b-0"
                       >
                         <div className="flex items-center">
-                          <div className="flex items-center space-x-2 flex-1">
+                          <div className="flex items-center space-x-3 flex-1">
                             <img 
                               src={result.homeTeam.logo} 
                               alt={result.homeTeam.name}
-                              className="w-6 h-6 object-contain"
+                              className="w-7 h-7 object-contain"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
                               }}
                             />
-                            <span className="text-white text-sm">{result.score.home} - {result.score.away}</span>
+                            <span className="text-white text-base font-semibold">{result.score.home} - {result.score.away}</span>
                             <img 
                               src={result.awayTeam.logo} 
                               alt={result.awayTeam.name}
-                              className="w-6 h-6 object-contain"
+                              className="w-7 h-7 object-contain"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
                               }}
                             />
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className="text-gray-300 text-sm font-medium">
                             {result.competition.name}
                           </div>
                         </div>
-                        <div className="text-white text-sm mt-1">{result.title}</div>
+                        <div className="text-white text-base mt-2 font-medium">{result.title}</div>
                       </div>
                     ))}
                   </div>
@@ -176,8 +185,12 @@ const Header = () => {
             )}
           </div>
         </div>
-        <div className="hidden md:block">
-          <ServiceSwitcher />
+
+        {/* Service Switcher - Right Side */}
+        <div className="flex-shrink-0">
+          <div className="hidden md:block">
+            <ServiceSwitcher />
+          </div>
         </div>
       </div>
     </header>
