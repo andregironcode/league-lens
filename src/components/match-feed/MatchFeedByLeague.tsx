@@ -8,7 +8,28 @@ interface MatchFeedByLeagueProps {
   selectedDate?: string;
   isToday?: boolean;
   selectedLeagueId?: string | null;
+  onLeagueSelect?: (leagueId: string | null) => void;
 }
+
+// League filters data for the integrated filter
+const LEAGUE_FILTERS = [
+  // Top competitions and tournaments
+  { id: '2', name: 'UEFA Champions League', logoUrl: 'https://cdn.scoresite.com/tournaments/2.png' },
+  { id: '2486', name: 'UEFA Champions League', logoUrl: 'https://cdn.scoresite.com/tournaments/2.png' },
+  { id: '1', name: 'FIFA World Cup', logoUrl: 'https://cdn.scoresite.com/tournaments/1.png' },
+  { id: '3', name: 'UEFA Europa League', logoUrl: 'https://cdn.scoresite.com/tournaments/3.png' },
+  { id: '3337', name: 'UEFA Europa League', logoUrl: 'https://cdn.scoresite.com/tournaments/3.png' },
+  
+  // Top domestic leagues
+  { id: '39', name: 'Premier League', logoUrl: 'https://cdn.scoresite.com/logos/leagues/39.png' },
+  { id: '140', name: 'La Liga', logoUrl: 'https://cdn.scoresite.com/logos/leagues/140.png' },
+  { id: '135', name: 'Serie A', logoUrl: 'https://cdn.scoresite.com/logos/leagues/135.png' },
+  { id: '78', name: 'Bundesliga', logoUrl: 'https://cdn.scoresite.com/logos/leagues/78.png' },
+  { id: '61', name: 'Ligue 1', logoUrl: 'https://cdn.scoresite.com/logos/leagues/61.png' },
+  { id: '216087', name: 'Major League Soccer', logoUrl: 'https://cdn.scoresite.com/logos/leagues/216087.png' },
+  { id: '94', name: 'Liga Portugal', logoUrl: 'https://cdn.scoresite.com/logos/leagues/94.png' },
+  { id: '307', name: 'Saudi Pro League', logoUrl: 'https://cdn.scoresite.com/logos/leagues/307.png' }
+];
 
 const LoadingSkeleton: React.FC = () => (
   <div className="space-y-6">
@@ -85,14 +106,15 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   loading = false,
   selectedDate,
   isToday = false,
-  selectedLeagueId = null
+  selectedLeagueId = null,
+  onLeagueSelect
 }) => {
   const dateLabel = selectedDate ? formatSelectedDate(selectedDate) : 'Matches';
   
   if (loading) {
     return (
       <section className="mb-16">
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-white">
               {dateLabel} Matches
@@ -121,7 +143,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     
     return (
       <section className="mb-16">
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-white">
               {dateLabel} Matches
@@ -147,7 +169,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   if (filteredLeagues.length === 0) {
     return (
       <section className="mb-16">
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-white">
               {dateLabel} Matches
@@ -156,7 +178,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
             <div className="text-gray-400 mb-4">
               <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">No matches found</h3>
@@ -176,9 +198,84 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
       m.fixture?.status?.short === 'LIVE' || m.status === 'live'
     ).length, 0);
 
+  // Create filter component
+  const LeagueFilter: React.FC = () => {
+    const availableLeagueIdsSet = new Set(leaguesWithMatches.map(league => league.id));
+
+    const handleLeagueClick = (leagueId: string) => {
+      if (!onLeagueSelect) return;
+      
+      // If clicking the same league, reset the filter
+      if (selectedLeagueId === leagueId) {
+        onLeagueSelect(null);
+      } else {
+        onLeagueSelect(leagueId);
+      }
+    };
+
+    return (
+      <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-700/30 sticky top-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-white mb-2">Filter by League</h3>
+          <p className="text-sm text-gray-400">Click a league to filter matches</p>
+          {selectedLeagueId && (
+            <button
+              onClick={() => onLeagueSelect?.(null)}
+              className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Clear filter
+            </button>
+          )}
+        </div>
+        
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {LEAGUE_FILTERS.map((league) => {
+            const isSelected = selectedLeagueId === league.id;
+            const hasMatchesForLeague = availableLeagueIdsSet.has(league.id);
+            const isDisabled = !hasMatchesForLeague;
+            
+            return (
+              <button
+                key={league.id}
+                onClick={() => !isDisabled && handleLeagueClick(league.id)}
+                className={`
+                  w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors
+                  ${isSelected 
+                    ? 'bg-blue-600 text-white' 
+                    : isDisabled 
+                      ? 'opacity-40 cursor-not-allowed' 
+                      : 'hover:bg-[#2a2a2a] text-gray-300'
+                  }
+                `}
+                disabled={isDisabled}
+              >
+                <img
+                  src={league.logoUrl}
+                  alt={league.name}
+                  className={`w-5 h-5 object-contain rounded-sm ${isDisabled ? 'grayscale' : ''}`}
+                  onError={(e) => e.currentTarget.src = '/icons/default.svg'}
+                />
+                <span className="text-sm font-medium truncate">{league.name}</span>
+                {isSelected && (
+                  <div className="w-2 h-2 bg-white rounded-full ml-auto flex-shrink-0"></div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        
+        <div className="mt-4 pt-4 border-t border-gray-700/30">
+          <div className="text-xs text-gray-500">
+            {availableLeagueIdsSet.size} leagues available
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <section className="mb-16">
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold text-white">
@@ -199,16 +296,46 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
               {totalMatches} {totalMatches === 1 ? 'match' : 'matches'}
             </div>
             <div className="text-sm text-gray-400">
-              across {filteredLeagues.length} {filteredLeagues.length === 1 ? 'league' : 'leagues'}
+              {filteredLeagues.length} {filteredLeagues.length === 1 ? 'league' : 'leagues'}
             </div>
           </div>
         </div>
-        
-        {/* League Cards */}
-        <div className="space-y-6">
-          {filteredLeagues.map((league) => (
-            <LeagueCard key={league.id} league={league} />
-          ))}
+
+        {/* Main content with filter */}
+        <div className="flex gap-8">
+          {/* Matches content - made smaller to accommodate filter */}
+          <div className="flex-1 min-w-0">
+            <div className="space-y-6">
+              {filteredLeagues.map((league) => (
+                <LeagueCard 
+                  key={league.id} 
+                  league={league}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Filter sidebar */}
+          <div className="w-80 flex-shrink-0 hidden lg:block">
+            <LeagueFilter />
+          </div>
+        </div>
+
+        {/* Mobile filter - show as expandable section */}
+        <div className="lg:hidden mt-6">
+          <details className="bg-[#1a1a1a] rounded-lg border border-gray-700/30">
+            <summary className="px-6 py-4 cursor-pointer font-medium text-white hover:bg-[#2a2a2a] transition-colors">
+              <div className="flex items-center justify-between">
+                <span>Filter by League</span>
+                <svg className="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </summary>
+            <div className="px-6 pb-6">
+              <LeagueFilter />
+            </div>
+          </details>
         </div>
       </div>
     </section>

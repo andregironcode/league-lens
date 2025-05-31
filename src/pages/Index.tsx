@@ -4,7 +4,6 @@ import { serviceAdapter } from '@/services/serviceAdapter';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
-import LeagueFilterSidebar from '@/components/match-feed/LeagueFilterSidebar';
 import DateFilter from '@/components/DateFilter';
 
 const Index: React.FC = () => {
@@ -12,7 +11,6 @@ const Index: React.FC = () => {
   const [dateMatches, setDateMatches] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [dateMatchesLoading, setDateMatchesLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,10 +81,6 @@ const Index: React.FC = () => {
   const handleLeagueSelect = (leagueId: string | null) => {
     console.log(`[Index] League filter selected: ${leagueId}`);
     setSelectedLeagueId(leagueId);
-    // Close sidebar on mobile after selection
-    if (window.innerWidth < 1024) {
-      setSidebarOpen(false);
-    }
   };
 
   // Set up live updates for today's matches
@@ -146,101 +140,59 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-[#111111] text-white">
       <Header />
       
-      {/* Layout with optional sidebar */}
-      <div className="flex pt-16">
-        {/* Mobile sidebar overlay */}
-        {sidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
+      {/* Main content - removed sidebar layout */}
+      <main className="flex-1 pb-10 pt-16">
+        {/* Hero Carousel */}
+        <section className="mb-12">
+          <div className="w-full mx-auto px-0 sm:px-0">
+            {loading ? (
+              <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
+            ) : (
+              <HeroCarousel highlights={featuredHighlights} />
+            )}
+          </div>
+        </section>
+
+        {/* Date Filter */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-white mb-4">Browse Matches by Date</h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Select a date to view past results, live matches, and upcoming fixtures from the top 10 leagues worldwide.
+            </p>
+          </div>
+          <DateFilter onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+        </div>
+
+        {/* Date-filtered Matches Section with integrated filter */}
+        {selectedDate && (
+          <MatchFeedByLeague 
+            leaguesWithMatches={dateMatches}
+            loading={dateMatchesLoading}
+            selectedDate={selectedDate}
+            isToday={isToday}
+            selectedLeagueId={selectedLeagueId}
+            onLeagueSelect={handleLeagueSelect}
           />
         )}
-        
-        {/* Sidebar - shows on desktop when there are matches, or when toggled on mobile */}
-        {selectedDate && (
-          <>
-            {/* Desktop sidebar */}
-            <div className="hidden lg:block lg:w-80 flex-shrink-0">
-              <div className="fixed h-full w-80 top-16">
-                <LeagueFilterSidebar
-                  selectedLeagueId={selectedLeagueId}
-                  onLeagueSelect={handleLeagueSelect}
-                  availableLeagueIds={dateMatches.map(league => league.id)}
-                  hasMatches={dateMatches.length > 0}
-                />
-              </div>
-            </div>
-            
-            {/* Mobile sidebar */}
-            <div className={`fixed inset-y-0 left-0 z-50 w-80 transform transition-transform duration-300 ease-in-out lg:hidden ${
-              sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}>
-              <div className="h-full pt-16">
-                <LeagueFilterSidebar
-                  selectedLeagueId={selectedLeagueId}
-                  onLeagueSelect={handleLeagueSelect}
-                  availableLeagueIds={dateMatches.map(league => league.id)}
-                  hasMatches={dateMatches.length > 0}
-                />
-              </div>
-            </div>
-          </>
-        )}
-        
-        {/* Main content */}
-        <main className={`flex-1 pb-10 ${selectedDate ? 'lg:ml-0' : ''}`}>
-          {/* Filter toggle button for mobile */}
-          {selectedDate && (
-            <div className="lg:hidden sticky top-16 z-30 bg-[#111111] border-b border-gray-800 p-4">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                <span className="text-sm font-medium">Filter Leagues</span>
-                {selectedLeagueId && (
-                  <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">1</span>
-                )}
-              </button>
-            </div>
-          )}
 
-          {/* Hero Carousel */}
-          <section className="mb-12">
-            <div className="w-full mx-auto px-0 sm:px-0">
-              {loading ? (
-                <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
-              ) : (
-                <HeroCarousel highlights={featuredHighlights} />
-              )}
-            </div>
-          </section>
-
-          {/* Date Filter */}
+        {/* Show message when no date is selected (shouldn't happen now, but good fallback) */}
+        {!selectedDate && !loading && (
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-white mb-4">Browse Matches by Date</h2>
-              <p className="text-gray-400 text-sm mb-6">
-                Select a date to view past results, live matches, and upcoming fixtures from the top 10 leagues worldwide.
+            <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Welcome to League Lens</h3>
+              <p className="text-gray-400">
+                Select a date above to view matches from the world's top football leagues.
               </p>
             </div>
-            <DateFilter onDateSelect={handleDateSelect} selectedDate={selectedDate} />
           </div>
-
-          {/* Date-filtered Matches Section */}
-          {selectedDate && (
-            <MatchFeedByLeague 
-              leaguesWithMatches={dateMatches}
-              loading={dateMatchesLoading}
-              selectedDate={selectedDate}
-              isToday={isToday}
-              selectedLeagueId={selectedLeagueId}
-            />
-          )}
-        </main>
-      </div>
+        )}
+      </main>
 
       {/* Footer */}
       <footer className="bg-[#222222] py-8">
