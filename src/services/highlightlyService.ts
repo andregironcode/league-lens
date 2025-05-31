@@ -1731,310 +1731,138 @@ export const highlightlyService = {
   },
 
   /**
-   * Get matches for a specific date from top 5 leagues (past, live, upcoming)
-   * Uses date filtering to show only matches from the specified date
+   * Get matches for a specific date - only returns leagues that have matches
+   * Groups matches accurately by league.id and ensures correct league attribution
    */
   async getMatchesForDate(dateString: string): Promise<import('@/types').LeagueWithMatches[]> {
     try {
       console.log(`[Highlightly] Fetching matches for date: ${dateString}`);
       
-      // Step 1: Get all available leagues
-      console.log('[Highlightly] Step 1: Fetching all leagues');
-      const leaguesResponse = await highlightlyClient.getLeagues();
+      // Define league mapping for proper attribution and logos
+      const leagueMapping = new Map<string, { name: string, logo: string, priority: number }>([
+        // Top domestic leagues with known IDs
+        ['33973', { name: 'Premier League', logo: '/leagues/premier-league.png', priority: 1 }],
+        ['2486', { name: 'La Liga', logo: '/leagues/la-liga.png', priority: 2 }],
+        ['94', { name: 'Serie A', logo: '/leagues/serie-a.png', priority: 3 }],
+        ['67162', { name: 'Bundesliga', logo: '/leagues/bundesliga.png', priority: 4 }],
+        ['52695', { name: 'Ligue 1', logo: '/leagues/ligue-1.png', priority: 5 }],
+        ['61205', { name: 'Brasileirão Serie A', logo: '/leagues/brasileirao.png', priority: 6 }],
+        ['2', { name: 'UEFA Champions League', logo: '/leagues/champions-league.png', priority: 7 }],
+        // Additional mappings can be added as needed
+      ]);
       
-      if (!leaguesResponse.data || !Array.isArray(leaguesResponse.data)) {
-        console.error('[Highlightly] No leagues data found');
+      // Fetch all matches for the specified date in one API call
+      console.log(`[Highlightly] Fetching all matches for ${dateString}`);
+      const allMatchesResponse = await highlightlyClient.getMatches({
+        date: dateString,
+        limit: '100' // Get enough matches to capture all leagues
+      });
+      
+      if (!allMatchesResponse.data || !Array.isArray(allMatchesResponse.data)) {
+        console.log('[Highlightly] No matches data returned from API');
         return [];
       }
       
-      console.log(`[Highlightly] Found ${leaguesResponse.data.length} leagues`);
+      console.log(`[Highlightly] Found ${allMatchesResponse.data.length} total matches for ${dateString}`);
       
-      // Step 2: Identify top 5 European domestic leagues we want to show
-      const targetLeagueNames = [
-        'Premier League',
-        'English Premier League', 
-        'La Liga',
-        'LaLiga',
-        'Serie A',
-        'Bundesliga',
-        'Ligue 1'
-      ];
+      // Group matches by league.id (most reliable grouping method)
+      const matchesByLeagueId = new Map<string, { matches: any[], leagueInfo: any }>();
       
-      // Find matching leagues, but exclude Champions League variations
-      const targetLeagues = leaguesResponse.data.filter((league: any) => {
-        if (!league.name) return false;
+      allMatchesResponse.data.forEach((match: any) => {
+        // Verify match is on the correct date
+        const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || match.utcDate);
+        const matchDateString = matchDate.toISOString().split('T')[0];
         
-        const leagueName = league.name.toLowerCase();
-        
-        // Exclude all Champions League variations
-        if (leagueName.includes('champions league') || 
-            leagueName.includes('champions cup') ||
-            leagueName.includes('uefa champions') ||
-            leagueName.includes('caf champions') ||
-            leagueName.includes('concacaf champions') ||
-            leagueName.includes('afc champions') ||
-            leagueName.includes('ofc champions')) {
-          return false;
+        if (matchDateString !== dateString) {
+          return; // Skip matches not on the requested date
         }
         
-        // Only include if it matches our target European domestic leagues
-        return targetLeagueNames.some(target => {
-          const targetLower = target.toLowerCase();
-          
-          // For Serie A, ensure it's not Brazilian Serie A
-          if (target === 'Serie A') {
-            return leagueName.includes('serie a') && 
-                   !leagueName.includes('brasil') && 
-                   !leagueName.includes('brazil') &&
-                   !leagueName.includes('brasileir');
-          }
-          
-          // For Premier League, prefer English Premier League
-          if (target === 'Premier League') {
-            return leagueName.includes('premier league') &&
-                   (leagueName.includes('english') || 
-                    leagueName.includes('england') ||
-                    !leagueName.includes('australian') &&
-                    !leagueName.includes('south african'));
-          }
-          
-          return leagueName.includes(targetLower);
-        });
+        // Extract league information - prioritize league.id for accurate grouping
+        const leagueId = (match.league?.id || match.competition?.id || match.tournament?.id)?.toString();
+        const apiLeagueName = match.league?.name || match.competition?.name || match.tournament?.name || 'Unknown League';
+        const apiLeagueLogo = match.league?.logo || match.competition?.logo || match.tournament?.logo;
+        
+        if (!leagueId) {
+          console.log(`[Highlightly] Skipping match without league ID: ${match.id}`);
+          return; // Skip matches without league ID
+        }
+        
+        // Get league info from our mapping or use API data with proper logo fallback
+        let leagueInfo;
+        if (leagueMapping.has(leagueId)) {
+          // Use our curated mapping for known leagues
+          const mappedLeague = leagueMapping.get(leagueId)!;
+          leagueInfo = {
+            id: leagueId,
+            name: mappedLeague.name,
+            logo: mappedLeague.logo,
+            priority: mappedLeague.priority
+          };
+          console.log(`[Highlightly] ✅ Mapped match to known league: ${mappedLeague.name} (ID: ${leagueId})`);
+        } else {
+          // Use API data for unknown leagues but ensure proper logo fallback
+          leagueInfo = {
+            id: leagueId,
+            name: apiLeagueName,
+            logo: this.getLeagueLogoFromName(apiLeagueName, apiLeagueLogo),
+            priority: 999 // Lower priority for unmapped leagues
+          };
+          console.log(`[Highlightly] 📝 Using API data for unmapped league: ${apiLeagueName} (ID: ${leagueId})`);
+        }
+        
+        // Add match to the group for this league ID
+        if (!matchesByLeagueId.has(leagueId)) {
+          matchesByLeagueId.set(leagueId, {
+            matches: [],
+            leagueInfo
+          });
+        }
+        
+        matchesByLeagueId.get(leagueId)!.matches.push(match);
       });
       
-      console.log(`[Highlightly] Found ${targetLeagues.length} target European domestic leagues:`, 
-        targetLeagues.map((l: any) => `${l.name} (ID: ${l.id})`));
+      console.log(`[Highlightly] Grouped matches into ${matchesByLeagueId.size} leagues`);
       
-      // Step 3: Get matches for each target league for the specified date (limit to 5)
+      // Convert grouped matches to LeagueWithMatches format
       const leaguesWithMatches: import('@/types').LeagueWithMatches[] = [];
       
-      for (const league of targetLeagues.slice(0, 5)) { // Limit to exactly 5 leagues
-        try {
-          console.log(`[Highlightly] Fetching matches for ${league.name} (ID: ${league.id}) on ${dateString}`);
-          
-          // Use the correct leagueId and date parameters from the API documentation
-          const matchesResponse = await highlightlyClient.getMatches({
-            leagueId: league.id.toString(), // League filter
-            date: dateString, // Specific date filter (YYYY-MM-DD)
-            limit: '20' // Get more matches to ensure we capture all matches for this date
-          });
-          
-          if (!matchesResponse.data || !Array.isArray(matchesResponse.data)) {
-            console.log(`[Highlightly] No matches found for ${league.name} on ${dateString}`);
-            continue;
-          }
-          
-          console.log(`[Highlightly] Found ${matchesResponse.data.length} matches for ${league.name} on ${dateString}`);
-          
-          // DEBUG: Log first match structure to understand the API response
-          if (matchesResponse.data.length > 0) {
-            console.log(`[Highlightly] Sample match structure for ${league.name}:`, 
-              JSON.stringify(matchesResponse.data[0], null, 2));
-          }
-          
-          // Step 4: Process ALL matches for the specified date (finished, live, upcoming)
-          const dateMatches = matchesResponse.data.filter((match: any) => {
-            // Parse match date to ensure it's actually the requested date
-            const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || match.utcDate);
-            const matchDateString = matchDate.toISOString().split('T')[0];
-            
-            // Only include matches that are actually on the requested date
-            const isRequestedDate = matchDateString === dateString;
-            
-            console.log(`[Highlightly] Match ${match.id}: date=${matchDateString}, isRequestedDate=${isRequestedDate}`);
-            
-            return isRequestedDate;
-          });
-          
-          console.log(`[Highlightly] Found ${dateMatches.length} matches for ${dateString} for ${league.name}`);
-          
-          if (dateMatches.length === 0) {
-            continue; // Skip leagues with no matches on this date
-          }
-          
-          // Step 5: Transform matches to our format using REAL API data
-          const transformedMatches: import('@/types').Match[] = dateMatches
-            .map((match: any) => {
-              // Extract date from multiple possible fields
-              const matchDate = new Date(
-                match.date || 
-                match.fixture?.date || 
-                match.kickoff || 
-                match.utcDate || 
-                new Date()
-              );
-              
-              // Determine match status based on various possible fields
-              let status = 'upcoming'; // Default status
-              const now = new Date();
-              const matchTime = matchDate.getTime();
-              const currentTime = now.getTime();
-              
-              // Check for finished status indicators
-              const isFinished = 
-                match.state?.description === 'Finished' ||
-                match.state?.description === 'Finished after penalties' ||
-                match.state?.description === 'Finished after extra time' ||
-                match.fixture?.status?.long === 'Match Finished' ||
-                match.fixture?.status?.short === 'FT' ||
-                match.status === 'finished' ||
-                match.status === 'FT';
-              
-              // Check for live status indicators
-              const isLive = 
-                match.state?.description === 'In Progress' ||
-                match.state?.description === 'First Half' ||
-                match.state?.description === 'Second Half' ||
-                match.state?.description === 'Half Time' ||
-                match.fixture?.status?.long === 'In Progress' ||
-                match.fixture?.status?.short === 'LIVE' ||
-                match.status === 'live' ||
-                match.status === 'LIVE';
-              
-              if (isFinished) {
-                status = 'finished';
-              } else if (isLive) {
-                status = 'live';
-              } else if (matchTime <= currentTime) {
-                // If match time has passed but it's not marked as finished or live, assume finished
-                status = 'finished';
-              } else {
-                status = 'upcoming';
-              }
-              
-              // Extract score data from multiple possible fields
-              let homeScore = 0;
-              let awayScore = 0;
-              let hasScore = false;
-              
-              // Try different score field structures
-              if (match.state?.score?.current) {
-                // Parse score from state.score.current (e.g., "2 - 0")
-                const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
-                if (scoreMatch) {
-                  homeScore = parseInt(scoreMatch[1], 10);
-                  awayScore = parseInt(scoreMatch[2], 10);
-                  hasScore = true;
-                }
-              } else if (match.score?.fulltime) {
-                // Use score.fulltime structure
-                homeScore = match.score.fulltime.home || 0;
-                awayScore = match.score.fulltime.away || 0;
-                hasScore = (match.score.fulltime.home !== undefined && match.score.fulltime.away !== undefined);
-              } else if (match.goals) {
-                // Use goals structure
-                homeScore = match.goals.home || 0;
-                awayScore = match.goals.away || 0;
-                hasScore = (match.goals.home !== undefined && match.goals.away !== undefined);
-              } else if (match.fixture?.score?.fulltime) {
-                // Use fixture.score.fulltime structure
-                homeScore = match.fixture.score.fulltime.home || 0;
-                awayScore = match.fixture.score.fulltime.away || 0;
-                hasScore = (match.fixture.score.fulltime.home !== undefined && match.fixture.score.fulltime.away !== undefined);
-              }
-              
-              // Extract team information from multiple possible structures
-              const homeTeam = {
-                id: (match.homeTeam?.id || match.teams?.home?.id || match.fixture?.teams?.home?.id || `home-${Date.now()}`).toString(),
-                name: match.homeTeam?.name || match.teams?.home?.name || match.fixture?.teams?.home?.name || 'Home Team',
-                logo: match.homeTeam?.logo || match.teams?.home?.logo || match.fixture?.teams?.home?.logo || '/teams/default.png'
-              };
-              
-              const awayTeam = {
-                id: (match.awayTeam?.id || match.teams?.away?.id || match.fixture?.teams?.away?.id || `away-${Date.now()}`).toString(),
-                name: match.awayTeam?.name || match.teams?.away?.name || match.fixture?.teams?.away?.name || 'Away Team',
-                logo: match.awayTeam?.logo || match.teams?.away?.logo || match.fixture?.teams?.away?.logo || '/teams/default.png'
-              };
-              
-              // Generate match ID from multiple possible fields
-              const matchId = (
-                match.fixture?.id || 
-                match.id || 
-                match.match_id || 
-                `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-              ).toString();
-              
-              // Extract venue information
-              const venue = match.fixture?.venue?.name || match.venue?.name || match.venue || undefined;
-              
-              // Debug logging for match data extraction
-              console.log(`[Highlightly] ✅ MATCH DATA for ${homeTeam.name} vs ${awayTeam.name}:`, {
-                matchId,
-                status,
-                score: hasScore ? `${homeScore}-${awayScore}` : 'No score',
-                date: matchDate.toISOString(),
-                venue,
-                league: league.name,
-                homeTeam: homeTeam.name,
-                awayTeam: awayTeam.name
-              });
-              
-              return {
-                id: matchId,
-                homeTeam,
-                awayTeam,
-                date: matchDate.toISOString(),
-                time: matchDate.toLocaleTimeString('en-US', { 
-                  hour: '2-digit', 
-                  minute: '2-digit',
-                  hour12: false 
-                }),
-                status,
-                score: hasScore ? {
-                  home: homeScore,
-                  away: awayScore
-                } : undefined,
-                competition: {
-                  id: league.id.toString(),
-                  name: league.name,
-                  logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`
-                },
-                venue
-              };
-            })
-            .sort((a, b) => {
-              // Sort matches by time: upcoming first, then live, then finished
-              const statusOrder = { 'upcoming': 0, 'live': 1, 'finished': 2 };
-              const aStatusOrder = statusOrder[a.status as keyof typeof statusOrder] ?? 3;
-              const bStatusOrder = statusOrder[b.status as keyof typeof statusOrder] ?? 3;
-              
-              if (aStatusOrder !== bStatusOrder) {
-                return aStatusOrder - bStatusOrder;
-              }
-              
-              // Within same status, sort by time
-              return new Date(a.date).getTime() - new Date(b.date).getTime();
-            });
-          
-          // Add to results
+      for (const [leagueId, { matches, leagueInfo }] of matchesByLeagueId.entries()) {
+        console.log(`[Highlightly] Processing ${matches.length} matches for ${leagueInfo.name} (ID: ${leagueId})`);
+        
+        const processedMatches = await this.processLeagueMatches(
+          matches,
+          leagueInfo.name,
+          leagueId,
+          dateString,
+          leagueInfo.logo
+        );
+        
+        if (processedMatches && processedMatches.length > 0) {
           leaguesWithMatches.push({
-            id: league.id.toString(),
-            name: league.name,
-            logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`,
-            matches: transformedMatches
+            id: leagueId,
+            name: leagueInfo.name,
+            logo: leagueInfo.logo,
+            matches: processedMatches
           });
-          
-          console.log(`[Highlightly] Successfully processed ${transformedMatches.length} matches for ${league.name} on ${dateString}`);
-          
-        } catch (error) {
-          console.error(`[Highlightly] Error fetching matches for ${league.name} on ${dateString}:`, error);
-          continue; // Continue with other leagues
+          console.log(`[Highlightly] ✅ Added ${processedMatches.length} matches for ${leagueInfo.name}`);
         }
       }
       
-      // Step 6: Sort leagues by priority (top 5 European leagues)
-      const priorityOrder = ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1'];
+      // Sort leagues by priority (known leagues first, then alphabetically)
       leaguesWithMatches.sort((a, b) => {
-        const aIndex = priorityOrder.findIndex(p => a.name.toLowerCase().includes(p.toLowerCase()));
-        const bIndex = priorityOrder.findIndex(p => b.name.toLowerCase().includes(p.toLowerCase()));
+        const aMapping = leagueMapping.get(a.id);
+        const bMapping = leagueMapping.get(b.id);
         
-        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
+        if (aMapping && bMapping) {
+          return aMapping.priority - bMapping.priority;
+        }
+        if (aMapping && !bMapping) return -1;
+        if (!aMapping && bMapping) return 1;
+        
         return a.name.localeCompare(b.name);
       });
       
-      console.log(`[Highlightly] Successfully fetched matches for ${leaguesWithMatches.length} leagues on ${dateString}:`,
+      console.log(`[Highlightly] Successfully returned ${leaguesWithMatches.length} leagues with matches:`,
         leaguesWithMatches.map(l => `${l.name} (${l.matches.length} matches)`));
       
       return leaguesWithMatches;
@@ -2043,6 +1871,281 @@ export const highlightlyService = {
       console.error(`[Highlightly] Error in getMatchesForDate for ${dateString}:`, error);
       return [];
     }
+  },
+
+  /**
+   * Get league logo from name with proper fallback handling
+   */
+  getLeagueLogoFromName(leagueName: string, apiLogo?: string): string {
+    // If API provides a logo, use it
+    if (apiLogo && apiLogo.length > 0) {
+      return apiLogo;
+    }
+    
+    // Logo mapping for common league names
+    const nameToLogo: {[key: string]: string} = {
+      'premier league': '/leagues/premier-league.png',
+      'english premier league': '/leagues/premier-league.png',
+      'la liga': '/leagues/la-liga.png',
+      'laliga': '/leagues/la-liga.png',
+      'serie a': '/leagues/serie-a.png',
+      'italian serie a': '/leagues/serie-a.png',
+      'bundesliga': '/leagues/bundesliga.png',
+      'german bundesliga': '/leagues/bundesliga.png',
+      'ligue 1': '/leagues/ligue-1.png',
+      'french ligue 1': '/leagues/ligue-1.png',
+      'champions league': '/leagues/champions-league.png',
+      'uefa champions league': '/leagues/champions-league.png',
+      'europa league': '/leagues/europa-league.png',
+      'uefa europa league': '/leagues/europa-league.png',
+      'brasileirao': '/leagues/brasileirao.png',
+      'brazilian serie a': '/leagues/brasileirao.png',
+      'eredivisie': '/leagues/eredivisie.png',
+      'mls': '/leagues/mls.png',
+      'major league soccer': '/leagues/mls.png',
+    };
+    
+    const lowerName = leagueName.toLowerCase();
+    
+    // Check for exact matches first
+    if (nameToLogo[lowerName]) {
+      return nameToLogo[lowerName];
+    }
+    
+    // Check for partial matches
+    for (const [key, logo] of Object.entries(nameToLogo)) {
+      if (lowerName.includes(key) || key.includes(lowerName)) {
+        return logo;
+      }
+    }
+    
+    // Fallback to default logo
+    return '/leagues/default.png';
+  },
+
+  /**
+   * Process and transform matches for a specific league with robust logo handling
+   */
+  async processLeagueMatches(
+    matches: any[],
+    leagueName: string,
+    leagueId: string,
+    dateString: string,
+    leagueLogo: string
+  ): Promise<import('@/types').Match[]> {
+    if (!matches || matches.length === 0) {
+      return [];
+    }
+    
+    try {
+      // Filter matches to ensure they're on the correct date
+      const dateMatches = matches.filter((match: any) => {
+        const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || match.utcDate);
+        const matchDateString = matchDate.toISOString().split('T')[0];
+        return matchDateString === dateString;
+      });
+      
+      // Transform matches to our format with robust error handling
+      const transformedMatches: import('@/types').Match[] = dateMatches
+        .map((match: any) => {
+          try {
+            // Extract date from multiple possible fields
+            const matchDate = new Date(
+              match.date || 
+              match.fixture?.date || 
+              match.kickoff || 
+              match.utcDate || 
+              new Date()
+            );
+            
+            // Determine match status
+            let status = 'upcoming';
+            const now = new Date();
+            const matchTime = matchDate.getTime();
+            const currentTime = now.getTime();
+            
+            // Check for finished status indicators
+            const isFinished = 
+              match.state?.description === 'Finished' ||
+              match.state?.description === 'Finished after penalties' ||
+              match.state?.description === 'Finished after extra time' ||
+              match.fixture?.status?.long === 'Match Finished' ||
+              match.fixture?.status?.short === 'FT' ||
+              match.status === 'finished' ||
+              match.status === 'FT';
+            
+            // Check for live status indicators
+            const isLive = 
+              match.state?.description === 'In Progress' ||
+              match.state?.description === 'First Half' ||
+              match.state?.description === 'Second Half' ||
+              match.state?.description === 'Half Time' ||
+              match.fixture?.status?.long === 'In Progress' ||
+              match.fixture?.status?.short === 'LIVE' ||
+              match.status === 'live' ||
+              match.status === 'LIVE';
+            
+            if (isFinished) {
+              status = 'finished';
+            } else if (isLive) {
+              status = 'live';
+            } else if (matchTime <= currentTime) {
+              status = 'finished';
+            } else {
+              status = 'upcoming';
+            }
+            
+            // Extract score data
+            let homeScore = 0;
+            let awayScore = 0;
+            let hasScore = false;
+            
+            if (match.state?.score?.current) {
+              const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+              if (scoreMatch) {
+                homeScore = parseInt(scoreMatch[1], 10);
+                awayScore = parseInt(scoreMatch[2], 10);
+                hasScore = true;
+              }
+            } else if (match.score?.fulltime) {
+              homeScore = match.score.fulltime.home || 0;
+              awayScore = match.score.fulltime.away || 0;
+              hasScore = (match.score.fulltime.home !== undefined && match.score.fulltime.away !== undefined);
+            } else if (match.goals) {
+              homeScore = match.goals.home || 0;
+              awayScore = match.goals.away || 0;
+              hasScore = (match.goals.home !== undefined && match.goals.away !== undefined);
+            } else if (match.fixture?.score?.fulltime) {
+              homeScore = match.fixture.score.fulltime.home || 0;
+              awayScore = match.fixture.score.fulltime.away || 0;
+              hasScore = (match.fixture.score.fulltime.home !== undefined && match.fixture.score.fulltime.away !== undefined);
+            }
+            
+            // Extract team information with robust logo fallback
+            const homeTeam = {
+              id: (match.homeTeam?.id || match.teams?.home?.id || match.fixture?.teams?.home?.id || `home-${Date.now()}`).toString(),
+              name: match.homeTeam?.name || match.teams?.home?.name || match.fixture?.teams?.home?.name || 'Home Team',
+              logo: this.getTeamLogoWithFallback(
+                match.homeTeam?.logo || match.teams?.home?.logo || match.fixture?.teams?.home?.logo,
+                match.homeTeam?.name || match.teams?.home?.name || match.fixture?.teams?.home?.name
+              )
+            };
+            
+            const awayTeam = {
+              id: (match.awayTeam?.id || match.teams?.away?.id || match.fixture?.teams?.away?.id || `away-${Date.now()}`).toString(),
+              name: match.awayTeam?.name || match.teams?.away?.name || match.fixture?.teams?.away?.name || 'Away Team',
+              logo: this.getTeamLogoWithFallback(
+                match.awayTeam?.logo || match.teams?.away?.logo || match.fixture?.teams?.away?.logo,
+                match.awayTeam?.name || match.teams?.away?.name || match.fixture?.teams?.away?.name
+              )
+            };
+            
+            // Generate match ID
+            const matchId = (
+              match.fixture?.id || 
+              match.id || 
+              match.match_id || 
+              `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+            ).toString();
+            
+            // Extract venue information
+            const venue = match.fixture?.venue?.name || match.venue?.name || match.venue || undefined;
+            
+            return {
+              id: matchId,
+              homeTeam,
+              awayTeam,
+              date: matchDate.toISOString(),
+              time: matchDate.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+              }),
+              status,
+              score: hasScore ? {
+                home: homeScore,
+                away: awayScore
+              } : undefined,
+              competition: {
+                id: leagueId,
+                name: leagueName,
+                logo: leagueLogo
+              },
+              venue
+            };
+            
+          } catch (matchError) {
+            console.error(`[Highlightly] Error processing individual match:`, matchError);
+            return null;
+          }
+        })
+        .filter(match => match !== null) // Remove failed matches
+        .sort((a, b) => {
+          // Sort matches by time: upcoming first, then live, then finished
+          const statusOrder = { 'upcoming': 0, 'live': 1, 'finished': 2 };
+          const aStatusOrder = statusOrder[a.status as keyof typeof statusOrder] ?? 3;
+          const bStatusOrder = statusOrder[b.status as keyof typeof statusOrder] ?? 3;
+          
+          if (aStatusOrder !== bStatusOrder) {
+            return aStatusOrder - bStatusOrder;
+          }
+          
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        });
+      
+      return transformedMatches;
+      
+    } catch (error) {
+      console.error(`[Highlightly] Error processing matches for ${leagueName}:`, error);
+      return [];
+    }
+  },
+
+  /**
+   * Get team logo with fallback handling
+   */
+  getTeamLogoWithFallback(apiLogo: string | undefined, teamName: string | undefined): string {
+    if (apiLogo && apiLogo.length > 0) {
+      return apiLogo;
+    }
+    
+    // Generate fallback logo path based on team name
+    if (teamName) {
+      const normalizedName = teamName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+      return `/teams/${normalizedName}.png`;
+    }
+    
+    return '/teams/default.png';
+  },
+
+  /**
+   * Get competition logo with fallback handling
+   */
+  getCompetitionLogoWithFallback(competitionName: string): string {
+    const logoMap: {[key: string]: string} = {
+      'Premier League': '/leagues/premier-league.png',
+      'La Liga': '/leagues/la-liga.png',
+      'Serie A': '/leagues/serie-a.png',
+      'Bundesliga': '/leagues/bundesliga.png',
+      'Ligue 1': '/leagues/ligue-1.png',
+      'Eredivisie': '/leagues/eredivisie.png',
+      'Liga Portugal': '/leagues/liga-portugal.png',
+      'MLS': '/leagues/mls.png',
+      'Brasileirão Serie A': '/leagues/brasileirao.png',
+      'Argentine Primera División': '/leagues/argentine-primera.png',
+      'UEFA Champions League': '/leagues/champions-league.png',
+      'UEFA Europa League': '/leagues/europa-league.png',
+      'UEFA Conference League': '/leagues/conference-league.png',
+      'FIFA World Cup': '/leagues/world-cup.png',
+      'Euro Championship': '/leagues/euro.png',
+      'Copa America': '/leagues/copa-america.png',
+      'Africa Cup of Nations': '/leagues/afcon.png',
+      'AFC Champions League': '/leagues/afc-champions.png',
+      'CONCACAF Champions Cup': '/leagues/concacaf-champions.png',
+      'Club World Cup': '/leagues/club-world-cup.png'
+    };
+    
+    return logoMap[competitionName] || '/leagues/default.png';
   }
 };
 

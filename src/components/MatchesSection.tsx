@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { LeagueWithMatches } from '@/types';
 
 interface MatchesSectionProps {
@@ -95,18 +95,21 @@ const formatSelectedDate = (dateString: string): string => {
 const MatchCard: React.FC<{ match: any }> = ({ match }) => {
   const statusColor = getMatchStatusColor(match.status);
   const statusText = getMatchStatusText(match.status, match.time);
+  const isLive = match.status === 'live';
   
   return (
-    <div className="bg-gray-800/50 rounded-lg p-4 hover:bg-gray-800/70 transition-colors cursor-pointer border border-gray-700/50">
-      {/* Match Status */}
+    <div className={`bg-gray-800/50 rounded-lg p-4 hover:bg-gray-800/70 transition-colors cursor-pointer border ${
+      isLive ? 'border-red-500/50 bg-red-900/10' : 'border-gray-700/50'
+    }`}>
+      {/* Match Status with Enhanced LIVE Badge */}
       <div className="flex justify-between items-center mb-3">
         <span className={`px-2 py-1 rounded text-xs font-medium border ${statusColor}`}>
           {statusText}
         </span>
-        {match.status === 'live' && (
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-red-500 text-xs font-medium">LIVE</span>
+        {isLive && (
+          <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded-full">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span className="text-white text-xs font-bold tracking-wide">LIVE</span>
           </div>
         )}
       </div>
@@ -119,7 +122,10 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
             alt={match.homeTeam.name}
             className="w-6 h-6 object-contain"
             onError={(e) => {
-              e.currentTarget.src = '/teams/default.png';
+              const target = e.currentTarget;
+              if (!target.src.includes('/teams/default.png')) {
+                target.src = '/teams/default.png';
+              }
             }}
           />
           <span className="text-white text-sm font-medium truncate">
@@ -128,7 +134,9 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
         </div>
         
         {match.score ? (
-          <div className="px-3 py-1 bg-gray-700 rounded text-white font-bold text-sm">
+          <div className={`px-3 py-1 rounded text-white font-bold text-sm ${
+            isLive ? 'bg-red-600' : 'bg-gray-700'
+          }`}>
             {match.score.home} - {match.score.away}
           </div>
         ) : (
@@ -146,7 +154,10 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
             alt={match.awayTeam.name}
             className="w-6 h-6 object-contain"
             onError={(e) => {
-              e.currentTarget.src = '/teams/default.png';
+              const target = e.currentTarget;
+              if (!target.src.includes('/teams/default.png')) {
+                target.src = '/teams/default.png';
+              }
             }}
           />
         </div>
@@ -157,57 +168,103 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
         <span>{match.competition.name}</span>
         {match.venue && <span>{match.venue}</span>}
       </div>
+      
+      {/* Live Match Indicator Bar */}
+      {isLive && (
+        <div className="mt-3 h-1 bg-red-600/20 rounded-full overflow-hidden">
+          <div className="h-full bg-red-500 rounded-full animate-pulse"></div>
+        </div>
+      )}
     </div>
   );
 };
 
-const LeagueMatchesRow: React.FC<{ league: LeagueWithMatches }> = React.memo(({ league }) => {
+interface CollapsibleLeagueProps {
+  league: LeagueWithMatches;
+  defaultExpanded?: boolean;
+}
+
+const CollapsibleLeague: React.FC<CollapsibleLeagueProps> = ({ league, defaultExpanded = false }) => {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  
   const liveMatches = league.matches.filter(m => m.status === 'live').length;
   const upcomingMatches = league.matches.filter(m => m.status === 'upcoming').length;
   const finishedMatches = league.matches.filter(m => m.status === 'finished').length;
   
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+  
   return (
-    <div className="mb-10">
-      <div className="flex items-center space-x-4 mb-6">
-        <img 
-          src={league.logo} 
-          alt={league.name}
-          className="w-10 h-10 object-contain flex-shrink-0"
-          onError={(e) => {
-            e.currentTarget.src = '/leagues/default.png';
-          }}
-        />
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-white">{league.name}</h3>
-          <div className="flex items-center space-x-4 text-sm text-gray-400">
-            <span>{league.matches.length} {league.matches.length === 1 ? 'match' : 'matches'}</span>
-            {liveMatches > 0 && (
-              <span className="text-red-500 font-medium">
-                {liveMatches} live
+    <div className="border border-gray-700/50 rounded-lg overflow-hidden bg-gray-800/30">
+      {/* League Header - Clickable to toggle */}
+      <button
+        onClick={toggleExpanded}
+        className="w-full flex items-center justify-between p-5 hover:bg-gray-700/30 transition-colors text-left"
+      >
+        <div className="flex items-center space-x-4">
+          <img 
+            src={league.logo} 
+            alt={league.name}
+            className="w-10 h-10 object-contain flex-shrink-0"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.src.includes('/leagues/default.png')) {
+                target.src = '/leagues/default.png';
+              }
+            }}
+          />
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-white">{league.name}</h3>
+            <div className="flex items-center space-x-4 text-sm">
+              <span className="text-gray-400">
+                {league.matches.length} {league.matches.length === 1 ? 'match' : 'matches'}
               </span>
-            )}
-            {upcomingMatches > 0 && (
-              <span className="text-blue-500">
-                {upcomingMatches} upcoming
-              </span>
-            )}
-            {finishedMatches > 0 && (
-              <span className="text-green-500">
-                {finishedMatches} finished
-              </span>
-            )}
+              {liveMatches > 0 && (
+                <span className="text-red-500 font-medium">
+                  {liveMatches} live
+                </span>
+              )}
+              {upcomingMatches > 0 && (
+                <span className="text-blue-500">
+                  {upcomingMatches} upcoming
+                </span>
+              )}
+              {finishedMatches > 0 && (
+                <span className="text-green-500">
+                  {finishedMatches} finished
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+        
+        {/* Expand/Collapse Icon */}
+        <div className="text-gray-400">
+          <svg 
+            className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {league.matches.map((match) => (
-          <MatchCard key={match.id} match={match} />
-        ))}
-      </div>
+      {/* League Matches - Collapsible */}
+      {isExpanded && (
+        <div className="px-5 pb-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {league.matches.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
-});
+};
 
 const MatchesSection: React.FC<MatchesSectionProps> = ({ 
   leaguesWithMatches, 
@@ -255,7 +312,7 @@ const MatchesSection: React.FC<MatchesSectionProps> = ({
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">No matches found</h3>
             <p className="text-gray-400">
-              There are no matches scheduled for {dateLabel.toLowerCase()}.
+              No matches scheduled for {dateLabel.toLowerCase()}.
             </p>
           </div>
         </div>
@@ -263,40 +320,11 @@ const MatchesSection: React.FC<MatchesSectionProps> = ({
     );
   }
 
-  // Filter out leagues with no matches
-  const leaguesWithAnyMatches = leaguesWithMatches.filter(league => league.matches.length > 0);
-  
-  if (leaguesWithAnyMatches.length === 0) {
-    return (
-      <section className="mb-16">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="text-2xl font-bold text-white mb-8">
-            {dateLabel} Matches
-            {isToday && (
-              <span className="ml-2 px-2 py-1 bg-yellow-500 text-black text-sm rounded font-medium">
-                LIVE
-              </span>
-            )}
-          </h2>
-          <div className="bg-gray-800/50 rounded-lg p-8 text-center border border-gray-700/50">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">No matches available</h3>
-            <p className="text-gray-400">
-              No matches found in the top leagues for {dateLabel.toLowerCase()}.
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const totalMatches = leaguesWithAnyMatches.reduce((total, league) => total + league.matches.length, 0);
-  const liveMatches = leaguesWithAnyMatches.reduce((total, league) => 
+  // Calculate statistics - all leagues returned have matches
+  const totalMatches = leaguesWithMatches.reduce((total, league) => total + league.matches.length, 0);
+  const liveMatches = leaguesWithMatches.reduce((total, league) => 
     total + league.matches.filter(m => m.status === 'live').length, 0);
+  const totalLeagues = leaguesWithMatches.length;
 
   return (
     <section className="mb-16">
@@ -310,19 +338,25 @@ const MatchesSection: React.FC<MatchesSectionProps> = ({
               </span>
             )}
           </h2>
-          <div className="text-sm text-gray-400">
-            {totalMatches} {totalMatches === 1 ? 'match' : 'matches'}
+          <div className="text-sm text-gray-400 text-right">
+            <div>
+              {totalMatches} {totalMatches === 1 ? 'match' : 'matches'} across {totalLeagues} {totalLeagues === 1 ? 'league' : 'leagues'}
+            </div>
             {liveMatches > 0 && (
-              <span className="ml-2 text-red-500 font-medium">
-                • {liveMatches} live
-              </span>
+              <div className="text-red-500 font-medium">
+                {liveMatches} live {liveMatches === 1 ? 'match' : 'matches'}
+              </div>
             )}
           </div>
         </div>
         
-        <div className="space-y-8">
-          {leaguesWithAnyMatches.map((league) => (
-            <LeagueMatchesRow key={league.id} league={league} />
+        <div className="space-y-6">
+          {leaguesWithMatches.map((league) => (
+            <CollapsibleLeague 
+              key={league.id} 
+              league={league} 
+              defaultExpanded={league.matches.some(m => m.status === 'live')}
+            />
           ))}
         </div>
       </div>

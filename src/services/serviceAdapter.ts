@@ -183,6 +183,7 @@ export const {
   getTeamDetails,
   searchHighlights,
   getRecentMatchesForTopLeagues,
+  getMatchesForDate,
   setActiveService,
   getActiveService
 } = {
@@ -193,6 +194,7 @@ export const {
   getTeamDetails: (teamId: string) => serviceAdapter.getTeamDetails(teamId),
   searchHighlights: (query: string) => serviceAdapter.searchHighlights(query),
   getRecentMatchesForTopLeagues: () => serviceAdapter.getRecentMatchesForTopLeagues(),
+  getMatchesForDate: (dateString: string) => serviceAdapter.getMatchesForDate(dateString),
   setActiveService: (serviceType: ServiceType) => serviceAdapter.setActiveService(serviceType),
   getActiveService: () => serviceAdapter.getActiveService()
 };

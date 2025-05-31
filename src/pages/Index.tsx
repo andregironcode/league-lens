@@ -160,7 +160,7 @@ const Index: React.FC = () => {
           <div className="mb-4">
             <h2 className="text-xl font-bold text-white mb-4">Browse Matches by Date</h2>
             <p className="text-gray-400 text-sm mb-6">
-              Select a date to view past results, live matches, and upcoming fixtures from the top 5 European leagues.
+              Select a date to view past results, live matches, and upcoming fixtures from the top 10 leagues worldwide.
             </p>
           </div>
           <DateFilter onDateSelect={handleDateSelect} selectedDate={selectedDate} />
