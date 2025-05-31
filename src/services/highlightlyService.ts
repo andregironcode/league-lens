@@ -1054,14 +1054,22 @@ export const highlightlyService = {
               const homeTeamLower = homeTeamName.toLowerCase();
               const awayTeamLower = awayTeamName.toLowerCase();
               
-              // Check if both team names appear in the highlight title
-              const hasHomeTeam = title.includes(homeTeamLower) || 
-                                  title.includes(homeTeamLower.split(' ')[0]) || // First word only
-                                  (homeTeamLower.includes('fc') && title.includes(homeTeamLower.replace(' fc', '').replace('fc ', '')));
+              console.log(`[Highlightly] Checking highlight title: "${highlight.title}" against teams: ${homeTeamName} vs ${awayTeamName}`);
               
-              const hasAwayTeam = title.includes(awayTeamLower) || 
-                                  title.includes(awayTeamLower.split(' ')[0]) || // First word only  
-                                  (awayTeamLower.includes('fc') && title.includes(awayTeamLower.replace(' fc', '').replace('fc ', '')));
+              // Helper function to check if a team name appears in title
+              const teamAppears = (teamName: string, title: string) => {
+                const team = teamName.toLowerCase();
+                return title.includes(team) || 
+                       title.includes(team.split(' ')[0]) || // First word only
+                       (team.includes('fc') && title.includes(team.replace(' fc', '').replace('fc ', ''))) ||
+                       (team.includes('united') && title.includes(team.replace(' united', '').replace('united ', ''))) ||
+                       (team.includes('city') && title.includes(team.replace(' city', '').replace('city ', '')));
+              };
+              
+              const hasHomeTeam = teamAppears(homeTeamName, title);
+              const hasAwayTeam = teamAppears(awayTeamName, title);
+              
+              console.log(`[Highlightly] Title: "${title}" - Has ${homeTeamName}: ${hasHomeTeam}, Has ${awayTeamName}: ${hasAwayTeam}`);
               
               return hasHomeTeam && hasAwayTeam;
             });
@@ -1069,6 +1077,15 @@ export const highlightlyService = {
             if (matchingHighlight) {
               console.log(`[Highlightly] ✅ Strategy 1 SUCCESS: Found matching highlight: ${matchingHighlight.title}`);
               
+              // Debug: Log all possible video URL fields
+              console.log(`[Highlightly] Video URL fields:`, {
+                url: matchingHighlight.url,
+                embedUrl: matchingHighlight.embedUrl,
+                videoUrl: matchingHighlight.videoUrl,
+                video: matchingHighlight.video,
+                finalVideoUrl: matchingHighlight.url || matchingHighlight.embedUrl || matchingHighlight.videoUrl || matchingHighlight.video || ''
+              });
+
               // Extract score from match data
               let homeScore = 0;
               let awayScore = 0;
@@ -1095,8 +1112,8 @@ export const highlightlyService = {
                 id: matchingHighlight.id || id,
                 title: matchingHighlight.title || `${homeTeamName} vs ${awayTeamName}`,
                 date: matchingHighlight.date ? new Date(matchingHighlight.date).toISOString() : matchDate.toISOString(),
-                thumbnailUrl: matchingHighlight.thumbnail || matchingHighlight.image || 'https://via.placeholder.com/300x200?text=Match+Highlight',
-                videoUrl: matchingHighlight.url || matchingHighlight.embedUrl || '',
+                thumbnailUrl: matchingHighlight.thumbnail || matchingHighlight.image || matchingHighlight.thumbnailUrl || 'https://via.placeholder.com/300x200?text=Match+Highlight',
+                videoUrl: matchingHighlight.url || matchingHighlight.embedUrl || matchingHighlight.videoUrl || matchingHighlight.video || '',
                 duration: matchingHighlight.duration || '0:00',
                 views: matchingHighlight.views || Math.floor(Math.random() * 10000),
                 homeTeam: {
@@ -1193,8 +1210,7 @@ export const highlightlyService = {
         for (const dateStr of dates) {
           try {
             const highlightsResponse = await highlightlyClient.getHighlights({
-              date: dateStr,
-              limit: '20'
+              date: dateStr
             });
 
             if (highlightsResponse.data && Array.isArray(highlightsResponse.data)) {
@@ -1216,10 +1232,30 @@ export const highlightlyService = {
                   title: highlight.title
                 });
                 
-                return highlight.matchId === id || 
-                       highlight.fixtureId === id || 
-                       highlight.id === id ||
-                       (highlight.url && highlight.url.includes(id));
+                // First try exact ID matches
+                const exactMatch = highlight.matchId === id || 
+                                  highlight.fixtureId === id || 
+                                  highlight.id === id ||
+                                  (highlight.url && highlight.url.includes(id));
+                
+                if (exactMatch) return true;
+                
+                // If no exact match, try team name matching (if we have team data from Strategy 1)
+                if (highlight.title && typeof highlight.title === 'string') {
+                  const title = highlight.title.toLowerCase();
+                  
+                  // Look for common Premier League teams that might match
+                  const commonTeams = ['brentford', 'wolves', 'manchester', 'arsenal', 'chelsea', 'liverpool', 'tottenham'];
+                  const titleWords = title.split(/[\s\-vs]+/);
+                  const matchingTeams = titleWords.filter(word => 
+                    commonTeams.some(team => word.includes(team) || team.includes(word))
+                  );
+                  
+                  // If we find 2+ team names, this might be our match
+                  return matchingTeams.length >= 2;
+                }
+                
+                return false;
               });
 
               if (potentialMatch) {
