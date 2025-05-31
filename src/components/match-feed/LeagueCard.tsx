@@ -5,27 +5,82 @@ import MatchRow from './MatchRow';
 interface LeagueCardProps {
   league: LeagueWithMatches;
   defaultExpanded?: boolean;
+  onCountrySelect?: (countryCode: string | null) => void;
 }
 
-const LeagueCard: React.FC<LeagueCardProps> = ({ league, defaultExpanded = false }) => {
+// League country mapping (same as in MatchFeedByLeague)
+const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
+  // UEFA Competitions
+  '2486': 'EU', '2': 'EU', '3337': 'EU', '3': 'EU',
+  
+  // Major domestic leagues
+  '39': 'GB', // Premier League
+  '140': 'ES', // La Liga
+  '135': 'IT', // Serie A
+  '78': 'DE', // Bundesliga
+  '61': 'FR', // Ligue 1
+  '216087': 'US', '253': 'US', // MLS
+  '94': 'PT', // Liga Portugal
+  '307': 'SA', // Saudi Pro League
+  '88': 'NL', // Eredivisie
+  '71': 'BR', // Série A Brasil
+  '128': 'AR', // Primera División Argentina
+  '1': 'WORLD', // FIFA World Cup
+};
+
+// Country name mapping
+const COUNTRY_NAMES: Record<string, string> = {
+  'EU': 'Europe',
+  'WORLD': 'International',
+  'GB': 'England',
+  'ES': 'Spain',
+  'IT': 'Italy',
+  'DE': 'Germany',
+  'FR': 'France',
+  'US': 'United States',
+  'PT': 'Portugal',
+  'SA': 'Saudi Arabia',
+  'NL': 'Netherlands',
+  'BR': 'Brazil',
+  'AR': 'Argentina',
+};
+
+const LeagueCard: React.FC<LeagueCardProps> = ({ league, defaultExpanded = false, onCountrySelect }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
+  // Get country info for the league
+  const getLeagueCountryInfo = () => {
+    const countryCode = LEAGUE_COUNTRY_MAPPING[league.id];
+    const countryName = countryCode ? COUNTRY_NAMES[countryCode] : null;
+    
+    return {
+      code: countryCode,
+      name: countryName
+    };
+  };
+
   // Enhanced country flag function - always returns a valid flag
-  const getCountryFlagUrl = (countryCode?: string, countryName?: string): string => {
+  const getCountryFlagUrl = (countryCode?: string): string => {
     if (!countryCode) {
-      // Generate a text-based flag if no country code
-      const initials = countryName ? countryName.slice(0, 2).toUpperCase() : '??';
       return `data:image/svg+xml,${encodeURIComponent(`
         <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
           <rect width="24" height="24" fill="#1f2937" rx="3"/>
           <text x="12" y="15" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#9ca3af">
-            ${initials}
+            ??
           </text>
         </svg>
       `)}`;
     }
-    // Use reliable flag API
-    return `https://flagsapi.com/${countryCode.toUpperCase()}/flat/24.png`;
+    
+    const code = countryCode.toUpperCase();
+    
+    // Handle special cases
+    if (code === 'EU') return 'https://flagcdn.com/w40/eu.png';
+    if (code === 'WORLD') return 'https://flagcdn.com/w40/un.png';
+    if (code === 'GB' || code === 'EN' || code === 'UK') return 'https://flagcdn.com/w40/gb.png';
+    
+    // Standard country codes
+    return `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
   };
 
   // Helper function to get league logo with proper scoresite CDN fallbacks
@@ -54,6 +109,16 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ league, defaultExpanded = false
     setIsExpanded(!isExpanded);
   };
 
+  const handleCountryClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent expanding/collapsing the league
+    const countryInfo = getLeagueCountryInfo();
+    if (countryInfo.code && onCountrySelect) {
+      onCountrySelect(countryInfo.code);
+    }
+  };
+
+  const countryInfo = getLeagueCountryInfo();
+
   return (
     <div className="bg-[#1a1a1a] rounded-lg overflow-hidden border border-gray-700/30">
       {/* League Header - Clickable to toggle */}
@@ -64,13 +129,25 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ league, defaultExpanded = false
         <div className="flex items-center justify-between">
           {/* Country Flag + Country Name + League Name */}
           <div className="flex items-center gap-2 px-4 py-1">
-            <img
-              src={getCountryFlagUrl(league.country?.code, league.country?.name)}
-              alt={league.country?.name || 'Country flag'}
-              className="w-5 h-5 object-contain rounded-sm"
-            />
-            {league.country?.name && (
-              <span className="text-gray-300 text-sm font-medium">{league.country.name}</span>
+            {countryInfo.code && (
+              <button
+                onClick={handleCountryClick}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                title={`Filter by ${countryInfo.name}`}
+              >
+                <img
+                  src={getCountryFlagUrl(countryInfo.code)}
+                  alt={`${countryInfo.name} flag`}
+                  className="w-5 h-5 object-cover rounded-full"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://flagcdn.com/w40/un.png'; // Fallback to UN flag
+                  }}
+                />
+                {countryInfo.name && (
+                  <span className="text-gray-300 text-sm font-medium">{countryInfo.name}</span>
+                )}
+              </button>
             )}
             <span className="text-white text-sm font-semibold">— {league.name}</span>
             
@@ -99,9 +176,6 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ league, defaultExpanded = false
             <div className="text-right">
               <div className="text-sm font-medium text-white">
                 {league.matches.length}
-              </div>
-              <div className="text-xs text-gray-400">
-                {league.matches.length === 1 ? 'match' : 'matches'}
               </div>
             </div>
             

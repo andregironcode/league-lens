@@ -9,7 +9,56 @@ interface MatchFeedByLeagueProps {
   isToday?: boolean;
   selectedLeagueId?: string | null;
   onLeagueSelect?: (leagueId: string | null) => void;
+  selectedCountryCode?: string | null;
+  onCountrySelect?: (countryCode: string | null) => void;
 }
+
+// League country mapping and country names
+const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
+  // UEFA Competitions
+  '2486': 'EU', '2': 'EU', '3337': 'EU', '3': 'EU',
+  
+  // Major domestic leagues
+  '39': 'GB', // Premier League
+  '140': 'ES', // La Liga
+  '135': 'IT', // Serie A
+  '78': 'DE', // Bundesliga
+  '61': 'FR', // Ligue 1
+  '216087': 'US', '253': 'US', // MLS
+  '94': 'PT', // Liga Portugal
+  '307': 'SA', // Saudi Pro League
+  '88': 'NL', // Eredivisie
+  '71': 'BR', // Série A Brasil
+  '128': 'AR', // Primera División Argentina
+  '1': 'WORLD', // FIFA World Cup
+};
+
+const COUNTRY_NAMES: Record<string, string> = {
+  'EU': 'Europe',
+  'WORLD': 'International',
+  'GB': 'England',
+  'ES': 'Spain',
+  'IT': 'Italy',
+  'DE': 'Germany',
+  'FR': 'France',
+  'US': 'United States',
+  'PT': 'Portugal',
+  'SA': 'Saudi Arabia',
+  'NL': 'Netherlands',
+  'BR': 'Brazil',
+  'AR': 'Argentina',
+};
+
+// Helper function to get country info for a league
+const getLeagueCountryInfo = (leagueId: string) => {
+  const countryCode = LEAGUE_COUNTRY_MAPPING[leagueId];
+  const countryName = countryCode ? COUNTRY_NAMES[countryCode] : null;
+  
+  return {
+    code: countryCode,
+    name: countryName
+  };
+};
 
 // Enhanced logo mapping function - prioritizes multiple external sources for best reliability
 const getLeagueLogo = (leagueId: string, leagueName: string, apiLogo?: string): string => {
@@ -88,23 +137,50 @@ const getLeagueLogo = (leagueId: string, leagueName: string, apiLogo?: string): 
   `)}`;
 };
 
-// League filters data for the integrated filter
+// Helper function to get country flag image URL
+const getCountryFlagUrl = (countryCode: string): string => {
+  const code = countryCode?.toUpperCase();
+  
+  // Handle special cases
+  if (code === 'EU') return 'https://flagcdn.com/w40/eu.png';
+  if (code === 'WORLD') return 'https://flagcdn.com/w40/un.png'; // UN flag as world representation
+  if (code === 'GB' || code === 'EN' || code === 'UK') return 'https://flagcdn.com/w40/gb.png';
+  
+  // Standard country codes
+  return `https://flagcdn.com/w40/${code?.toLowerCase()}.png`;
+};
+
+// League filters data for the integrated filter with country mappings
 const LEAGUE_FILTERS = [
   // Top competitions and tournaments
-  { id: '2486', name: 'UEFA Champions League', logoUrl: 'https://media.api-sports.io/football/leagues/2.png' },
-  { id: '1', name: 'FIFA World Cup', logoUrl: 'https://media.api-sports.io/football/leagues/1.png' },
-  { id: '3337', name: 'UEFA Europa League', logoUrl: 'https://media.api-sports.io/football/leagues/3.png' },
+  { id: '2486', name: 'UEFA Champions League', logoUrl: 'https://media.api-sports.io/football/leagues/2.png', countryCode: 'EU' },
+  { id: '2', name: 'UEFA Champions League', logoUrl: 'https://media.api-sports.io/football/leagues/2.png', countryCode: 'EU' },
+  { id: '1', name: 'FIFA World Cup', logoUrl: 'https://media.api-sports.io/football/leagues/1.png', countryCode: 'WORLD' },
+  { id: '3337', name: 'UEFA Europa League', logoUrl: 'https://media.api-sports.io/football/leagues/3.png', countryCode: 'EU' },
+  { id: '3', name: 'UEFA Europa League', logoUrl: 'https://media.api-sports.io/football/leagues/3.png', countryCode: 'EU' },
   
   // Top domestic leagues
-  { id: '39', name: 'Premier League', logoUrl: 'https://media.api-sports.io/football/leagues/39.png' },
-  { id: '140', name: 'La Liga', logoUrl: 'https://media.api-sports.io/football/leagues/140.png' },
-  { id: '135', name: 'Serie A', logoUrl: 'https://media.api-sports.io/football/leagues/135.png' },
-  { id: '78', name: 'Bundesliga', logoUrl: 'https://media.api-sports.io/football/leagues/78.png' },
-  { id: '61', name: 'Ligue 1', logoUrl: 'https://media.api-sports.io/football/leagues/61.png' },
-  { id: '216087', name: 'Major League Soccer', logoUrl: 'https://media.api-sports.io/football/leagues/253.png' },
-  { id: '94', name: 'Liga Portugal', logoUrl: 'https://media.api-sports.io/football/leagues/94.png' },
-  { id: '307', name: 'Saudi Pro League', logoUrl: 'https://media.api-sports.io/football/leagues/307.png' }
+  { id: '39', name: 'Premier League', logoUrl: 'https://media.api-sports.io/football/leagues/39.png', countryCode: 'GB' },
+  { id: '140', name: 'La Liga', logoUrl: 'https://media.api-sports.io/football/leagues/140.png', countryCode: 'ES' },
+  { id: '135', name: 'Serie A', logoUrl: 'https://media.api-sports.io/football/leagues/135.png', countryCode: 'IT' },
+  { id: '78', name: 'Bundesliga', logoUrl: 'https://media.api-sports.io/football/leagues/78.png', countryCode: 'DE' },
+  { id: '61', name: 'Ligue 1', logoUrl: 'https://media.api-sports.io/football/leagues/61.png', countryCode: 'FR' },
+  { id: '216087', name: 'Major League Soccer', logoUrl: 'https://media.api-sports.io/football/leagues/253.png', countryCode: 'US' },
+  { id: '253', name: 'Major League Soccer', logoUrl: 'https://media.api-sports.io/football/leagues/253.png', countryCode: 'US' },
+  { id: '94', name: 'Liga Portugal', logoUrl: 'https://media.api-sports.io/football/leagues/94.png', countryCode: 'PT' },
+  { id: '307', name: 'Saudi Pro League', logoUrl: 'https://media.api-sports.io/football/leagues/307.png', countryCode: 'SA' },
+  
+  // Additional major leagues
+  { id: '88', name: 'Eredivisie', logoUrl: 'https://media.api-sports.io/football/leagues/88.png', countryCode: 'NL' },
+  { id: '71', name: 'Série A Brasil', logoUrl: 'https://media.api-sports.io/football/leagues/71.png', countryCode: 'BR' },
+  { id: '128', name: 'Primera División Argentina', logoUrl: 'https://media.api-sports.io/football/leagues/128.png', countryCode: 'AR' }
 ];
+
+// Helper function to get country code for a league
+const getLeagueCountryCode = (leagueId: string): string | null => {
+  const leagueFilter = LEAGUE_FILTERS.find(filter => filter.id === leagueId);
+  return leagueFilter?.countryCode || null;
+};
 
 const LoadingSkeleton: React.FC = () => (
   <div className="space-y-6">
@@ -182,7 +258,9 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   selectedDate,
   isToday = false,
   selectedLeagueId = null,
-  onLeagueSelect
+  onLeagueSelect,
+  selectedCountryCode = null,
+  onCountrySelect
 }) => {
   const [activeSelector, setActiveSelector] = useState<'all' | 'highlights' | 'live'>('all');
   
@@ -196,13 +274,20 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     );
   }
 
-  // Filter leagues based on selected league ID
+  // Filter leagues based on selected league ID and country
   let filteredLeagues = leaguesWithMatches.filter(league => 
     league.matches && league.matches.length > 0
   );
 
   if (selectedLeagueId) {
     filteredLeagues = filteredLeagues.filter(league => league.id === selectedLeagueId);
+  }
+
+  if (selectedCountryCode) {
+    filteredLeagues = filteredLeagues.filter(league => {
+      const countryInfo = getLeagueCountryInfo(league.id);
+      return countryInfo.code?.toUpperCase() === selectedCountryCode.toUpperCase();
+    });
   }
 
   // Handle edge case: selected league has no matches
@@ -222,6 +307,27 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           <h3 className="text-xl font-semibold text-white mb-2">No matches for {leagueName} today</h3>
           <p className="text-gray-400">
             Try selecting a different league or date to see more matches.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  // Handle edge case: selected country has no matches
+  if (selectedCountryCode && filteredLeagues.length === 0) {
+    const countryName = COUNTRY_NAMES[selectedCountryCode.toUpperCase()] || 'this country';
+    
+    return (
+      <section className="mb-16">
+        <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+          <div className="text-gray-400 mb-4">
+            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">No matches for {countryName} today</h3>
+          <p className="text-gray-400">
+            Try selecting a different country or date to see more matches.
           </p>
         </div>
       </section>
@@ -268,6 +374,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           id: league.id,
           name: league.name,
           logoUrl: getLeagueLogo(league.id, league.name, league.logo),
+          countryCode: getLeagueCountryCode(league.id),
           matchCount: league.matches.length,
           liveMatchCount: liveMatchCount,
           hasLiveMatches: liveMatchCount > 0
@@ -339,15 +446,14 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                   <img
                     src={league.logoUrl}
                     alt={league.name}
-                    className="w-5 h-5 object-contain rounded-sm"
+                    className="w-5 h-5 object-contain rounded-full bg-white p-0.5"
                     style={{ minWidth: '20px', minHeight: '20px' }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">{league.name}</div>
                     <div className="text-xs text-gray-400">
-                      {league.matchCount} {league.matchCount === 1 ? 'match' : 'matches'}
                       {league.hasLiveMatches && (
-                        <span className="ml-2 px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
+                        <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
                           {league.liveMatchCount} LIVE
                         </span>
                       )}
@@ -368,11 +474,195 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
             </div>
           )}
         </div>
+      </div>
+    );
+  };
+
+  // Create country filter component
+  const CountryFilter: React.FC = () => {
+    const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
+    
+    // Group leagues by country using the mapping
+    const countriesMap = new Map();
+    leaguesWithMatches.forEach(league => {
+      if (league.matches && league.matches.length > 0) {
+        const countryInfo = getLeagueCountryInfo(league.id);
         
-        <div className="mt-4 pt-4 border-t border-gray-700/30">
-          <div className="text-xs text-gray-500">
-            {dynamicLeagues.length} {dynamicLeagues.length === 1 ? 'league' : 'leagues'} with matches
-          </div>
+        if (!countryInfo.code || !countryInfo.name) return;
+        
+        const liveMatchCount = league.matches.filter(m => 
+          m.fixture?.status?.short === 'LIVE' || m.status === 'live'
+        ).length;
+        
+        if (!countriesMap.has(countryInfo.code)) {
+          countriesMap.set(countryInfo.code, {
+            code: countryInfo.code,
+            name: countryInfo.name,
+            flagUrl: getCountryFlagUrl(countryInfo.code),
+            leagues: [],
+            totalMatches: 0,
+            totalLiveMatches: 0,
+            hasLiveMatches: false
+          });
+        }
+        
+        const country = countriesMap.get(countryInfo.code);
+        country.leagues.push({
+          id: league.id,
+          name: league.name,
+          logoUrl: getLeagueLogo(league.id, league.name, league.logo),
+          matchCount: league.matches.length,
+          liveMatchCount: liveMatchCount,
+          hasLiveMatches: liveMatchCount > 0
+        });
+        country.totalMatches += league.matches.length;
+        country.totalLiveMatches += liveMatchCount;
+        country.hasLiveMatches = country.hasLiveMatches || liveMatchCount > 0;
+      }
+    });
+
+    // Sort countries by priority: live matches first, then by total matches
+    const sortedCountries = Array.from(countriesMap.values()).sort((a, b) => {
+      if (a.hasLiveMatches && !b.hasLiveMatches) return -1;
+      if (!a.hasLiveMatches && b.hasLiveMatches) return 1;
+      return b.totalMatches - a.totalMatches;
+    });
+
+    const toggleCountryExpansion = (countryCode: string) => {
+      const newExpanded = new Set(expandedCountries);
+      if (newExpanded.has(countryCode)) {
+        newExpanded.delete(countryCode);
+      } else {
+        newExpanded.add(countryCode);
+      }
+      setExpandedCountries(newExpanded);
+    };
+
+    const handleLeagueClick = (leagueId: string) => {
+      if (!onLeagueSelect) return;
+      
+      // If clicking the same league, reset the filter
+      if (selectedLeagueId === leagueId) {
+        onLeagueSelect(null);
+      } else {
+        onLeagueSelect(leagueId);
+      }
+    };
+
+    return (
+      <div className="sticky top-6">
+        <div className="mb-4 text-center">
+          <h3 className="text-lg font-semibold text-white mb-2">By Country</h3>
+          {selectedLeagueId && (
+            <button
+              onClick={() => onLeagueSelect?.(null)}
+              className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Clear filter
+            </button>
+          )}
+        </div>
+        
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {sortedCountries.length > 0 ? (
+            sortedCountries.map((country) => {
+              const isExpanded = expandedCountries.has(country.code);
+              
+              return (
+                <div key={country.code} className="border border-gray-700/30 rounded-lg overflow-hidden">
+                  {/* Country Header - Clickable to expand/collapse */}
+                  <button
+                    onClick={() => toggleCountryExpansion(country.code)}
+                    className="w-full flex items-center gap-3 px-3 py-2 bg-gray-800/30 hover:bg-gray-700/30 transition-colors text-left"
+                  >
+                    <img
+                      src={country.flagUrl}
+                      alt={`${country.name} flag`}
+                      className="w-5 h-5 object-cover rounded-full"
+                      style={{ minWidth: '20px', minHeight: '20px' }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://flagcdn.com/w40/un.png'; // Fallback to UN flag
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white truncate">{country.name}</div>
+                      <div className="text-xs text-gray-400">
+                        {country.hasLiveMatches && (
+                          <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
+                            {country.totalLiveMatches} LIVE
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-gray-400">
+                      <svg 
+                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    {country.hasLiveMatches && (
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                    )}
+                  </button>
+                  
+                  {/* Leagues List - Collapsible */}
+                  {isExpanded && (
+                    <div className="divide-y divide-gray-700/30 bg-gray-900/30">
+                      {country.leagues.map((league) => {
+                        const isSelected = selectedLeagueId === league.id;
+                        
+                        return (
+                          <button
+                            key={league.id}
+                            onClick={() => handleLeagueClick(league.id)}
+                            className={`
+                              w-full flex items-center gap-3 px-6 py-2 text-left transition-colors
+                              ${isSelected 
+                                ? 'bg-blue-600 text-white' 
+                                : 'hover:bg-gray-700/30 text-gray-300'
+                              }
+                            `}
+                          >
+                            <img
+                              src={league.logoUrl}
+                              alt={league.name}
+                              className="w-4 h-4 object-contain rounded-full bg-white p-0.5"
+                              style={{ minWidth: '16px', minHeight: '16px' }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium truncate">{league.name}</div>
+                              <div className="text-xs text-gray-400">
+                                {league.hasLiveMatches && (
+                                  <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
+                                    {league.liveMatchCount} LIVE
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
+                            )}
+                            {league.hasLiveMatches && !isSelected && (
+                              <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center text-gray-500 py-4">
+              <p className="text-sm">No countries available</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -451,6 +741,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                     key={league.id} 
                     league={league}
                     defaultExpanded={hasLiveMatches}
+                    onCountrySelect={onCountrySelect}
                   />
                 );
               })}
@@ -459,29 +750,13 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
         </div>
 
         {/* Filter sidebar */}
-        <div className="w-80 flex-shrink-0 hidden lg:block">
+        <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
           <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
             <LeagueFilter />
           </div>
-        </div>
-      </div>
-
-      {/* Mobile filter - show as expandable section */}
-      <div className="lg:hidden mt-6">
-        <div className="border border-gray-600/40 rounded-xl bg-transparent">
-          <details className="overflow-hidden">
-            <summary className="px-8 py-6 cursor-pointer font-medium text-white hover:bg-gray-800/20 transition-colors">
-              <div className="flex items-center justify-between">
-                <span>Top Leagues</span>
-                <svg className="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </summary>
-            <div className="px-8 pb-6">
-              <LeagueFilter />
-            </div>
-          </details>
+          <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+            <CountryFilter />
+          </div>
         </div>
       </div>
     </section>

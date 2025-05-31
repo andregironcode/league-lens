@@ -231,8 +231,8 @@ const HeroCarousel = ({
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
-        {highlights.map((_, index) => <button key={index} className={`h-3 rounded-full transition-all ${index === currentIndex ? "bg-[#FFC30B] w-8" : "bg-white/50 w-3"}`} onClick={() => setCurrentIndex(index)} aria-label={`Go to slide ${index + 1}`} />)}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-30">
+        {highlights.map((_, index) => <div key={index} className={`transition-all rounded-full cursor-pointer ${index === currentIndex ? "bg-[#FFC30B] w-[48px] h-[12px]" : "bg-white/50 w-[12px] h-[12px]"}`} onClick={() => setCurrentIndex(index)} aria-label={`Go to slide ${index + 1}`} />)}
       </div>
 
       <button className="absolute left-2 md:left-6 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white z-30 hover:bg-black/50 transition-colors" onClick={handlePrevSlide} aria-label="Previous slide">

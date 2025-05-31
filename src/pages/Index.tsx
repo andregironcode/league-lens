@@ -11,6 +11,7 @@ const Index: React.FC = () => {
   const [dateMatches, setDateMatches] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [dateMatchesLoading, setDateMatchesLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +92,12 @@ const Index: React.FC = () => {
   const handleLeagueSelect = useCallback((leagueId: string | null) => {
     console.log(`[Index] League filter selected: ${leagueId}`);
     setSelectedLeagueId(leagueId);
+  }, []);
+
+  // Handle country filter selection - memoized for consistency
+  const handleCountrySelect = useCallback((countryCode: string | null) => {
+    console.log(`[Index] Country filter selected: ${countryCode}`);
+    setSelectedCountryCode(countryCode);
   }, []);
 
   // Set up live updates for today's matches
@@ -178,6 +185,8 @@ const Index: React.FC = () => {
               isToday={isToday}
               selectedLeagueId={selectedLeagueId}
               onLeagueSelect={handleLeagueSelect}
+              selectedCountryCode={selectedCountryCode}
+              onCountrySelect={handleCountrySelect}
             />
           </div>
         )}
