@@ -65,14 +65,8 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
       const isPast = date < today && !isToday;
       const isFuture = date > today;
 
-      // Fetch match count for this date
-      let matchCount = 0;
-      try {
-        const matches = await serviceAdapter.getMatchesForDate(dateString);
-        matchCount = matches.reduce((total, league) => total + league.matches.length, 0);
-      } catch (error) {
-        console.error(`Error fetching matches for ${dateString}:`, error);
-      }
+      // Remove match count fetching for performance - this was causing 10-15 API calls just to render the date filter
+      const matchCount = 0; // Default to 0, could be added back later with lazy loading if needed
 
       return {
         date,
@@ -312,13 +306,6 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
               onClick={() => handleDateClick(dateInfo)}
             >
               <div className={getDateContentClasses(dateInfo)}>
-                {/* Match count indicator */}
-                {dateInfo.matchCount > 0 && (
-                  <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center">
-                    {dateInfo.matchCount}
-                  </div>
-                )}
-
                 {/* Today indicator */}
                 {dateInfo.isToday && (
                   <div className="absolute -top-2 -left-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-gray-800 animate-pulse"></div>

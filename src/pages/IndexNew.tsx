@@ -41,10 +41,11 @@ const IndexNew: React.FC = () => {
 
         setFeaturedHighlights(highlightsData);
 
-        // Set today as default selected date
-        const today = new Date().toISOString().split('T')[0];
-        setSelectedDate(today);
-        loadMatchesForDate(today);
+        // Remove automatic loading of today's matches for better performance
+        // User can select today's date manually if they want to see matches
+        // const today = new Date().toISOString().split('T')[0];
+        // setSelectedDate(today);
+        // loadMatchesForDate(today);
 
       } catch (err) {
         console.error('[IndexNew] Error during initial load:', err);
