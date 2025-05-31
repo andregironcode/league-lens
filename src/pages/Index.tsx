@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MatchHighlight, League } from '@/types';
+import { MatchHighlight } from '@/types';
 import { serviceAdapter } from '@/services/serviceAdapter';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
 import DateFilter from '@/components/DateFilter';
-import LeagueSection from '@/components/LeagueSection';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
-  const [leagues, setLeagues] = useState<League[]>([]);
   const [dateMatches, setDateMatches] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -29,25 +27,17 @@ const Index: React.FC = () => {
 
         console.log('[Index] Loading initial data...');
 
-        // Load featured highlights and league data in parallel
-        const [highlightsData, leaguesData] = await Promise.all([
-          serviceAdapter.getRecommendedHighlights().catch(err => {
-            console.error('[Index] Error loading highlights:', err);
-            return [];
-          }),
-          serviceAdapter.getLeagueHighlights().catch(err => {
-            console.error('[Index] Error loading leagues:', err);
-            return [];
-          })
-        ]);
+        // Load featured highlights
+        const highlightsData = await serviceAdapter.getRecommendedHighlights().catch(err => {
+          console.error('[Index] Error loading highlights:', err);
+          return [];
+        });
 
         console.log('[Index] Initial data loaded:', {
-          highlights: highlightsData.length,
-          leagues: leaguesData.length
+          highlights: highlightsData.length
         });
 
         setFeaturedHighlights(highlightsData);
-        setLeagues(leaguesData);
 
       } catch (err) {
         console.error('[Index] Error during initial load:', err);
@@ -175,30 +165,6 @@ const Index: React.FC = () => {
             isToday={isToday}
           />
         )}
-
-        {/* League Highlights Section */}
-        <section id="leagues" className="mb-16">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
-            {loading ? (
-              <div className="space-y-10">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-8 bg-gray-700 rounded w-48 mb-6"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {[1, 2, 3].map((j) => (
-                        <div key={j} className="h-48 bg-gray-800 rounded-lg"></div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              leagues.map(league => (
-                <LeagueSection key={league.id} league={league} />
-              ))
-            )}
-          </div>
-        </section>
       </main>
 
       {/* Footer */}
