@@ -1733,22 +1733,60 @@ export const highlightlyService = {
   /**
    * Get matches for a specific date - only returns leagues that have matches
    * Groups matches accurately by league.id and ensures correct league attribution
+   * Now includes priority filtering to reduce load and show only important matches
    */
   async getMatchesForDate(dateString: string): Promise<import('@/types').LeagueWithMatches[]> {
     try {
       console.log(`[Highlightly] Fetching matches for date: ${dateString}`);
       
-      // Define league mapping for proper attribution and priority (logos now loaded dynamically)
+      // Priority league IDs - only these leagues will be displayed
+      const priorityLeagueIds = new Set([
+        '2',    // UEFA Champions League
+        '39',   // Premier League  
+        '140',  // La Liga
+        '135',  // Serie A
+        '78',   // Bundesliga
+        '61',   // Ligue 1
+        '1',    // FIFA World Cup
+        '3',    // UEFA Europa League
+        '94',   // Liga Portugal
+        '307'   // Saudi Pro League
+      ]);
+      
+      // Priority teams - matches involving these teams will be included even if league is not priority
+      const priorityTeams = new Set([
+        'Real Madrid',
+        'Barcelona', 
+        'Man City',
+        'Manchester City',
+        'PSG',
+        'Paris Saint Germain',
+        'Liverpool',
+        'Arsenal'
+      ]);
+      
+      // Enhanced league mapping with the priority league IDs
       const leagueMapping = new Map<string, { name: string, priority: number }>([
-        // Top domestic leagues with known IDs
-        ['33973', { name: 'Premier League', priority: 1 }],
-        ['2486', { name: 'La Liga', priority: 2 }],
-        ['94', { name: 'Serie A', priority: 3 }],
-        ['67162', { name: 'Bundesliga', priority: 4 }],
-        ['52695', { name: 'Ligue 1', priority: 5 }],
-        ['61205', { name: 'Brasileirão Serie A', priority: 6 }],
-        ['2', { name: 'UEFA Champions League', priority: 7 }],
-        // Additional mappings can be added as needed
+        // Top competitions and tournaments
+        ['2', { name: 'UEFA Champions League', priority: 1 }],
+        ['1', { name: 'FIFA World Cup', priority: 2 }],
+        ['3', { name: 'UEFA Europa League', priority: 3 }],
+        
+        // Top domestic leagues
+        ['39', { name: 'Premier League', priority: 4 }],
+        ['140', { name: 'La Liga', priority: 5 }],
+        ['135', { name: 'Serie A', priority: 6 }],
+        ['78', { name: 'Bundesliga', priority: 7 }],
+        ['61', { name: 'Ligue 1', priority: 8 }],
+        ['94', { name: 'Liga Portugal', priority: 9 }],
+        ['307', { name: 'Saudi Pro League', priority: 10 }],
+        
+        // Legacy mappings for backward compatibility
+        ['33973', { name: 'Premier League', priority: 4 }],
+        ['2486', { name: 'La Liga', priority: 5 }],
+        ['67162', { name: 'Bundesliga', priority: 7 }],
+        ['52695', { name: 'Ligue 1', priority: 8 }],
+        ['61205', { name: 'Brasileirão Serie A', priority: 11 }]
       ]);
       
       // Fetch all matches for the specified date in one API call
@@ -1765,8 +1803,41 @@ export const highlightlyService = {
       
       console.log(`[Highlightly] Found ${allMatchesResponse.data.length} total matches for ${dateString}`);
       
-      // Group matches by league.id (most reliable grouping method)
+      // Helper function to check if a team name matches any priority team
+      const isMatchWithPriorityTeam = (match: any): boolean => {
+        const homeTeamName = match.homeTeam?.name || match.teams?.home?.name || '';
+        const awayTeamName = match.awayTeam?.name || match.teams?.away?.name || '';
+        
+        // Check for exact matches and common variations
+        const checkTeamName = (teamName: string): boolean => {
+          return Array.from(priorityTeams).some(priorityTeam => {
+            // Exact match
+            if (teamName === priorityTeam) return true;
+            
+            // Case-insensitive partial match for common variations
+            const normalizedTeam = teamName.toLowerCase();
+            const normalizedPriority = priorityTeam.toLowerCase();
+            
+            // Handle common team name variations
+            if (normalizedPriority.includes('real madrid') && normalizedTeam.includes('real madrid')) return true;
+            if (normalizedPriority.includes('barcelona') && (normalizedTeam.includes('barcelona') || normalizedTeam.includes('barça'))) return true;
+            if (normalizedPriority.includes('man city') && (normalizedTeam.includes('manchester city') || normalizedTeam.includes('man city'))) return true;
+            if (normalizedPriority.includes('manchester city') && (normalizedTeam.includes('manchester city') || normalizedTeam.includes('man city'))) return true;
+            if (normalizedPriority.includes('psg') && (normalizedTeam.includes('paris saint') || normalizedTeam.includes('psg'))) return true;
+            if (normalizedPriority.includes('liverpool') && normalizedTeam.includes('liverpool')) return true;
+            if (normalizedPriority.includes('arsenal') && normalizedTeam.includes('arsenal')) return true;
+            
+            return false;
+          });
+        };
+        
+        return checkTeamName(homeTeamName) || checkTeamName(awayTeamName);
+      };
+      
+      // Group matches by league.id with priority filtering
       const matchesByLeagueId = new Map<string, { matches: any[], leagueInfo: any }>();
+      let filteredMatchCount = 0;
+      let priorityTeamMatchCount = 0;
       
       allMatchesResponse.data.forEach((match: any) => {
         // Verify match is on the correct date
@@ -1788,6 +1859,20 @@ export const highlightlyService = {
           return; // Skip matches without league ID
         }
         
+        // Apply priority filtering - only include matches from priority leagues OR with priority teams
+        const isPriorityLeague = priorityLeagueIds.has(leagueId);
+        const hasPriorityTeam = isMatchWithPriorityTeam(match);
+        
+        if (!isPriorityLeague && !hasPriorityTeam) {
+          filteredMatchCount++;
+          return; // Skip matches that don't meet priority criteria
+        }
+        
+        if (hasPriorityTeam && !isPriorityLeague) {
+          priorityTeamMatchCount++;
+          console.log(`[Highlightly] 🌟 Including match with priority team: ${match.homeTeam?.name || match.teams?.home?.name} vs ${match.awayTeam?.name || match.teams?.away?.name} in ${apiLeagueName}`);
+        }
+        
         // Get league info from our mapping or use API data with proper logo fallback
         let leagueInfo;
         if (leagueMapping.has(leagueId)) {
@@ -1804,21 +1889,21 @@ export const highlightlyService = {
               logo: apiCountry.logo
             } : undefined
           };
-          console.log(`[Highlightly] ✅ Mapped match to known league: ${mappedLeague.name} (ID: ${leagueId})`);
+          console.log(`[Highlightly] ✅ Mapped match to priority league: ${mappedLeague.name} (ID: ${leagueId})`);
         } else {
-          // Use API data for unknown leagues but ensure proper logo fallback
+          // Use API data for unmapped priority leagues or leagues with priority teams
           leagueInfo = {
             id: leagueId,
             name: apiLeagueName,
             logo: this.getLeagueLogoFromName(apiLeagueName, apiLeagueLogo, leagueId),
-            priority: 999, // Lower priority for unmapped leagues
+            priority: isPriorityLeague ? 50 : 999, // Priority leagues get middle priority, team-based matches get low priority
             country: apiCountry ? {
               code: apiCountry.code,
               name: apiCountry.name,
               logo: apiCountry.logo
             } : undefined
           };
-          console.log(`[Highlightly] 📝 Using API data for unmapped league: ${apiLeagueName} (ID: ${leagueId})`);
+          console.log(`[Highlightly] 📝 Using API data for ${isPriorityLeague ? 'priority' : 'priority team'} league: ${apiLeagueName} (ID: ${leagueId})`);
         }
         
         // Add match to the group for this league ID
@@ -1832,7 +1917,10 @@ export const highlightlyService = {
         matchesByLeagueId.get(leagueId)!.matches.push(match);
       });
       
-      console.log(`[Highlightly] Grouped matches into ${matchesByLeagueId.size} leagues`);
+      console.log(`[Highlightly] Applied priority filtering:`);
+      console.log(`[Highlightly] - Filtered out ${filteredMatchCount} non-priority matches`);
+      console.log(`[Highlightly] - Included ${priorityTeamMatchCount} matches with priority teams`);
+      console.log(`[Highlightly] - Grouped remaining matches into ${matchesByLeagueId.size} leagues`);
       
       // Convert grouped matches to LeagueWithMatches format
       const leaguesWithMatches: import('@/types').LeagueWithMatches[] = [];
@@ -1874,7 +1962,7 @@ export const highlightlyService = {
         return a.name.localeCompare(b.name);
       });
       
-      console.log(`[Highlightly] Successfully returned ${leaguesWithMatches.length} leagues with matches:`,
+      console.log(`[Highlightly] Successfully returned ${leaguesWithMatches.length} priority leagues with matches:`,
         leaguesWithMatches.map(l => `${l.name} (${l.matches.length} matches)`));
       
       return leaguesWithMatches;

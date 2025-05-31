@@ -7,19 +7,19 @@ interface LeagueCardProps {
 }
 
 const LeagueCard: React.FC<LeagueCardProps> = ({ league }) => {
-  // Helper function to get country flag URL
+  // Helper function to get country flag URL using flagsapi.com
   const getCountryFlagUrl = (countryCode?: string): string => {
-    if (!countryCode) return '/icons/default.svg';
+    if (!countryCode) return '/icons/default-flag.svg';
     return `https://flagsapi.com/${countryCode}/flat/24.png`;
   };
 
-  // Helper function to get league logo with fallbacks
+  // Helper function to get league logo with proper scoresite CDN fallbacks
   const getLeagueLogoUrl = (leagueLogo?: string, leagueId?: string): string => {
     if (leagueLogo && leagueLogo.length > 0) {
       return leagueLogo;
     }
     if (leagueId) {
-      return `https://cdn.site.com/leagues/${leagueId}.png`;
+      return `https://cdn.scoresite.com/logos/leagues/${leagueId}.png`;
     }
     return '/icons/default.svg';
   };
@@ -28,43 +28,21 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ league }) => {
     <div className="bg-[#1a1a1a] rounded-lg overflow-hidden border border-gray-700/30">
       {/* League Header */}
       <div className="p-6 border-b border-gray-700/30">
-        <div className="flex items-center space-x-4">
-          {/* Country Flag */}
-          <img 
-            src={getCountryFlagUrl(league.country?.code)}
-            alt={league.country?.name || 'Country'}
-            className="w-6 h-6 object-contain flex-shrink-0"
-            loading="lazy"
-            onError={(e) => e.currentTarget.src = '/icons/default.svg'}
-          />
-          
-          {/* League Logo */}
-          <img 
-            src={getLeagueLogoUrl(league.logo, league.id)}
-            alt={league.name}
-            className="w-6 h-6 object-contain flex-shrink-0"
-            loading="lazy"
-            onError={(e) => {
-              const target = e.currentTarget;
-              // Try fallback URL if not already using it
-              if (target.src !== `https://cdn.site.com/leagues/${league.id}.png`) {
-                target.src = `https://cdn.site.com/leagues/${league.id}.png`;
-              } else {
-                target.src = '/icons/default.svg';
-              }
-            }}
-          />
-          
-          {/* League Info */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-white truncate">
-              {league.name}
-            </h3>
-            {league.country?.name && (
-              <p className="text-sm text-gray-400 truncate">
-                {league.country.name}
-              </p>
+        <div className="flex items-center justify-between">
+          {/* Country Flag + Country Name + League Name */}
+          <div className="flex items-center gap-2 px-4 py-1">
+            {league.country?.code && (
+              <img
+                src={getCountryFlagUrl(league.country.code)}
+                alt={league.country.name || 'Country flag'}
+                className="w-5 h-5 object-contain rounded-sm"
+                onError={(e) => e.currentTarget.src = '/icons/default-flag.svg'}
+              />
             )}
+            {league.country?.name && (
+              <span className="text-gray-300 text-sm font-medium">{league.country.name}</span>
+            )}
+            <span className="text-white text-sm font-semibold">— {league.name}</span>
           </div>
           
           {/* Match Count */}

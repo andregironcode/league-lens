@@ -64,6 +64,12 @@ export interface League {
   highlights: MatchHighlight[];
 }
 
+export interface Tournament {
+  id: string;
+  name: string;
+  logo: string;
+}
+
 export interface LeagueWithMatches {
   id: string;
   name: string;
