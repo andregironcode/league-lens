@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { LeagueWithMatches } from '@/types';
 import LeagueCard from './LeagueCard';
 
@@ -184,6 +184,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   selectedLeagueId = null,
   onLeagueSelect
 }) => {
+  const [activeSelector, setActiveSelector] = useState<'all' | 'highlights' | 'live'>('all');
+  
   const dateLabel = selectedDate ? formatSelectedDate(selectedDate) : 'Matches';
   
   if (loading) {
@@ -383,6 +385,60 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
         {/* Matches content - made smaller to accommodate filter */}
         <div className="flex-1 min-w-0">
           <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+            {/* Match Type Selectors */}
+            <div className="flex items-center justify-center gap-8 mb-8 border-b border-gray-700/30 pb-4 relative">
+              <button
+                onClick={() => setActiveSelector('all')}
+                className={`relative py-2 px-4 text-sm font-medium transition-colors ${
+                  activeSelector === 'all' 
+                    ? 'text-white' 
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                All
+                {activeSelector === 'all' && (
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 h-1 rounded-full"
+                    style={{ backgroundColor: '#FFC30B' }}
+                  />
+                )}
+              </button>
+              
+              <button
+                onClick={() => setActiveSelector('highlights')}
+                className={`relative py-2 px-4 text-sm font-medium transition-colors ${
+                  activeSelector === 'highlights' 
+                    ? 'text-white' 
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Highlights
+                {activeSelector === 'highlights' && (
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 h-1 rounded-full"
+                    style={{ backgroundColor: '#FFC30B' }}
+                  />
+                )}
+              </button>
+              
+              <button
+                onClick={() => setActiveSelector('live')}
+                className={`relative py-2 px-4 text-sm font-medium transition-colors ${
+                  activeSelector === 'live' 
+                    ? 'text-white' 
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Live
+                {activeSelector === 'live' && (
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 h-1 rounded-full"
+                    style={{ backgroundColor: '#FFC30B' }}
+                  />
+                )}
+              </button>
+            </div>
+            
             <div className="space-y-6">
               {filteredLeagues.map((league) => {
                 // Auto-expand leagues with live matches
