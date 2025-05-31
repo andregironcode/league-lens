@@ -52,16 +52,22 @@ export const serviceAdapter = {
   },
 
   /**
-   * Get league highlights
+   * Get league highlights organized by top leagues
    */
   async getLeagueHighlights(): Promise<League[]> {
     switch (activeService) {
-      case 'mock':
-        return mockService.getLeagueHighlights();
-      case 'supabase':
-        return supabaseService.getLeagueHighlights();
       case 'highlightly':
-        return highlightlyService.getLeagueHighlights();
+        // Use the matches-based approach which returns leagues with matches
+        const leaguesWithMatches = await highlightlyService.getRecentMatchesForTopLeagues();
+        // Transform to League format for compatibility
+        return leaguesWithMatches.map(league => ({
+          id: league.id,
+          name: league.name,
+          logo: league.logo,
+          highlights: [] // No highlights in this context, just matches
+        }));
+      case 'mock':
+      case 'supabase':
       default:
         return mockService.getLeagueHighlights();
     }
@@ -142,6 +148,22 @@ export const serviceAdapter = {
     switch (activeService) {
       case 'highlightly':
         return highlightlyService.getRecentMatchesForTopLeagues();
+      case 'mock':
+      case 'supabase':
+      default:
+        // For now, only supported in highlightly service
+        // Could implement fallbacks for other services later
+        return [];
+    }
+  },
+
+  /**
+   * Get matches for a specific date from top leagues (past, live, upcoming)
+   */
+  async getMatchesForDate(dateString: string): Promise<LeagueWithMatches[]> {
+    switch (activeService) {
+      case 'highlightly':
+        return highlightlyService.getMatchesForDate(dateString);
       case 'mock':
       case 'supabase':
       default:

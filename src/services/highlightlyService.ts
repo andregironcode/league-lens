@@ -1728,6 +1728,321 @@ export const highlightlyService = {
       console.error(`[Highlightly] Error finding highlight video for match ${id}:`, error);
       return '';
     }
+  },
+
+  /**
+   * Get matches for a specific date from top 5 leagues (past, live, upcoming)
+   * Uses date filtering to show only matches from the specified date
+   */
+  async getMatchesForDate(dateString: string): Promise<import('@/types').LeagueWithMatches[]> {
+    try {
+      console.log(`[Highlightly] Fetching matches for date: ${dateString}`);
+      
+      // Step 1: Get all available leagues
+      console.log('[Highlightly] Step 1: Fetching all leagues');
+      const leaguesResponse = await highlightlyClient.getLeagues();
+      
+      if (!leaguesResponse.data || !Array.isArray(leaguesResponse.data)) {
+        console.error('[Highlightly] No leagues data found');
+        return [];
+      }
+      
+      console.log(`[Highlightly] Found ${leaguesResponse.data.length} leagues`);
+      
+      // Step 2: Identify top 5 European domestic leagues we want to show
+      const targetLeagueNames = [
+        'Premier League',
+        'English Premier League', 
+        'La Liga',
+        'LaLiga',
+        'Serie A',
+        'Bundesliga',
+        'Ligue 1'
+      ];
+      
+      // Find matching leagues, but exclude Champions League variations
+      const targetLeagues = leaguesResponse.data.filter((league: any) => {
+        if (!league.name) return false;
+        
+        const leagueName = league.name.toLowerCase();
+        
+        // Exclude all Champions League variations
+        if (leagueName.includes('champions league') || 
+            leagueName.includes('champions cup') ||
+            leagueName.includes('uefa champions') ||
+            leagueName.includes('caf champions') ||
+            leagueName.includes('concacaf champions') ||
+            leagueName.includes('afc champions') ||
+            leagueName.includes('ofc champions')) {
+          return false;
+        }
+        
+        // Only include if it matches our target European domestic leagues
+        return targetLeagueNames.some(target => {
+          const targetLower = target.toLowerCase();
+          
+          // For Serie A, ensure it's not Brazilian Serie A
+          if (target === 'Serie A') {
+            return leagueName.includes('serie a') && 
+                   !leagueName.includes('brasil') && 
+                   !leagueName.includes('brazil') &&
+                   !leagueName.includes('brasileir');
+          }
+          
+          // For Premier League, prefer English Premier League
+          if (target === 'Premier League') {
+            return leagueName.includes('premier league') &&
+                   (leagueName.includes('english') || 
+                    leagueName.includes('england') ||
+                    !leagueName.includes('australian') &&
+                    !leagueName.includes('south african'));
+          }
+          
+          return leagueName.includes(targetLower);
+        });
+      });
+      
+      console.log(`[Highlightly] Found ${targetLeagues.length} target European domestic leagues:`, 
+        targetLeagues.map((l: any) => `${l.name} (ID: ${l.id})`));
+      
+      // Step 3: Get matches for each target league for the specified date (limit to 5)
+      const leaguesWithMatches: import('@/types').LeagueWithMatches[] = [];
+      
+      for (const league of targetLeagues.slice(0, 5)) { // Limit to exactly 5 leagues
+        try {
+          console.log(`[Highlightly] Fetching matches for ${league.name} (ID: ${league.id}) on ${dateString}`);
+          
+          // Use the correct leagueId and date parameters from the API documentation
+          const matchesResponse = await highlightlyClient.getMatches({
+            leagueId: league.id.toString(), // League filter
+            date: dateString, // Specific date filter (YYYY-MM-DD)
+            limit: '20' // Get more matches to ensure we capture all matches for this date
+          });
+          
+          if (!matchesResponse.data || !Array.isArray(matchesResponse.data)) {
+            console.log(`[Highlightly] No matches found for ${league.name} on ${dateString}`);
+            continue;
+          }
+          
+          console.log(`[Highlightly] Found ${matchesResponse.data.length} matches for ${league.name} on ${dateString}`);
+          
+          // DEBUG: Log first match structure to understand the API response
+          if (matchesResponse.data.length > 0) {
+            console.log(`[Highlightly] Sample match structure for ${league.name}:`, 
+              JSON.stringify(matchesResponse.data[0], null, 2));
+          }
+          
+          // Step 4: Process ALL matches for the specified date (finished, live, upcoming)
+          const dateMatches = matchesResponse.data.filter((match: any) => {
+            // Parse match date to ensure it's actually the requested date
+            const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || match.utcDate);
+            const matchDateString = matchDate.toISOString().split('T')[0];
+            
+            // Only include matches that are actually on the requested date
+            const isRequestedDate = matchDateString === dateString;
+            
+            console.log(`[Highlightly] Match ${match.id}: date=${matchDateString}, isRequestedDate=${isRequestedDate}`);
+            
+            return isRequestedDate;
+          });
+          
+          console.log(`[Highlightly] Found ${dateMatches.length} matches for ${dateString} for ${league.name}`);
+          
+          if (dateMatches.length === 0) {
+            continue; // Skip leagues with no matches on this date
+          }
+          
+          // Step 5: Transform matches to our format using REAL API data
+          const transformedMatches: import('@/types').Match[] = dateMatches
+            .map((match: any) => {
+              // Extract date from multiple possible fields
+              const matchDate = new Date(
+                match.date || 
+                match.fixture?.date || 
+                match.kickoff || 
+                match.utcDate || 
+                new Date()
+              );
+              
+              // Determine match status based on various possible fields
+              let status = 'upcoming'; // Default status
+              const now = new Date();
+              const matchTime = matchDate.getTime();
+              const currentTime = now.getTime();
+              
+              // Check for finished status indicators
+              const isFinished = 
+                match.state?.description === 'Finished' ||
+                match.state?.description === 'Finished after penalties' ||
+                match.state?.description === 'Finished after extra time' ||
+                match.fixture?.status?.long === 'Match Finished' ||
+                match.fixture?.status?.short === 'FT' ||
+                match.status === 'finished' ||
+                match.status === 'FT';
+              
+              // Check for live status indicators
+              const isLive = 
+                match.state?.description === 'In Progress' ||
+                match.state?.description === 'First Half' ||
+                match.state?.description === 'Second Half' ||
+                match.state?.description === 'Half Time' ||
+                match.fixture?.status?.long === 'In Progress' ||
+                match.fixture?.status?.short === 'LIVE' ||
+                match.status === 'live' ||
+                match.status === 'LIVE';
+              
+              if (isFinished) {
+                status = 'finished';
+              } else if (isLive) {
+                status = 'live';
+              } else if (matchTime <= currentTime) {
+                // If match time has passed but it's not marked as finished or live, assume finished
+                status = 'finished';
+              } else {
+                status = 'upcoming';
+              }
+              
+              // Extract score data from multiple possible fields
+              let homeScore = 0;
+              let awayScore = 0;
+              let hasScore = false;
+              
+              // Try different score field structures
+              if (match.state?.score?.current) {
+                // Parse score from state.score.current (e.g., "2 - 0")
+                const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+                if (scoreMatch) {
+                  homeScore = parseInt(scoreMatch[1], 10);
+                  awayScore = parseInt(scoreMatch[2], 10);
+                  hasScore = true;
+                }
+              } else if (match.score?.fulltime) {
+                // Use score.fulltime structure
+                homeScore = match.score.fulltime.home || 0;
+                awayScore = match.score.fulltime.away || 0;
+                hasScore = (match.score.fulltime.home !== undefined && match.score.fulltime.away !== undefined);
+              } else if (match.goals) {
+                // Use goals structure
+                homeScore = match.goals.home || 0;
+                awayScore = match.goals.away || 0;
+                hasScore = (match.goals.home !== undefined && match.goals.away !== undefined);
+              } else if (match.fixture?.score?.fulltime) {
+                // Use fixture.score.fulltime structure
+                homeScore = match.fixture.score.fulltime.home || 0;
+                awayScore = match.fixture.score.fulltime.away || 0;
+                hasScore = (match.fixture.score.fulltime.home !== undefined && match.fixture.score.fulltime.away !== undefined);
+              }
+              
+              // Extract team information from multiple possible structures
+              const homeTeam = {
+                id: (match.homeTeam?.id || match.teams?.home?.id || match.fixture?.teams?.home?.id || `home-${Date.now()}`).toString(),
+                name: match.homeTeam?.name || match.teams?.home?.name || match.fixture?.teams?.home?.name || 'Home Team',
+                logo: match.homeTeam?.logo || match.teams?.home?.logo || match.fixture?.teams?.home?.logo || '/teams/default.png'
+              };
+              
+              const awayTeam = {
+                id: (match.awayTeam?.id || match.teams?.away?.id || match.fixture?.teams?.away?.id || `away-${Date.now()}`).toString(),
+                name: match.awayTeam?.name || match.teams?.away?.name || match.fixture?.teams?.away?.name || 'Away Team',
+                logo: match.awayTeam?.logo || match.teams?.away?.logo || match.fixture?.teams?.away?.logo || '/teams/default.png'
+              };
+              
+              // Generate match ID from multiple possible fields
+              const matchId = (
+                match.fixture?.id || 
+                match.id || 
+                match.match_id || 
+                `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+              ).toString();
+              
+              // Extract venue information
+              const venue = match.fixture?.venue?.name || match.venue?.name || match.venue || undefined;
+              
+              // Debug logging for match data extraction
+              console.log(`[Highlightly] ✅ MATCH DATA for ${homeTeam.name} vs ${awayTeam.name}:`, {
+                matchId,
+                status,
+                score: hasScore ? `${homeScore}-${awayScore}` : 'No score',
+                date: matchDate.toISOString(),
+                venue,
+                league: league.name,
+                homeTeam: homeTeam.name,
+                awayTeam: awayTeam.name
+              });
+              
+              return {
+                id: matchId,
+                homeTeam,
+                awayTeam,
+                date: matchDate.toISOString(),
+                time: matchDate.toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  hour12: false 
+                }),
+                status,
+                score: hasScore ? {
+                  home: homeScore,
+                  away: awayScore
+                } : undefined,
+                competition: {
+                  id: league.id.toString(),
+                  name: league.name,
+                  logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                },
+                venue
+              };
+            })
+            .sort((a, b) => {
+              // Sort matches by time: upcoming first, then live, then finished
+              const statusOrder = { 'upcoming': 0, 'live': 1, 'finished': 2 };
+              const aStatusOrder = statusOrder[a.status as keyof typeof statusOrder] ?? 3;
+              const bStatusOrder = statusOrder[b.status as keyof typeof statusOrder] ?? 3;
+              
+              if (aStatusOrder !== bStatusOrder) {
+                return aStatusOrder - bStatusOrder;
+              }
+              
+              // Within same status, sort by time
+              return new Date(a.date).getTime() - new Date(b.date).getTime();
+            });
+          
+          // Add to results
+          leaguesWithMatches.push({
+            id: league.id.toString(),
+            name: league.name,
+            logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`,
+            matches: transformedMatches
+          });
+          
+          console.log(`[Highlightly] Successfully processed ${transformedMatches.length} matches for ${league.name} on ${dateString}`);
+          
+        } catch (error) {
+          console.error(`[Highlightly] Error fetching matches for ${league.name} on ${dateString}:`, error);
+          continue; // Continue with other leagues
+        }
+      }
+      
+      // Step 6: Sort leagues by priority (top 5 European leagues)
+      const priorityOrder = ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1'];
+      leaguesWithMatches.sort((a, b) => {
+        const aIndex = priorityOrder.findIndex(p => a.name.toLowerCase().includes(p.toLowerCase()));
+        const bIndex = priorityOrder.findIndex(p => b.name.toLowerCase().includes(p.toLowerCase()));
+        
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        return a.name.localeCompare(b.name);
+      });
+      
+      console.log(`[Highlightly] Successfully fetched matches for ${leaguesWithMatches.length} leagues on ${dateString}:`,
+        leaguesWithMatches.map(l => `${l.name} (${l.matches.length} matches)`));
+      
+      return leaguesWithMatches;
+      
+    } catch (error) {
+      console.error(`[Highlightly] Error in getMatchesForDate for ${dateString}:`, error);
+      return [];
+    }
   }
 };
 
@@ -1738,12 +2053,14 @@ export const {
   getMatchById,
   getTeamHighlights,
   getTeamDetails,
-  searchHighlights
+  searchHighlights,
+  getMatchesForDate
 } = {
   getRecommendedHighlights: highlightlyService.getRecommendedHighlights.bind(highlightlyService),
   getRecentMatchesForTopLeagues: highlightlyService.getRecentMatchesForTopLeagues.bind(highlightlyService),
   getMatchById: highlightlyService.getMatchById.bind(highlightlyService),
   getTeamHighlights: highlightlyService.getTeamHighlights.bind(highlightlyService),
   getTeamDetails: highlightlyService.getTeamDetails.bind(highlightlyService),
-  searchHighlights: highlightlyService.searchHighlights.bind(highlightlyService)
+  searchHighlights: highlightlyService.searchHighlights.bind(highlightlyService),
+  getMatchesForDate: highlightlyService.getMatchesForDate.bind(highlightlyService)
 };
