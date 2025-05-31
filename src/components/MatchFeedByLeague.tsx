@@ -11,6 +11,11 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   leaguesWithMatches,
   selectedLeagueId
 }) => {
+  console.log(`[DEBUG OldMatchFeed] MatchFeedByLeague rendered with ${leaguesWithMatches.length} leagues`);
+  leaguesWithMatches.forEach((league, index) => {
+    console.log(`[DEBUG OldMatchFeed] League ${index + 1}: ID="${league.id}", Name="${league.name}", Country=${league.country?.code || 'none'}`);
+  });
+  
   const navigate = useNavigate();
   
   // Filter leagues based on selected league ID
@@ -119,10 +124,13 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
               {/* Country Flag */}
               {league.country?.code && (
                 <img
-                  src={`https://flagsapi.com/${league.country.code}/flat/24.png`}
+                  src={`https://flagsapi.com/${league.country?.code}/flat/24.png`}
                   alt={league.country.name || 'Country flag'}
                   className="w-5 h-5 sm:w-6 sm:h-6 object-contain rounded-sm flex-shrink-0"
-                  onError={(e) => e.currentTarget.src = '/icons/default-flag.svg'}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/icons/default-flag.svg';
+                  }}
                 />
               )}
               

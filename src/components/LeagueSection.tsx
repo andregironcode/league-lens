@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { League } from "@/types";
@@ -9,21 +8,98 @@ interface LeagueSectionProps {
   league: League;
 }
 
-// Helper function to get country flag based on league ID
-const getCountryFlag = (leagueId: string): string => {
-  const flagMap: Record<string, string> = {
-    'pl': 'https://flagcdn.com/w40/gb-eng.png', // English flag
-    'laliga': 'https://flagcdn.com/w40/es.png', // Spanish flag
-    'bundesliga': 'https://flagcdn.com/w40/de.png', // German flag
-    'seriea': 'https://flagcdn.com/w40/it.png', // Italian flag
-    'ligue1': 'https://flagcdn.com/w40/fr.png', // French flag
-    'eredivisie': 'https://flagcdn.com/w40/nl.png', // Dutch flag
-    'portugal': 'https://flagcdn.com/w40/pt.png', // Portuguese flag
-    'brazil': 'https://flagcdn.com/w40/br.png', // Brazilian flag
-    'argentina': 'https://flagcdn.com/w40/ar.png', // Argentine flag
-  };
+// League country mapping - same comprehensive mapping as other components
+const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
+  // UEFA Competitions
+  '2486': 'EU', '2': 'EU', '3337': 'EU', '3': 'EU',
   
-  return flagMap[leagueId] || 'https://www.sofascore.com/static/images/placeholders/tournament.svg';
+  // Major domestic leagues (1st tier)
+  '39': 'GB', // Premier League
+  '140': 'ES', // La Liga
+  '135': 'IT', // Serie A
+  '78': 'DE', // Bundesliga
+  '61': 'FR', // Ligue 1
+  '216087': 'US', '253': 'US', // MLS
+  '94': 'PT', // Liga Portugal
+  '307': 'SA', // Saudi Pro League
+  '88': 'NL', // Eredivisie
+  '71': 'BR', // Série A Brasil
+  '128': 'AR', // Primera División Argentina
+  '1': 'WORLD', // FIFA World Cup
+  
+  // Legacy mappings for older league IDs used in this component
+  'pl': 'GB', // Premier League (legacy ID)
+  'laliga': 'ES', // La Liga (legacy ID)
+  'bundesliga': 'DE', // Bundesliga (legacy ID)
+  'seriea': 'IT', // Serie A (legacy ID)
+  'ligue1': 'FR', // Ligue 1 (legacy ID)
+  'eredivisie': 'NL', // Eredivisie (legacy ID)
+  'portugal': 'PT', // Liga Portugal (legacy ID)
+  'brazil': 'BR', // Brazilian leagues (legacy ID)
+  'argentina': 'AR', // Argentine leagues (legacy ID)
+  
+  // Second tier domestic leagues (2nd division)
+  '40': 'GB', // Championship
+  '141': 'ES', // Segunda División
+  '136': 'IT', // Serie B
+  '80': 'DE', // 2. Bundesliga
+  '62': 'FR', // Ligue 2
+  
+  // Additional major leagues and smaller nations
+  '106': 'TR', // Süper Lig (Turkey)
+  '87': 'DK', // Danish Superliga
+  '103': 'NO', // Eliteserien (Norway)
+  '113': 'SE', // Allsvenskan (Sweden)
+  '119': 'CH', // Swiss Super League
+  '169': 'PL', // Ekstraklasa (Poland)
+  '345': 'CZ', // Czech First League
+  '318': 'GR', // Greek Super League
+  '203': 'UA', // Ukrainian Premier League
+  '235': 'RU', // Russian Premier League
+  '286': 'JP', // J1 League (Japan)
+  '292': 'KR', // K League 1 (South Korea)
+  '271': 'AU', // A-League (Australia)
+  '144': 'BE', // Jupiler Pro League (Belgium)
+  
+  // Caribbean and Central America
+  '515': 'HT', // Ligue Haïtienne (Haiti)
+  '516': 'JM', // Jamaica Premier League
+  '517': 'TT', // TT Pro League (Trinidad and Tobago)
+  '518': 'CR', // Liga FPD (Costa Rica)
+  '519': 'GT', // Liga Nacional (Guatemala)
+  '520': 'HN', // Liga Nacional (Honduras)
+  '521': 'PA', // Liga Panameña de Fútbol
+  '522': 'NI', // Primera División (Nicaragua)
+  '523': 'SV', // Primera División (El Salvador)
+  '524': 'BZ', // Premier League of Belize
+  
+  // Add more mappings as needed...
+};
+
+// Helper function to get country flag based on league ID using comprehensive mapping
+const getCountryFlag = (leagueId: string): string => {
+  console.log(`[DEBUG] getCountryFlag called with leagueId: "${leagueId}"`);
+  
+  const countryCode = LEAGUE_COUNTRY_MAPPING[leagueId];
+  console.log(`[DEBUG] countryCode for "${leagueId}": ${countryCode}`);
+  
+  if (!countryCode) {
+    console.log(`[DEBUG] No country mapping found for league ID: "${leagueId}", using default flag`);
+    return '/icons/default-flag.svg';
+  }
+  
+  const code = countryCode.toUpperCase();
+  console.log(`[DEBUG] Uppercase country code: ${code}`);
+  
+  // Handle special cases
+  if (code === 'EU') return 'https://flagcdn.com/w40/eu.png';
+  if (code === 'WORLD') return 'https://flagcdn.com/w40/un.png';
+  if (code === 'GB' || code === 'EN' || code === 'UK') return 'https://flagcdn.com/w40/gb.png';
+  
+  // Standard country codes
+  const flagUrl = `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
+  console.log(`[DEBUG] Final flag URL: ${flagUrl}`);
+  return flagUrl;
 };
 
 const LeagueSection = ({ league }: LeagueSectionProps) => {
@@ -59,7 +135,7 @@ const LeagueSection = ({ league }: LeagueSectionProps) => {
             className="w-8 h-8 object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = "https://www.sofascore.com/static/images/placeholders/tournament.svg";
+              target.src = "/icons/default-flag.svg";
             }}
           />
         </div>

@@ -16,9 +16,9 @@ interface MatchFeedByLeagueProps {
 // League country mapping and country names
 const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
   // UEFA Competitions
-  '2486': 'EU', '2': 'EU', '3337': 'EU', '3': 'EU',
+  '2486': 'EU', '2': 'EU', '3337': 'EU', '3': 'EU', '722432': 'EU', // UEFA competitions
   
-  // Major domestic leagues
+  // Major domestic leagues (1st tier)
   '39': 'GB', // Premier League
   '140': 'ES', // La Liga
   '135': 'IT', // Serie A
@@ -31,11 +31,162 @@ const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
   '71': 'BR', // Série A Brasil
   '128': 'AR', // Primera División Argentina
   '1': 'WORLD', // FIFA World Cup
+  
+  // Second tier domestic leagues (2nd division)
+  '40': 'GB', // Championship
+  '141': 'ES', // Segunda División
+  '136': 'IT', // Serie B
+  '80': 'DE', // 2. Bundesliga
+  '62': 'FR', // Ligue 2
+  '95': 'PT', // Liga Portugal 2
+  '89': 'NL', // Eerste Divisie
+  '72': 'BR', // Série B Brasil
+  '129': 'AR', // Primera B Nacional
+  
+  // Third tier domestic leagues (3rd division)
+  '41': 'GB', // League One
+  '142': 'ES', // Primera División RFEF
+  '137': 'IT', // Serie C
+  '81': 'DE', // 3. Liga
+  '63': 'FR', // Championnat National
+  '73': 'BR', // Série C Brasil
+  
+  // Additional major leagues and smaller nations
+  '106': 'TR', // Süper Lig (Turkey)
+  '87': 'DK', // Danish Superliga
+  '103': 'NO', // Eliteserien (Norway)
+  '113': 'SE', // Allsvenskan (Sweden)
+  '119': 'CH', // Swiss Super League
+  '169': 'PL', // Ekstraklasa (Poland)
+  '345': 'CZ', // Czech First League
+  '318': 'GR', // Greek Super League
+  '203': 'UA', // Ukrainian Premier League
+  '235': 'RU', // Russian Premier League
+  '286': 'JP', // J1 League (Japan)
+  '292': 'KR', // K League 1 (South Korea)
+  '271': 'AU', // A-League (Australia)
+  '144': 'BE', // Jupiler Pro League (Belgium)
+  
+  // Caribbean and Central America
+  '323313': 'HT', // Ligue Haïtienne (Haiti) - corrected ID
+  '516': 'JM', // Jamaica Premier League
+  '517': 'TT', // TT Pro League (Trinidad and Tobago)
+  '518': 'CR', // Liga FPD (Costa Rica)
+  '519': 'GT', // Liga Nacional (Guatemala)
+  '520': 'HN', // Liga Nacional (Honduras)
+  '521': 'PA', // Liga Panameña de Fútbol
+  '522': 'NI', // Primera División (Nicaragua)
+  '523': 'SV', // Primera División (El Salvador)
+  '524': 'BZ', // Premier League of Belize
+  
+  // North America
+  '254': 'CA', // Canadian Premier League
+  '262': 'MX', // Liga MX (Mexico)
+  
+  // South America
+  '325': 'UY', // Primera División (Uruguay)
+  '326': 'PE', // Liga 1 (Peru)
+  '327': 'EC', // Serie A (Ecuador)
+  '328': 'CO', // Liga BetPlay (Colombia)
+  '329': 'VE', // Primera División (Venezuela)
+  '330': 'BO', // División Profesional (Bolivia)
+  '331': 'PY', // División Profesional (Paraguay)
+  '332': 'CL', // Primera División (Chile)
+  
+  // Africa
+  '410': 'EG', // Egyptian Premier League
+  '411': 'MA', // Botola (Morocco)
+  '412': 'TN', // Tunisian Ligue Professionnelle 1
+  '413': 'DZ', // Ligue Professionnelle 1 (Algeria)
+  '414': 'ZA', // PSL (South Africa)
+  '415': 'NG', // NPFL (Nigeria)
+  '416': 'GH', // Ghana Premier League
+  '417': 'CI', // Ligue 1 (Ivory Coast)
+  '418': 'SN', // Ligue 1 (Senegal)
+  '419': 'CM', // Elite One (Cameroon)
+  '420': 'KE', // FKF Premier League (Kenya)
+  
+  // Asia
+  '350': 'CN', // Chinese Super League
+  '351': 'IN', // Indian Super League
+  '352': 'TH', // Thai League 1
+  '353': 'VN', // V.League 1 (Vietnam)
+  '354': 'MY', // Malaysia Super League
+  '355': 'SG', // Singapore Premier League
+  '356': 'ID', // Liga 1 (Indonesia)
+  '357': 'PH', // Philippines Football League
+  '358': 'IR', // Persian Gulf Pro League (Iran)
+  '359': 'IQ', // Iraqi Premier League
+  '360': 'AE', // UAE Pro League
+  '361': 'QA', // Qatar Stars League
+  '362': 'KW', // Kuwaiti Premier League
+  '363': 'BH', // Bahraini Premier League
+  '364': 'OM', // Oman Professional League
+  '365': 'JO', // Jordan Pro League
+  '366': 'LB', // Lebanese Premier League
+  '367': 'SY', // Syrian Premier League
+  '368': 'PS', // Gaza Strip League (Palestine)
+  
+  // Europe - Smaller nations
+  '390': 'IS', // Úrvalsdeild (Iceland)
+  '391': 'FO', // Faroese Premier League
+  '392': 'MT', // Maltese Premier League
+  '393': 'CY', // Cypriot First Division
+  '394': 'LU', // Luxembourg National Division
+  '395': 'LI', // Liechtenstein Football Cup
+  '396': 'AD', // Andorran First Division
+  '397': 'SM', // San Marino Championship
+  '398': 'GI', // Gibraltar National League
+  '399': 'MC', // Monaco (plays in French system)
+  
+  // Eastern Europe
+  '375': 'LV', // Latvian Higher League
+  '376': 'LT', // A Lyga (Lithuania)
+  '377': 'EE', // Meistriliiga (Estonia)
+  '378': 'BY', // Belarusian Premier League
+  '379': 'MD', // Moldovan National Division
+  '380': 'AM', // Armenian Premier League
+  '381': 'AZ', // Azerbaijan Premier League
+  '382': 'GE', // Erovnuli Liga (Georgia)
+  '383': 'KZ', // Kazakhstan Premier League
+  '384': 'UZ', // Uzbekistan Super League
+  '385': 'KG', // Kyrgyzstan League
+  '386': 'TJ', // Tajikistan Higher League
+  '387': 'TM', // Turkmenistan Ýokary Liga
+  
+  // Balkans
+  '425': 'RS', // Serbian SuperLiga
+  '426': 'HR', // Croatian First League
+  '427': 'BA', // Premier League (Bosnia and Herzegovina)
+  '428': 'ME', // Montenegrin First League
+  '429': 'MK', // North Macedonian First League
+  '430': 'AL', // Albanian Superiore
+  '431': 'XK', // Football Superleague of Kosovo
+  '432': 'SI', // Slovenian PrvaLiga
+  '433': 'SK', // Slovak Super Liga
+  '434': 'HU', // Hungarian NB I
+  '435': 'RO', // Liga I (Romania)
+  '436': 'BG', // Bulgarian First League
+  
+  // Oceania
+  '500': 'NZ', // New Zealand Football Championship
+  '501': 'FJ', // Fiji Premier League
+  '502': 'NC', // New Caledonia Super Ligue
+  '503': 'PF', // Tahiti Ligue 1
+  '504': 'VU', // Port Vila Football League (Vanuatu)
+  '505': 'SB', // Solomon Islands S-League
+  '506': 'PG', // Papua New Guinea National Soccer League
+  '507': 'TO', // Tonga Major League
+  '508': 'WS', // Samoa National League
+  '509': 'CK', // Cook Islands Round Cup
+  '510': 'AS', // American Samoa Soccer League
 };
 
 const COUNTRY_NAMES: Record<string, string> = {
   'EU': 'Europe',
   'WORLD': 'International',
+  
+  // Major countries
   'GB': 'England',
   'ES': 'Spain',
   'IT': 'Italy',
@@ -47,12 +198,147 @@ const COUNTRY_NAMES: Record<string, string> = {
   'NL': 'Netherlands',
   'BR': 'Brazil',
   'AR': 'Argentina',
+  
+  // Europe
+  'TR': 'Turkey',
+  'BE': 'Belgium',
+  'DK': 'Denmark',
+  'NO': 'Norway',
+  'SE': 'Sweden',
+  'CH': 'Switzerland',
+  'AT': 'Austria',
+  'PL': 'Poland',
+  'CZ': 'Czech Republic',
+  'GR': 'Greece',
+  'UA': 'Ukraine',
+  'RU': 'Russia',
+  'IS': 'Iceland',
+  'FO': 'Faroe Islands',
+  'MT': 'Malta',
+  'CY': 'Cyprus',
+  'LU': 'Luxembourg',
+  'LI': 'Liechtenstein',
+  'AD': 'Andorra',
+  'SM': 'San Marino',
+  'GI': 'Gibraltar',
+  'MC': 'Monaco',
+  'LV': 'Latvia',
+  'LT': 'Lithuania',
+  'EE': 'Estonia',
+  'BY': 'Belarus',
+  'MD': 'Moldova',
+  'AM': 'Armenia',
+  'AZ': 'Azerbaijan',
+  'GE': 'Georgia',
+  'KZ': 'Kazakhstan',
+  'UZ': 'Uzbekistan',
+  'KG': 'Kyrgyzstan',
+  'TJ': 'Tajikistan',
+  'TM': 'Turkmenistan',
+  'RS': 'Serbia',
+  'HR': 'Croatia',
+  'BA': 'Bosnia and Herzegovina',
+  'ME': 'Montenegro',
+  'MK': 'North Macedonia',
+  'AL': 'Albania',
+  'XK': 'Kosovo',
+  'SI': 'Slovenia',
+  'SK': 'Slovakia',
+  'HU': 'Hungary',
+  'RO': 'Romania',
+  'BG': 'Bulgaria',
+  
+  // Asia
+  'JP': 'Japan',
+  'KR': 'South Korea',
+  'CN': 'China',
+  'IN': 'India',
+  'TH': 'Thailand',
+  'VN': 'Vietnam',
+  'MY': 'Malaysia',
+  'SG': 'Singapore',
+  'ID': 'Indonesia',
+  'PH': 'Philippines',
+  'IR': 'Iran',
+  'IQ': 'Iraq',
+  'AE': 'UAE',
+  'QA': 'Qatar',
+  'KW': 'Kuwait',
+  'BH': 'Bahrain',
+  'OM': 'Oman',
+  'JO': 'Jordan',
+  'LB': 'Lebanon',
+  'SY': 'Syria',
+  'PS': 'Palestine',
+  
+  // Africa
+  'EG': 'Egypt',
+  'MA': 'Morocco',
+  'TN': 'Tunisia',
+  'DZ': 'Algeria',
+  'ZA': 'South Africa',
+  'NG': 'Nigeria',
+  'GH': 'Ghana',
+  'CI': 'Ivory Coast',
+  'SN': 'Senegal',
+  'CM': 'Cameroon',
+  'KE': 'Kenya',
+  
+  // North America
+  'CA': 'Canada',
+  'MX': 'Mexico',
+  
+  // Caribbean and Central America
+  'HT': 'Haiti',
+  'JM': 'Jamaica',
+  'TT': 'Trinidad and Tobago',
+  'CR': 'Costa Rica',
+  'GT': 'Guatemala',
+  'HN': 'Honduras',
+  'PA': 'Panama',
+  'NI': 'Nicaragua',
+  'SV': 'El Salvador',
+  'BZ': 'Belize',
+  
+  // South America
+  'UY': 'Uruguay',
+  'PE': 'Peru',
+  'EC': 'Ecuador',
+  'CO': 'Colombia',
+  'VE': 'Venezuela',
+  'BO': 'Bolivia',
+  'PY': 'Paraguay',
+  'CL': 'Chile',
+  
+  // Oceania
+  'AU': 'Australia',
+  'NZ': 'New Zealand',
+  'FJ': 'Fiji',
+  'NC': 'New Caledonia',
+  'PF': 'French Polynesia',
+  'VU': 'Vanuatu',
+  'SB': 'Solomon Islands',
+  'PG': 'Papua New Guinea',
+  'TO': 'Tonga',
+  'WS': 'Samoa',
+  'CK': 'Cook Islands',
+  'AS': 'American Samoa',
 };
 
 // Helper function to get country info for a league
 const getLeagueCountryInfo = (leagueId: string) => {
+  console.log(`[DEBUG MatchFeed] getLeagueCountryInfo called with leagueId: "${leagueId}"`);
+  
   const countryCode = LEAGUE_COUNTRY_MAPPING[leagueId];
   const countryName = countryCode ? COUNTRY_NAMES[countryCode] : null;
+  
+  console.log(`[DEBUG MatchFeed] countryCode for "${leagueId}": ${countryCode}`);
+  console.log(`[DEBUG MatchFeed] countryName for "${leagueId}": ${countryName}`);
+  
+  // Log unmapped leagues for easier identification
+  if (!countryCode) {
+    console.warn(`[DEBUG MatchFeed] ⚠️ UNMAPPED LEAGUE: ID="${leagueId}" - needs to be added to LEAGUE_COUNTRY_MAPPING`);
+  }
   
   return {
     code: countryCode,
@@ -137,17 +423,33 @@ const getLeagueLogo = (leagueId: string, leagueName: string, apiLogo?: string): 
   `)}`;
 };
 
-// Helper function to get country flag image URL
-const getCountryFlagUrl = (countryCode: string): string => {
-  const code = countryCode?.toUpperCase();
+// Get country flag URL
+const getCountryFlagUrl = (code: string): string => {
+  console.log(`[DEBUG MatchFeed] getCountryFlagUrl called with code: "${code}"`);
   
-  // Handle special cases
-  if (code === 'EU') return 'https://flagcdn.com/w40/eu.png';
-  if (code === 'WORLD') return 'https://flagcdn.com/w40/un.png'; // UN flag as world representation
-  if (code === 'GB' || code === 'EN' || code === 'UK') return 'https://flagcdn.com/w40/gb.png';
+  // Special cases for non-standard country codes
+  if (code === 'EU') {
+    const flagUrl = 'https://flagcdn.com/w40/eu.png';
+    console.log(`[DEBUG MatchFeed] EU flag URL: ${flagUrl}`);
+    return flagUrl;
+  }
+  
+  if (code === 'WORLD') {
+    const flagUrl = 'https://flagcdn.com/w40/un.png'; // UN flag for World Cup
+    console.log(`[DEBUG MatchFeed] World flag URL: ${flagUrl}`);
+    return flagUrl;
+  }
   
   // Standard country codes
-  return `https://flagcdn.com/w40/${code?.toLowerCase()}.png`;
+  if (code && code.length === 2) {
+    const flagUrl = `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
+    console.log(`[DEBUG MatchFeed] Standard flag URL for "${code}": ${flagUrl}`);
+    return flagUrl;
+  }
+  
+  // Fallback for unknown countries
+  console.log(`[DEBUG MatchFeed] Using fallback flag for code: "${code}"`);
+  return '/icons/default-flag.svg';
 };
 
 // League filters data for the integrated filter with country mappings
@@ -159,7 +461,7 @@ const LEAGUE_FILTERS = [
   { id: '3337', name: 'UEFA Europa League', logoUrl: 'https://media.api-sports.io/football/leagues/3.png', countryCode: 'EU' },
   { id: '3', name: 'UEFA Europa League', logoUrl: 'https://media.api-sports.io/football/leagues/3.png', countryCode: 'EU' },
   
-  // Top domestic leagues
+  // Top domestic leagues (1st tier)
   { id: '39', name: 'Premier League', logoUrl: 'https://media.api-sports.io/football/leagues/39.png', countryCode: 'GB' },
   { id: '140', name: 'La Liga', logoUrl: 'https://media.api-sports.io/football/leagues/140.png', countryCode: 'ES' },
   { id: '135', name: 'Serie A', logoUrl: 'https://media.api-sports.io/football/leagues/135.png', countryCode: 'IT' },
@@ -169,6 +471,25 @@ const LEAGUE_FILTERS = [
   { id: '253', name: 'Major League Soccer', logoUrl: 'https://media.api-sports.io/football/leagues/253.png', countryCode: 'US' },
   { id: '94', name: 'Liga Portugal', logoUrl: 'https://media.api-sports.io/football/leagues/94.png', countryCode: 'PT' },
   { id: '307', name: 'Saudi Pro League', logoUrl: 'https://media.api-sports.io/football/leagues/307.png', countryCode: 'SA' },
+  
+  // Second tier domestic leagues (2nd division)
+  { id: '40', name: 'Championship', logoUrl: 'https://media.api-sports.io/football/leagues/40.png', countryCode: 'GB' },
+  { id: '141', name: 'Segunda División', logoUrl: 'https://media.api-sports.io/football/leagues/141.png', countryCode: 'ES' },
+  { id: '136', name: 'Serie B', logoUrl: 'https://media.api-sports.io/football/leagues/136.png', countryCode: 'IT' },
+  { id: '80', name: '2. Bundesliga', logoUrl: 'https://media.api-sports.io/football/leagues/80.png', countryCode: 'DE' },
+  { id: '62', name: 'Ligue 2', logoUrl: 'https://media.api-sports.io/football/leagues/62.png', countryCode: 'FR' },
+  { id: '95', name: 'Liga Portugal 2', logoUrl: 'https://media.api-sports.io/football/leagues/95.png', countryCode: 'PT' },
+  { id: '89', name: 'Eerste Divisie', logoUrl: 'https://media.api-sports.io/football/leagues/89.png', countryCode: 'NL' },
+  { id: '72', name: 'Série B Brasil', logoUrl: 'https://media.api-sports.io/football/leagues/72.png', countryCode: 'BR' },
+  { id: '129', name: 'Primera B Nacional', logoUrl: 'https://media.api-sports.io/football/leagues/129.png', countryCode: 'AR' },
+  
+  // Third tier domestic leagues (3rd division)
+  { id: '41', name: 'League One', logoUrl: 'https://media.api-sports.io/football/leagues/41.png', countryCode: 'GB' },
+  { id: '142', name: 'Primera División RFEF', logoUrl: 'https://media.api-sports.io/football/leagues/142.png', countryCode: 'ES' },
+  { id: '137', name: 'Serie C', logoUrl: 'https://media.api-sports.io/football/leagues/137.png', countryCode: 'IT' },
+  { id: '81', name: '3. Liga', logoUrl: 'https://media.api-sports.io/football/leagues/81.png', countryCode: 'DE' },
+  { id: '63', name: 'Championnat National', logoUrl: 'https://media.api-sports.io/football/leagues/63.png', countryCode: 'FR' },
+  { id: '73', name: 'Série C Brasil', logoUrl: 'https://media.api-sports.io/football/leagues/73.png', countryCode: 'BR' },
   
   // Additional major leagues
   { id: '88', name: 'Eredivisie', logoUrl: 'https://media.api-sports.io/football/leagues/88.png', countryCode: 'NL' },
@@ -262,6 +583,11 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   selectedCountryCode = null,
   onCountrySelect
 }) => {
+  console.log(`[DEBUG MatchFeed] MatchFeedByLeague rendered with ${leaguesWithMatches.length} leagues`);
+  leaguesWithMatches.forEach((league, index) => {
+    console.log(`[DEBUG MatchFeed] League ${index + 1}: ID="${league.id}", Name="${league.name}", Matches=${league.matches.length}`);
+  });
+  
   const [activeSelector, setActiveSelector] = useState<'all' | 'highlights' | 'live'>('all');
   
   const dateLabel = selectedDate ? formatSelectedDate(selectedDate) : 'Matches';
@@ -582,7 +908,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                       style={{ minWidth: '20px', minHeight: '20px' }}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = 'https://flagcdn.com/w40/un.png'; // Fallback to UN flag
+                        target.src = '/icons/default-flag.svg'; // Fallback to local default flag
                       }}
                     />
                     <div className="flex-1 min-w-0">
