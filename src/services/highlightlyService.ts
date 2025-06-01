@@ -133,6 +133,7 @@ export const highlightlyService = {
           const matchesResponse = await highlightlyClient.getMatches({
             leagueId: leagueId, // ✅ Fixed parameter name
             season: '2025', // Specifically requested 2025 season
+            date: '2025-01-01', // FIXED: Add specific date to prevent relative matches
             limit: '10'
           });
           
@@ -707,6 +708,7 @@ export const highlightlyService = {
           // Use the correct leagueId parameter from the API documentation
           const matchesResponse = await highlightlyClient.getMatches({
             leagueId: league.id.toString(),
+            date: new Date().toISOString().split('T')[0], // FIXED: Add current date to ensure we get today's/recent matches, not relative ones
             limit: tier === 'tier1' ? '10' : '15' // More matches for continental competitions
           });
           
@@ -1786,6 +1788,9 @@ export const highlightlyService = {
    */
   async getMatchesForDate(dateString: string): Promise<import('@/types').LeagueWithMatches[]> {
     try {
+      console.log(`[Highlightly] 🚀 getMatchesForDate called with dateString: "${dateString}"`);
+      console.log(`[Highlightly] 📅 Current date for reference: ${new Date().toISOString().split('T')[0]}`);
+      console.log(`[Highlightly] 🕐 Current time: ${new Date().toISOString()}`);
       console.log(`[Highlightly] Fetching matches for date: ${dateString}`);
       
       // Priority league IDs - FIXED to match actual API IDs
@@ -1873,6 +1878,15 @@ export const highlightlyService = {
             awayTeam: match.awayTeam?.name || match.teams?.away?.name
           }))
         );
+        
+        // DEBUG: Check if API is returning matches with wrong dates
+        console.log(`[Highlightly] 🗓️ DATE MISMATCH CHECK: Requested "${dateString}", got these match dates:`);
+        allMatchesResponse.data.slice(0, 5).forEach((match, index) => {
+          const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || match.utcDate);
+          const matchDateString = matchDate.toISOString().split('T')[0];
+          const dateMatches = matchDateString === dateString;
+          console.log(`[Highlightly]   Match ${index + 1}: API returned "${matchDateString}" ${dateMatches ? '✅' : '❌'} (${match.homeTeam?.name || match.teams?.home?.name} vs ${match.awayTeam?.name || match.teams?.away?.name})`);
+        });
       }
       
       // Helper function to check if a team name matches any priority team
@@ -2017,6 +2031,35 @@ export const highlightlyService = {
       const topPriorityLeagues = ['2486', '3337']; // Champions League, Europa League
       const missingPriorityLeagues = topPriorityLeagues.filter(id => !foundLeagueIds.has(id));
       
+      // 🧪 TEMPORARY DEBUG: Always test Champions League API endpoint regardless of missing leagues
+      console.log(`[Highlightly] 🧪 DEBUG: Testing Champions League API endpoint for ${dateString}...`);
+      try {
+        const testCLResponse = await highlightlyClient.getMatches({
+          leagueId: '2486',
+          date: dateString,
+          limit: '10'
+        });
+        
+        if (testCLResponse.data && Array.isArray(testCLResponse.data)) {
+          console.log(`[Highlightly] 🧪 DEBUG: Champions League API returned ${testCLResponse.data.length} matches for ${dateString}`);
+          if (testCLResponse.data.length > 0) {
+            console.log(`[Highlightly] 🧪 DEBUG: Sample CL match:`, {
+              homeTeam: testCLResponse.data[0].homeTeam?.name || testCLResponse.data[0].teams?.home?.name,
+              awayTeam: testCLResponse.data[0].awayTeam?.name || testCLResponse.data[0].teams?.away?.name,
+              date: testCLResponse.data[0].date,
+              leagueId: testCLResponse.data[0].league?.id,
+              leagueName: testCLResponse.data[0].league?.name
+            });
+          } else {
+            console.log(`[Highlightly] 🧪 DEBUG: No Champions League matches found for ${dateString} - this is expected for Saturday May 31st`);
+          }
+        } else {
+          console.log(`[Highlightly] 🧪 DEBUG: Champions League API returned no data or invalid format`);
+        }
+      } catch (testError) {
+        console.log(`[Highlightly] 🧪 DEBUG: Champions League API test error:`, testError);
+      }
+      
       if (missingPriorityLeagues.length > 0) {
         console.log(`[Highlightly] STEP 2: Missing priority leagues: ${missingPriorityLeagues.join(', ')}`);
         console.log(`[Highlightly] Making direct API calls to supplement missing leagues...`);
@@ -2026,6 +2069,7 @@ export const highlightlyService = {
             console.log(`[Highlightly] 🔍 Fetching matches directly for league ID: ${leagueId}`);
             const leagueResponse = await highlightlyClient.getMatches({
               leagueId: leagueId,
+              date: dateString, // FIXED: Add the date parameter to ensure we get matches for the specific date
               limit: '20'
             });
             
@@ -2105,6 +2149,7 @@ export const highlightlyService = {
       
       for (const [leagueId, { matches, leagueInfo }] of matchesByLeagueId.entries()) {
         console.log(`[Highlightly] Processing ${matches.length} matches for ${leagueInfo.name} (ID: ${leagueId})`);
+        console.log(`[Highlightly] 🕐 About to call processLeagueMatches with dateString: "${dateString}"`);
         
         const processedMatches = await this.processLeagueMatches(
           matches,
@@ -2209,13 +2254,19 @@ export const highlightlyService = {
               new Date()
             );
             
-            // Determine match status
+            // Determine match status - FIXED to be date-aware
             let status = 'upcoming';
             const now = new Date();
             const matchTime = matchDate.getTime();
             const currentTime = now.getTime();
             
-            // Check for finished status indicators
+            // Get the date parts for proper date comparison
+            const matchDateOnly = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+            const currentDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const matchDateOnlyTime = matchDateOnly.getTime();
+            const currentDateOnlyTime = currentDateOnly.getTime();
+            
+            // Check for finished status indicators from API
             const isFinished = 
               match.state?.description === 'Finished' ||
               match.state?.description === 'Finished after penalties' ||
@@ -2225,7 +2276,7 @@ export const highlightlyService = {
               match.status === 'finished' ||
               match.status === 'FT';
             
-            // Check for live status indicators
+            // Check for live status indicators from API
             const isLive = 
               match.state?.description === 'In Progress' ||
               match.state?.description === 'First Half' ||
@@ -2236,14 +2287,32 @@ export const highlightlyService = {
               match.status === 'live' ||
               match.status === 'LIVE';
             
+            // FIXED: Proper date-aware status determination
             if (isFinished) {
+              // API explicitly says it's finished
               status = 'finished';
             } else if (isLive) {
+              // API explicitly says it's live
               status = 'live';
-            } else if (matchTime <= currentTime) {
+            } else if (matchDateOnlyTime < currentDateOnlyTime) {
+              // Match was on a previous date - assume finished
               status = 'finished';
+              console.log(`[Date Fix] Match on ${matchDate.toDateString()} marked as finished (was on previous date)`);
+            } else if (matchDateOnlyTime === currentDateOnlyTime) {
+              // Match is today - check specific time
+              if (matchTime <= currentTime) {
+                // Match time has passed today - assume finished unless API says otherwise
+                status = 'finished';
+                console.log(`[Date Fix] Match today at ${matchDate.toTimeString()} marked as finished (time passed)`);
+              } else {
+                // Match time hasn't arrived yet today
+                status = 'upcoming';
+                console.log(`[Date Fix] Match today at ${matchDate.toTimeString()} marked as upcoming (time not reached)`);
+              }
             } else {
+              // Match is in the future
               status = 'upcoming';
+              console.log(`[Date Fix] Match on ${matchDate.toDateString()} marked as upcoming (future date)`);
             }
             
             // Extract score data

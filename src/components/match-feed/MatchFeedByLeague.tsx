@@ -327,17 +327,12 @@ const COUNTRY_NAMES: Record<string, string> = {
 
 // Helper function to get country info for a league
 const getLeagueCountryInfo = (leagueId: string) => {
-  console.log(`[DEBUG MatchFeed] getLeagueCountryInfo called with leagueId: "${leagueId}"`);
-  
   const countryCode = LEAGUE_COUNTRY_MAPPING[leagueId];
   const countryName = countryCode ? COUNTRY_NAMES[countryCode] : null;
   
-  console.log(`[DEBUG MatchFeed] countryCode for "${leagueId}": ${countryCode}`);
-  console.log(`[DEBUG MatchFeed] countryName for "${leagueId}": ${countryName}`);
-  
   // Log unmapped leagues for easier identification
   if (!countryCode) {
-    console.warn(`[DEBUG MatchFeed] ⚠️ UNMAPPED LEAGUE: ID="${leagueId}" - needs to be added to LEAGUE_COUNTRY_MAPPING`);
+    console.warn(`⚠️ UNMAPPED LEAGUE: ID="${leagueId}" - needs to be added to LEAGUE_COUNTRY_MAPPING`);
   }
   
   return {
@@ -425,30 +420,21 @@ const getLeagueLogo = (leagueId: string, leagueName: string, apiLogo?: string): 
 
 // Get country flag URL
 const getCountryFlagUrl = (code: string): string => {
-  console.log(`[DEBUG MatchFeed] getCountryFlagUrl called with code: "${code}"`);
-  
   // Special cases for non-standard country codes
   if (code === 'EU') {
-    const flagUrl = 'https://flagcdn.com/w40/eu.png';
-    console.log(`[DEBUG MatchFeed] EU flag URL: ${flagUrl}`);
-    return flagUrl;
+    return 'https://flagcdn.com/w40/eu.png';
   }
   
   if (code === 'WORLD') {
-    const flagUrl = 'https://flagcdn.com/w40/un.png'; // UN flag for World Cup
-    console.log(`[DEBUG MatchFeed] World flag URL: ${flagUrl}`);
-    return flagUrl;
+    return 'https://flagcdn.com/w40/un.png'; // UN flag for World Cup
   }
   
   // Standard country codes
   if (code && code.length === 2) {
-    const flagUrl = `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
-    console.log(`[DEBUG MatchFeed] Standard flag URL for "${code}": ${flagUrl}`);
-    return flagUrl;
+    return `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
   }
   
   // Fallback for unknown countries
-  console.log(`[DEBUG MatchFeed] Using fallback flag for code: "${code}"`);
   return '/icons/default-flag.svg';
 };
 
@@ -583,11 +569,6 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   selectedCountryCode = null,
   onCountrySelect
 }) => {
-  console.log(`[DEBUG MatchFeed] MatchFeedByLeague rendered with ${leaguesWithMatches.length} leagues`);
-  leaguesWithMatches.forEach((league, index) => {
-    console.log(`[DEBUG MatchFeed] League ${index + 1}: ID="${league.id}", Name="${league.name}", Matches=${league.matches.length}`);
-  });
-  
   const [activeSelector, setActiveSelector] = useState<'all' | 'highlights' | 'live'>('all');
   
   const dateLabel = selectedDate ? formatSelectedDate(selectedDate) : 'Matches';

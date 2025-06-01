@@ -71,10 +71,6 @@ const Index: React.FC = () => {
       const matchesData = await serviceAdapter.getMatchesForDate(dateString);
       
       console.log(`[Index] Loaded ${matchesData.length} leagues with matches for ${dateString}`);
-      console.log(`[Index DEBUG] Raw match data:`, matchesData);
-      matchesData.forEach((league, index) => {
-        console.log(`[Index DEBUG] League ${index + 1}: ID="${league.id}", Name="${league.name}", Matches=${league.matches?.length || 0}`);
-      });
       setDateMatches(matchesData);
       
     } catch (err) {
@@ -139,18 +135,6 @@ const Index: React.FC = () => {
       }
     };
   }, []);
-
-  // Debug logging for dateMatches changes
-  useEffect(() => {
-    if (selectedDate && dateMatches.length > 0) {
-      console.log(`[Index RENDER] About to render MatchFeedByLeague with:`, {
-        selectedDate,
-        dateMatchesLength: dateMatches.length,
-        dateMatchesLoading,
-        dateMatches: dateMatches
-      });
-    }
-  }, [selectedDate, dateMatches, dateMatchesLoading]);
 
   if (error) {
     return (
