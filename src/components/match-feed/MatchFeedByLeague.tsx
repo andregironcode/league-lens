@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import type { LeagueWithMatches } from '@/types';
 import LeagueCard from './LeagueCard';
 
@@ -7,8 +7,8 @@ interface MatchFeedByLeagueProps {
   loading?: boolean;
   selectedDate?: string;
   isToday?: boolean;
-  selectedLeagueId?: string | null;
-  onLeagueSelect?: (leagueId: string | null) => void;
+  selectedLeagueIds?: string[];
+  onLeagueSelect?: (leagueIds: string[]) => void;
   selectedCountryCode?: string | null;
   onCountrySelect?: (countryCode: string | null) => void;
 }
@@ -442,10 +442,8 @@ const getCountryFlagUrl = (code: string): string => {
 const LEAGUE_FILTERS = [
   // Top competitions and tournaments
   { id: '2486', name: 'UEFA Champions League', logoUrl: 'https://media.api-sports.io/football/leagues/2.png', countryCode: 'EU' },
-  { id: '2', name: 'UEFA Champions League', logoUrl: 'https://media.api-sports.io/football/leagues/2.png', countryCode: 'EU' },
   { id: '1', name: 'FIFA World Cup', logoUrl: 'https://media.api-sports.io/football/leagues/1.png', countryCode: 'WORLD' },
   { id: '3337', name: 'UEFA Europa League', logoUrl: 'https://media.api-sports.io/football/leagues/3.png', countryCode: 'EU' },
-  { id: '3', name: 'UEFA Europa League', logoUrl: 'https://media.api-sports.io/football/leagues/3.png', countryCode: 'EU' },
   
   // Top domestic leagues (1st tier)
   { id: '39', name: 'Premier League', logoUrl: 'https://media.api-sports.io/football/leagues/39.png', countryCode: 'GB' },
@@ -453,34 +451,19 @@ const LEAGUE_FILTERS = [
   { id: '135', name: 'Serie A', logoUrl: 'https://media.api-sports.io/football/leagues/135.png', countryCode: 'IT' },
   { id: '78', name: 'Bundesliga', logoUrl: 'https://media.api-sports.io/football/leagues/78.png', countryCode: 'DE' },
   { id: '61', name: 'Ligue 1', logoUrl: 'https://media.api-sports.io/football/leagues/61.png', countryCode: 'FR' },
-  { id: '216087', name: 'Major League Soccer', logoUrl: 'https://media.api-sports.io/football/leagues/253.png', countryCode: 'US' },
   { id: '253', name: 'Major League Soccer', logoUrl: 'https://media.api-sports.io/football/leagues/253.png', countryCode: 'US' },
   { id: '94', name: 'Liga Portugal', logoUrl: 'https://media.api-sports.io/football/leagues/94.png', countryCode: 'PT' },
   { id: '307', name: 'Saudi Pro League', logoUrl: 'https://media.api-sports.io/football/leagues/307.png', countryCode: 'SA' },
+  { id: '88', name: 'Eredivisie', logoUrl: 'https://media.api-sports.io/football/leagues/88.png', countryCode: 'NL' },
+  { id: '71', name: 'Série A Brasil', logoUrl: 'https://media.api-sports.io/football/leagues/71.png', countryCode: 'BR' },
+  { id: '128', name: 'Primera División Argentina', logoUrl: 'https://media.api-sports.io/football/leagues/128.png', countryCode: 'AR' },
   
   // Second tier domestic leagues (2nd division)
   { id: '40', name: 'Championship', logoUrl: 'https://media.api-sports.io/football/leagues/40.png', countryCode: 'GB' },
   { id: '141', name: 'Segunda División', logoUrl: 'https://media.api-sports.io/football/leagues/141.png', countryCode: 'ES' },
   { id: '136', name: 'Serie B', logoUrl: 'https://media.api-sports.io/football/leagues/136.png', countryCode: 'IT' },
   { id: '80', name: '2. Bundesliga', logoUrl: 'https://media.api-sports.io/football/leagues/80.png', countryCode: 'DE' },
-  { id: '62', name: 'Ligue 2', logoUrl: 'https://media.api-sports.io/football/leagues/62.png', countryCode: 'FR' },
-  { id: '95', name: 'Liga Portugal 2', logoUrl: 'https://media.api-sports.io/football/leagues/95.png', countryCode: 'PT' },
-  { id: '89', name: 'Eerste Divisie', logoUrl: 'https://media.api-sports.io/football/leagues/89.png', countryCode: 'NL' },
-  { id: '72', name: 'Série B Brasil', logoUrl: 'https://media.api-sports.io/football/leagues/72.png', countryCode: 'BR' },
-  { id: '129', name: 'Primera B Nacional', logoUrl: 'https://media.api-sports.io/football/leagues/129.png', countryCode: 'AR' },
-  
-  // Third tier domestic leagues (3rd division)
-  { id: '41', name: 'League One', logoUrl: 'https://media.api-sports.io/football/leagues/41.png', countryCode: 'GB' },
-  { id: '142', name: 'Primera División RFEF', logoUrl: 'https://media.api-sports.io/football/leagues/142.png', countryCode: 'ES' },
-  { id: '137', name: 'Serie C', logoUrl: 'https://media.api-sports.io/football/leagues/137.png', countryCode: 'IT' },
-  { id: '81', name: '3. Liga', logoUrl: 'https://media.api-sports.io/football/leagues/81.png', countryCode: 'DE' },
-  { id: '63', name: 'Championnat National', logoUrl: 'https://media.api-sports.io/football/leagues/63.png', countryCode: 'FR' },
-  { id: '73', name: 'Série C Brasil', logoUrl: 'https://media.api-sports.io/football/leagues/73.png', countryCode: 'BR' },
-  
-  // Additional major leagues
-  { id: '88', name: 'Eredivisie', logoUrl: 'https://media.api-sports.io/football/leagues/88.png', countryCode: 'NL' },
-  { id: '71', name: 'Série A Brasil', logoUrl: 'https://media.api-sports.io/football/leagues/71.png', countryCode: 'BR' },
-  { id: '128', name: 'Primera División Argentina', logoUrl: 'https://media.api-sports.io/football/leagues/128.png', countryCode: 'AR' }
+  { id: '62', name: 'Ligue 2', logoUrl: 'https://media.api-sports.io/football/leagues/62.png', countryCode: 'FR' }
 ];
 
 // Helper function to get country code for a league
@@ -559,12 +542,399 @@ const formatSelectedDate = (dateString: string): string => {
   });
 };
 
+// Create filter component outside the main component to prevent recreation
+const LeagueFilter: React.FC<{
+  leaguesWithMatches: LeagueWithMatches[];
+  selectedLeagueIds: string[];
+  onLeagueSelect?: (leagueIds: string[]) => void;
+}> = React.memo(({ leaguesWithMatches, selectedLeagueIds, onLeagueSelect }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
+
+  // Save scroll position before any potential re-render
+  const saveScrollPosition = () => {
+    if (scrollRef.current) {
+      scrollPositionRef.current = scrollRef.current.scrollTop;
+    }
+  };
+
+  // Set up scroll listener and save position on mount
+  useLayoutEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', saveScrollPosition);
+      // Save initial position
+      saveScrollPosition();
+      
+      return () => {
+        saveScrollPosition(); // Save on cleanup
+        scrollContainer.removeEventListener('scroll', saveScrollPosition);
+      };
+    }
+  }, []);
+
+  // Restore scroll position after re-render
+  useLayoutEffect(() => {
+    if (scrollRef.current && scrollPositionRef.current > 0) {
+      // Use requestAnimationFrame to ensure DOM has been updated
+      requestAnimationFrame(() => {
+        if (scrollRef.current && scrollPositionRef.current > 0) {
+          scrollRef.current.scrollTop = scrollPositionRef.current;
+        }
+      });
+    }
+  });
+
+  // Save scroll position when dependencies change
+  useLayoutEffect(() => {
+    saveScrollPosition();
+  }, [selectedLeagueIds]);
+
+  // Show all top leagues from LEAGUE_FILTERS, not just ones with current matches
+  const allTopLeagues = LEAGUE_FILTERS.slice(0, 15).map(filter => {
+    // Find current matches for this league
+    const leagueData = leaguesWithMatches.find(league => league.id === filter.id);
+    const matchCount = leagueData ? leagueData.matches.length : 0;
+    const liveMatchCount = leagueData ? leagueData.matches.filter(m => 
+      m.fixture?.status?.short === 'LIVE' || m.status === 'live'
+    ).length : 0;
+    
+    return {
+      id: filter.id,
+      name: filter.name,
+      logoUrl: filter.logoUrl,
+      countryCode: filter.countryCode,
+      matchCount: matchCount,
+      liveMatchCount: liveMatchCount,
+      hasLiveMatches: liveMatchCount > 0
+    };
+  });
+
+  // Sort by priority: keep original LEAGUE_FILTERS order, then by live matches, then by match count
+  const sortedLeagues = allTopLeagues.sort((a, b) => {
+    // First: maintain original order from LEAGUE_FILTERS
+    const aIndex = LEAGUE_FILTERS.findIndex(f => f.id === a.id);
+    const bIndex = LEAGUE_FILTERS.findIndex(f => f.id === b.id);
+    if (aIndex !== bIndex) return aIndex - bIndex;
+    
+    // Second: live matches (for leagues not in LEAGUE_FILTERS)
+    if (a.hasLiveMatches && !b.hasLiveMatches) return -1;
+    if (!a.hasLiveMatches && b.hasLiveMatches) return 1;
+    
+    // Third: match count (more matches first)
+    return b.matchCount - a.matchCount;
+  });
+
+  const handleLeagueClick = (leagueId: string) => {
+    if (!onLeagueSelect) return;
+    
+    // Toggle league selection (add if not selected, remove if selected)
+    if (selectedLeagueIds.includes(leagueId)) {
+      onLeagueSelect(selectedLeagueIds.filter(id => id !== leagueId));
+    } else {
+      onLeagueSelect([...selectedLeagueIds, leagueId]);
+    }
+  };
+
+  return (
+    <div className="sticky top-6">
+      <div className="mb-4 text-center">
+        <h3 className="text-lg font-semibold text-white mb-2">Top Leagues</h3>
+      </div>
+      
+      <div className="space-y-2 max-h-96 overflow-y-auto" ref={scrollRef}>
+        {sortedLeagues.length > 0 ? (
+          sortedLeagues.map((league) => {
+            const isSelected = selectedLeagueIds.includes(league.id);
+
+            return (
+              <button
+                key={league.id}
+                onClick={() => handleLeagueClick(league.id)}
+                className={`
+                  w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors focus:outline-none
+                  ${isSelected 
+                    ? 'bg-[#FFC30B] text-black' 
+                    : 'hover:bg-[#2a2a2a] text-gray-300'
+                  }
+                `}
+              >
+                <img
+                  src={league.logoUrl}
+                  alt={league.name}
+                  className="w-5 h-5 object-contain rounded-full bg-white p-0.5"
+                  style={{ minWidth: '20px', minHeight: '20px' }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{league.name}</div>
+                  <div className="text-xs text-gray-400">
+                    {league.hasLiveMatches && (
+                      <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
+                        {league.liveMatchCount} LIVE
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {isSelected && (
+                  <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
+                )}
+                {league.hasLiveMatches && !isSelected && (
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                )}
+              </button>
+            );
+          })
+        ) : (
+          <div className="text-center text-gray-500 py-4">
+            <p className="text-sm">No leagues available</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+LeagueFilter.displayName = 'LeagueFilter';
+
+// Create country filter component outside the main component to prevent recreation
+const CountryFilter: React.FC<{
+  leaguesWithMatches: LeagueWithMatches[];
+  selectedLeagueIds: string[];
+  onLeagueSelect?: (leagueIds: string[]) => void;
+  selectedCountryCode?: string | null;
+}> = React.memo(({ leaguesWithMatches, selectedLeagueIds, onLeagueSelect, selectedCountryCode }) => {
+  const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
+
+  // Save scroll position before any potential re-render
+  const saveScrollPosition = () => {
+    if (scrollRef.current) {
+      scrollPositionRef.current = scrollRef.current.scrollTop;
+    }
+  };
+
+  // Set up scroll listener and save position on mount
+  useLayoutEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', saveScrollPosition);
+      // Save initial position
+      saveScrollPosition();
+      
+      return () => {
+        saveScrollPosition(); // Save on cleanup
+        scrollContainer.removeEventListener('scroll', saveScrollPosition);
+      };
+    }
+  }, []);
+
+  // Restore scroll position after re-render
+  useLayoutEffect(() => {
+    if (scrollRef.current && scrollPositionRef.current > 0) {
+      // Use requestAnimationFrame to ensure DOM has been updated
+      requestAnimationFrame(() => {
+        if (scrollRef.current && scrollPositionRef.current > 0) {
+          scrollRef.current.scrollTop = scrollPositionRef.current;
+        }
+      });
+    }
+  });
+
+  // Save scroll position when dependencies change
+  useLayoutEffect(() => {
+    saveScrollPosition();
+  }, [selectedCountryCode, expandedCountries]);
+
+  // Group leagues by country using the mapping
+  const countriesMap = new Map();
+  leaguesWithMatches.forEach(league => {
+    if (league.matches && league.matches.length > 0) {
+      const countryInfo = getLeagueCountryInfo(league.id);
+      
+      if (!countryInfo.code || !countryInfo.name) return;
+      
+      const liveMatchCount = league.matches.filter(m => 
+        m.fixture?.status?.short === 'LIVE' || m.status === 'live'
+      ).length;
+      
+      if (!countriesMap.has(countryInfo.code)) {
+        countriesMap.set(countryInfo.code, {
+          code: countryInfo.code,
+          name: countryInfo.name,
+          flagUrl: getCountryFlagUrl(countryInfo.code),
+          leagues: [],
+          totalMatches: 0,
+          totalLiveMatches: 0,
+          hasLiveMatches: false
+        });
+      }
+      
+      const country = countriesMap.get(countryInfo.code);
+      country.leagues.push({
+        id: league.id,
+        name: league.name,
+        logoUrl: getLeagueLogo(league.id, league.name, league.logo),
+        matchCount: league.matches.length,
+        liveMatchCount: liveMatchCount,
+        hasLiveMatches: liveMatchCount > 0
+      });
+      country.totalMatches += league.matches.length;
+      country.totalLiveMatches += liveMatchCount;
+      country.hasLiveMatches = country.hasLiveMatches || liveMatchCount > 0;
+    }
+  });
+
+  // Sort countries by priority: live matches first, then by total matches
+  const sortedCountries = Array.from(countriesMap.values()).sort((a, b) => {
+    if (a.hasLiveMatches && !b.hasLiveMatches) return -1;
+    if (!a.hasLiveMatches && b.hasLiveMatches) return 1;
+    return b.totalMatches - a.totalMatches;
+  });
+
+  const toggleCountryExpansion = (countryCode: string) => {
+    // Save scroll position before the DOM changes
+    saveScrollPosition();
+    
+    const newExpanded = new Set(expandedCountries);
+    if (newExpanded.has(countryCode)) {
+      newExpanded.delete(countryCode);
+    } else {
+      newExpanded.add(countryCode);
+    }
+    setExpandedCountries(newExpanded);
+  };
+
+  const handleLeagueClick = (leagueId: string) => {
+    if (!onLeagueSelect) return;
+    
+    // If clicking the same league, reset the filter
+    if (selectedLeagueIds.includes(leagueId)) {
+      onLeagueSelect(selectedLeagueIds.filter(id => id !== leagueId));
+    } else {
+      onLeagueSelect([...selectedLeagueIds, leagueId]);
+    }
+  };
+
+  return (
+    <div className="sticky top-6">
+      <div className="mb-4 text-center">
+        <h3 className="text-lg font-semibold text-white mb-2">By Country</h3>
+      </div>
+      
+      <div className="space-y-2 max-h-96 overflow-y-auto" ref={scrollRef}>
+        {sortedCountries.length > 0 ? (
+          sortedCountries.map((country) => {
+            const isExpanded = expandedCountries.has(country.code);
+            
+            return (
+              <div key={country.code} className="border border-gray-700/30 rounded-lg overflow-hidden">
+                {/* Country Header - Clickable to expand/collapse */}
+                <button
+                  onClick={() => toggleCountryExpansion(country.code)}
+                  className="w-full flex items-center gap-3 px-3 py-2 bg-gray-800/30 hover:bg-gray-700/30 transition-colors text-left focus:outline-none"
+                >
+                  <img
+                    src={country.flagUrl}
+                    alt={`${country.name} flag`}
+                    className="w-5 h-5 object-cover rounded-full"
+                    style={{ minWidth: '20px', minHeight: '20px' }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/icons/default-flag.svg'; // Fallback to local default flag
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-white truncate">{country.name}</div>
+                    <div className="text-xs text-gray-400">
+                      {country.hasLiveMatches && (
+                        <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
+                          {country.totalLiveMatches} LIVE
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-gray-400">
+                    <svg 
+                      className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                  {country.hasLiveMatches && (
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                  )}
+                </button>
+                
+                {/* Leagues List - Collapsible */}
+                {isExpanded && (
+                  <div className="divide-y divide-gray-700/30 bg-gray-900/30">
+                    {country.leagues.map((league) => {
+                      const isSelected = selectedLeagueIds.includes(league.id);
+                      
+                      return (
+                        <button
+                          key={league.id}
+                          onClick={() => handleLeagueClick(league.id)}
+                          className={`
+                            w-full flex items-center gap-3 px-6 py-2 text-left transition-colors focus:outline-none
+                            ${isSelected 
+                              ? 'bg-[#FFC30B] text-black' 
+                              : 'hover:bg-gray-700/30 text-gray-300'
+                            }
+                          `}
+                        >
+                          <img
+                            src={league.logoUrl}
+                            alt={league.name}
+                            className="w-4 h-4 object-contain rounded-full bg-white p-0.5"
+                            style={{ minWidth: '16px', minHeight: '16px' }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">{league.name}</div>
+                            <div className="text-xs text-gray-400">
+                              {league.hasLiveMatches && (
+                                <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
+                                  {league.liveMatchCount} LIVE
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
+                          )}
+                          {league.hasLiveMatches && !isSelected && (
+                            <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div className="text-center text-gray-500 py-4">
+            <p className="text-sm">No countries available</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+CountryFilter.displayName = 'CountryFilter';
+
 const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({ 
   leaguesWithMatches, 
   loading = false,
   selectedDate,
   isToday = false,
-  selectedLeagueId = null,
+  selectedLeagueIds = [],
   onLeagueSelect,
   selectedCountryCode = null,
   onCountrySelect
@@ -574,8 +944,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   // Filter leagues based on selected filters and current selector
   const filteredLeagues = useMemo(() => {
     // First apply league filter
-    let filtered = selectedLeagueId 
-      ? leaguesWithMatches.filter(league => league.id === selectedLeagueId)
+    let filtered = selectedLeagueIds.length > 0 
+      ? leaguesWithMatches.filter(league => selectedLeagueIds.includes(league.id))
       : leaguesWithMatches;
     
     // Then apply country filter 
@@ -587,7 +957,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     }
     
     // Then apply match type filter based on current selector
-    return filtered.map(league => ({
+    const result = filtered.map(league => ({
       ...league,
       matches: league.matches.filter(match => {
         if (activeSelector === 'highlights') {
@@ -597,326 +967,30 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
         }
         return true; // 'all' shows everything
       })
-    })).filter(league => league.matches.length > 0); // Only show leagues with matches
-  }, [leaguesWithMatches, selectedLeagueId, selectedCountryCode, activeSelector]);
+    }));
+    
+    // Only filter out leagues with no matches if NO leagues are specifically selected
+    // If leagues are selected, show them even if they have no matches for this date/selector
+    if (selectedLeagueIds.length > 0) {
+      return result; // Show selected leagues regardless of match count
+    } else {
+      return result.filter(league => league.matches.length > 0); // Only show leagues with matches when no filter applied
+    }
+  }, [leaguesWithMatches, selectedLeagueIds, selectedCountryCode, activeSelector]);
   
   const dateLabel = selectedDate ? formatSelectedDate(selectedDate) : 'Matches';
   
-  // Calculate match counts for the pills
-  const allMatchesCount = leaguesWithMatches.reduce((total, league) => total + league.matches.length, 0);
-  const finishedMatchesCount = leaguesWithMatches.reduce((total, league) => 
+  // Calculate match counts for the pills - based on filtered data if leagues are selected
+  const baseLeagues = selectedLeagueIds.length > 0 
+    ? leaguesWithMatches.filter(league => selectedLeagueIds.includes(league.id))
+    : leaguesWithMatches;
+    
+  const allMatchesCount = baseLeagues.reduce((total, league) => total + league.matches.length, 0);
+  const finishedMatchesCount = baseLeagues.reduce((total, league) => 
     total + league.matches.filter(match => match.status === 'finished').length, 0);
-  const liveMatchesCount = leaguesWithMatches.reduce((total, league) => 
+  const liveMatchesCount = baseLeagues.reduce((total, league) => 
     total + league.matches.filter(match => match.status === 'live').length, 0);
   
-  // Create filter component
-  const LeagueFilter: React.FC = () => {
-    // Create a map of available leagues with their data
-    const availableLeaguesMap = new Map();
-    leaguesWithMatches.forEach(league => {
-      if (league.matches && league.matches.length > 0) {
-        const liveMatchCount = league.matches.filter(m => 
-          m.fixture?.status?.short === 'LIVE' || m.status === 'live'
-        ).length;
-        
-        availableLeaguesMap.set(league.id, {
-          id: league.id,
-          name: league.name,
-          logoUrl: getLeagueLogo(league.id, league.name, league.logo),
-          countryCode: getLeagueCountryCode(league.id),
-          matchCount: league.matches.length,
-          liveMatchCount: liveMatchCount,
-          hasLiveMatches: liveMatchCount > 0
-        });
-      }
-    });
-
-    // Get dynamic league list based on available matches, sorted by priority
-    const dynamicLeagues = Array.from(availableLeaguesMap.values()).sort((a, b) => {
-      // First sort by live matches (live matches first)
-      if (a.hasLiveMatches && !b.hasLiveMatches) return -1;
-      if (!a.hasLiveMatches && b.hasLiveMatches) return 1;
-      
-      // Then sort by predefined priority from LEAGUE_FILTERS
-      const aFilter = LEAGUE_FILTERS.find(f => f.id === a.id);
-      const bFilter = LEAGUE_FILTERS.find(f => f.id === b.id);
-      
-      const aPriority = aFilter ? LEAGUE_FILTERS.indexOf(aFilter) : 999;
-      const bPriority = bFilter ? LEAGUE_FILTERS.indexOf(bFilter) : 999;
-      
-      if (aPriority !== bPriority) return aPriority - bPriority;
-      
-      // Finally sort by match count (more matches first)
-      return b.matchCount - a.matchCount;
-    });
-
-    const handleLeagueClick = (leagueId: string) => {
-      if (!onLeagueSelect) return;
-      
-      // If clicking the same league, reset the filter
-      if (selectedLeagueId === leagueId) {
-        onLeagueSelect(null);
-      } else {
-        onLeagueSelect(leagueId);
-      }
-    };
-
-    return (
-      <div className="sticky top-6">
-        <div className="mb-4 text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">Top Leagues</h3>
-          {selectedLeagueId && (
-            <button
-              onClick={() => onLeagueSelect?.(null)}
-              className="mt-2 text-xs text-[#FFC30B] hover:text-yellow-300 transition-colors"
-            >
-              Clear filter
-            </button>
-          )}
-        </div>
-        
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {dynamicLeagues.length > 0 ? (
-            dynamicLeagues.map((league) => {
-              const isSelected = selectedLeagueId === league.id;
-
-              return (
-                <button
-                  key={league.id}
-                  onClick={() => handleLeagueClick(league.id)}
-                  className={`
-                    w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors
-                    ${isSelected 
-                      ? 'bg-[#FFC30B] text-black' 
-                      : 'hover:bg-[#2a2a2a] text-gray-300'
-                    }
-                  `}
-                >
-                  <img
-                    src={league.logoUrl}
-                    alt={league.name}
-                    className="w-5 h-5 object-contain rounded-full bg-white p-0.5"
-                    style={{ minWidth: '20px', minHeight: '20px' }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{league.name}</div>
-                    <div className="text-xs text-gray-400">
-                      {league.hasLiveMatches && (
-                        <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
-                          {league.liveMatchCount} LIVE
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {isSelected && (
-                    <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
-                  )}
-                  {league.hasLiveMatches && !isSelected && (
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                  )}
-                </button>
-              );
-            })
-          ) : (
-            <div className="text-center text-gray-500 py-4">
-              <p className="text-sm">No leagues available</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Create country filter component
-  const CountryFilter: React.FC = () => {
-    const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
-    
-    // Group leagues by country using the mapping
-    const countriesMap = new Map();
-    leaguesWithMatches.forEach(league => {
-      if (league.matches && league.matches.length > 0) {
-        const countryInfo = getLeagueCountryInfo(league.id);
-        
-        if (!countryInfo.code || !countryInfo.name) return;
-        
-        const liveMatchCount = league.matches.filter(m => 
-          m.fixture?.status?.short === 'LIVE' || m.status === 'live'
-        ).length;
-        
-        if (!countriesMap.has(countryInfo.code)) {
-          countriesMap.set(countryInfo.code, {
-            code: countryInfo.code,
-            name: countryInfo.name,
-            flagUrl: getCountryFlagUrl(countryInfo.code),
-            leagues: [],
-            totalMatches: 0,
-            totalLiveMatches: 0,
-            hasLiveMatches: false
-          });
-        }
-        
-        const country = countriesMap.get(countryInfo.code);
-        country.leagues.push({
-          id: league.id,
-          name: league.name,
-          logoUrl: getLeagueLogo(league.id, league.name, league.logo),
-          matchCount: league.matches.length,
-          liveMatchCount: liveMatchCount,
-          hasLiveMatches: liveMatchCount > 0
-        });
-        country.totalMatches += league.matches.length;
-        country.totalLiveMatches += liveMatchCount;
-        country.hasLiveMatches = country.hasLiveMatches || liveMatchCount > 0;
-      }
-    });
-
-    // Sort countries by priority: live matches first, then by total matches
-    const sortedCountries = Array.from(countriesMap.values()).sort((a, b) => {
-      if (a.hasLiveMatches && !b.hasLiveMatches) return -1;
-      if (!a.hasLiveMatches && b.hasLiveMatches) return 1;
-      return b.totalMatches - a.totalMatches;
-    });
-
-    const toggleCountryExpansion = (countryCode: string) => {
-      const newExpanded = new Set(expandedCountries);
-      if (newExpanded.has(countryCode)) {
-        newExpanded.delete(countryCode);
-      } else {
-        newExpanded.add(countryCode);
-      }
-      setExpandedCountries(newExpanded);
-    };
-
-    const handleLeagueClick = (leagueId: string) => {
-      if (!onLeagueSelect) return;
-      
-      // If clicking the same league, reset the filter
-      if (selectedLeagueId === leagueId) {
-        onLeagueSelect(null);
-      } else {
-        onLeagueSelect(leagueId);
-      }
-    };
-
-    return (
-      <div className="sticky top-6">
-        <div className="mb-4 text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">By Country</h3>
-          {selectedLeagueId && (
-            <button
-              onClick={() => onLeagueSelect?.(null)}
-              className="mt-2 text-xs text-[#FFC30B] hover:text-yellow-300 transition-colors"
-            >
-              Clear filter
-            </button>
-          )}
-        </div>
-        
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {sortedCountries.length > 0 ? (
-            sortedCountries.map((country) => {
-              const isExpanded = expandedCountries.has(country.code);
-              
-              return (
-                <div key={country.code} className="border border-gray-700/30 rounded-lg overflow-hidden">
-                  {/* Country Header - Clickable to expand/collapse */}
-                  <button
-                    onClick={() => toggleCountryExpansion(country.code)}
-                    className="w-full flex items-center gap-3 px-3 py-2 bg-gray-800/30 hover:bg-gray-700/30 transition-colors text-left"
-                  >
-                    <img
-                      src={country.flagUrl}
-                      alt={`${country.name} flag`}
-                      className="w-5 h-5 object-cover rounded-full"
-                      style={{ minWidth: '20px', minHeight: '20px' }}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/icons/default-flag.svg'; // Fallback to local default flag
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white truncate">{country.name}</div>
-                      <div className="text-xs text-gray-400">
-                        {country.hasLiveMatches && (
-                          <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
-                            {country.totalLiveMatches} LIVE
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-gray-400">
-                      <svg 
-                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                    {country.hasLiveMatches && (
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                    )}
-                  </button>
-                  
-                  {/* Leagues List - Collapsible */}
-                  {isExpanded && (
-                    <div className="divide-y divide-gray-700/30 bg-gray-900/30">
-                      {country.leagues.map((league) => {
-                        const isSelected = selectedLeagueId === league.id;
-                        
-                        return (
-                          <button
-                            key={league.id}
-                            onClick={() => handleLeagueClick(league.id)}
-                            className={`
-                              w-full flex items-center gap-3 px-6 py-2 text-left transition-colors
-                              ${isSelected 
-                                ? 'bg-[#FFC30B] text-black' 
-                                : 'hover:bg-gray-700/30 text-gray-300'
-                              }
-                            `}
-                          >
-                            <img
-                              src={league.logoUrl}
-                              alt={league.name}
-                              className="w-4 h-4 object-contain rounded-full bg-white p-0.5"
-                              style={{ minWidth: '16px', minHeight: '16px' }}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium truncate">{league.name}</div>
-                              <div className="text-xs text-gray-400">
-                                {league.hasLiveMatches && (
-                                  <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
-                                    {league.liveMatchCount} LIVE
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            {isSelected && (
-                              <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
-                            )}
-                            {league.hasLiveMatches && !isSelected && (
-                              <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <div className="text-center text-gray-500 py-4">
-              <p className="text-sm">No countries available</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <section className="mb-16">
@@ -926,16 +1000,82 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   }
 
   // Handle edge case: selected league has no matches
-  if (selectedLeagueId && filteredLeagues.length === 0) {
+  if (selectedLeagueIds.length > 0 && filteredLeagues.length === 0) {
     // Find the league name for better UX
-    const selectedLeague = leaguesWithMatches.find(league => league.id === selectedLeagueId);
-    const leagueName = selectedLeague?.name || 'this league';
+    const selectedLeague = leaguesWithMatches.find(league => selectedLeagueIds.includes(league.id));
+    const leagueName = selectedLeague?.name || 'selected leagues';
     
     return (
       <section className="mb-16">
         <div className="flex gap-8">
           <div className="flex-1 min-w-0">
             <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+              {/* Match Type Selectors */}
+              <div className="flex items-center justify-center gap-8 mb-8 border-b border-gray-700/30 pb-4 relative">
+                <button
+                  onClick={() => setActiveSelector('all')}
+                  className={`relative py-2 px-4 text-sm font-medium transition-colors flex items-center gap-2 ${
+                    activeSelector === 'all' 
+                      ? 'text-white' 
+                      : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  All
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    activeSelector === 'all' 
+                      ? 'bg-[#FFC30B] text-black' 
+                      : 'bg-gray-600 text-gray-300'
+                  }`}>
+                    {allMatchesCount}
+                  </span>
+                  {activeSelector === 'all' && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => setActiveSelector('highlights')}
+                  className={`relative py-2 px-4 text-sm font-medium transition-colors flex items-center gap-2 ${
+                    activeSelector === 'highlights' 
+                      ? 'text-white' 
+                      : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  Highlights
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    activeSelector === 'highlights' 
+                      ? 'bg-[#FFC30B] text-black' 
+                      : 'bg-gray-600 text-gray-300'
+                  }`}>
+                    {finishedMatchesCount}
+                  </span>
+                  {activeSelector === 'highlights' && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => setActiveSelector('live')}
+                  className={`relative py-2 px-4 text-sm font-medium transition-colors flex items-center gap-2 ${
+                    activeSelector === 'live' 
+                      ? 'text-white' 
+                      : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  Live
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    activeSelector === 'live' 
+                      ? 'bg-[#FFC30B] text-black' 
+                      : 'bg-gray-600 text-gray-300'
+                  }`}>
+                    {liveMatchesCount}
+                  </span>
+                  {activeSelector === 'live' && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
+                  )}
+                </button>
+              </div>
+
               <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
                 <div className="text-gray-400 mb-4">
                   <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -944,18 +1084,19 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">No matches for {leagueName}</h3>
                 <p className="text-gray-400">
-                  Try selecting a different league or date to see more matches.
+                  No matches found for your selected leagues on {dateLabel.toLowerCase()}. Try selecting a different date or adjusting your league selection.
                 </p>
               </div>
             </div>
           </div>
           
-          {/* Filter sidebar */}
+          {/* Filter sidebar - Always show when leagues are selected so user can change selection */}
           <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
             <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
-              <div className="text-center text-gray-500 py-4">
-                <p className="text-sm">Filter options available when matches are present</p>
-              </div>
+              <LeagueFilter leaguesWithMatches={leaguesWithMatches} selectedLeagueIds={selectedLeagueIds} onLeagueSelect={onLeagueSelect} />
+            </div>
+            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+              <CountryFilter leaguesWithMatches={leaguesWithMatches} selectedLeagueIds={selectedLeagueIds} onLeagueSelect={onLeagueSelect} selectedCountryCode={selectedCountryCode} />
             </div>
           </div>
         </div>
@@ -1132,10 +1273,10 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
         {/* Filter sidebar */}
         <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
           <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
-            <LeagueFilter />
+            <LeagueFilter leaguesWithMatches={leaguesWithMatches} selectedLeagueIds={selectedLeagueIds} onLeagueSelect={onLeagueSelect} />
           </div>
           <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
-            <CountryFilter />
+            <CountryFilter leaguesWithMatches={leaguesWithMatches} selectedLeagueIds={selectedLeagueIds} onLeagueSelect={onLeagueSelect} selectedCountryCode={selectedCountryCode} />
           </div>
         </div>
       </div>

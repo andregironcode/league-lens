@@ -10,7 +10,7 @@ const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
   const [dateMatches, setDateMatches] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
+  const [selectedLeagueIds, setSelectedLeagueIds] = useState<string[]>([]);
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [dateMatchesLoading, setDateMatchesLoading] = useState<boolean>(false);
@@ -89,9 +89,9 @@ const Index: React.FC = () => {
   }, [loadMatchesForDate]); // Only depends on loadMatchesForDate (which is also memoized)
 
   // Handle league filter selection - memoized for consistency
-  const handleLeagueSelect = useCallback((leagueId: string | null) => {
-    console.log(`[Index] League filter selected: ${leagueId}`);
-    setSelectedLeagueId(leagueId);
+  const handleLeagueSelect = useCallback((leagueIds: string[]) => {
+    console.log(`[Index] League filter selected: ${leagueIds.join(', ')}`);
+    setSelectedLeagueIds(leagueIds);
   }, []);
 
   // Handle country filter selection - memoized for consistency
@@ -172,7 +172,11 @@ const Index: React.FC = () => {
 
         {/* Date Filter */}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
-          <DateFilter onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+          <DateFilter 
+            onDateSelect={handleDateSelect} 
+            selectedDate={selectedDate}
+            selectedLeagueIds={selectedLeagueIds}
+          />
         </div>
 
         {/* Matches Content */}
@@ -183,7 +187,7 @@ const Index: React.FC = () => {
               loading={dateMatchesLoading}
               selectedDate={selectedDate}
               isToday={isToday}
-              selectedLeagueId={selectedLeagueId}
+              selectedLeagueIds={selectedLeagueIds}
               onLeagueSelect={handleLeagueSelect}
               selectedCountryCode={selectedCountryCode}
               onCountrySelect={handleCountrySelect}

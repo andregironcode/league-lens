@@ -4,6 +4,7 @@ import { serviceAdapter } from '@/services/serviceAdapter';
 interface DateFilterProps {
   onDateSelect: (date: string) => void;
   selectedDate?: string;
+  selectedLeagueIds?: string[];
 }
 
 interface DateInfo {
@@ -18,7 +19,7 @@ interface DateInfo {
   matchCount: number;
 }
 
-const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) => {
+const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate, selectedLeagueIds = [] }) => {
   const [dates, setDates] = useState<DateInfo[]>([]);
   const [currentSelectedDate, setCurrentSelectedDate] = useState<string>('');
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -69,7 +70,13 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
       let matchCount = 0;
       try {
         const matches = await serviceAdapter.getMatchesForDate(dateString);
-        matchCount = matches.reduce((total, league) => total + league.matches.length, 0);
+        
+        // Filter matches by selected leagues if any are selected
+        const filteredMatches = selectedLeagueIds.length > 0 
+          ? matches.filter(league => selectedLeagueIds.includes(league.id))
+          : matches;
+          
+        matchCount = filteredMatches.reduce((total, league) => total + league.matches.length, 0);
       } catch (error) {
         console.error(`Error fetching matches for ${dateString}:`, error);
       }
@@ -99,7 +106,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
         setCurrentSelectedDate(selectedDate);
       }
     });
-  }, [selectedDate, onDateSelect]);
+  }, [selectedDate, onDateSelect, selectedLeagueIds]);
 
   // Handle scroll events for 3D effect
   const handleScroll = useCallback(() => {
