@@ -995,7 +995,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   if (loading) {
     return (
       <section className="mb-16">
-        <LoadingSkeleton />
+          <LoadingSkeleton />
       </section>
     );
   }
@@ -1075,14 +1075,14 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
                   )}
                 </button>
-              </div>
+          </div>
 
-              <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
-                <div className="text-gray-400 mb-4">
-                  <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
+          <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
                 <h3 className="text-xl font-semibold text-white mb-2">No matches for {leagueName}</h3>
                 <p className="text-gray-400">
                   No matches found for your selected leagues on {dateLabel.toLowerCase()}. Try selecting a different date or adjusting your league selection.
@@ -1127,7 +1127,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">No matches for {countryName}</h3>
-                <p className="text-gray-400">
+            <p className="text-gray-400">
                   Try selecting a different country or date to see more matches.
                 </p>
               </div>
@@ -1170,13 +1170,13 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
               }}
             >
               <div className="bg-black/30 backdrop-blur-sm rounded-lg p-12 text-center border border-white/20">
-                <div className="text-gray-400 mb-4">
-                  <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
+              </svg>
+            </div>
                 <h3 className="text-xl font-semibold text-white mb-2">{message}</h3>
-                <p className="text-gray-400">
+            <p className="text-gray-400">
                   {description}
                 </p>
               </div>
@@ -1253,7 +1253,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                     : 'bg-white/20 text-gray-300'
                 }`}>
                   {finishedMatchesCount}
-                </span>
+              </span>
                 {activeSelector === 'highlights' && (
                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
                 )}
@@ -1274,10 +1274,10 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                     : 'bg-white/20 text-gray-300'
                 }`}>
                   {liveMatchesCount}
-                </span>
+              </span>
                 {activeSelector === 'live' && (
                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
-                )}
+            )}
               </button>
             </div>
 
@@ -1300,7 +1300,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
             </div>
           </div>
         </div>
-
+        
         {/* Filter sidebar */}
         <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
           <div 

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Eye, Share2, Shirt, BarChart4, MapPin, Bell } from 'lucide-react';
 import Header from '@/components/Header';
 import { getMatchById, getActiveService } from '@/services/serviceAdapter';
+import { highlightlyClient } from '@/integrations/highlightly/client';
 import { MatchHighlight, EnhancedMatchHighlight, Player, Match } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,22 @@ const MatchDetails = () => {
   const [exactDate, setExactDate] = useState('');
   const [activeTab, setActiveTab] = useState('stats');
   const [reminderEnabled, setReminderEnabled] = useState(false);
+  
+  // State for consistent mock data
+  const [homeTeamForm, setHomeTeamForm] = useState<any>(null);
+  const [awayTeamForm, setAwayTeamForm] = useState<any>(null);
+  const [homeLeaguePosition, setHomeLeaguePosition] = useState<any>(null);
+  const [awayLeaguePosition, setAwayLeaguePosition] = useState<any>(null);
+  const [headToHeadData, setHeadToHeadData] = useState<any[]>([]);
+  const [impressiveStats, setImpressiveStats] = useState<any[]>([]);
+  
+  // State for real API data
+  const [realLeagueStandings, setRealLeagueStandings] = useState<any>(null);
+  const [realHomeTeamStats, setRealHomeTeamStats] = useState<any>(null);
+  const [realAwayTeamStats, setRealAwayTeamStats] = useState<any>(null);
+  const [realHeadToHead, setRealHeadToHead] = useState<any>(null);
+  const [apiDataLoading, setApiDataLoading] = useState(false);
+  
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -233,79 +250,6 @@ const MatchDetails = () => {
     navigate(`/team/${teamId}`);
   };
 
-  // Generate mock data for preview mode
-  const generateTeamForm = (teamName: string) => {
-    // Generate last 5 matches form
-    const results = ['W', 'L', 'D'];
-    const form = Array.from({ length: 5 }, () => 
-      results[Math.floor(Math.random() * results.length)]
-    );
-    
-    // Generate stats
-    const gamesPlayed = 5;
-    const wins = form.filter(r => r === 'W').length;
-    const draws = form.filter(r => r === 'D').length;
-    const losses = form.filter(r => r === 'L').length;
-    
-    return {
-      form,
-      stats: {
-        gamesPlayed,
-        wins,
-        draws, 
-        losses,
-        over25: Math.floor(Math.random() * 4) + 1, // Out of 5 games
-        under25: 5 - (Math.floor(Math.random() * 4) + 1),
-        cleanSheets: Math.floor(Math.random() * 3),
-        failedToScore: Math.floor(Math.random() * 2),
-        conceded: gamesPlayed - Math.floor(Math.random() * 3),
-        concededTwo: Math.floor(Math.random() * 3)
-      }
-    };
-  };
-
-  const generateLeaguePosition = (teamName: string) => {
-    // Mock league position data
-    const position = Math.floor(Math.random() * 20) + 1;
-    const points = Math.floor(Math.random() * 50) + 20;
-    const played = Math.floor(Math.random() * 10) + 15;
-    
-    return {
-      position,
-      points,
-      played,
-      form: generateTeamForm(teamName).form.slice(0, 3) // Last 3 for standings
-    };
-  };
-
-  const generateHeadToHead = () => {
-    return [
-      {
-        date: '2024-01-15',
-        homeTeam: match?.homeTeam.name || 'Home',
-        awayTeam: match?.awayTeam.name || 'Away', 
-        score: '2-1',
-        competition: 'Premier League'
-      },
-      {
-        date: '2023-08-22',
-        homeTeam: match?.awayTeam.name || 'Away',
-        awayTeam: match?.homeTeam.name || 'Home',
-        score: '0-3', 
-        competition: 'Premier League'
-      }
-    ];
-  };
-
-  const generateImpressiveStats = () => {
-    const stats = [
-      { team: 'home', stat: 'Goals per game', value: '2.3', description: 'Highest in the league' },
-      { team: 'away', stat: 'Clean sheets', value: '8', description: 'Best defensive record' },
-      { team: 'home', stat: 'Win rate at home', value: '89%', description: 'Unbeaten at home this season' }
-    ];
-    return stats;
-  };
-
   // Helper function to calculate time until match
   const getTimeUntilMatch = () => {
     if (!match) return null;
@@ -327,6 +271,750 @@ const MatchDetails = () => {
   };
 
   const timeUntilMatch = getTimeUntilMatch();
+
+  // Helper function to determine the correct season based on match date
+  const getMatchSeason = () => {
+    if (!match) return new Date().getFullYear().toString();
+    
+    const matchDate = new Date(match.date);
+    const matchYear = matchDate.getFullYear();
+    const matchMonth = matchDate.getMonth(); // 0-based (0 = January)
+    
+    // For most leagues, the season starts in summer/fall of the previous year
+    // and ends in spring/summer of the current year
+    // For Brazilian leagues like Carioca, the season typically runs within the calendar year
+    
+    // If it's a Brazilian league (detected by competition name)
+    if (match.competition.name.toLowerCase().includes('carioca') || 
+        match.competition.name.toLowerCase().includes('brasil') ||
+        match.competition.name.toLowerCase().includes('paulista') ||
+        match.competition.name.toLowerCase().includes('mineiro') ||
+        match.competition.name.toLowerCase().includes('gaúcho')) {
+      return matchYear.toString();
+    }
+    
+    // For European leagues (Premier League, La Liga, etc.)
+    // If the match is in Jan-June, it's likely part of the season that started the previous year
+    // If the match is in Jul-Dec, it's the start of a new season
+    if (matchMonth >= 0 && matchMonth <= 5) { // Jan-June
+      return matchYear.toString(); // Use current year for European leagues in spring
+    } else { // Jul-Dec
+      return (matchYear + 1).toString(); // Next year's season
+    }
+  };
+
+  const matchSeason = getMatchSeason();
+
+  // Helper function to detect if this is a pre-season or early season match
+  const isPreSeasonMatch = () => {
+    if (!match) return false;
+    
+    const matchDate = new Date(match.date);
+    const now = new Date();
+    const monthsUntilMatch = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
+    
+    // For Brazilian leagues (calendar year season), be more careful
+    if (match.competition.name.toLowerCase().includes('carioca') || 
+        match.competition.name.toLowerCase().includes('brasileir') ||
+        match.competition.name.toLowerCase().includes('brazil')) {
+      
+      // For Brazilian leagues, check if this is very early in the calendar year
+      const matchMonth = matchDate.getMonth(); // 0-11
+      const isVeryEarlyInYear = matchMonth <= 1; // January or February
+      
+      // If it's more than 4 months away AND very early in year, likely pre-season
+      return monthsUntilMatch > 4 && isVeryEarlyInYear;
+    }
+    
+    // For European leagues or unknown leagues, use the original logic
+    // If the match is more than 3 months in the future, it's likely pre-season
+    return monthsUntilMatch > 3;
+  };
+
+  // Helper function to check if teams have played enough matches for meaningful stats
+  const hasSeasonStarted = (teamData: any) => {
+    return teamData && teamData.stats && teamData.stats.gamesPlayed >= 2;
+  };
+
+  // Helper function to get appropriate no-data message based on context
+  const getNoDataMessage = (dataType: 'form' | 'standings' | 'h2h') => {
+    if (isPreSeasonMatch()) {
+      switch (dataType) {
+        case 'form':
+          return `This appears to be a pre-season or early season fixture. ${match?.homeTeam.name} and ${match?.awayTeam.name} may not have played enough matches yet for form analysis.`;
+        case 'standings':
+          return `League standings for ${match?.competition.name} ${matchSeason} are not yet available. This may be a pre-season fixture or the league season hasn't started.`;
+        case 'h2h':
+          return `No lifetime encounters found between ${match?.homeTeam.name} and ${match?.awayTeam.name} in our database. This may be their first meeting or they compete in different leagues.`;
+        default:
+          return 'Data not available for this pre-season fixture.';
+      }
+    } else {
+      switch (dataType) {
+        case 'form':
+          return `Recent match data for ${match?.homeTeam.name} and ${match?.awayTeam.name} is not available in our database. The teams may be from a lower division with limited coverage.`;
+        case 'standings':
+          return `Current ${match?.competition.name} ${matchSeason} standings are not available in our database. This competition may have limited API coverage.`;
+        case 'h2h':
+          return `No historical encounters found between ${match?.homeTeam.name} and ${match?.awayTeam.name} in our database. They may have never met or their meeting history isn't covered in our data.`;
+        default:
+          return 'Match data is not available in our database.';
+      }
+    }
+  };
+
+  // Fetch real API data
+  const fetchRealLeagueStandings = async () => {
+    if (!match || getActiveService() !== 'highlightly') return null;
+    
+    try {
+      console.log(`[MatchDetails] Fetching real league standings for ${match.competition.name} (Season: ${matchSeason})...`);
+      
+      // Try multiple strategies to find league standings with season awareness
+      const searchStrategies = [
+        // Strategy 1: Try by exact competition name with correct season
+        () => highlightlyClient.getStandings({
+          league: match.competition.name,
+          season: matchSeason
+        }),
+        // Strategy 2: Try by partial competition name with correct season
+        () => highlightlyClient.getStandings({
+          league: match.competition.name.split(' ')[0], // First word only
+          season: matchSeason
+        }),
+        // Strategy 3: Try previous season in case data isn't available for current season yet
+        () => highlightlyClient.getStandings({
+          league: match.competition.name,
+          season: (parseInt(matchSeason) - 1).toString()
+        }),
+        // Strategy 4: Try by leagueId with correct season
+        () => {
+          const leagueIdMap: {[key: string]: number} = {
+            'Premier League': 33973,
+            'La Liga': 2486,
+            'Bundesliga': 67162,
+            'Ligue 1': 52695,
+            'Serie A': 61205,
+            'Eredivisie': 75672,
+            'Primeira Liga': 80778,
+            'Carioca': 2470, // Brazilian leagues
+            'Carioca C': 2470, // Specific tier
+            'Brasileirão': 71,
+            'Copa do Brasil': 550,
+            'Paulista': 2478
+          };
+          
+          const leagueId = leagueIdMap[match.competition.name];
+          if (leagueId) {
+            return highlightlyClient.getStandings({
+              leagueId: leagueId.toString(),
+              season: matchSeason
+            });
+          }
+          return Promise.resolve(null);
+        },
+        // Strategy 5: Search by country and competition name for Brazilian leagues
+        () => {
+          if (match.competition.name.toLowerCase().includes('carioca') || 
+              match.competition.name.toLowerCase().includes('brasil') ||
+              match.competition.name.toLowerCase().includes('paulista')) {
+            // Try with just the league name since countryCode is not supported
+            return highlightlyClient.getStandings({
+              league: match.competition.name,
+              season: matchSeason
+            });
+          }
+          return Promise.resolve(null);
+        }
+      ];
+      
+      // Try each strategy
+      for (let i = 0; i < searchStrategies.length; i++) {
+        try {
+          console.log(`[MatchDetails] Trying standings strategy ${i + 1} for ${match.competition.name} (Season: ${matchSeason})...`);
+          const response = await searchStrategies[i]();
+          
+          if (response && (response.groups || response.standings || response.data)) {
+            console.log(`[MatchDetails] SUCCESS! Found standings for ${match.competition.name} ${matchSeason} using strategy ${i + 1}`);
+            return response.groups?.[0]?.standings || response.standings || response.data;
+          }
+        } catch (strategyError) {
+          console.log(`[MatchDetails] Standings strategy ${i + 1} failed:`, strategyError);
+          continue;
+        }
+      }
+      
+      console.log(`[MatchDetails] No standings found for ${match.competition.name}`);
+      return null;
+    } catch (error) {
+      console.error(`[MatchDetails] Critical error fetching league standings:`, error);
+      return null;
+    }
+  };
+
+  const fetchRealTeamStats = async (teamId: string, teamName: string) => {
+    if (!match || getActiveService() !== 'highlightly') return null;
+    
+    try {
+      console.log(`[MatchDetails] Aggressively fetching real team stats for ${teamName} in ${match.competition.name} (Season: ${matchSeason})...`);
+      
+      // Try multiple search strategies to find real team data with season awareness
+      const searchStrategies = [
+        // Strategy 1: Search in specific league and season as home team
+        () => highlightlyClient.getMatches({
+          homeTeamName: teamName,
+          leagueName: match.competition.name,
+          season: matchSeason,
+          limit: '10'
+        }),
+        // Strategy 2: Search in specific league and season as away team
+        () => highlightlyClient.getMatches({
+          awayTeamName: teamName,
+          leagueName: match.competition.name,
+          season: matchSeason,
+          limit: '10'
+        }),
+        // Strategy 3: Search previous season data in case current season is too new
+        () => highlightlyClient.getMatches({
+          homeTeamName: teamName,
+          leagueName: match.competition.name,
+          season: (parseInt(matchSeason) - 1).toString(),
+          limit: '15'
+        }),
+        // Strategy 4: Search as home team in any league for this season
+        () => highlightlyClient.getMatches({
+          homeTeamName: teamName,
+          season: matchSeason,
+          limit: '15'
+        }),
+        // Strategy 5: Search as away team in any league for this season
+        () => highlightlyClient.getMatches({
+          awayTeamName: teamName,
+          season: matchSeason,
+          limit: '15'
+        }),
+        // Strategy 6: Search with partial team name in specific league
+        () => highlightlyClient.getMatches({
+          homeTeamName: teamName.split(' ')[0],
+          leagueName: match.competition.name,
+          season: matchSeason,
+          limit: '15'
+        }),
+        // Strategy 7: Search by date range around the match date
+        () => {
+          const matchDate = new Date(match.date);
+          const searchDate = matchDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+          return highlightlyClient.getMatches({
+            homeTeamName: teamName,
+            date: searchDate,
+            limit: '20'
+          });
+        },
+        // Strategy 8: Search for Brazilian teams specifically
+        () => {
+          if (match.competition.name.toLowerCase().includes('carioca') || 
+              match.competition.name.toLowerCase().includes('brasil') ||
+              match.competition.name.toLowerCase().includes('paulista')) {
+            return highlightlyClient.getMatches({
+              countryName: 'Brazil',
+              homeTeamName: teamName,
+              season: matchSeason,
+              limit: '20'
+            });
+          }
+          return Promise.resolve(null);
+        }
+      ];
+      
+      // Try each strategy until we get data
+      for (let i = 0; i < searchStrategies.length; i++) {
+        try {
+          console.log(`[MatchDetails] Trying search strategy ${i + 1} for ${teamName} (Season: ${matchSeason})...`);
+          const response = await searchStrategies[i]();
+          
+          if (response && response.data && response.data.length > 0) {
+            console.log(`[MatchDetails] SUCCESS! Found ${response.data.length} matches for ${teamName} using strategy ${i + 1} (Season: ${matchSeason})`);
+            return response.data;
+          }
+        } catch (strategyError) {
+          console.log(`[MatchDetails] Strategy ${i + 1} failed for ${teamName}:`, strategyError);
+          continue;
+        }
+      }
+      
+      console.log(`[MatchDetails] All search strategies failed for ${teamName} (Season: ${matchSeason})`);
+      return null;
+      
+    } catch (error) {
+      console.error(`[MatchDetails] Critical error fetching team stats for ${teamName}:`, error);
+      return null;
+    }
+  };
+
+  const fetchRealHeadToHead = async () => {
+    if (!match || getActiveService() !== 'highlightly') return null;
+    
+    try {
+      console.log(`[MatchDetails] Fetching lifetime H2H data for ${match.homeTeam.name} vs ${match.awayTeam.name}...`);
+      
+      // Try multiple search strategies for lifetime head-to-head data (no season restrictions)
+      const h2hStrategies = [
+        // Strategy 1: Direct search without season restrictions (most recent encounters)
+        () => highlightlyClient.getMatches({
+          homeTeamName: match.homeTeam.name,
+          awayTeamName: match.awayTeam.name,
+          limit: '10'
+        }),
+        // Strategy 2: Reverse order without season restrictions
+        () => highlightlyClient.getMatches({
+          homeTeamName: match.awayTeam.name,
+          awayTeamName: match.homeTeam.name,
+          limit: '10'
+        }),
+        // Strategy 3: Search home team matches and filter for away team (broader search)
+        () => highlightlyClient.getMatches({
+          homeTeamName: match.homeTeam.name,
+          limit: '50'
+        }).then(response => {
+          if (response?.data) {
+            return {
+              ...response,
+              data: response.data.filter((match_result: any) => {
+                const awayTeamName = match_result.awayTeam?.name || match_result.teams?.away?.name || '';
+                // Match against various forms of the away team name
+                return awayTeamName.toLowerCase().includes(match.awayTeam.name.toLowerCase()) ||
+                       match.awayTeam.name.toLowerCase().includes(awayTeamName.toLowerCase()) ||
+                       awayTeamName.split(' ').some((word: string) => match.awayTeam.name.toLowerCase().includes(word.toLowerCase()));
+              }).slice(0, 10) // Limit to 10 most recent
+            };
+          }
+          return response;
+        }),
+        // Strategy 4: Search away team matches and filter for home team
+        () => highlightlyClient.getMatches({
+          homeTeamName: match.awayTeam.name,
+          limit: '50'
+        }).then(response => {
+          if (response?.data) {
+            return {
+              ...response,
+              data: response.data.filter((match_result: any) => {
+                const awayTeamName = match_result.awayTeam?.name || match_result.teams?.away?.name || '';
+                return awayTeamName.toLowerCase().includes(match.homeTeam.name.toLowerCase()) ||
+                       match.homeTeam.name.toLowerCase().includes(awayTeamName.toLowerCase()) ||
+                       awayTeamName.split(' ').some((word: string) => match.homeTeam.name.toLowerCase().includes(word.toLowerCase()));
+              }).slice(0, 10)
+            };
+          }
+          return response;
+        }),
+        // Strategy 5: Search with partial team names (first word only)
+        () => {
+          const homeFirstWord = match.homeTeam.name.split(' ')[0];
+          const awayFirstWord = match.awayTeam.name.split(' ')[0];
+          return highlightlyClient.getMatches({
+            homeTeamName: homeFirstWord,
+            awayTeamName: awayFirstWord,
+            limit: '15'
+          });
+        },
+        // Strategy 6: Historical search by competition (if they've met in this competition before)
+        () => highlightlyClient.getMatches({
+          leagueName: match.competition.name,
+          limit: '100'
+        }).then(response => {
+          if (response?.data) {
+            return {
+              ...response,
+              data: response.data.filter((match_result: any) => {
+                const homeTeamName = match_result.homeTeam?.name || match_result.teams?.home?.name || '';
+                const awayTeamName = match_result.awayTeam?.name || match_result.teams?.away?.name || '';
+                
+                // Check if this match involves both teams (in either home/away configuration)
+                const hasHomeTeam = homeTeamName.toLowerCase().includes(match.homeTeam.name.toLowerCase()) || 
+                                   homeTeamName.toLowerCase().includes(match.awayTeam.name.toLowerCase());
+                const hasAwayTeam = awayTeamName.toLowerCase().includes(match.homeTeam.name.toLowerCase()) || 
+                                   awayTeamName.toLowerCase().includes(match.awayTeam.name.toLowerCase());
+                
+                return hasHomeTeam && hasAwayTeam;
+              }).slice(0, 10)
+            };
+          }
+          return response;
+        }),
+        // Strategy 7: Multi-year historical search (last 5 years)
+        () => {
+          const currentYear = new Date().getFullYear();
+          const searchYears = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3, currentYear - 4];
+          
+          return Promise.all(searchYears.map(year => 
+            highlightlyClient.getMatches({
+              homeTeamName: match.homeTeam.name,
+              awayTeamName: match.awayTeam.name,
+              season: year.toString(),
+              limit: '5'
+            }).catch(() => ({ data: [] }))
+          )).then(responses => {
+            const allMatches = responses.flatMap(response => response.data || []);
+            // Sort by date to get most recent first
+            allMatches.sort((a: any, b: any) => {
+              const dateA = new Date(a.date || a.fixture?.date || '1970-01-01');
+              const dateB = new Date(b.date || b.fixture?.date || '1970-01-01');
+              return dateB.getTime() - dateA.getTime();
+            });
+            return { data: allMatches };
+          });
+        }
+      ];
+      
+      // Try each strategy until we find historical data
+      for (let i = 0; i < h2hStrategies.length; i++) {
+        try {
+          console.log(`[MatchDetails] Trying lifetime H2H strategy ${i + 1}...`);
+          const response = await h2hStrategies[i]();
+          
+          if (response && response.data && response.data.length > 0) {
+            // Sort matches by date (most recent first) and take top 5 for processing
+            const sortedMatches = response.data.sort((a: any, b: any) => {
+              const dateA = new Date(a.date || a.fixture?.date || '1970-01-01');
+              const dateB = new Date(b.date || b.fixture?.date || '1970-01-01');
+              return dateB.getTime() - dateA.getTime();
+            }).slice(0, 5);
+            
+            console.log(`[MatchDetails] SUCCESS! Found ${sortedMatches.length} lifetime H2H matches using strategy ${i + 1}`);
+            console.log(`[MatchDetails] Most recent H2H encounters:`, sortedMatches.map((m: any) => ({
+              date: m.date || m.fixture?.date,
+              home: m.homeTeam?.name || m.teams?.home?.name,
+              away: m.awayTeam?.name || m.teams?.away?.name,
+              score: m.score || m.fixture?.score?.fulltime
+            })));
+            
+            return sortedMatches;
+          }
+        } catch (strategyError) {
+          console.log(`[MatchDetails] Lifetime H2H strategy ${i + 1} failed:`, strategyError);
+          continue;
+        }
+      }
+      
+      console.log(`[MatchDetails] All lifetime H2H search strategies failed`);
+      return null;
+      
+    } catch (error) {
+      console.error(`[MatchDetails] Critical error fetching lifetime H2H data:`, error);
+      return null;
+    }
+  };
+
+  // Transform real API data to match our component format
+  const transformRealTeamData = (realData: any, teamName: string) => {
+    if (!realData) return null;
+    
+    try {
+      // If it's matches data from the API
+      if (Array.isArray(realData) && realData.length > 0) {
+        const recentMatches = realData.slice(0, 5).map((match: any) => {
+          // Determine if this team was home or away
+          const isHome = match.homeTeam?.name === teamName || 
+                        (match.teams?.home?.name === teamName);
+          
+          // Extract scores
+          let homeScore = 0;
+          let awayScore = 0;
+          
+          if (match.score) {
+            homeScore = match.score.home || 0;
+            awayScore = match.score.away || 0;
+          } else if (match.fixture?.score?.fulltime) {
+            homeScore = match.fixture.score.fulltime.home || 0;
+            awayScore = match.fixture.score.fulltime.away || 0;
+          }
+          
+          // Determine result for this team
+          let result = 'D'; // Default to draw
+          if (homeScore !== awayScore) {
+            if (isHome) {
+              result = homeScore > awayScore ? 'W' : 'L';
+            } else {
+              result = awayScore > homeScore ? 'W' : 'L';
+            }
+          }
+          
+          // Extract team names
+          const homeTeamName = match.homeTeam?.name || match.teams?.home?.name || 'Home';
+          const awayTeamName = match.awayTeam?.name || match.teams?.away?.name || 'Away';
+          const opponent = isHome ? awayTeamName : homeTeamName;
+          
+          // Extract competition name
+          const competition = match.competition?.name || match.league?.name || 'League';
+          
+          // Extract date
+          const matchDate = match.date || match.fixture?.date || new Date().toISOString().split('T')[0];
+          
+          return {
+            result,
+            opponent,
+            competition,
+            isHome,
+            homeTeam: homeTeamName,
+            awayTeam: awayTeamName,
+            homeScore,
+            awayScore,
+            date: matchDate
+          };
+        });
+        
+        const form = recentMatches.map(m => m.result);
+        const wins = form.filter(r => r === 'W').length;
+        const draws = form.filter(r => r === 'D').length;
+        const losses = form.filter(r => r === 'L').length;
+        
+        // Calculate stats from real matches
+        const stats = {
+          gamesPlayed: recentMatches.length,
+          wins,
+          draws,
+          losses,
+          over25: recentMatches.filter(m => (m.homeScore + m.awayScore) > 2.5).length,
+          under25: recentMatches.filter(m => (m.homeScore + m.awayScore) <= 2.5).length,
+          cleanSheets: recentMatches.filter(m => 
+            (m.isHome && m.awayScore === 0) || (!m.isHome && m.homeScore === 0)
+          ).length,
+          failedToScore: recentMatches.filter(m => 
+            (m.isHome && m.homeScore === 0) || (!m.isHome && m.awayScore === 0)
+          ).length,
+          conceded: recentMatches.filter(m => 
+            (m.isHome && m.awayScore > 0) || (!m.isHome && m.homeScore > 0)
+          ).length,
+          concededTwo: recentMatches.filter(m => 
+            (m.isHome && m.awayScore >= 2) || (!m.isHome && m.homeScore >= 2)
+          ).length
+        };
+        
+        return { form, recentMatches, stats };
+      }
+    } catch (error) {
+      console.log('[MatchDetails] Error transforming real team data:', error);
+    }
+    
+    return null;
+  };
+
+  const transformRealHeadToHead = (realData: any) => {
+    if (!realData || !Array.isArray(realData)) return [];
+    
+    try {
+      // Take only the 2 most recent encounters for display
+      return realData.slice(0, 2).map((match: any) => {
+        // Extract scores
+        let homeScore = 0;
+        let awayScore = 0;
+        
+        if (match.score) {
+          homeScore = match.score.home || 0;
+          awayScore = match.score.away || 0;
+        } else if (match.fixture?.score?.fulltime) {
+          homeScore = match.fixture.score.fulltime.home || 0;
+          awayScore = match.fixture.score.fulltime.away || 0;
+        }
+        
+        // Extract team names
+        const homeTeamName = match.homeTeam?.name || match.teams?.home?.name || 'Home';
+        const awayTeamName = match.awayTeam?.name || match.teams?.away?.name || 'Away';
+        
+        // Extract and format date
+        const matchDate = match.date || match.fixture?.date || '2024-01-15';
+        const formattedDate = new Date(matchDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+        
+        // Extract competition name and season if available
+        const competition = match.competition?.name || match.league?.name || 'Unknown Competition';
+        const season = match.season || new Date(matchDate).getFullYear().toString();
+        
+        return {
+          date: formattedDate,
+          originalDate: matchDate,
+          homeTeam: homeTeamName,
+          awayTeam: awayTeamName,
+          score: `${homeScore}-${awayScore}`,
+          competition: competition,
+          season: season,
+          // Add context about how recent this encounter was
+          yearsSince: Math.floor((new Date().getTime() - new Date(matchDate).getTime()) / (1000 * 60 * 60 * 24 * 365))
+        };
+      });
+    } catch (error) {
+      console.log('[MatchDetails] Error transforming lifetime head-to-head data:', error);
+    }
+    
+    return [];
+  };
+
+  // Generate consistent mock data when match is loaded
+  useEffect(() => {
+    console.log('[MatchDetails] useEffect triggered:', {
+      match: match ? `${match.homeTeam.name} vs ${match.awayTeam.name}` : 'null',
+      homeTeamForm: homeTeamForm ? 'exists' : 'null',
+      matchSeason,
+      activeService: getActiveService()
+    });
+    
+    if (match && !homeTeamForm) {
+      console.log('[MatchDetails] Starting API data fetch...');
+      // Start loading API data
+      setApiDataLoading(true);
+      
+      // Only use real data from Highlightly service - no fallbacks to mock data
+      if (getActiveService() === 'highlightly') {
+        console.log('[MatchDetails] Fetching ONLY real data from Highlightly API...');
+        
+        // Fetch real data with more aggressive retry logic
+        Promise.all([
+          fetchRealLeagueStandings(),
+          fetchRealTeamStats(match.homeTeam.id, match.homeTeam.name),
+          fetchRealTeamStats(match.awayTeam.id, match.awayTeam.name),
+          fetchRealHeadToHead()
+        ]).then(([standings, homeStats, awayStats, h2h]) => {
+          console.log(`[MatchDetails] Real API Results for ${match.homeTeam.name} vs ${match.awayTeam.name} (Season: ${matchSeason}):`, {
+            standings: standings ? 'SUCCESS ✓' : 'FAILED ✗',
+            homeStats: homeStats ? 'SUCCESS ✓' : 'FAILED ✗',
+            awayStats: awayStats ? 'SUCCESS ✓' : 'FAILED ✗',
+            h2h: h2h ? 'SUCCESS ✓' : 'FAILED ✗',
+            matchDate: match.date,
+            detectedSeason: matchSeason,
+            competition: match.competition.name
+          });
+          
+          // Store real data
+          setRealLeagueStandings(standings);
+          setRealHomeTeamStats(homeStats);
+          setRealAwayTeamStats(awayStats);
+          setRealHeadToHead(h2h);
+          
+          // Transform real data
+          const realHomeTeamData = transformRealTeamData(homeStats, match.homeTeam.name);
+          const realAwayTeamData = transformRealTeamData(awayStats, match.awayTeam.name);
+          const realH2HData = transformRealHeadToHead(h2h);
+          
+          console.log('[MatchDetails] Transformed real data:', {
+            realHomeTeamData: realHomeTeamData ? 'SUCCESS ✓' : 'FAILED ✗',
+            realAwayTeamData: realAwayTeamData ? 'SUCCESS ✓' : 'FAILED ✗',
+            realH2HData: realH2HData.length > 0 ? 'SUCCESS ✓' : 'FAILED ✗'
+          });
+          
+          // Only use real data - set to null if not available
+          setHomeTeamForm(realHomeTeamData);
+          setAwayTeamForm(realAwayTeamData);
+          setHeadToHeadData(realH2HData);
+          
+          // Log what data we're using
+          console.log('[MatchDetails] Preview data loaded (REAL DATA ONLY):', {
+            homeTeamForm: realHomeTeamData ? 'REAL API DATA ✓' : 'NO DATA AVAILABLE',
+            awayTeamForm: realAwayTeamData ? 'REAL API DATA ✓' : 'NO DATA AVAILABLE', 
+            headToHead: realH2HData.length > 0 ? 'REAL API DATA ✓' : 'NO DATA AVAILABLE',
+            homeTeam: match.homeTeam.name,
+            awayTeam: match.awayTeam.name
+          });
+          
+          // For league positions, try to extract from real standings only
+          if (standings && Array.isArray(standings)) {
+            const homePosition = standings.find((standing: any) => 
+              standing.team?.name === match.homeTeam.name
+            );
+            const awayPosition = standings.find((standing: any) => 
+              standing.team?.name === match.awayTeam.name
+            );
+            
+            setHomeLeaguePosition(homePosition ? {
+              position: homePosition.rank || homePosition.position || standings.indexOf(homePosition) + 1,
+              points: homePosition.total?.points || homePosition.points || 0,
+              played: homePosition.total?.games || homePosition.played || 0,
+              form: realHomeTeamData?.form?.slice(0, 3) || []
+            } : null);
+            
+            setAwayLeaguePosition(awayPosition ? {
+              position: awayPosition.rank || awayPosition.position || standings.indexOf(awayPosition) + 1,
+              points: awayPosition.total?.points || awayPosition.points || 0,
+              played: awayPosition.total?.games || awayPosition.played || 0,
+              form: realAwayTeamData?.form?.slice(0, 3) || []
+            } : null);
+          } else {
+            console.log('[MatchDetails] No real league standings available');
+            setHomeLeaguePosition(null);
+            setAwayLeaguePosition(null);
+          }
+          
+          // Generate impressive stats only if we have real data
+          if (realHomeTeamData || realAwayTeamData) {
+            setImpressiveStats([
+              {
+                team: 'home',
+                stat: 'Recent form',
+                value: realHomeTeamData?.stats?.wins ? `${realHomeTeamData.stats.wins}W` : 'N/A',
+                description: realHomeTeamData ? 'from last 5 matches' : 'Data unavailable'
+              },
+              {
+                team: 'away', 
+                stat: 'Recent form',
+                value: realAwayTeamData?.stats?.wins ? `${realAwayTeamData.stats.wins}W` : 'N/A',
+                description: realAwayTeamData ? 'from last 5 matches' : 'Data unavailable'
+              }
+            ]);
+          } else {
+            setImpressiveStats([]);
+          }
+          
+          setApiDataLoading(false);
+          console.log('[MatchDetails] Real data loading complete!');
+          
+          // Show toast notification about successful real data loading
+          if (standings || homeStats || awayStats || h2h) {
+            toast({
+              title: "✅ Real Data Loaded",
+              description: `Successfully loaded live data from Highlightly API for ${match.homeTeam.name} vs ${match.awayTeam.name}`,
+              variant: "default",
+            });
+          } else {
+            toast({
+              title: "⚠️ Limited Data Available", 
+              description: "Could not fetch complete match data from API. Some sections may be empty.",
+              variant: "default",
+            });
+          }
+        }).catch((error) => {
+          console.error('[MatchDetails] Error fetching real data:', error);
+          
+          // Set all data to null/empty - no fallbacks to mock data
+          setHomeTeamForm(null);
+          setAwayTeamForm(null);
+          setHomeLeaguePosition(null);
+          setAwayLeaguePosition(null);
+          setHeadToHeadData([]);
+          setImpressiveStats([]);
+          
+          setApiDataLoading(false);
+          
+          // Show error toast notification
+          toast({
+            title: "❌ API Error",
+            description: "Failed to load real match data from Highlightly API. Please check your connection.",
+            variant: "destructive",
+          });
+        });
+      } else {
+        console.log('[MatchDetails] Not using Highlightly service - no data available');
+        setApiDataLoading(false);
+        toast({
+          title: "ℹ️ No Data Source",
+          description: "Switch to Highlightly service in the header to view real match data.",
+          variant: "default",
+        });
+      }
+    }
+  }, [match, homeTeamForm, matchSeason]);
 
   if (loading) {
     return <div className="min-h-screen bg-black pt-20 px-4 sm:px-6">
@@ -466,369 +1154,209 @@ const MatchDetails = () => {
               </div>
             </div>
 
+            {/* Pre-season fixture banner */}
+            {isPreSeasonMatch() && (
+              <div className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-xl p-4">
+                <div className="flex items-center justify-center mb-2">
+                  <div className="text-orange-400 mr-2">🏟️</div>
+                  <h4 className="text-white font-semibold">Pre-Season Fixture</h4>
+                </div>
+                <p className="text-center text-sm text-gray-300 mb-2">
+                  This appears to be an early season or pre-season match for {match.competition.name} {matchSeason}.
+                </p>
+                <p className="text-center text-xs text-gray-400">
+                  Statistical data will become more comprehensive once the regular season begins and teams have played several matches.
+                </p>
+              </div>
+            )}
+
             {/* League Standings */}
             <div 
               className="rounded-xl p-6 border overflow-hidden"
               style={{
                 background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                minHeight: '240px'
+                border: '1px solid rgba(255, 255, 255, 0.1)'
               }}
             >
               <h3 className="text-lg font-semibold mb-4 text-center text-white">League Standings</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Home Team Standing */}
-                <div className="space-y-3">
-                  <div className="flex items-center mb-3">
-                    <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-6 h-6 object-contain mr-2" />
-                    <h4 className="text-base font-semibold text-white">{match.homeTeam.name}</h4>
-                  </div>
-                  <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-400 text-sm">League Position</span>
-                      <span className="text-[#FFC30B] font-bold text-lg">#{generateLeaguePosition(match.homeTeam.name).position}</span>
-                    </div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-400 text-sm">Points</span>
-                      <span className="text-white font-medium">{generateLeaguePosition(match.homeTeam.name).points}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Recent Form</span>
-                      <div className="flex space-x-1">
-                        {generateLeaguePosition(match.homeTeam.name).form.map((result, index) => (
-                          <span key={index} className={`w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center ${
-                            result === 'W' ? 'bg-green-600 text-white' :
-                            result === 'D' ? 'bg-yellow-600 text-white' :
-                            'bg-red-600 text-white'
-                          }`}>
-                            {result}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+              
+              {apiDataLoading ? (
+                <div className="text-center text-gray-400 py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-yellow-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                  {getActiveService() === 'highlightly' ? 'Loading real standings from Highlightly API...' : 'Loading standings...'}
                 </div>
-
-                {/* Away Team Standing */}
-                <div className="space-y-3">
-                  <div className="flex items-center mb-3">
-                    <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-6 h-6 object-contain mr-2" />
-                    <h4 className="text-base font-semibold text-white">{match.awayTeam.name}</h4>
-                  </div>
-                  <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-400 text-sm">League Position</span>
-                      <span className="text-[#FFC30B] font-bold text-lg">#{generateLeaguePosition(match.awayTeam.name).position}</span>
-                    </div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-400 text-sm">Points</span>
-                      <span className="text-white font-medium">{generateLeaguePosition(match.awayTeam.name).points}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Recent Form</span>
-                      <div className="flex space-x-1">
-                        {generateLeaguePosition(match.awayTeam.name).form.map((result, index) => (
-                          <span key={index} className={`w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center ${
-                            result === 'W' ? 'bg-green-600 text-white' :
-                            result === 'D' ? 'bg-yellow-600 text-white' :
-                            'bg-red-600 text-white'
-                          }`}>
-                            {result}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Form and Stats */}
-            <div 
-              className="rounded-xl p-6 border overflow-hidden"
-              style={{
-                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}
-            >
-              <h3 className="text-lg font-semibold mb-4 text-center text-white">Recent Form & Stats (Last 5 Games)</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Home Team Form */}
-                <div className="space-y-3">
-                  <div className="flex items-center mb-3">
-                    <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-5 h-5 object-contain mr-2" />
-                    <h4 className="text-base font-semibold text-white">{match.homeTeam.name}</h4>
-                  </div>
-                  
-                  {/* Form */}
-                  <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3 mb-3 border border-white/20">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium text-sm">Form (Last 5)</span>
-                      <div className="flex space-x-1">
-                        {generateTeamForm(match.homeTeam.name).form.map((result, index) => (
-                          <span key={index} className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                            result === 'W' ? 'bg-green-600 text-white' :
-                            result === 'D' ? 'bg-yellow-600 text-white' :
-                            'bg-red-600 text-white'
-                          }`}>
-                            {result}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center border border-white/20">
-                      <div className="text-[#FFC30B] font-bold text-base">{generateTeamForm(match.homeTeam.name).stats.over25}/5</div>
-                      <div className="text-gray-400 text-xs">Over 2.5 Goals</div>
-                    </div>
-                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center border border-white/20">
-                      <div className="text-[#FFC30B] font-bold text-base">{generateTeamForm(match.homeTeam.name).stats.cleanSheets}/5</div>
-                      <div className="text-gray-400 text-xs">Clean Sheets</div>
-                    </div>
-                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center border border-white/20">
-                      <div className="text-[#FFC30B] font-bold text-base">{generateTeamForm(match.homeTeam.name).stats.failedToScore}/5</div>
-                      <div className="text-gray-400 text-xs">Failed to Score</div>
-                    </div>
-                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center border border-white/20">
-                      <div className="text-[#FFC30B] font-bold text-base">{generateTeamForm(match.homeTeam.name).stats.concededTwo}/5</div>
-                      <div className="text-gray-400 text-xs">Conceded 2+</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Away Team Form */}
-                <div className="space-y-3">
-                  <div className="flex items-center mb-3">
-                    <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-5 h-5 object-contain mr-2" />
-                    <h4 className="text-base font-semibold text-white">{match.awayTeam.name}</h4>
-                  </div>
-                  
-                  {/* Form */}
-                  <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3 mb-3 border border-white/20">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium text-sm">Form (Last 5)</span>
-                      <div className="flex space-x-1">
-                        {generateTeamForm(match.awayTeam.name).form.map((result, index) => (
-                          <span key={index} className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                            result === 'W' ? 'bg-green-600 text-white' :
-                            result === 'D' ? 'bg-yellow-600 text-white' :
-                            'bg-red-600 text-white'
-                          }`}>
-                            {result}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center border border-white/20">
-                      <div className="text-[#FFC30B] font-bold text-base">{generateTeamForm(match.awayTeam.name).stats.over25}/5</div>
-                      <div className="text-gray-400 text-xs">Over 2.5 Goals</div>
-                    </div>
-                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center border border-white/20">
-                      <div className="text-[#FFC30B] font-bold text-base">{generateTeamForm(match.awayTeam.name).stats.cleanSheets}/5</div>
-                      <div className="text-gray-400 text-xs">Clean Sheets</div>
-                    </div>
-                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center border border-white/20">
-                      <div className="text-[#FFC30B] font-bold text-base">{generateTeamForm(match.awayTeam.name).stats.failedToScore}/5</div>
-                      <div className="text-gray-400 text-xs">Failed to Score</div>
-                    </div>
-                    <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center border border-white/20">
-                      <div className="text-[#FFC30B] font-bold text-base">{generateTeamForm(match.awayTeam.name).stats.concededTwo}/5</div>
-                      <div className="text-gray-400 text-xs">Conceded 2+</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Head to Head */}
-            <div 
-              className="rounded-xl p-6 border overflow-hidden"
-              style={{
-                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}
-            >
-              <h3 className="text-lg font-semibold mb-4 text-center text-white">Head-to-Head (Last 2 Meetings)</h3>
-              <div className="space-y-3">
-                {generateHeadToHead().map((h2h, index) => (
-                  <div key={index} className="bg-black/30 backdrop-blur-sm rounded-lg p-3 flex justify-between items-center border border-white/20">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-gray-400 text-sm">{new Date(h2h.date).toLocaleDateString()}</span>
-                      <span className="text-blue-400 text-sm">{h2h.competition}</span>
-                    </div>
-                    <div className="flex items-center space-x-3 text-white">
-                      <span className="font-medium text-sm">{h2h.homeTeam}</span>
-                      <span className="bg-[#FFC30B] text-black px-2 py-1 rounded font-bold text-sm">{h2h.score}</span>
-                      <span className="font-medium text-sm">{h2h.awayTeam}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Key Stats */}
-            <div 
-              className="rounded-xl p-6 border overflow-hidden"
-              style={{
-                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}
-            >
-              <h3 className="text-lg font-semibold mb-4 text-center text-white">Key Stats to Watch</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {generateImpressiveStats().map((stat, index) => (
-                  <div key={index} className="bg-black/30 backdrop-blur-sm rounded-lg p-4 text-center border border-white/20">
-                    <div className="flex items-center justify-center mb-2">
-                      <img 
-                        src={stat.team === 'home' ? match.homeTeam.logo : match.awayTeam.logo} 
-                        alt={stat.team === 'home' ? match.homeTeam.name : match.awayTeam.name}
-                        className="w-6 h-6 object-contain mr-2" 
-                      />
-                      <span className="text-white font-medium text-sm">
-                        {stat.team === 'home' ? match.homeTeam.name : match.awayTeam.name}
+              ) : (
+                <>
+                  {/* Show data source indicator */}
+                  {getActiveService() === 'highlightly' && realLeagueStandings && (
+                    <div className="text-center mb-4">
+                      <span className="text-xs text-green-400 bg-green-400/20 px-2 py-1 rounded-full">
+                        ✓ Real API Data
                       </span>
                     </div>
-                    <div className="text-[#FFC30B] font-bold text-xl mb-1">{stat.value}</div>
-                    <div className="text-white font-medium mb-1 text-sm">{stat.stat}</div>
-                    <div className="text-gray-400 text-xs">{stat.description}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : isImminent ? (
-          // Simple preview for matches less than 1 hour away
-          <div className="mb-8 w-full">
-            <div className="bg-[#222222] rounded-xl p-8 shadow-sm">
-              <h3 className="text-xl font-semibold mb-6 text-center text-white">Match Starting Soon</h3>
-              {timeUntilMatch && (
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center bg-yellow-500 text-black px-4 py-2 rounded-full font-semibold animate-pulse">
-                    <Clock size={16} className="mr-2" />
-                    Starting in {timeUntilMatch}
-                  </div>
-                </div>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center text-gray-300">
-                    <Calendar size={20} className="mr-3 text-[#FFC30B]" />
-                    <span className="font-medium">Date</span>
-                  </div>
-                  <p className="text-white ml-8">{exactDate}</p>
+                  )}
                   
-                  <div className="flex items-center text-gray-300">
-                    <Clock size={20} className="mr-3 text-[#FFC30B]" />
-                    <span className="font-medium">Kickoff</span>
-                  </div>
-                  <p className="text-white ml-8">{formatKickoffTime(match.date)}</p>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="p-4 bg-[#191919] rounded-lg border border-yellow-500/20">
-                    <p className="text-yellow-400 text-sm text-center">
-                      Match begins in less than an hour!
-                    </p>
-                    <p className="text-gray-400 text-xs text-center mt-2">
-                      Lineups and final team news will be available soon
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-[#191919] rounded-lg border border-blue-500/20">
-                    <p className="text-blue-400 text-sm text-center">
-                      Page will automatically switch to live updates when match begins
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          // Existing video player for finished/live matches
-          <div className="mb-8 w-full">
-            <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg" ref={videoContainerRef}>
-              {match.videoUrl ? (
-                <iframe 
-                  className="w-full h-full" 
-                  src={getVideoEmbedUrl(match.videoUrl)} 
-                  title={match.title} 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                  <div className="text-center text-gray-400">
-                    <div className="mb-2">
-                      <svg className="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <p className="text-sm">Video highlight not available</p>
-                    <p className="text-xs mt-1">Check back later for match highlights</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Home Team Position */}
+                    {homeLeaguePosition ? (
+                      <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold text-yellow-400">
+                          {homeLeaguePosition.position}
+                        </div>
+                        <div className="text-sm text-gray-400">Position</div>
+                        <div className="text-lg font-semibold text-white mt-2">
+                          {match.homeTeam.name}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {homeLeaguePosition.points} pts • {homeLeaguePosition.played} games
+                        </div>
+                        <div className="flex justify-center space-x-1 mt-2">
+                          {(homeLeaguePosition.form || []).map((result: string, idx: number) => (
+                            <div key={idx} className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
+                              result === 'W' ? 'bg-green-500 text-white' : 
+                              result === 'L' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'
+                            }`}>
+                              {result}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                        <div className="text-gray-400 text-sm">
+                          <div className="mb-2">📊</div>
+                          <div className="text-white font-medium text-sm mb-1">{match.homeTeam.name}</div>
+                          <div className="text-xs">
+                            {isPreSeasonMatch() 
+                              ? "Season hasn't started yet" 
+                              : "No standings data available"}
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
-        {/* Match Events Timeline section */}
-        <section 
-          className="mb-6 relative overflow-hidden p-6"
-          style={{
-            background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-            borderRadius: '20px'
-          }}
-        >
-          <h3 className="text-lg font-semibold mb-4 text-center text-white">
-            {isPreview ? 'Match Preview' : isImminent ? 'Pre-Match' : 'Match Events'}
-          </h3>
-          
-          {(isPreview || isImminent) ? (
-            <div className="text-center py-6">
-              <div className="text-gray-400 text-sm">
-                <div className="mb-3">
-                  <BarChart4 className="w-8 h-8 mx-auto text-gray-400" />
-                </div>
-                <p className="text-base text-white mb-2">Match Statistics</p>
-                <p className="text-sm">
-                  {isPreview 
-                    ? 'Detailed match statistics including possession, shots, and other metrics will be available during and after the match.'
-                    : 'Live match statistics will start appearing once the game begins.'
-                  }
-                </p>
-                <p className="text-xs mt-2 text-blue-400">
-                  {isPreview ? 'Statistics are updated in real-time during the game!' : 'Almost kickoff time!'}
-                </p>
-              </div>
+                    {/* Away Team Position */}
+                    {awayLeaguePosition ? (
+                      <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold text-yellow-400">
+                          {awayLeaguePosition.position}
+                        </div>
+                        <div className="text-sm text-gray-400">Position</div>
+                        <div className="text-lg font-semibold text-white mt-2">
+                          {match.awayTeam.name}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {awayLeaguePosition.points} pts • {awayLeaguePosition.played} games
+                        </div>
+                        <div className="flex justify-center space-x-1 mt-2">
+                          {(awayLeaguePosition.form || []).map((result: string, idx: number) => (
+                            <div key={idx} className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
+                              result === 'W' ? 'bg-green-500 text-white' : 
+                              result === 'L' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'
+                            }`}>
+                              {result}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                        <div className="text-gray-400 text-sm">
+                          <div className="mb-2">📊</div>
+                          <div className="text-white font-medium text-sm mb-1">{match.awayTeam.name}</div>
+                          <div className="text-xs">
+                            {isPreSeasonMatch() 
+                              ? "Season hasn't started yet" 
+                              : "No standings data available"}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Show comprehensive empty state if neither team has standings */}
+                  {!homeLeaguePosition && !awayLeaguePosition && (
+                    <div className="text-center py-4 mt-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                      <div className="text-gray-400 text-sm">
+                        <div className="mb-2">📋</div>
+                        <p className="text-white font-medium text-sm mb-2">League Standings Unavailable</p>
+                        <p className="text-xs px-4">
+                          {getNoDataMessage('standings')}
+                        </p>
+                        {isPreSeasonMatch() && (
+                          <p className="text-gray-500 text-xs mt-3 px-4">
+                            📅 League tables will be updated once the {match.competition.name} {matchSeason} season begins and teams have played matches.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          ) : match.statistics && match.statistics.length >= 2 ? (
-            <div className="space-y-4">
-              {match.statistics[0].statistics.map((stat, index) => {
-                const homeValue = stat.value;
-                const awayValue = match.statistics![1]?.statistics[index]?.value || 0;
-                
-                // Calculate percentages for visual bars
-                let homePercent = 50;
-                let awayPercent = 50;
-                
-                if (typeof homeValue === 'number' && typeof awayValue === 'number') {
-                  const total = homeValue + awayValue;
-                  if (total > 0) {
-                    homePercent = (homeValue / total) * 100;
-                    awayPercent = (awayValue / total) * 100;
-                  }
-                }
-                
-                return (
+
+            {/* Last Matches */}
+            <div 
+              className="rounded-xl p-6 border overflow-hidden"
+              style={{
+                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              {/* Team Headers */}
+              <div className="flex items-center mb-6">
+                <div className="flex-1 text-center">
+                  <h4 className="text-white font-semibold text-sm uppercase tracking-wide">
+                    {match.homeTeam.name}
+                  </h4>
+                </div>
+                <div className="flex-1 text-center">
+                  <h3 className="text-lg font-semibold mb-4 text-center text-white">
+                    Last Matches
+                  </h3>
+                </div>
+                <div className="flex-1 text-center">
+                  <h4 className="text-white font-semibold text-sm uppercase tracking-wide">
+                    {match.awayTeam.name}
+                  </h4>
+                </div>
+              </div>
+              
+              {apiDataLoading ? (
+                <div className="text-center text-gray-400 py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-yellow-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                  {getActiveService() === 'highlightly' ? 'Loading real team data from Highlightly API...' : 'Loading form data...'}
+                </div>
+              ) : (
+                <>
+                  {/* Show data source indicator */}
+                  {getActiveService() === 'highlightly' && (realHomeTeamStats || realAwayTeamStats) && (
+                    <div className="text-center mb-4">
+                      <span className="text-xs text-green-400 bg-green-400/20 px-2 py-1 rounded-full">
+                        ✓ Real API Data from Highlightly
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Pre-season context banner */}
+                  {isPreSeasonMatch() && (homeTeamForm || awayTeamForm) && (
+                    <div className="mb-4 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
+                      <p className="text-center text-xs text-orange-300">
+                        🏆 Pre-season fixture: Form data shown is from the previous season ({parseInt(matchSeason) - 1})
+                      </p>
+                    </div>
+                  )}
+                  
+                  {homeTeamForm || awayTeamForm ? (
+                    <>
+                      {/* Form circles with OUTCOME */}
+                      <div className="flex justify-center items-center mb-8">
+                        <div className="flex flex-col items-center space-y-6">
+                          <div className="flex justify-between items-center w-full max-w-lg">
+                            <div className="flex space-x-1.5">
+                              {Array.from({ length: 8 }, (_, index) => {
+                                const result = homeTeamForm?.form?.[index];
+                                return (
                   <div key={index} className="mb-4">
                     <div className="flex justify-between mb-1">
                       <span className="text-sm text-white">{homeValue}</span>
@@ -876,6 +1404,11 @@ const MatchDetails = () => {
                 <span>{new Intl.NumberFormat('en-US').format(match.views || 0)} views</span>
             </div>
             )}
+            {/* Data source indicator */}
+            <div className="flex items-center">
+              <div className={`w-2 h-2 rounded-full mr-2 ${getActiveService() === 'highlightly' ? 'bg-green-400' : 'bg-blue-400'}`}></div>
+              <span className="text-xs">{getActiveService() === 'highlightly' ? 'Live API' : 'Mock Data'}</span>
+            </div>
           </div>
         </section>
 

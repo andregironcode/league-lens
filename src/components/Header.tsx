@@ -188,8 +188,8 @@ const Header = () => {
 
         {/* Service Switcher - Right Side */}
         <div className="flex-shrink-0">
-          <div className="hidden md:block">
-            <ServiceSwitcher />
+        <div className="hidden md:block">
+          <ServiceSwitcher />
           </div>
         </div>
       </div>

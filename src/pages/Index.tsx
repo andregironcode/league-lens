@@ -37,20 +37,20 @@ const Index: React.FC = () => {
         });
 
         if (isMounted) {
-          console.log('[Index] Initial data loaded:', {
-            highlights: highlightsData.length
-          });
-          setFeaturedHighlights(highlightsData);
+        console.log('[Index] Initial data loaded:', {
+          highlights: highlightsData.length
+        });
+        setFeaturedHighlights(highlightsData);
         }
 
       } catch (err) {
         if (isMounted) {
-          console.error('[Index] Error during initial load:', err);
-          setError('Failed to load initial data');
+        console.error('[Index] Error during initial load:', err);
+        setError('Failed to load initial data');
         }
       } finally {
         if (isMounted) {
-          setLoading(false);
+        setLoading(false);
         }
       }
     };
@@ -159,25 +159,25 @@ const Index: React.FC = () => {
       
       {/* Main content - removed sidebar layout */}
       <main className="flex-1 pb-10 pt-16">
-        {/* Hero Carousel */}
-        <section className="mb-12">
-          <div className="w-full mx-auto px-0 sm:px-0">
-            {loading ? (
-              <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
-            ) : (
-              <HeroCarousel highlights={featuredHighlights} />
-            )}
-          </div>
-        </section>
+          {/* Hero Carousel */}
+          <section className="mb-12">
+            <div className="w-full mx-auto px-0 sm:px-0">
+              {loading ? (
+                <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
+              ) : (
+                <HeroCarousel highlights={featuredHighlights} />
+              )}
+            </div>
+          </section>
 
-        {/* Date Filter */}
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+          {/* Date Filter */}
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
           <DateFilter 
             onDateSelect={handleDateSelect} 
             selectedDate={selectedDate}
             selectedLeagueIds={selectedLeagueIds}
           />
-        </div>
+          </div>
 
         {/* Matches Content */}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
@@ -206,7 +206,7 @@ const Index: React.FC = () => {
             </div>
           )}
         </div>
-      </main>
+        </main>
 
       {/* Footer */}
       <footer className="bg-[#222222] py-8">

@@ -2275,9 +2275,9 @@ export const highlightlyService = {
                 // Match time has passed today - assume finished unless API says otherwise
                 status = 'finished';
                 console.log(`[Date Fix] Match today at ${matchDate.toTimeString()} marked as finished (time passed)`);
-              } else {
+            } else {
                 // Match time hasn't arrived yet today
-                status = 'upcoming';
+              status = 'upcoming';
                 console.log(`[Date Fix] Match today at ${matchDate.toTimeString()} marked as upcoming (time not reached)`);
               }
             } else {
