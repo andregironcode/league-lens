@@ -2031,35 +2031,6 @@ export const highlightlyService = {
       const topPriorityLeagues = ['2486', '3337']; // Champions League, Europa League
       const missingPriorityLeagues = topPriorityLeagues.filter(id => !foundLeagueIds.has(id));
       
-      // 🧪 TEMPORARY DEBUG: Always test Champions League API endpoint regardless of missing leagues
-      console.log(`[Highlightly] 🧪 DEBUG: Testing Champions League API endpoint for ${dateString}...`);
-      try {
-        const testCLResponse = await highlightlyClient.getMatches({
-          leagueId: '2486',
-          date: dateString,
-          limit: '10'
-        });
-        
-        if (testCLResponse.data && Array.isArray(testCLResponse.data)) {
-          console.log(`[Highlightly] 🧪 DEBUG: Champions League API returned ${testCLResponse.data.length} matches for ${dateString}`);
-          if (testCLResponse.data.length > 0) {
-            console.log(`[Highlightly] 🧪 DEBUG: Sample CL match:`, {
-              homeTeam: testCLResponse.data[0].homeTeam?.name || testCLResponse.data[0].teams?.home?.name,
-              awayTeam: testCLResponse.data[0].awayTeam?.name || testCLResponse.data[0].teams?.away?.name,
-              date: testCLResponse.data[0].date,
-              leagueId: testCLResponse.data[0].league?.id,
-              leagueName: testCLResponse.data[0].league?.name
-            });
-          } else {
-            console.log(`[Highlightly] 🧪 DEBUG: No Champions League matches found for ${dateString} - this is expected for Saturday May 31st`);
-          }
-        } else {
-          console.log(`[Highlightly] 🧪 DEBUG: Champions League API returned no data or invalid format`);
-        }
-      } catch (testError) {
-        console.log(`[Highlightly] 🧪 DEBUG: Champions League API test error:`, testError);
-      }
-      
       if (missingPriorityLeagues.length > 0) {
         console.log(`[Highlightly] STEP 2: Missing priority leagues: ${missingPriorityLeagues.join(', ')}`);
         console.log(`[Highlightly] Making direct API calls to supplement missing leagues...`);

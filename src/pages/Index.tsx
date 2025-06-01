@@ -144,7 +144,7 @@ const Index: React.FC = () => {
           <p className="text-gray-400 mb-6">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-3 bg-[#FFC30B] text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium"
           >
             Reload Page
           </button>
@@ -175,9 +175,9 @@ const Index: React.FC = () => {
           <DateFilter onDateSelect={handleDateSelect} selectedDate={selectedDate} />
         </div>
 
-        {/* Date-filtered Matches Section with integrated filter */}
-        {selectedDate && (
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+        {/* Matches Content */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+          {selectedDate ? (
             <MatchFeedByLeague 
               leaguesWithMatches={dateMatches}
               loading={dateMatchesLoading}
@@ -188,25 +188,20 @@ const Index: React.FC = () => {
               selectedCountryCode={selectedCountryCode}
               onCountrySelect={handleCountrySelect}
             />
-          </div>
-        )}
-
-        {/* Show message when no date is selected (shouldn't happen now, but good fallback) */}
-        {!selectedDate && !loading && (
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+          ) : (
             <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
               <div className="text-gray-400 mb-4">
                 <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Welcome to League Lens</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Select a Date</h3>
               <p className="text-gray-400">
-                Select a date above to view matches from the world's top football leagues.
+                Choose a date above to view matches from the world's top football leagues.
               </p>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       {/* Footer */}

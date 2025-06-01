@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { LeagueWithMatches } from '@/types';
 import LeagueCard from './LeagueCard';
 
@@ -571,102 +571,44 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
 }) => {
   const [activeSelector, setActiveSelector] = useState<'all' | 'highlights' | 'live'>('all');
   
+  // Filter leagues based on selected filters and current selector
+  const filteredLeagues = useMemo(() => {
+    // First apply league filter
+    let filtered = selectedLeagueId 
+      ? leaguesWithMatches.filter(league => league.id === selectedLeagueId)
+      : leaguesWithMatches;
+    
+    // Then apply country filter 
+    if (selectedCountryCode) {
+      filtered = filtered.filter(league => {
+        const countryCode = getLeagueCountryCode(league.id);
+        return countryCode === selectedCountryCode;
+      });
+    }
+    
+    // Then apply match type filter based on current selector
+    return filtered.map(league => ({
+      ...league,
+      matches: league.matches.filter(match => {
+        if (activeSelector === 'highlights') {
+          return match.status === 'finished';
+        } else if (activeSelector === 'live') {
+          return match.status === 'live';
+        }
+        return true; // 'all' shows everything
+      })
+    })).filter(league => league.matches.length > 0); // Only show leagues with matches
+  }, [leaguesWithMatches, selectedLeagueId, selectedCountryCode, activeSelector]);
+  
   const dateLabel = selectedDate ? formatSelectedDate(selectedDate) : 'Matches';
   
-  if (loading) {
-    return (
-      <section className="mb-16">
-        <LoadingSkeleton />
-      </section>
-    );
-  }
-
-  // Filter leagues based on selected league ID and country
-  let filteredLeagues = leaguesWithMatches.filter(league => 
-    league.matches && league.matches.length > 0
-  );
-
-  if (selectedLeagueId) {
-    filteredLeagues = filteredLeagues.filter(league => league.id === selectedLeagueId);
-  }
-
-  if (selectedCountryCode) {
-    filteredLeagues = filteredLeagues.filter(league => {
-      const countryInfo = getLeagueCountryInfo(league.id);
-      return countryInfo.code?.toUpperCase() === selectedCountryCode.toUpperCase();
-    });
-  }
-
-  // Handle edge case: selected league has no matches
-  if (selectedLeagueId && filteredLeagues.length === 0) {
-    // Find the league name for better UX
-    const selectedLeague = leaguesWithMatches.find(league => league.id === selectedLeagueId);
-    const leagueName = selectedLeague?.name || 'this league';
-    
-    return (
-      <section className="mb-16">
-        <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
-          <div className="text-gray-400 mb-4">
-            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-white mb-2">No matches for {leagueName} today</h3>
-          <p className="text-gray-400">
-            Try selecting a different league or date to see more matches.
-          </p>
-        </div>
-      </section>
-    );
-  }
-
-  // Handle edge case: selected country has no matches
-  if (selectedCountryCode && filteredLeagues.length === 0) {
-    const countryName = COUNTRY_NAMES[selectedCountryCode.toUpperCase()] || 'this country';
-    
-    return (
-      <section className="mb-16">
-        <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
-          <div className="text-gray-400 mb-4">
-            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-white mb-2">No matches for {countryName} today</h3>
-          <p className="text-gray-400">
-            Try selecting a different country or date to see more matches.
-          </p>
-        </div>
-      </section>
-    );
-  }
-
-  // Handle case: no leagues at all
-  if (filteredLeagues.length === 0) {
-    return (
-      <section className="mb-16">
-        <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
-          <div className="text-gray-400 mb-4">
-            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-white mb-2">No matches found</h3>
-          <p className="text-gray-400">
-            No matches scheduled for {dateLabel.toLowerCase()}.
-          </p>
-        </div>
-      </section>
-    );
-  }
-
-  // Calculate statistics for display
-  const totalMatches = filteredLeagues.reduce((total, league) => total + league.matches.length, 0);
-  const liveMatches = filteredLeagues.reduce((total, league) => 
-    total + league.matches.filter(m => 
-      m.fixture?.status?.short === 'LIVE' || m.status === 'live'
-    ).length, 0);
-
+  // Calculate match counts for the pills
+  const allMatchesCount = leaguesWithMatches.reduce((total, league) => total + league.matches.length, 0);
+  const finishedMatchesCount = leaguesWithMatches.reduce((total, league) => 
+    total + league.matches.filter(match => match.status === 'finished').length, 0);
+  const liveMatchesCount = leaguesWithMatches.reduce((total, league) => 
+    total + league.matches.filter(match => match.status === 'live').length, 0);
+  
   // Create filter component
   const LeagueFilter: React.FC = () => {
     // Create a map of available leagues with their data
@@ -726,7 +668,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           {selectedLeagueId && (
             <button
               onClick={() => onLeagueSelect?.(null)}
-              className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              className="mt-2 text-xs text-[#FFC30B] hover:text-yellow-300 transition-colors"
             >
               Clear filter
             </button>
@@ -737,7 +679,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           {dynamicLeagues.length > 0 ? (
             dynamicLeagues.map((league) => {
               const isSelected = selectedLeagueId === league.id;
-              
+
               return (
                 <button
                   key={league.id}
@@ -745,7 +687,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                   className={`
                     w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors
                     ${isSelected 
-                      ? 'bg-blue-600 text-white' 
+                      ? 'bg-[#FFC30B] text-black' 
                       : 'hover:bg-[#2a2a2a] text-gray-300'
                     }
                   `}
@@ -863,7 +805,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           {selectedLeagueId && (
             <button
               onClick={() => onLeagueSelect?.(null)}
-              className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              className="mt-2 text-xs text-[#FFC30B] hover:text-yellow-300 transition-colors"
             >
               Clear filter
             </button>
@@ -930,7 +872,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                             className={`
                               w-full flex items-center gap-3 px-6 py-2 text-left transition-colors
                               ${isSelected 
-                                ? 'bg-blue-600 text-white' 
+                                ? 'bg-[#FFC30B] text-black' 
                                 : 'hover:bg-gray-700/30 text-gray-300'
                               }
                             `}
@@ -975,6 +917,125 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     );
   };
 
+  if (loading) {
+    return (
+      <section className="mb-16">
+        <LoadingSkeleton />
+      </section>
+    );
+  }
+
+  // Handle edge case: selected league has no matches
+  if (selectedLeagueId && filteredLeagues.length === 0) {
+    // Find the league name for better UX
+    const selectedLeague = leaguesWithMatches.find(league => league.id === selectedLeagueId);
+    const leagueName = selectedLeague?.name || 'this league';
+    
+    return (
+      <section className="mb-16">
+        <div className="flex gap-8">
+          <div className="flex-1 min-w-0">
+            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+              <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+                <div className="text-gray-400 mb-4">
+                  <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">No matches for {leagueName}</h3>
+                <p className="text-gray-400">
+                  Try selecting a different league or date to see more matches.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Filter sidebar */}
+          <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
+            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+              <div className="text-center text-gray-500 py-4">
+                <p className="text-sm">Filter options available when matches are present</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Handle edge case: selected country has no matches
+  if (selectedCountryCode && filteredLeagues.length === 0) {
+    const countryName = COUNTRY_NAMES[selectedCountryCode.toUpperCase()] || 'this country';
+    
+    return (
+      <section className="mb-16">
+        <div className="flex gap-8">
+          <div className="flex-1 min-w-0">
+            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+              <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+                <div className="text-gray-400 mb-4">
+                  <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">No matches for {countryName}</h3>
+                <p className="text-gray-400">
+                  Try selecting a different country or date to see more matches.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Filter sidebar */}
+          <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
+            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+              <div className="text-center text-gray-500 py-4">
+                <p className="text-sm">Filter options available when matches are present</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Handle case: no leagues at all
+  if (filteredLeagues.length === 0) {
+    let message = "No matches found";
+    let description = `No matches scheduled for ${dateLabel.toLowerCase()}.`;
+    
+    return (
+      <section className="mb-16">
+        <div className="flex gap-8">
+          <div className="flex-1 min-w-0">
+            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+              <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+                <div className="text-gray-400 mb-4">
+                  <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">{message}</h3>
+                <p className="text-gray-400">
+                  {description}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Filter sidebar */}
+          <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
+            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+              <div className="text-center text-gray-500 py-4">
+                <p className="text-sm">Filter options available when matches are present</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="mb-16">
       {/* Main content with filter */}
@@ -986,56 +1047,68 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
             <div className="flex items-center justify-center gap-8 mb-8 border-b border-gray-700/30 pb-4 relative">
               <button
                 onClick={() => setActiveSelector('all')}
-                className={`relative py-2 px-4 text-sm font-medium transition-colors ${
+                className={`relative py-2 px-4 text-sm font-medium transition-colors flex items-center gap-2 ${
                   activeSelector === 'all' 
                     ? 'text-white' 
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
                 All
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  activeSelector === 'all' 
+                    ? 'bg-[#FFC30B] text-black' 
+                    : 'bg-gray-600 text-gray-300'
+                }`}>
+                  {allMatchesCount}
+                </span>
                 {activeSelector === 'all' && (
-                  <div 
-                    className="absolute bottom-0 left-0 right-0 h-1 rounded-full"
-                    style={{ backgroundColor: '#FFC30B' }}
-                  />
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
                 )}
               </button>
               
               <button
                 onClick={() => setActiveSelector('highlights')}
-                className={`relative py-2 px-4 text-sm font-medium transition-colors ${
+                className={`relative py-2 px-4 text-sm font-medium transition-colors flex items-center gap-2 ${
                   activeSelector === 'highlights' 
                     ? 'text-white' 
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
                 Highlights
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  activeSelector === 'highlights' 
+                    ? 'bg-[#FFC30B] text-black' 
+                    : 'bg-gray-600 text-gray-300'
+                }`}>
+                  {finishedMatchesCount}
+                </span>
                 {activeSelector === 'highlights' && (
-                  <div 
-                    className="absolute bottom-0 left-0 right-0 h-1 rounded-full"
-                    style={{ backgroundColor: '#FFC30B' }}
-                  />
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
                 )}
               </button>
               
               <button
                 onClick={() => setActiveSelector('live')}
-                className={`relative py-2 px-4 text-sm font-medium transition-colors ${
+                className={`relative py-2 px-4 text-sm font-medium transition-colors flex items-center gap-2 ${
                   activeSelector === 'live' 
                     ? 'text-white' 
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
                 Live
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  activeSelector === 'live' 
+                    ? 'bg-[#FFC30B] text-black' 
+                    : 'bg-gray-600 text-gray-300'
+                }`}>
+                  {liveMatchesCount}
+                </span>
                 {activeSelector === 'live' && (
-                  <div 
-                    className="absolute bottom-0 left-0 right-0 h-1 rounded-full"
-                    style={{ backgroundColor: '#FFC30B' }}
-                  />
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-[#FFC30B] rounded-full"></div>
                 )}
               </button>
             </div>
-            
+
             <div className="space-y-6">
               {filteredLeagues.map((league) => {
                 // Auto-expand leagues with live matches

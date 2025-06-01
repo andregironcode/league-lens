@@ -314,7 +314,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
               <div className={getDateContentClasses(dateInfo)}>
                 {/* Match count indicator */}
                 {dateInfo.matchCount > 0 && (
-                  <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center">
+                  <div className="absolute -top-2 -right-2 bg-[#FFC30B] text-black text-xs font-bold px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center">
                     {dateInfo.matchCount}
                   </div>
                 )}
