@@ -100,12 +100,12 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
     return 'KO';
   };
 
-  // Handle match click - navigate to match details for finished matches or live matches
+  // Handle match click - navigate to match details for ALL matches (finished, live, and upcoming)
   const handleMatchClick = async () => {
-    if ((isFinished || isLive) && !isNavigating) {
+    if (!isNavigating) {
       try {
         setIsNavigating(true);
-        console.log(`[MatchRow] Navigating to match details for ID: ${match.id}`);
+        console.log(`[MatchRow] Navigating to match details for ID: ${match.id}, status: ${isUpcoming ? 'upcoming' : isLive ? 'live' : 'finished'}`);
         navigate(`/match/${match.id}`);
       } catch (error) {
         console.error('Navigation error:', error);
@@ -114,16 +114,16 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
     }
   };
 
-  const canClick = isFinished || isLive;
+  const canClick = true; // All matches are now clickable
 
   return (
     <div 
-      className={`flex items-center justify-between p-4 transition-colors rounded-lg ${
+      className={`flex items-center justify-between p-4 transition-colors rounded-lg backdrop-blur-sm ${
         canClick 
           ? isNavigating 
-            ? 'bg-gray-700/60 cursor-wait opacity-75' 
-            : 'hover:bg-gray-700/30 cursor-pointer hover:scale-[1.01] active:scale-[0.99]'
-          : 'hover:bg-gray-700/30'
+            ? 'bg-white/20 cursor-wait opacity-75' 
+            : 'hover:bg-white/10 cursor-pointer hover:scale-[1.01] active:scale-[0.99]'
+          : 'hover:bg-white/10'
       }`}
       onClick={handleMatchClick}
       title={
@@ -136,7 +136,7 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
     >
       {/* Kickoff Time */}
       <div className="flex items-center space-x-4 min-w-0 flex-1">
-        <div className="text-gray-400 text-sm font-medium min-w-[3rem]">
+        <div className="text-gray-300 text-sm font-medium min-w-[3rem]">
           {kickoffTime}
         </div>
 
@@ -156,13 +156,13 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
         {/* Score or VS */}
         <div className="flex items-center space-x-2">
           {match.score ? (
-            <div className={`px-3 py-1 rounded text-white font-bold text-sm ${
-              isLive ? 'bg-red-600' : 'bg-gray-700'
+            <div className={`px-3 py-1 rounded text-white font-bold text-sm backdrop-blur-sm ${
+              isLive ? 'bg-red-500/80' : 'bg-black/40'
             }`}>
               {match.score.home} - {match.score.away}
             </div>
           ) : (
-            <div className="px-3 py-1 text-gray-400 text-sm font-medium">
+            <div className="px-3 py-1 text-gray-300 text-sm font-medium">
               vs
             </div>
           )}
@@ -184,26 +184,24 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
 
       {/* Status and Live Badge */}
       <div className="flex items-center space-x-2 ml-4">
-        <span className={`px-2 py-1 rounded text-xs font-medium ${
+        <span className={`px-2 py-1 rounded text-xs font-medium backdrop-blur-sm ${
           isLive 
-            ? 'text-red-400 bg-red-500/10 border border-red-500/20'
+            ? 'text-red-400 bg-red-500/20 border border-red-500/30'
             : isFinished 
-            ? 'text-green-400 bg-green-500/10 border border-green-500/20'
-            : 'text-blue-400 bg-blue-500/10 border border-blue-500/20'
+            ? 'text-green-400 bg-green-500/20 border border-green-500/30'
+            : 'text-blue-400 bg-blue-500/20 border border-blue-500/30'
         }`}>
           {getStatusDisplay()}
         </span>
         {isLive && <LiveBadge />}
         
-        {/* Click indicator for interactive matches */}
-        {canClick && (
-          <div className="text-gray-500 text-xs opacity-70">
-            {isNavigating ? 'Loading...' : 'Click for details'}
-          </div>
-        )}
+        {/* Click indicator for all matches */}
+        <div className="text-gray-400 text-xs opacity-70">
+          {isNavigating ? 'Loading...' : 'Click for details'}
+        </div>
       </div>
     </div>
   );
 };
 
-export default MatchRow; 
+export default MatchRow;

@@ -404,11 +404,17 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ league, defaultExpanded = false
   const countryInfo = getLeagueCountryInfo();
 
   return (
-    <div className="bg-[#1a1a1a] rounded-lg overflow-hidden border border-gray-700/30">
+    <div 
+      className="rounded-xl overflow-hidden"
+      style={{
+        background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.1)'
+      }}
+    >
       {/* League Header - Clickable to toggle */}
       <button
         onClick={toggleExpanded}
-        className="w-full p-6 border-b border-gray-700/30 hover:bg-gray-800/30 transition-colors text-left"
+        className="w-full p-6 border-b border-white/20 hover:bg-white/10 transition-colors text-left backdrop-blur-sm"
       >
         <div className="flex items-center justify-between">
           {/* Country Flag + Country Name + League Name */}
@@ -454,7 +460,7 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ league, defaultExpanded = false
       
       {/* Matches List - Collapsible */}
       {isExpanded && (
-        <div className="divide-y divide-gray-700/30">
+        <div className="divide-y divide-white/10">
           {league.matches.map((match) => (
             <MatchRow key={match.id} match={match} />
           ))}

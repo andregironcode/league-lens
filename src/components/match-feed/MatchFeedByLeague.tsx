@@ -652,10 +652,10 @@ const LeagueFilter: React.FC<{
                 key={league.id}
                 onClick={() => handleLeagueClick(league.id)}
                 className={`
-                  w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors focus:outline-none
+                  w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors focus:outline-none backdrop-blur-sm
                   ${isSelected 
                     ? 'bg-[#FFC30B] text-black' 
-                    : 'hover:bg-[#2a2a2a] text-gray-300'
+                    : 'hover:bg-white/10 text-gray-300 border border-white/10'
                   }
                 `}
               >
@@ -832,7 +832,7 @@ const CountryFilter: React.FC<{
                 {/* Country Header - Clickable to expand/collapse */}
                 <button
                   onClick={() => toggleCountryExpansion(country.code)}
-                  className="w-full flex items-center gap-3 px-3 py-2 bg-gray-800/30 hover:bg-gray-700/30 transition-colors text-left focus:outline-none"
+                  className="w-full flex items-center gap-3 px-3 py-2 bg-black/30 hover:bg-white/10 backdrop-blur-sm transition-colors text-left focus:outline-none rounded-lg border border-white/10"
                 >
                   <img
                     src={country.flagUrl}
@@ -847,16 +847,17 @@ const CountryFilter: React.FC<{
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-white truncate">{country.name}</div>
                     <div className="text-xs text-gray-400">
+                      {country.totalMatches} {country.totalMatches === 1 ? 'match' : 'matches'}
                       {country.hasLiveMatches && (
-                        <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
+                        <span className="ml-2 px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
                           {country.totalLiveMatches} LIVE
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="text-gray-400">
+                  <div className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
                     <svg 
-                      className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}
+                      className="w-full h-full text-gray-400"
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
@@ -871,7 +872,7 @@ const CountryFilter: React.FC<{
                 
                 {/* Leagues List - Collapsible */}
                 {isExpanded && (
-                  <div className="divide-y divide-gray-700/30 bg-gray-900/30">
+                  <div className="divide-y divide-white/10 bg-black/20 backdrop-blur-sm rounded-lg mt-2 border border-white/10">
                     {country.leagues.map((league) => {
                       const isSelected = selectedLeagueIds.includes(league.id);
                       
@@ -880,10 +881,10 @@ const CountryFilter: React.FC<{
                           key={league.id}
                           onClick={() => handleLeagueClick(league.id)}
                           className={`
-                            w-full flex items-center gap-3 px-6 py-2 text-left transition-colors focus:outline-none
+                            w-full flex items-center gap-3 px-6 py-2 text-left transition-colors focus:outline-none backdrop-blur-sm
                             ${isSelected 
                               ? 'bg-[#FFC30B] text-black' 
-                              : 'hover:bg-gray-700/30 text-gray-300'
+                              : 'hover:bg-white/10 text-gray-300'
                             }
                           `}
                         >
@@ -1024,7 +1025,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     activeSelector === 'all' 
                       ? 'bg-[#FFC30B] text-black' 
-                      : 'bg-gray-600 text-gray-300'
+                      : 'bg-white/20 text-gray-300'
                   }`}>
                     {allMatchesCount}
                   </span>
@@ -1045,7 +1046,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     activeSelector === 'highlights' 
                       ? 'bg-[#FFC30B] text-black' 
-                      : 'bg-gray-600 text-gray-300'
+                      : 'bg-white/20 text-gray-300'
                   }`}>
                     {finishedMatchesCount}
                   </span>
@@ -1066,7 +1067,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     activeSelector === 'live' 
                       ? 'bg-[#FFC30B] text-black' 
-                      : 'bg-gray-600 text-gray-300'
+                      : 'bg-white/20 text-gray-300'
                   }`}>
                     {liveMatchesCount}
                   </span>
@@ -1112,11 +1113,17 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
       <section className="mb-16">
         <div className="flex gap-8">
           <div className="flex-1 min-w-0">
-            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
-              <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+            <div 
+              className="rounded-xl p-8 overflow-hidden"
+              style={{
+                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              <div className="bg-black/30 backdrop-blur-sm rounded-lg p-12 text-center border border-white/20">
                 <div className="text-gray-400 mb-4">
                   <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">No matches for {countryName}</h3>
@@ -1129,8 +1136,14 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           
           {/* Filter sidebar */}
           <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
-            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
-              <div className="text-center text-gray-500 py-4">
+            <div 
+              className="rounded-xl p-8 overflow-hidden"
+              style={{
+                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              <div className="text-center text-gray-400 py-4">
                 <p className="text-sm">Filter options available when matches are present</p>
               </div>
             </div>
@@ -1149,8 +1162,14 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
       <section className="mb-16">
         <div className="flex gap-8">
           <div className="flex-1 min-w-0">
-            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
-              <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+            <div 
+              className="rounded-xl p-8 overflow-hidden"
+              style={{
+                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              <div className="bg-black/30 backdrop-blur-sm rounded-lg p-12 text-center border border-white/20">
                 <div className="text-gray-400 mb-4">
                   <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
@@ -1166,8 +1185,14 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           
           {/* Filter sidebar */}
           <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
-            <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
-              <div className="text-center text-gray-500 py-4">
+            <div 
+              className="rounded-xl p-8 overflow-hidden"
+              style={{
+                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              <div className="text-center text-gray-400 py-4">
                 <p className="text-sm">Filter options available when matches are present</p>
               </div>
             </div>
@@ -1183,9 +1208,15 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
       <div className="flex gap-8">
         {/* Matches content - made smaller to accommodate filter */}
         <div className="flex-1 min-w-0">
-          <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+          <div 
+            className="rounded-xl p-8 overflow-hidden"
+            style={{
+              background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
+          >
             {/* Match Type Selectors */}
-            <div className="flex items-center justify-center gap-8 mb-8 border-b border-gray-700/30 pb-4 relative">
+            <div className="flex items-center justify-center gap-8 mb-8 border-b border-white/20 pb-4 relative">
               <button
                 onClick={() => setActiveSelector('all')}
                 className={`relative py-2 px-4 text-sm font-medium transition-colors flex items-center gap-2 ${
@@ -1198,7 +1229,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   activeSelector === 'all' 
                     ? 'bg-[#FFC30B] text-black' 
-                    : 'bg-gray-600 text-gray-300'
+                    : 'bg-white/20 text-gray-300'
                 }`}>
                   {allMatchesCount}
                 </span>
@@ -1219,7 +1250,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   activeSelector === 'highlights' 
                     ? 'bg-[#FFC30B] text-black' 
-                    : 'bg-gray-600 text-gray-300'
+                    : 'bg-white/20 text-gray-300'
                 }`}>
                   {finishedMatchesCount}
                 </span>
@@ -1240,7 +1271,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   activeSelector === 'live' 
                     ? 'bg-[#FFC30B] text-black' 
-                    : 'bg-gray-600 text-gray-300'
+                    : 'bg-white/20 text-gray-300'
                 }`}>
                   {liveMatchesCount}
                 </span>
@@ -1272,10 +1303,22 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
 
         {/* Filter sidebar */}
         <div className="w-80 flex-shrink-0 hidden lg:block space-y-6">
-          <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+          <div 
+            className="rounded-xl p-8 overflow-hidden"
+            style={{
+              background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
+          >
             <LeagueFilter leaguesWithMatches={leaguesWithMatches} selectedLeagueIds={selectedLeagueIds} onLeagueSelect={onLeagueSelect} />
           </div>
-          <div className="border border-gray-600/40 rounded-xl p-8 bg-transparent">
+          <div 
+            className="rounded-xl p-8 overflow-hidden"
+            style={{
+              background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
+          >
             <CountryFilter leaguesWithMatches={leaguesWithMatches} selectedLeagueIds={selectedLeagueIds} onLeagueSelect={onLeagueSelect} selectedCountryCode={selectedCountryCode} />
           </div>
         </div>
