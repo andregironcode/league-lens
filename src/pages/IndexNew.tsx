@@ -6,12 +6,14 @@ import HighlightBanner from '@/components/HighlightBanner';
 import DatePickerNavigation from '@/components/DatePickerNavigation';
 import MatchFeedByLeague from '@/components/MatchFeedByLeague';
 import TopLeaguesFilter from '@/components/TopLeaguesFilter';
+import CountryFilter from '@/components/CountryFilter';
 
 const IndexNew: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
   const [dateMatches, setDateMatches] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [dateMatchesLoading, setDateMatchesLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +92,12 @@ const IndexNew: React.FC = () => {
     setSelectedLeagueId(leagueId);
   };
 
+  // Handle country filter selection
+  const handleCountrySelect = (countryCode: string | null) => {
+    console.log(`[IndexNew] Country filter selected: ${countryCode}`);
+    setSelectedCountryCode(countryCode);
+  };
+
   // Set up live updates for today's matches
   useEffect(() => {
     if (isToday && selectedDate) {
@@ -145,69 +153,82 @@ const IndexNew: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#111111] text-white">
-      <Header />
-      
-      <div className="pt-16 min-h-screen">
-        {/* Main Content */}
-        <main className="w-full">
-          <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 lg:py-8">
-            {/* 1. Highlight Banner (Top Hero Section) */}
-            {featuredHighlights.length > 0 && (
-              <HighlightBanner highlight={featuredHighlights[0]} />
-            )}
-            
-            {/* 2. Date Picker Navigation */}
-            <div className="mb-6 sm:mb-8">
-              <DatePickerNavigation
-                selectedDate={selectedDate}
-                onDateSelect={handleDateSelect}
-              />
-            </div>
-            
-            {/* 3. Browse Matches by Date Section */}
-            <div className="mb-16">
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
-                Browse Matches by Date
-                {selectedDate && (
-                  <span className="text-gray-400 text-base sm:text-lg font-normal ml-2">
-                    {new Date(selectedDate).toLocaleDateString('en-US', { 
-                      weekday: 'long',
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}
-                  </span>
-                )}
-              </h2>
+      <>
+        <Header />
+        
+        <div className="pt-16 min-h-screen">
+          {/* Main Content */}
+          <main className="w-full">
+            <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 lg:py-8">
+              {/* 1. Highlight Banner (Top Hero Section) */}
+              {featuredHighlights.length > 0 && (
+                <HighlightBanner highlight={featuredHighlights[0]} />
+              )}
               
-              <div className="space-y-4 sm:space-y-6">
-                {/* League Filter Block */}
-                <TopLeaguesFilter
-                  selectedLeagueId={selectedLeagueId}
-                  onLeagueSelect={handleLeagueSelect}
+              {/* 2. Date Picker Navigation */}
+              <div className="mb-6 sm:mb-8">
+                <DatePickerNavigation
+                  selectedDate={selectedDate}
+                  onDateSelect={handleDateSelect}
                 />
+              </div>
+              
+              {/* 3. Browse Matches by Date Section */}
+              <div className="mb-16">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
+                  Browse Matches by Date
+                  {selectedDate && (
+                    <span className="text-gray-400 text-base sm:text-lg font-normal ml-2">
+                      {new Date(selectedDate).toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </span>
+                  )}
+                </h2>
                 
-                {/* Matches */}
-                {dateMatchesLoading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-                    <p className="text-gray-400 text-sm sm:text-base">Loading matches...</p>
+                <div className="space-y-4 sm:space-y-6">
+                  {/* Filter Components */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    {/* Top Leagues Filter */}
+                    <TopLeaguesFilter
+                      selectedLeagueId={selectedLeagueId}
+                      onLeagueSelect={handleLeagueSelect}
+                    />
+                    
+                    {/* Country Filter */}
+                    <div>
+                      <CountryFilter
+                        selectedCountryCode={selectedCountryCode}
+                        onCountrySelect={handleCountrySelect}
+                      />
+                    </div>
                   </div>
-                ) : (
-                  <MatchFeedByLeague
-                    leaguesWithMatches={dateMatches}
-                    selectedLeagueId={selectedLeagueId}
-                  />
-                )}
+                  
+                  {/* Matches */}
+                  {dateMatchesLoading ? (
+                    <div className="text-center py-12">
+                      <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+                      <p className="text-gray-400 text-sm sm:text-base">Loading matches...</p>
+                    </div>
+                  ) : (
+                    <MatchFeedByLeague
+                      leaguesWithMatches={dateMatches}
+                      selectedLeagueId={selectedLeagueId}
+                    />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </main>
-      </div>
+          </main>
+        </div>
 
-      {/* Footer */}
-      <footer className="text-xs text-gray-500 px-3 sm:px-4 py-6 sm:py-8 text-center bg-[#0a0a0a] border-t border-gray-800">
-        © 2025 Score90. All rights reserved. All videos are sourced from official channels and we do not host any content.
-      </footer>
+        {/* Footer */}
+        <footer className="text-xs text-gray-500 px-3 sm:px-4 py-6 sm:py-8 text-center bg-[#0a0a0a] border-t border-gray-800">
+          © 2025 Score90. All rights reserved. All videos are sourced from official channels and we do not host any content.
+        </footer>
+      </>
     </div>
   );
 };

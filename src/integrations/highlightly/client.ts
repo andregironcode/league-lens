@@ -221,10 +221,21 @@ export const highlightlyClient = {
    * Get all leagues
    */
   async getLeagues(params: {
-    country?: string;
-    name?: string;
+    limit?: string;
+    offset?: string;
+    season?: string;
+    leagueName?: string;
+    countryCode?: string;
+    countryName?: string;
   } = {}) {
     return apiRequest<any>('/leagues', params);
+  },
+  
+  /**
+   * Get all countries
+   */
+  async getCountries() {
+    return apiRequest<any>('/countries');
   },
   
   /**
@@ -259,7 +270,16 @@ export const highlightlyClient = {
     league: string;
     season?: string;
   }) {
-    return apiRequest<any>('/standings', params);
+    // Map client interface to API parameters
+    const apiParams: Record<string, string> = {};
+    if (params.league) {
+      apiParams.leagueId = params.league; // API expects leagueId, not league
+    }
+    if (params.season) {
+      apiParams.season = params.season;
+    }
+    
+    return apiRequest<any>('/standings', apiParams);
   },
   
   /**
