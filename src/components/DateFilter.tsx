@@ -4,6 +4,7 @@ import { serviceAdapter } from '@/services/serviceAdapter';
 interface DateFilterProps {
   onDateSelect: (date: string) => void;
   selectedDate?: string;
+  selectedLeagueIds?: string[];
 }
 
 interface DateInfo {
@@ -18,7 +19,7 @@ interface DateInfo {
   matchCount: number;
 }
 
-const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) => {
+const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate, selectedLeagueIds = [] }) => {
   const [dates, setDates] = useState<DateInfo[]>([]);
   const [currentSelectedDate, setCurrentSelectedDate] = useState<string>('');
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -65,8 +66,20 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
       const isPast = date < today && !isToday;
       const isFuture = date > today;
 
-      // Remove match count fetching for performance - this was causing 10-15 API calls just to render the date filter
-      const matchCount = 0; // Default to 0, could be added back later with lazy loading if needed
+      // Fetch match count for this date
+      let matchCount = 0;
+      try {
+        const matches = await serviceAdapter.getMatchesForDate(dateString);
+        
+        // Filter matches by selected leagues if any are selected
+        const filteredMatches = selectedLeagueIds.length > 0 
+          ? matches.filter(league => selectedLeagueIds.includes(league.id))
+          : matches;
+          
+        matchCount = filteredMatches.reduce((total, league) => total + league.matches.length, 0);
+      } catch (error) {
+        console.error(`Error fetching matches for ${dateString}:`, error);
+      }
 
       return {
         date,
@@ -82,18 +95,18 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
     };
 
     generateDates().then(generatedDates => {
-      setDates(generatedDates);
+    setDates(generatedDates);
 
-      // Set today as default selected date if no date is provided
-      const todayDate = generatedDates.find(d => d.isToday);
-      if (todayDate && !selectedDate) {
-        setCurrentSelectedDate(todayDate.dateString);
-        onDateSelect(todayDate.dateString);
-      } else if (selectedDate) {
-        setCurrentSelectedDate(selectedDate);
-      }
+    // Set today as default selected date if no date is provided
+    const todayDate = generatedDates.find(d => d.isToday);
+    if (todayDate && !selectedDate) {
+      setCurrentSelectedDate(todayDate.dateString);
+      onDateSelect(todayDate.dateString);
+    } else if (selectedDate) {
+      setCurrentSelectedDate(selectedDate);
+    }
     });
-  }, [selectedDate, onDateSelect]);
+  }, [selectedDate, onDateSelect, selectedLeagueIds]);
 
   // Handle scroll events for 3D effect
   const handleScroll = useCallback(() => {
@@ -283,19 +296,19 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
     <div className="w-full mb-8">
       <div className="relative overflow-hidden">
         {/* 3D Container */}
-        <div 
-          ref={scrollContainerRef}
+      <div 
+        ref={scrollContainerRef}
           className="flex gap-6 overflow-x-auto pb-4 pt-8 px-8 scrollbar-hide"
-          style={{ 
-            scrollBehavior: 'smooth',
-            scrollbarWidth: 'none',
+        style={{ 
+          scrollBehavior: 'smooth',
+          scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             transformStyle: 'preserve-3d'
-          }}
-        >
-          {dates.map((dateInfo, index) => (
+        }}
+      >
+        {dates.map((dateInfo, index) => (
             <div
-              key={dateInfo.dateString}
+            key={dateInfo.dateString}
               className={getDateItemClasses(dateInfo, index)}
               style={{
                 transform: getItemTransform(index),
@@ -303,14 +316,21 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
                 transformStyle: 'preserve-3d',
                 opacity: getItemOpacity(index)
               }}
-              onClick={() => handleDateClick(dateInfo)}
+            onClick={() => handleDateClick(dateInfo)}
             >
               <div className={getDateContentClasses(dateInfo)}>
-                {/* Today indicator */}
-                {dateInfo.isToday && (
-                  <div className="absolute -top-2 -left-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-gray-800 animate-pulse"></div>
+                {/* Match count indicator */}
+                {dateInfo.matchCount > 0 && (
+                  <div className="absolute -top-2 -right-2 bg-[#FFC30B] text-black text-xs font-bold px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center">
+                    {dateInfo.matchCount}
+                  </div>
                 )}
-                
+
+                {/* Today indicator */}
+            {dateInfo.isToday && (
+                  <div className="absolute -top-2 -left-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-gray-800 animate-pulse"></div>
+            )}
+            
                 {/* DD/MM Format */}
                 <div className="text-center">
                   <div className={`text-lg font-bold transition-all duration-300 ${
@@ -321,8 +341,8 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
                         : 'text-gray-200'
                   }`}>
                     {dateInfo.ddmmFormat}
-                  </div>
-                  
+              </div>
+              
                   {/* Day label */}
                   <div className={`text-xs mt-1 transition-all duration-300 ${
                     currentSelectedDate === dateInfo.dateString 
@@ -336,7 +356,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ onDateSelect, selectedDate }) =
                 </div>
               </div>
             </div>
-          ))}
+        ))}
         </div>
 
         {/* Gradient overlays for depth effect */}

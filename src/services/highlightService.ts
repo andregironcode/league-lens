@@ -9,6 +9,34 @@ export const getRecommendedHighlights = async (): Promise<MatchHighlight[]> => {
   
   return [
     {
+      id: 'upcoming-1',
+      title: 'Manchester City vs Arsenal',
+      date: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
+      thumbnailUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fGZvb3RiYWxsfGVufDB8fDB8fHww',
+      videoUrl: '', // No video for upcoming match
+      duration: '0:00',
+      views: 0,
+      homeTeam: {
+        id: 'mci',
+        name: 'Manchester City',
+        logo: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'
+      },
+      awayTeam: {
+        id: 'ars',
+        name: 'Arsenal',
+        logo: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'
+      },
+      score: {
+        home: 0,
+        away: 0
+      },
+      competition: {
+        id: 'pl',
+        name: 'Premier League',
+        logo: '/leagues/premierleague.png'
+      }
+    },
+    {
       id: '1',
       title: 'Manchester City vs Arsenal',
       date: '2023-04-26T19:30:00Z',
@@ -105,6 +133,34 @@ export const getLeagueHighlights = async (): Promise<League[]> => {
       name: 'Premier League',
       logo: '/leagues/premierleague.png',
       highlights: [
+        {
+          id: 'upcoming-1',
+          title: 'Manchester City vs Arsenal',
+          date: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
+          thumbnailUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fGZvb3RiYWxsfGVufDB8fDB8fHww',
+          videoUrl: '', // No video for upcoming match
+          duration: '0:00',
+          views: 0,
+          homeTeam: {
+            id: 'mci',
+            name: 'Manchester City',
+            logo: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg'
+          },
+          awayTeam: {
+            id: 'ars',
+            name: 'Arsenal',
+            logo: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg'
+          },
+          score: {
+            home: 0,
+            away: 0
+          },
+          competition: {
+            id: 'pl',
+            name: 'Premier League',
+            logo: '/leagues/premierleague.png'
+          }
+        },
         {
           id: '1',
           title: 'Manchester City vs Arsenal',

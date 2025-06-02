@@ -264,10 +264,11 @@ export const highlightlyClient = {
   },
   
   /**
-   * Get standings for a league
+   * Get league standings
    */
   async getStandings(params: {
-    league: string;
+    league?: string;
+    leagueId?: string;
     season?: string;
   }) {
     // Map client interface to API parameters

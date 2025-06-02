@@ -19,18 +19,34 @@ export default {
 		},
 		extend: {
 			fontFamily: {
+				// Default sans-serif stack with Segoe UI variants as primary
 				sans: [
 					'"Segoe UI"',
+					'"Segoe UI Web (West European)"',
+					'"Segoe UI Semibold"',
+					'"Segoe UI Bold"',
+					'"Segoe UI Semilight"',
+					'"Segoe UI Light"',
+					'"Segoe UI Black"',
+					'"Segoe UI Historic"',
+					'"Segoe UI Emoji"',
+					'"Segoe UI Symbol"',
+					'system-ui',
+					'-apple-system',
+					'BlinkMacSystemFont',
 					'Roboto',
 					'"Helvetica Neue"',
 					'Arial',
 					'"Noto Sans"',
 					'sans-serif',
 					'"Apple Color Emoji"',
-					'"Segoe UI Emoji"',
-					'"Segoe UI Symbol"',
 					'"Noto Color Emoji"'
-				]
+				],
+				// Specific Segoe UI weight variants (use with font-segoe-* classes)
+				'segoe-light': ['"Segoe UI Light"', '"Segoe UI Semilight"', '"Segoe UI"', 'system-ui', 'sans-serif'],
+				'segoe-semibold': ['"Segoe UI Semibold"', '"Segoe UI"', 'system-ui', 'sans-serif'],
+				'segoe-bold': ['"Segoe UI Bold"', '"Segoe UI"', 'system-ui', 'sans-serif'],
+				'segoe-black': ['"Segoe UI Black"', '"Segoe UI Bold"', '"Segoe UI"', 'system-ui', 'sans-serif']
 			},
 			colors: {
 				border: 'hsl(var(--border))',

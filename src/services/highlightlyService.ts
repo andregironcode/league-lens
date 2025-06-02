@@ -133,6 +133,7 @@ export const highlightlyService = {
           const matchesResponse = await highlightlyClient.getMatches({
             leagueId: leagueId, // ✅ Fixed parameter name
             season: '2025', // Specifically requested 2025 season
+            date: '2025-01-01', // FIXED: Add specific date to prevent relative matches
             limit: '10'
           });
           
@@ -707,6 +708,7 @@ export const highlightlyService = {
           // Use the correct leagueId parameter from the API documentation
           const matchesResponse = await highlightlyClient.getMatches({
             leagueId: league.id.toString(),
+            date: new Date().toISOString().split('T')[0], // FIXED: Add current date to ensure we get today's/recent matches, not relative ones
             limit: tier === 'tier1' ? '10' : '15' // More matches for continental competitions
           });
           
@@ -1784,6 +1786,9 @@ export const highlightlyService = {
    */
   async getMatchesForDate(dateString: string): Promise<import('@/types').LeagueWithMatches[]> {
     try {
+      console.log(`[Highlightly] 🚀 getMatchesForDate called with dateString: "${dateString}"`);
+      console.log(`[Highlightly] 📅 Current date for reference: ${new Date().toISOString().split('T')[0]}`);
+      console.log(`[Highlightly] 🕐 Current time: ${new Date().toISOString()}`);
       console.log(`[Highlightly] Fetching matches for date: ${dateString}`);
       
       // Priority league IDs - streamlined list
@@ -1829,7 +1834,64 @@ export const highlightlyService = {
         return [];
       }
       
-      // OPTIMIZED: Streamlined filtering with Map for better performance
+      console.log(`[Highlightly] Found ${allMatchesResponse.data.length} total matches for ${dateString}`);
+      
+      // DEBUG: Log first few matches to see structure and league IDs
+      if (allMatchesResponse.data.length > 0) {
+        console.log(`[Highlightly] 🔍 Sample match league data:`, 
+          allMatchesResponse.data.slice(0, 3).map(match => ({
+            leagueId: match.league?.id || match.competition?.id || match.tournament?.id,
+            leagueName: match.league?.name || match.competition?.name || match.tournament?.name,
+            homeTeam: match.homeTeam?.name || match.teams?.home?.name,
+            awayTeam: match.awayTeam?.name || match.teams?.away?.name
+          }))
+        );
+        
+        // DEBUG: Check if API is returning matches with wrong dates
+        console.log(`[Highlightly] 🗓️ DATE MISMATCH CHECK: Requested "${dateString}", got these match dates:`);
+        allMatchesResponse.data.slice(0, 5).forEach((match, index) => {
+          const matchDate = new Date(match.date || match.fixture?.date || match.kickoff || match.utcDate);
+          const matchDateString = matchDate.toISOString().split('T')[0];
+          const dateMatches = matchDateString === dateString;
+          console.log(`[Highlightly]   Match ${index + 1}: API returned "${matchDateString}" ${dateMatches ? '✅' : '❌'} (${match.homeTeam?.name || match.teams?.home?.name} vs ${match.awayTeam?.name || match.teams?.away?.name})`);
+        });
+      }
+      
+      // Helper function to check if a team name matches any priority team
+      const isMatchWithPriorityTeam = (match: any): boolean => {
+        const homeTeamName = match.homeTeam?.name || match.teams?.home?.name || '';
+        const awayTeamName = match.awayTeam?.name || match.teams?.away?.name || '';
+        
+        // Check for exact matches and common variations
+        const checkTeamName = (teamName: string): boolean => {
+          return Array.from(priorityTeams).some(priorityTeam => {
+            // Exact match
+            if (teamName === priorityTeam) return true;
+            
+            // Case-insensitive partial match for common variations
+            const normalizedTeam = teamName.toLowerCase();
+            const normalizedPriority = priorityTeam.toLowerCase();
+            
+            // Handle common team name variations
+            if (normalizedPriority.includes('real madrid') && normalizedTeam.includes('real madrid')) return true;
+            if (normalizedPriority.includes('barcelona') && (normalizedTeam.includes('barcelona') || normalizedTeam.includes('barça'))) return true;
+            if (normalizedPriority.includes('man city') && (normalizedTeam.includes('manchester city') || normalizedTeam.includes('man city'))) return true;
+            if (normalizedPriority.includes('manchester city') && (normalizedTeam.includes('manchester city') || normalizedTeam.includes('man city'))) return true;
+            if (normalizedPriority.includes('psg') && (normalizedTeam.includes('paris saint') || normalizedTeam.includes('psg'))) return true;
+            if (normalizedPriority.includes('liverpool') && normalizedTeam.includes('liverpool')) return true;
+            if (normalizedPriority.includes('arsenal') && normalizedTeam.includes('arsenal')) return true;
+            if (normalizedPriority.includes('bayern munich') && normalizedTeam.includes('bayern')) return true;
+            if (normalizedPriority.includes('chelsea') && normalizedTeam.includes('chelsea')) return true;
+            if (normalizedPriority.includes('manchester united') && (normalizedTeam.includes('manchester united') || (normalizedTeam.includes('manchester') && normalizedTeam.includes('united')))) return true;
+            
+            return false;
+          });
+        };
+        
+        return checkTeamName(homeTeamName) || checkTeamName(awayTeamName);
+      };
+      
+      // Group matches by league.id with priority filtering
       const matchesByLeagueId = new Map<string, { matches: any[], leagueInfo: any }>();
       
       // Process all matches in one pass
@@ -1888,6 +1950,7 @@ export const highlightlyService = {
             console.log(`[Highlightly] Fetching matches directly for league ID: ${leagueId}`);
             const leagueResponse = await highlightlyClient.getMatches({
               leagueId: leagueId,
+              date: dateString, // FIXED: Add the date parameter to ensure we get matches for the specific date
               limit: '20'
             });
             
@@ -1938,8 +2001,13 @@ export const highlightlyService = {
         });
       }
       
-      // OPTIMIZED: Process all leagues in parallel instead of sequentially
-      const leaguePromises = Array.from(matchesByLeagueId.entries()).map(async ([leagueId, { matches, leagueInfo }]) => {
+      // Convert grouped matches to LeagueWithMatches format
+      const leaguesWithMatches: import('@/types').LeagueWithMatches[] = [];
+      
+      for (const [leagueId, { matches, leagueInfo }] of matchesByLeagueId.entries()) {
+        console.log(`[Highlightly] Processing ${matches.length} matches for ${leagueInfo.name} (ID: ${leagueId})`);
+        console.log(`[Highlightly] 🕐 About to call processLeagueMatches with dateString: "${dateString}"`);
+        
         const processedMatches = await this.processLeagueMatches(
           matches,
           leagueInfo.name,
@@ -2046,13 +2114,19 @@ export const highlightlyService = {
               new Date()
             );
             
-            // Determine match status
+            // Determine match status - FIXED to be date-aware
             let status = 'upcoming';
             const now = new Date();
             const matchTime = matchDate.getTime();
             const currentTime = now.getTime();
             
-            // Check for finished status indicators
+            // Get the date parts for proper date comparison
+            const matchDateOnly = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+            const currentDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const matchDateOnlyTime = matchDateOnly.getTime();
+            const currentDateOnlyTime = currentDateOnly.getTime();
+            
+            // Check for finished status indicators from API
             const isFinished = 
               match.state?.description === 'Finished' ||
               match.state?.description === 'Finished after penalties' ||
@@ -2062,7 +2136,7 @@ export const highlightlyService = {
               match.status === 'finished' ||
               match.status === 'FT';
             
-            // Check for live status indicators
+            // Check for live status indicators from API
             const isLive = 
               match.state?.description === 'In Progress' ||
               match.state?.description === 'First Half' ||
@@ -2073,14 +2147,32 @@ export const highlightlyService = {
               match.status === 'live' ||
               match.status === 'LIVE';
             
+            // FIXED: Proper date-aware status determination
             if (isFinished) {
+              // API explicitly says it's finished
               status = 'finished';
             } else if (isLive) {
+              // API explicitly says it's live
               status = 'live';
-            } else if (matchTime <= currentTime) {
+            } else if (matchDateOnlyTime < currentDateOnlyTime) {
+              // Match was on a previous date - assume finished
               status = 'finished';
+              console.log(`[Date Fix] Match on ${matchDate.toDateString()} marked as finished (was on previous date)`);
+            } else if (matchDateOnlyTime === currentDateOnlyTime) {
+              // Match is today - check specific time
+              if (matchTime <= currentTime) {
+                // Match time has passed today - assume finished unless API says otherwise
+                status = 'finished';
+                console.log(`[Date Fix] Match today at ${matchDate.toTimeString()} marked as finished (time passed)`);
             } else {
+                // Match time hasn't arrived yet today
               status = 'upcoming';
+                console.log(`[Date Fix] Match today at ${matchDate.toTimeString()} marked as upcoming (time not reached)`);
+              }
+            } else {
+              // Match is in the future
+              status = 'upcoming';
+              console.log(`[Date Fix] Match on ${matchDate.toDateString()} marked as upcoming (future date)`);
             }
             
             // Extract score data
