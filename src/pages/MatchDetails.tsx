@@ -1038,10 +1038,11 @@ const MatchDetails = () => {
             {navigating ? 'Going back...' : 'Go back'}
           </button>
         </div>
-      </div>;
+      </div>
   }
 
-  return <div className="min-h-screen bg-black text-white pt-24 pb-16">
+  return (
+    <div className="min-h-screen bg-black text-white pt-24 pb-16">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <button 
@@ -1354,35 +1355,120 @@ const MatchDetails = () => {
                         <div className="flex flex-col items-center space-y-6">
                           <div className="flex justify-between items-center w-full max-w-lg">
                             <div className="flex space-x-1.5">
-                              {Array.from({ length: 8 }, (_, index) => {
+                              {Array.from({ length: 5 }, (_, index) => {
                                 const result = homeTeamForm?.form?.[index];
                                 return (
-                  <div key={index} className="mb-4">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-white">{homeValue}</span>
-                      <span className="text-sm font-medium text-center text-white">{stat.displayName}</span>
-                      <span className="text-sm text-white">{awayValue}</span>
-                    </div>
-                    <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                      <div className="flex h-full">
-                        <div className="bg-[#FFC30B] h-full" style={{ width: `${homePercent}%` }}></div>
-                        <div className="bg-white h-full" style={{ width: `${awayPercent}%` }}></div>
+                                  <div key={index} className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center ${
+                                    result === 'W' ? 'bg-green-500 text-white' : 
+                                    result === 'L' ? 'bg-red-500 text-white' : 
+                                    result === 'D' ? 'bg-gray-500 text-white' : 'bg-gray-700 text-gray-400'
+                                  }`}>
+                                    {result || '?'}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            
+                            <div className="text-center px-4">
+                              <div className="text-white text-sm font-medium">VS</div>
+                            </div>
+                            
+                            <div className="flex space-x-1.5">
+                              {Array.from({ length: 5 }, (_, index) => {
+                                const result = awayTeamForm?.form?.[index];
+                                return (
+                                  <div key={index} className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center ${
+                                    result === 'W' ? 'bg-green-500 text-white' : 
+                                    result === 'L' ? 'bg-red-500 text-white' : 
+                                    result === 'D' ? 'bg-gray-500 text-white' : 'bg-gray-700 text-gray-400'
+                                  }`}>
+                                    {result || '?'}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-6">
+                      <div className="text-gray-400 text-sm">
+                        <div className="mb-2">📊</div>
+                        <p className="text-white font-medium text-sm mb-2">Team Form Data Unavailable</p>
+                        <p className="text-xs px-4">
+                          {getNoDataMessage('form')}
+                        </p>
+                        {isPreSeasonMatch() && (
+                          <p className="text-gray-500 text-xs mt-3 px-4">
+                            📅 Form data will be updated once teams have played matches in the {match.competition.name} {matchSeason} season.
+                          </p>
+                        )}
                       </div>
                     </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        ) : (
+          // Video player for finished matches or live matches
+          <div className="mb-8 w-full">
+            {match.videoUrl ? (
+              <div ref={videoContainerRef} className="aspect-video bg-black rounded-lg overflow-hidden">
+                <iframe
+                  src={getVideoEmbedUrl(match.videoUrl)}
+                  title={match.title}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="aspect-video bg-gradient-to-br from-gray-900 to-black rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">⚽</div>
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    {match.homeTeam.name} {match.score?.home || 0} - {match.score?.away || 0} {match.awayTeam.name}
+                  </h2>
+                  <div className="text-gray-400 text-sm mb-4">{getMatchStatusDisplay()}</div>
+                  {isLive && (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-red-500 text-white text-sm font-medium">
+                      <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
+                      LIVE
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Match Events Timeline */}
+        <section className="mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-center text-white">Match Events</h3>
+          {match.events && match.events.length > 0 ? (
+            <div className="space-y-3">
+              {match.events.map((event, index) => (
+                <div key={index} className="flex items-center p-3 bg-black/30 backdrop-blur-sm rounded border border-white/10">
+                  <div className="text-yellow-400 font-bold text-sm mr-3">{event.time}'</div>
+                  <div className="flex-1">
+                    <div className="text-white text-sm">{event.type}</div>
+                    <div className="text-gray-400 text-xs">{event.player}</div>
                   </div>
-                );
-              })}
+                  <div className="text-gray-400 text-xs">{event.team.name}</div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="text-center py-6">
               <div className="text-gray-400 text-sm">
-                <div className="mb-2">
-                  <svg className="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <p className="text-base">No detailed match events available</p>
-                <p className="text-xs mt-1">Event timeline will be shown when data is available</p>
+                <div className="mb-2">📊</div>
+                <p className="text-white font-medium text-sm mb-2">No match events available</p>
+                <p className="text-xs px-4">
+                  Event timeline will be shown when data is available
+                </p>
               </div>
             </div>
           )}
@@ -1706,6 +1792,7 @@ const MatchDetails = () => {
           </button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default MatchDetails;
