@@ -1049,7 +1049,7 @@ const MatchDetails = () => {
             {navigating ? 'Going back...' : 'Go back'}
           </button>
         </div>
-      </div>
+      </div>;
   }
 
   return (
@@ -1763,7 +1763,7 @@ const MatchDetails = () => {
             </div>
           </div>
         ) : isFullTime ? (
-          // Full-time result display with vertical timeline
+          // Full-time result display with vertical timeline and comprehensive stats
           <div className="mb-8 w-full space-y-6">
             {/* Teams and Final Score - Main Box */}
             <div 
@@ -1850,99 +1850,6 @@ const MatchDetails = () => {
                 </div>
               </div>
 
-              {/* Match Events Timeline - Inside Score Container */}
-              <div className="mt-8 mb-6">
-                <div className="relative max-w-4xl mx-auto">
-                  {/* Timeline line with gradient blend */}
-                  <div className="absolute left-1/2 transform -translate-x-0.5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-transparent via-gray-600 to-transparent"></div>
-                  
-                  {/* Timeline events - chronological order (bottom to top) */}
-                  <div className="space-y-6">
-                    
-                    {/* 78' - Substitution (Home team - left side) */}
-                    <div className="flex items-center">
-                      <div className="w-1/2 pr-8 text-right">
-                        <div className="backdrop-blur-sm rounded-lg p-3 inline-block">
-                          <div className="flex items-center gap-3 justify-end">
-                            <div className="text-left">
-                              <div className="text-white font-medium">Substitution</div>
-                              <div className="text-gray-400 text-sm">Player Out → Player In</div>
-                              <div className="text-gray-300 text-sm font-bold mt-1">78'</div>
-                            </div>
-                            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-black">
-                              <RefreshCw size={16} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-1/2 pl-8">
-                      </div>
-                    </div>
-
-                    {/* 67' - Goal (Away team - right side) */}
-                    <div className="flex items-center">
-                      <div className="w-1/2 pr-8">
-                      </div>
-                      <div className="w-1/2 pl-8 text-left">
-                        <div className="backdrop-blur-sm rounded-lg p-3 inline-block">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-black">
-                              <Target size={16} />
-                            </div>
-                            <div className="text-right">
-                              <div className="text-white font-medium">Goal</div>
-                              <div className="text-gray-400 text-sm">Player Name</div>
-                              <div className="text-gray-300 text-sm font-bold mt-1">67'</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 45' - Yellow Card (Away team - right side) */}
-                    <div className="flex items-center">
-                      <div className="w-1/2 pr-8">
-                      </div>
-                      <div className="w-1/2 pl-8 text-left">
-                        <div className="backdrop-blur-sm rounded-lg p-3 inline-block">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black">
-                              <Square size={16} />
-                            </div>
-                            <div className="text-right">
-                              <div className="text-white font-medium">Yellow Card</div>
-                              <div className="text-gray-400 text-sm">Player Name</div>
-                              <div className="text-gray-300 text-sm font-bold mt-1">45'</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 23' - Goal (Home team - left side) */}
-                    <div className="flex items-center">
-                      <div className="w-1/2 pr-8 text-right">
-                        <div className="backdrop-blur-sm rounded-lg p-3 inline-block">
-                          <div className="flex items-center gap-3 justify-end">
-                            <div className="text-left">
-                              <div className="text-white font-medium">Goal</div>
-                              <div className="text-gray-400 text-sm">Player Name</div>
-                              <div className="text-gray-300 text-sm font-bold mt-1">23'</div>
-                            </div>
-                            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-black">
-                              <Target size={16} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-1/2 pl-8">
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-
               {/* Match Date - Bottom */}
               <div className="text-center text-gray-400 text-sm">
                 <Clock size={14} className="inline mr-1" />
@@ -1959,7 +1866,7 @@ const MatchDetails = () => {
               </div>
             </div>
 
-            {/* League Standings - Same as preview */}
+            {/* Match Highlights Section */}
             <div 
               className="rounded-xl p-6 border overflow-hidden"
               style={{
@@ -1967,102 +1874,290 @@ const MatchDetails = () => {
                 border: '1px solid #1B1B1B'
               }}
             >
-              <h4 className="text-lg font-semibold mb-4 text-center text-white">LEAGUE STANDINGS</h4>
+              <h4 className="text-lg font-semibold mb-4 text-center text-white">MATCH HIGHLIGHTS</h4>
               
-              {apiDataLoading ? (
-                <div className="text-center text-gray-400 py-8">
-                  <div className="animate-spin w-6 h-6 border-2 border-yellow-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                  {getActiveService() === 'highlightly' ? 'Loading real standings from Highlightly API...' : 'Loading standings...'}
+              {match.videoUrl ? (
+                <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                  <iframe
+                    src={getVideoEmbedUrl(match.videoUrl)}
+                    title={`${match.homeTeam.name} vs ${match.awayTeam.name} Highlights`}
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
                 </div>
               ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* Home Team Position */}
-                    {homeLeaguePosition ? (
-                      <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-yellow-400">
-                          {homeLeaguePosition.position}
-                        </div>
-                        <div className="text-sm text-gray-400">Position</div>
-                        <div className="text-lg font-semibold text-white mt-2">
-                          {match.homeTeam.name}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {homeLeaguePosition.points} pts • {homeLeaguePosition.played} games
-                        </div>
-                        <div className="flex justify-center space-x-1 mt-2">
-                          {(homeLeaguePosition.form || []).map((result: string, idx: number) => (
-                            <div key={idx} className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                              result === 'W' ? 'bg-green-500 text-white' : 
-                              result === 'L' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'
-                            }`}>
-                              {result}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-                        <div className="text-gray-400 text-sm">
-                          <div className="mb-2">📊</div>
-                          <div className="text-white font-medium text-sm mb-1">{match.homeTeam.name}</div>
-                          <div className="text-xs">
-                            {isPreSeasonMatch() 
-                              ? "Season hasn't started yet" 
-                              : "No standings data available"}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Away Team Position */}
-                    {awayLeaguePosition ? (
-                      <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-yellow-400">
-                          {awayLeaguePosition.position}
-                        </div>
-                        <div className="text-sm text-gray-400">Position</div>
-                        <div className="text-lg font-semibold text-white mt-2">
-                          {match.awayTeam.name}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {awayLeaguePosition.points} pts • {awayLeaguePosition.played} games
-                        </div>
-                        <div className="flex justify-center space-x-1 mt-2">
-                          {(awayLeaguePosition.form || []).map((result: string, idx: number) => (
-                            <div key={idx} className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                              result === 'W' ? 'bg-green-500 text-white' : 
-                              result === 'L' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'
-                            }`}>
-                              {result}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-                        <div className="text-gray-400 text-sm">
-                          <div className="mb-2">📊</div>
-                          <div className="text-white font-medium text-sm mb-1">{match.awayTeam.name}</div>
-                          <div className="text-xs">No standings data available</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Show comprehensive empty state if neither team has standings */}
-                  {!homeLeaguePosition && !awayLeaguePosition && (
-                    <div className="text-center py-4 mt-4 bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg">
-                      <div className="text-gray-400 text-sm">
-                        <div className="mb-2">📋</div>
-                        <p className="text-white font-medium text-sm mb-2">League Standings Unavailable</p>
-                        <p className="text-xs px-4">
-                          {getNoDataMessage('standings')}
-                        </p>
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-sm">
+                    <div className="mb-3">
+                      <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+                        <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
                       </div>
                     </div>
-                  )}
-                </>
+                    <p className="text-white font-medium text-base mb-3">Highlights Coming Soon</p>
+                    <p className="text-sm mb-4 max-w-md mx-auto">
+                      Match highlights are being processed and will be available shortly after the final whistle. 
+                      Our team is working to bring you the best moments from this match.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
+                      <div className="flex items-center text-blue-400">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+                        Usually available within 2-4 hours
+                      </div>
+                      <span className="hidden sm:inline text-gray-600">•</span>
+                      <button 
+                        onClick={() => {
+                          window.location.href = 'mailto:support@leaguelens.com?subject=Match%20Highlights%20Request&body=Hi,%20I%27m%20looking%20for%20highlights%20for%20the%20match%20' + encodeURIComponent(`${match.homeTeam.name} vs ${match.awayTeam.name}`) + '%20on%20' + encodeURIComponent(new Date(match.date).toLocaleDateString());
+                        }}
+                        className="text-yellow-400 hover:text-yellow-300 transition-colors underline"
+                      >
+                        Contact Support
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Match Statistics Comparison */}
+            <div 
+              className="rounded-xl p-6 border overflow-hidden"
+              style={{
+                background: '#000000',
+                border: '1px solid #1B1B1B'
+              }}
+            >
+              <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH STATISTICS</h4>
+              
+              {match.statistics && match.statistics.length >= 2 ? (
+                <div className="space-y-4">
+                  {/* Team Headers */}
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center space-x-3">
+                      <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-8 h-8 object-contain" />
+                      <span className="text-white font-medium text-sm">{match.homeTeam.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-white font-medium text-sm">{match.awayTeam.name}</span>
+                      <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-8 h-8 object-contain" />
+                    </div>
+                  </div>
+
+                  {/* Statistics Bars */}
+                  <div className="space-y-4">
+                    {match.statistics[0].statistics.map((stat, index) => {
+                      const homeValue = stat.value;
+                      const awayValue = match.statistics![1]?.statistics[index]?.value || 0;
+                      
+                      // Calculate percentages for visual bars
+                      let homePercent = 50;
+                      let awayPercent = 50;
+                      
+                      if (typeof homeValue === 'number' && typeof awayValue === 'number') {
+                        if (stat.displayName.toLowerCase().includes('possession')) {
+                          // Possession: use actual percentages (should add to 100%)
+                          const total = homeValue + awayValue;
+                          if (total > 0) {
+                            homePercent = (homeValue / total) * 100;
+                            awayPercent = (awayValue / total) * 100;
+                          }
+                        } else {
+                          // Other stats: scale proportionally, show 0 if value is 0
+                          if (homeValue === 0 && awayValue === 0) {
+                            homePercent = 0;
+                            awayPercent = 0;
+                          } else {
+                            const maxValue = Math.max(homeValue, awayValue);
+                            const maxBarWidth = 40; // Maximum 40% from center (80% total)
+                            homePercent = homeValue === 0 ? 0 : (homeValue / maxValue) * maxBarWidth;
+                            awayPercent = awayValue === 0 ? 0 : (awayValue / maxValue) * maxBarWidth;
+                          }
+                        }
+                      }
+                      
+                      // Determine which value is higher for color coding
+                      const homeIsHigher = typeof homeValue === 'number' && typeof awayValue === 'number' 
+                        ? homeValue >= awayValue 
+                        : false;
+                      const awayIsHigher = typeof homeValue === 'number' && typeof awayValue === 'number' 
+                        ? awayValue > homeValue 
+                        : false;
+                      
+                      return (
+                        <div key={index} className="mb-4">
+                          {/* Stat name and values */}
+                          <div className="flex justify-between items-center mb-2">
+                            <span className={`text-sm font-medium ${homeIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>
+                              {homeValue}
+                            </span>
+                            <span className="text-sm font-medium text-white text-center flex-1 mx-4">
+                              {stat.displayName}
+                            </span>
+                            <span className={`text-sm font-medium ${awayIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>
+                              {awayValue}
+                            </span>
+                          </div>
+                          
+                          {/* Horizontal bar chart */}
+                          {stat.displayName.toLowerCase().includes('possession') ? (
+                            // Ball possession - continuous bar from left to right
+                            <div className="w-full h-5 bg-gray-800 rounded-full overflow-hidden">
+                              <div className="flex h-full">
+                                <div 
+                                  className={`h-full ${homeIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
+                                  style={{ width: `${homePercent}%` }}
+                                ></div>
+                                <div 
+                                  className={`h-full ${awayIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
+                                  style={{ width: `${awayPercent}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          ) : (
+                            // Other stats - split from center
+                            <div className="w-full h-5 bg-gray-800 rounded-full overflow-hidden relative">
+                              {/* Home team bar (extends left from center) */}
+                              <div 
+                                className={`absolute right-1/2 top-0 h-full ${homeIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
+                                style={{ width: `${homePercent}%` }}
+                              ></div>
+                              {/* Away team bar (extends right from center) */}
+                              <div 
+                                className={`absolute left-1/2 top-0 h-full ${awayIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
+                                style={{ width: `${awayPercent}%` }}
+                              ></div>
+                              {/* Center divider line */}
+                              <div className="absolute left-1/2 top-0 w-px h-full bg-black transform -translate-x-px"></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                // Fallback to mock statistics with comprehensive football metrics
+                <div>
+                  {/* Team Headers */}
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center space-x-3">
+                      <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-8 h-8 object-contain" />
+                      <span className="text-white font-medium text-sm">{match.homeTeam.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-white font-medium text-sm">{match.awayTeam.name}</span>
+                      <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-8 h-8 object-contain" />
+                    </div>
+                  </div>
+
+                  {/* Mock Statistics */}
+                  <div className="space-y-4">
+                    {[
+                      { name: 'Ball Possession', home: 58, away: 42, unit: '%' },
+                      { name: 'Expected Goals', home: 1.7, away: 1.2, unit: '' },
+                      { name: 'Shots On Target', home: 8, away: 5, unit: '' },
+                      { name: 'Big Scoring Chances', home: 3, away: 2, unit: '' },
+                      { name: 'Total Attempts', home: 15, away: 12, unit: '' },
+                      { name: 'Blocked Shots', home: 2, away: 4, unit: '' },
+                      { name: 'Shots in the Box', home: 10, away: 7, unit: '' },
+                      { name: 'Shots from Outside the Box', home: 5, away: 5, unit: '' },
+                      { name: 'Woodwork Hits', home: 1, away: 0, unit: '' },
+                      { name: 'Fouls', home: 12, away: 15, unit: '' },
+                      { name: 'Corners', home: 6, away: 4, unit: '' },
+                      { name: 'Throw-ins', home: 18, away: 22, unit: '' },
+                      { name: 'Saves', home: 3, away: 6, unit: '' },
+                      { name: 'Passes', home: 587, away: 412, unit: '' },
+                      { name: 'Offsides', home: 2, away: 1, unit: '' },
+                      { name: 'Passes into Final Third', home: 89, away: 67, unit: '' },
+                      { name: 'Completed Passes in Final Third', home: 34, away: 28, unit: '' },
+                      { name: 'Touches in Opponent\'s Box', home: 18, away: 14, unit: '' },
+                      { name: 'Tackles', home: 16, away: 19, unit: '' },
+                      { name: 'Completed Tackles', home: 12, away: 14, unit: '' },
+                      { name: 'Total Crosses', home: 14, away: 8, unit: '' },
+                      { name: 'Successful Crosses', home: 4, away: 2, unit: '' },
+                      { name: 'Interceptions', home: 8, away: 12, unit: '' },
+                      { name: 'Clearances', home: 15, away: 23, unit: '' },
+                      { name: 'Yellow Cards', home: 2, away: 4, unit: '' },
+                      { name: 'Red Cards', home: 0, away: 1, unit: '' }
+                    ].map((stat, index) => {
+                      // Calculate percentages for visual bars
+                      let homePercent, awayPercent;
+                      
+                      if (stat.name.toLowerCase().includes('possession')) {
+                        // Possession: use actual percentages (should add to 100%)
+                        const total = stat.home + stat.away;
+                        homePercent = total > 0 ? (stat.home / total) * 100 : 50;
+                        awayPercent = total > 0 ? (stat.away / total) * 100 : 50;
+                      } else {
+                        // Other stats: scale proportionally, show 0 if value is 0
+                        if (stat.home === 0 && stat.away === 0) {
+                          homePercent = 0;
+                          awayPercent = 0;
+                        } else {
+                          const maxValue = Math.max(stat.home, stat.away);
+                          const maxBarWidth = 40; // Maximum 40% from center (80% total)
+                          homePercent = stat.home === 0 ? 0 : (stat.home / maxValue) * maxBarWidth;
+                          awayPercent = stat.away === 0 ? 0 : (stat.away / maxValue) * maxBarWidth;
+                        }
+                      }
+                      
+                      // Determine which value is higher for color coding
+                      const homeIsHigher = stat.home >= stat.away;
+                      const awayIsHigher = stat.away > stat.home;
+                      
+                      return (
+                        <div key={index} className="mb-4">
+                          {/* Stat name and values */}
+                          <div className="flex justify-between items-center mb-2">
+                            <span className={`text-sm font-medium ${homeIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>
+                              {stat.home}{stat.unit}
+                            </span>
+                            <span className="text-sm font-medium text-white text-center flex-1 mx-4">
+                              {stat.name}
+                            </span>
+                            <span className={`text-sm font-medium ${awayIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>
+                              {stat.away}{stat.unit}
+                            </span>
+                          </div>
+                          
+                          {/* Horizontal bar chart */}
+                          {stat.name.toLowerCase().includes('possession') ? (
+                            // Ball possession - continuous bar from left to right
+                            <div className="w-full h-5 bg-gray-800 rounded-full overflow-hidden">
+                              <div className="flex h-full">
+                                <div 
+                                  className={`h-full ${homeIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
+                                  style={{ width: `${homePercent}%` }}
+                                ></div>
+                                <div 
+                                  className={`h-full ${awayIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
+                                  style={{ width: `${awayPercent}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          ) : (
+                            // Other stats - split from center
+                            <div className="w-full h-5 bg-gray-800 rounded-full overflow-hidden relative">
+                              {/* Home team bar (extends left from center) */}
+                              <div 
+                                className={`absolute right-1/2 top-0 h-full ${homeIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
+                                style={{ width: `${homePercent}%` }}
+                              ></div>
+                              {/* Away team bar (extends right from center) */}
+                              <div 
+                                className={`absolute left-1/2 top-0 h-full ${awayIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
+                                style={{ width: `${awayPercent}%` }}
+                              ></div>
+                              {/* Center divider line */}
+                              <div className="absolute left-1/2 top-0 w-px h-full bg-black transform -translate-x-px"></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -2100,42 +2195,6 @@ const MatchDetails = () => {
           </div>
         )}
 
-        {/* Match Events Timeline */}
-        <section className="mb-8">
-          <div 
-            className="rounded-xl p-6 border overflow-hidden"
-            style={{
-              background: '#000000',
-              border: '1px solid #1B1B1B'
-            }}
-          >
-            {match.events && match.events.length > 0 ? (
-              <div className="space-y-3">
-                {match.events.map((event, index) => (
-                  <div key={index} className="flex items-center p-3 bg-black/30 backdrop-blur-sm rounded border border-white/10">
-                    <div className="text-yellow-400 font-bold text-sm mr-3">{event.time}'</div>
-                    <div className="flex-1">
-                      <div className="text-white text-sm">{event.type}</div>
-                      <div className="text-gray-400 text-xs">{event.player}</div>
-                    </div>
-                    <div className="text-gray-400 text-xs">{event.team.name}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <div className="text-gray-400 text-sm">
-                  <div className="mb-2">📊</div>
-                  <p className="text-white font-medium text-sm mb-2">No match events available</p>
-                  <p className="text-xs px-4">
-                    Event timeline will be shown when data is available
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-        
         {/* Only show metadata section for non-preview matches */}
         {!isPreview && (
           <section className="mb-4">
@@ -2161,296 +2220,6 @@ const MatchDetails = () => {
               </div>
             </div>
           </section>
-        )}
-
-        {/* Only show tabs section for non-preview matches */}
-        {!isPreview && (
-          <div className="mb-6">
-            <div className="grid grid-cols-2 gap-0 mb-0">
-              <button onClick={() => setActiveTab('stats')} className={`flex justify-center items-center py-2 px-4 font-medium text-sm transition-colors ${activeTab === 'stats' ? 'bg-[#FFC30B] text-black rounded-tl-lg' : 'bg-black/30 backdrop-blur-sm text-white hover:bg-white/10 rounded-tl-lg border border-white/10'}`}>
-                <BarChart4 className="w-4 h-4 mr-2" />
-                Match Stats
-              </button>
-              <button onClick={() => setActiveTab('lineups')} className={`flex justify-center items-center py-2 px-4 font-medium text-sm transition-colors ${activeTab === 'lineups' ? 'bg-[#FFC30B] text-black rounded-tr-lg' : 'bg-black/30 backdrop-blur-sm text-white hover:bg-white/10 rounded-tr-lg border border-white/10'}`}>
-                <Shirt className="w-4 h-4 mr-2" />
-                Lineups
-              </button>
-            </div>
-            
-            <div 
-              className="rounded-b-lg p-6 border overflow-hidden"
-              style={{
-                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}
-            >
-              {activeTab === 'stats' ? (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-center text-white">
-                    {(isPreview || isImminent) ? 'Pre-Match Information' : 'Match Statistics'}
-                  </h3>
-                  
-                  {(isPreview || isImminent) ? (
-                    <div className="text-center py-6">
-                      <div className="text-gray-400 text-sm">
-                        <div className="mb-3">
-                          <BarChart4 className="w-8 h-8 mx-auto text-gray-400" />
-                        </div>
-                        <p className="text-base text-white mb-2">Match Statistics</p>
-                        <p className="text-sm">
-                          {isPreview 
-                            ? 'Detailed match statistics including possession, shots, and other metrics will be available during and after the match.'
-                            : 'Live match statistics will start appearing once the game begins.'
-                          }
-                        </p>
-                        <p className="text-xs mt-2 text-blue-400">
-                          {isPreview ? 'Statistics are updated in real-time during the game!' : 'Almost kickoff time!'}
-                        </p>
-                      </div>
-                    </div>
-                  ) : match.statistics && match.statistics.length >= 2 ? (
-                    // Display real statistics from API
-                    <div className="space-y-4">
-                      {match.statistics[0].statistics.map((stat, index) => {
-                        const homeValue = stat.value;
-                        const awayValue = match.statistics![1]?.statistics[index]?.value || 0;
-                        
-                        // Calculate percentages for visual bars
-                        let homePercent = 50;
-                        let awayPercent = 50;
-                        
-                        if (typeof homeValue === 'number' && typeof awayValue === 'number') {
-                          const total = homeValue + awayValue;
-                          if (total > 0) {
-                            homePercent = (homeValue / total) * 100;
-                            awayPercent = (awayValue / total) * 100;
-                          }
-                        }
-                        
-                        return (
-                          <div key={index} className="mb-4">
-                            <div className="flex justify-between mb-1">
-                              <span className="text-sm text-white">{homeValue}</span>
-                              <span className="text-sm font-medium text-center text-white">{stat.displayName}</span>
-                              <span className="text-sm text-white">{awayValue}</span>
-                            </div>
-                            <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                              <div className="flex h-full">
-                                <div className="bg-[#FFC30B] h-full" style={{ width: `${homePercent}%` }}></div>
-                                <div className="bg-white h-full" style={{ width: `${awayPercent}%` }}></div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    // Fallback to mock statistics
-                    <div>
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm text-white">55%</span>
-                          <span className="text-sm font-medium text-center text-white">Possession</span>
-                          <span className="text-sm text-white">45%</span>
-                        </div>
-                        <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                          <div className="flex h-full">
-                            <div className="bg-[#FFC30B] h-full" style={{ width: '55%' }}></div>
-                            <div className="bg-white h-full" style={{ width: '45%' }}></div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm text-white">15</span>
-                          <span className="text-sm font-medium text-center text-white">Shots</span>
-                          <span className="text-sm text-white">12</span>
-                        </div>
-                        <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                          <div className="flex h-full">
-                            <div className="bg-[#FFC30B] h-full" style={{ width: '56%' }}></div>
-                            <div className="bg-white h-full" style={{ width: '44%' }}></div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm text-white">6</span>
-                          <span className="text-sm font-medium text-center text-white">Shots on Target</span>
-                          <span className="text-sm text-white">4</span>
-                        </div>
-                        <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                          <div className="flex h-full">
-                            <div className="bg-[#FFC30B] h-full" style={{ width: '60%' }}></div>
-                            <div className="bg-white h-full" style={{ width: '40%' }}></div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm text-white">8</span>
-                          <span className="text-sm font-medium text-center text-white">Corners</span>
-                          <span className="text-sm text-white">5</span>
-                        </div>
-                        <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                          <div className="flex h-full">
-                            <div className="bg-[#FFC30B] h-full" style={{ width: '62%' }}></div>
-                            <div className="bg-white h-full" style={{ width: '38%' }}></div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mb-0">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm text-white">10</span>
-                          <span className="text-sm font-medium text-center text-white">Fouls</span>
-                          <span className="text-sm text-white">12</span>
-                        </div>
-                        <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden">
-                          <div className="flex h-full">
-                            <div className="bg-[#FFC30B] h-full" style={{ width: '45%' }}></div>
-                            <div className="bg-white h-full" style={{ width: '55%' }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Lineups tab
-                <div className="flex flex-col md:flex-row justify-between">
-                  {(isPreview || isImminent) ? (
-                    <div className="text-center py-6 w-full">
-                      <div className="text-gray-400 text-sm">
-                        <div className="mb-3">
-                          <Shirt className="w-8 h-8 mx-auto text-gray-400" />
-                        </div>
-                        <p className="text-base text-white mb-2">Team Lineups</p>
-                        <p className="text-sm">
-                          {isPreview 
-                            ? 'Official team lineups and formations will be announced approximately 60-90 minutes before kickoff.'
-                            : 'Lineups should be announced soon! Check back in a few minutes for confirmed starting XIs.'
-                          }
-                        </p>
-                        <p className="text-xs mt-2 text-blue-400">
-                          {isPreview ? 'Check back closer to match time for confirmed lineups!' : 'Lineups coming very soon!'}
-                        </p>
-                      </div>
-                    </div>
-                  ) : match.lineups ? (
-                    // Display real lineups from API
-                    <>
-                      <div className="md:w-[48%] mb-4 md:mb-0">
-                        <h3 className="text-base font-semibold mb-3 flex items-center text-white">
-                          <img src={match.lineups.homeTeam.logo} alt={match.lineups.homeTeam.name} className="w-5 h-5 object-contain mr-2" onError={e => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                          }} />
-                          {match.lineups.homeTeam.name}
-                          <span className="ml-2 text-sm text-gray-400">({match.lineups.homeTeam.formation})</span>
-                        </h3>
-                        <div className="space-y-1">
-                          {match.lineups.homeTeam.initialLineup.flat().map((player: Player, index: number) => (
-                            <div key={index} className="flex items-center p-2 bg-black/30 backdrop-blur-sm rounded border border-white/10">
-                              <span className="text-white text-sm">{player.number}. {player.name}</span>
-                              <span className="ml-auto text-xs text-gray-400">{player.position}</span>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {match.lineups.homeTeam.substitutes.length > 0 && (
-                          <div className="mt-3">
-                            <h4 className="text-sm font-medium mb-2 text-gray-300">Substitutes</h4>
-                            <div className="space-y-1">
-                              {match.lineups.homeTeam.substitutes.map((player: Player, index: number) => (
-                                <div key={index} className="flex items-center p-1 bg-black/20 backdrop-blur-sm rounded text-sm border border-white/5">
-                                  <span className="text-gray-300">{player.number}. {player.name}</span>
-                                  <span className="ml-auto text-xs text-gray-500">{player.position}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="md:w-[48%]">
-                        <h3 className="text-base font-semibold mb-3 flex items-center text-white">
-                          <img src={match.lineups.awayTeam.logo} alt={match.lineups.awayTeam.name} className="w-5 h-5 object-contain mr-2" onError={e => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                          }} />
-                          {match.lineups.awayTeam.name}
-                          <span className="ml-2 text-sm text-gray-400">({match.lineups.awayTeam.formation})</span>
-                        </h3>
-                        <div className="space-y-1">
-                          {match.lineups.awayTeam.initialLineup.flat().map((player: Player, index: number) => (
-                            <div key={index} className="flex items-center p-2 bg-black/30 backdrop-blur-sm rounded border border-white/10">
-                              <span className="text-white text-sm">{player.number}. {player.name}</span>
-                              <span className="ml-auto text-xs text-gray-400">{player.position}</span>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {match.lineups.awayTeam.substitutes.length > 0 && (
-                          <div className="mt-3">
-                            <h4 className="text-sm font-medium mb-2 text-gray-300">Substitutes</h4>
-                            <div className="space-y-1">
-                              {match.lineups.awayTeam.substitutes.map((player: Player, index: number) => (
-                                <div key={index} className="flex items-center p-1 bg-black/20 backdrop-blur-sm rounded text-sm border border-white/5">
-                                  <span className="text-gray-300">{player.number}. {player.name}</span>
-                                  <span className="ml-auto text-xs text-gray-500">{player.position}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    // Fallback to mock lineups
-                    <>
-                      <div className="md:w-[48%] mb-4 md:mb-0">
-                        <h3 className="text-base font-semibold mb-3 flex items-center text-white">
-                          <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-5 h-5 object-contain mr-2" onError={e => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                          }} />
-                          {match.homeTeam.name}
-                        </h3>
-                        <div className="space-y-1">
-                          {["1. Alisson", "66. Alexander-Arnold", "4. Van Dijk (C)", "32. Matip", "26. Robertson", "3. Fabinho", "6. Thiago", "14. Henderson", "11. Salah", "20. Jota", "10. Mané"].map((player, index) => (
-                            <div key={index} className="flex items-center p-2 bg-black/30 backdrop-blur-sm rounded border border-white/10">
-                              <span className="text-white text-sm">{player}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="md:w-[48%]">
-                        <h3 className="text-base font-semibold mb-3 flex items-center text-white">
-                          <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-5 h-5 object-contain mr-2" onError={e => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
-                          }} />
-                          {match.awayTeam.name}
-                        </h3>
-                        <div className="space-y-1">
-                          {["32. Ramsdale", "18. Tomiyasu", "4. White", "6. Gabriel", "3. Tierney", "5. Partey", "34. Xhaka", "7. Saka", "8. Ødegaard (C)", "35. Martinelli", "9. Lacazette"].map((player, index) => (
-                            <div key={index} className="flex items-center p-2 bg-black/30 backdrop-blur-sm rounded border border-white/10">
-                              <span className="text-white text-sm">{player}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
         )}
 
         <div className="flex justify-center">
