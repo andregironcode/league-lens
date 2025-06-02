@@ -1116,8 +1116,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
             <div 
               className="rounded-xl p-8 overflow-hidden"
               style={{
-                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                background: 'linear-gradient(135deg, #000000 0%, #1F1F1F 100%)',
+                border: '1px solid #1B1B1B'
               }}
             >
               <div className="bg-black/30 backdrop-blur-sm rounded-lg p-12 text-center border border-white/20">
@@ -1139,8 +1139,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
             <div 
               className="rounded-xl p-8 overflow-hidden"
               style={{
-                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                background: 'linear-gradient(135deg, #000000 0%, #1F1F1F 100%)',
+                border: '1px solid #1B1B1B'
               }}
             >
               <div className="text-center text-gray-400 py-4">
@@ -1165,8 +1165,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
             <div 
               className="rounded-xl p-8 overflow-hidden"
               style={{
-                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                background: 'linear-gradient(135deg, #000000 0%, #1F1F1F 100%)',
+                border: '1px solid #1B1B1B'
               }}
             >
               <div className="bg-black/30 backdrop-blur-sm rounded-lg p-12 text-center border border-white/20">
@@ -1188,8 +1188,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
             <div 
               className="rounded-xl p-8 overflow-hidden"
               style={{
-                background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                background: 'linear-gradient(135deg, #000000 0%, #1F1F1F 100%)',
+                border: '1px solid #1B1B1B'
               }}
             >
               <div className="text-center text-gray-400 py-4">
@@ -1211,8 +1211,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           <div 
             className="rounded-xl p-8 overflow-hidden"
             style={{
-              background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
+              background: 'linear-gradient(135deg, #000000 0%, #1F1F1F 100%)',
+              border: '1px solid #1B1B1B'
             }}
           >
             {/* Match Type Selectors */}
@@ -1306,8 +1306,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           <div 
             className="rounded-xl p-8 overflow-hidden"
             style={{
-              background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
+              background: 'linear-gradient(135deg, #000000 0%, #1F1F1F 100%)',
+              border: '1px solid #1B1B1B'
             }}
           >
             <LeagueFilter leaguesWithMatches={leaguesWithMatches} selectedLeagueIds={selectedLeagueIds} onLeagueSelect={onLeagueSelect} />
@@ -1315,8 +1315,8 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
           <div 
             className="rounded-xl p-8 overflow-hidden"
             style={{
-              background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
+              background: 'linear-gradient(135deg, #000000 0%, #1F1F1F 100%)',
+              border: '1px solid #1B1B1B'
             }}
           >
             <CountryFilter leaguesWithMatches={leaguesWithMatches} selectedLeagueIds={selectedLeagueIds} onLeagueSelect={onLeagueSelect} selectedCountryCode={selectedCountryCode} />

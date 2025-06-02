@@ -2,9 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  * {
+    font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI Semibold", "Segoe UI Bold", "Segoe UI Semilight", "Segoe UI Light", "Segoe UI Black", "Segoe UI Historic", "Segoe UI Emoji", "Segoe UI Symbol", system-ui, -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Noto Color Emoji";
+  }
+  
+  html, body {
+    font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI Semibold", "Segoe UI Bold", "Segoe UI Semilight", "Segoe UI Light", "Segoe UI Black", "Segoe UI Historic", "Segoe UI Emoji", "Segoe UI Symbol", system-ui, -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Noto Color Emoji";
+  }
+}
+
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+  
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .animate-gradient {
+    animation: gradient-shift 3s ease-in-out infinite;
   }
 }
 
@@ -62,4 +88,10 @@
 body {
   background-color: #111111;
   color: #f7f7f7;
+  font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI Semibold", "Segoe UI Bold", "Segoe UI Semilight", "Segoe UI Light", "Segoe UI Black", "Segoe UI Historic", "Segoe UI Emoji", "Segoe UI Symbol", system-ui, -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Noto Color Emoji";
+  font-feature-settings: "kern", "liga", "clig", "calt";
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }

@@ -407,8 +407,8 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ league, defaultExpanded = false
     <div 
       className="rounded-xl overflow-hidden"
       style={{
-        background: 'linear-gradient(45deg, #000000 0%, #374151 100%)',
-        border: '1px solid rgba(255, 255, 255, 0.1)'
+        background: 'linear-gradient(135deg, #000000 0%, #1F1F1F 100%)',
+        border: '1px solid #1B1B1B'
       }}
     >
       {/* League Header - Clickable to toggle */}
