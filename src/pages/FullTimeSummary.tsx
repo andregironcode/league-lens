@@ -100,9 +100,127 @@ const getMatchActions = (homeTeam: string, awayTeam: string): MatchAction[] => {
   ].sort((a, b) => b.minute - a.minute); // Reverse sort: later actions first (top), earlier last (bottom)
 };
 
+// Transform API events to MatchAction format
+const getMatchActionsFromAPI = (matchEvents: any[], homeTeam: any, awayTeam: any): MatchAction[] => {
+  if (!matchEvents || !Array.isArray(matchEvents)) return [];
+  
+  return matchEvents
+    .map((event: any, index: number): MatchAction | null => {
+      try {
+        // Map API event types to our format
+        let eventType: MatchAction['type'];
+        const apiType = event.type?.toLowerCase() || '';
+        
+        if (apiType.includes('goal') || apiType === 'goal') {
+          eventType = 'goal';
+        } else if (apiType.includes('penalty') || apiType === 'penalty') {
+          eventType = 'penalty';
+        } else if (apiType.includes('own') && apiType.includes('goal')) {
+          eventType = 'own_goal';
+        } else if (apiType.includes('yellow') || apiType === 'card' && event.detail?.includes('yellow')) {
+          eventType = 'yellow_card';
+        } else if (apiType.includes('red') || apiType === 'card' && event.detail?.includes('red')) {
+          eventType = 'red_card';
+        } else if (apiType.includes('substitution') || apiType === 'subst') {
+          eventType = 'substitution';
+        } else if (apiType.includes('var')) {
+          eventType = 'var';
+        } else {
+          // Skip unknown event types
+          return null;
+        }
+        
+        // Determine which team this event belongs to by comparing team information
+        let team: 'home' | 'away' = 'home'; // default fallback
+        
+        if (event.team) {
+          // Check if event team matches home or away team
+          const eventTeamName = event.team.name || event.team;
+          const eventTeamId = event.team.id || event.teamId;
+          
+          // Compare by team name (primary method)
+          if (eventTeamName) {
+            const eventTeamLower = eventTeamName.toLowerCase().trim();
+            const homeTeamLower = homeTeam.name.toLowerCase().trim();
+            const awayTeamLower = awayTeam.name.toLowerCase().trim();
+            
+            if (eventTeamLower === awayTeamLower || 
+                eventTeamLower.includes(awayTeamLower) || 
+                awayTeamLower.includes(eventTeamLower)) {
+              team = 'away';
+            } else if (eventTeamLower === homeTeamLower || 
+                      eventTeamLower.includes(homeTeamLower) || 
+                      homeTeamLower.includes(eventTeamLower)) {
+              team = 'home';
+            }
+          }
+          
+          // Fallback: Compare by team ID if available
+          if (eventTeamId && (homeTeam.id || awayTeam.id)) {
+            if (eventTeamId === awayTeam.id) {
+              team = 'away';
+            } else if (eventTeamId === homeTeam.id) {
+              team = 'home';
+            }
+          }
+        }
+        
+        // Alternative: Check if event has a 'side' or 'team' indicator
+        if (event.side) {
+          const side = event.side.toLowerCase();
+          if (side === 'away' || side === 'visitor' || side === '1') {
+            team = 'away';
+          } else if (side === 'home' || side === '0') {
+            team = 'home';
+          }
+        }
+        
+        // Get player name
+        const playerName = event.player || event.playerName || 'Unknown Player';
+        
+        // Get substitution info
+        const playerOut = event.substituted || event.assist || event.playerOut || undefined;
+        
+        // Create description
+        let description = '';
+        if (eventType === 'goal' || eventType === 'penalty') {
+          description = event.assist ? `Assisted by ${event.assist}` : 'Goal scored';
+        } else if (eventType === 'substitution') {
+          description = playerOut ? `Substituted for ${playerOut}` : 'Substitution';
+        } else if (eventType === 'yellow_card' || eventType === 'red_card') {
+          description = event.detail || 'Card shown';
+        } else {
+          description = event.detail || 'Match event';
+        }
+        
+        return {
+          id: `api-event-${index}`,
+          minute: parseInt(event.time || event.minute || '0'),
+          type: eventType,
+          team,
+          player: playerName,
+          playerOut,
+          description
+        };
+      } catch (error) {
+        console.error('[FullTimeSummary] Error transforming event:', error, event);
+        return null;
+      }
+    })
+    .filter((action): action is MatchAction => action !== null)
+    .sort((a, b) => b.minute - a.minute); // Reverse sort: later actions first
+};
+
 // Compact Timeline component for inside the score container
-const CompactMatchTimeline: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, awayTeam }) => {
-  const actions = getMatchActions(homeTeam.name, awayTeam.name);
+const CompactMatchTimeline: React.FC<{ homeTeam: any; awayTeam: any; matchEvents?: any[] }> = ({ 
+  homeTeam, 
+  awayTeam, 
+  matchEvents 
+}) => {
+  // Use API data if available, otherwise fallback to hardcoded data
+  const actions = matchEvents && matchEvents.length > 0 
+    ? getMatchActionsFromAPI(matchEvents, homeTeam, awayTeam)
+    : getMatchActions(homeTeam.name, awayTeam.name);
   
   const getActionIcon = (type: string) => {
     switch (type) {
@@ -189,8 +307,15 @@ const CompactMatchTimeline: React.FC<{ homeTeam: any; awayTeam: any }> = ({ home
 };
 
 // Timeline component
-const MatchTimeline: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, awayTeam }) => {
-  const actions = getMatchActions(homeTeam.name, awayTeam.name);
+const MatchTimeline: React.FC<{ homeTeam: any; awayTeam: any; matchEvents?: any[] }> = ({ 
+  homeTeam, 
+  awayTeam, 
+  matchEvents 
+}) => {
+  // Use API data if available, otherwise fallback to hardcoded data
+  const actions = matchEvents && matchEvents.length > 0 
+    ? getMatchActionsFromAPI(matchEvents, homeTeam, awayTeam)
+    : getMatchActions(homeTeam.name, awayTeam.name);
   
   const getActionIcon = (type: string) => {
     switch (type) {
@@ -366,78 +491,64 @@ interface TeamLineup {
   substitutes: LineupPlayer[];
 }
 
-// Mock lineup data
+// Transform API lineups to TeamLineup format
+const getTeamLineupsFromAPI = (matchLineups: any): { home: TeamLineup; away: TeamLineup } | null => {
+  if (!matchLineups || !matchLineups.homeTeam || !matchLineups.awayTeam) {
+    return null;
+  }
+  
+  try {
+    const transformLineup = (teamLineup: any): TeamLineup => {
+      const formation = teamLineup.formation || '4-4-2';
+      
+      // Transform players
+      const transformPlayer = (player: any): LineupPlayer => ({
+        id: player.id?.toString() || Math.random().toString(36).substring(2, 9),
+        name: player.name || 'Unknown Player',
+        position: player.position || 'Unknown',
+        jerseyNumber: player.number || player.jerseyNumber || 0
+      });
+      
+      const startingXI = (teamLineup.initialLineup || teamLineup.startingXI || [])
+        .map(transformPlayer);
+      
+      const substitutes = (teamLineup.substitutes || [])
+        .map(transformPlayer);
+      
+      return {
+        formation,
+        startingXI,
+        substitutes
+      };
+    };
+    
+    return {
+      home: transformLineup(matchLineups.homeTeam),
+      away: transformLineup(matchLineups.awayTeam)
+    };
+  } catch (error) {
+    console.error('[FullTimeSummary] Error transforming lineups:', error);
+    return null;
+  }
+};
+
+// Mock lineup data (fallback)
 const getTeamLineups = (homeTeam: string, awayTeam: string): { home: TeamLineup; away: TeamLineup } => {
   return {
     home: {
       formation: "4-3-3",
       startingXI: [
-        {
-          id: "1",
-          name: "Aaron Ramsdale",
-          position: "GK",
-          jerseyNumber: 1
-        },
-        {
-          id: "2",
-          name: "Ben White",
-          position: "RB",
-          jerseyNumber: 4
-        },
-        {
-          id: "3",
-          name: "William Saliba",
-          position: "CB",
-          jerseyNumber: 12
-        },
-        {
-          id: "4",
-          name: "Gabriel",
-          position: "CB",
-          jerseyNumber: 6
-        },
-        {
-          id: "5",
-          name: "Oleksandr Zinchenko",
-          position: "LB",
-          jerseyNumber: 35
-        },
-        {
-          id: "6",
-          name: "Thomas Partey",
-          position: "CDM",
-          jerseyNumber: 5
-        },
-        {
-          id: "7",
-          name: "Martin Ødegaard",
-          position: "CM",
-          jerseyNumber: 8
-        },
-        {
-          id: "8",
-          name: "Granit Xhaka",
-          position: "CM",
-          jerseyNumber: 34
-        },
-        {
-          id: "9",
-          name: "Bukayo Saka",
-          position: "RW",
-          jerseyNumber: 7
-        },
-        {
-          id: "10",
-          name: "Gabriel Jesus",
-          position: "ST",
-          jerseyNumber: 9
-        },
-        {
-          id: "11",
-          name: "Gabriel Martinelli",
-          position: "LW",
-          jerseyNumber: 11
-        }
+        { id: "1", name: "Aaron Ramsdale", position: "GK", jerseyNumber: 1 },
+        { id: "2", name: "Ben White", position: "RB", jerseyNumber: 4 },
+        { id: "3", name: "William Saliba", position: "CB", jerseyNumber: 12 },
+        { id: "4", name: "Gabriel Magalhães", position: "CB", jerseyNumber: 6 },
+        { id: "5", name: "Oleksandr Zinchenko", position: "LB", jerseyNumber: 35 },
+        { id: "6", name: "Thomas Partey", position: "CDM", jerseyNumber: 5 },
+        { id: "7", name: "Granit Xhaka", position: "CM", jerseyNumber: 34 },
+        { id: "8", name: "Martin Ødegaard", position: "CM", jerseyNumber: 8 },
+        { id: "9", name: "Bukayo Saka", position: "RW", jerseyNumber: 7 },
+        { id: "10", name: "Gabriel Jesus", position: "ST", jerseyNumber: 9 },
+        { id: "11", name: "Gabriel Martinelli", position: "LW", jerseyNumber: 11 }
       ],
       substitutes: [
         { id: "12", name: "Matt Turner", position: "GK", jerseyNumber: 30 },
@@ -452,72 +563,17 @@ const getTeamLineups = (homeTeam: string, awayTeam: string): { home: TeamLineup;
     away: {
       formation: "4-2-3-1",
       startingXI: [
-        {
-          id: "21",
-          name: "David de Gea",
-          position: "GK",
-          jerseyNumber: 1
-        },
-        {
-          id: "22",
-          name: "Diogo Dalot",
-          position: "RB",
-          jerseyNumber: 20
-        },
-        {
-          id: "23",
-          name: "Raphael Varane",
-          position: "CB",
-          jerseyNumber: 19
-        },
-        {
-          id: "24",
-          name: "Lisandro Martinez",
-          position: "CB",
-          jerseyNumber: 6
-        },
-        {
-          id: "25",
-          name: "Luke Shaw",
-          position: "LB",
-          jerseyNumber: 23
-        },
-        {
-          id: "26",
-          name: "Casemiro",
-          position: "CDM",
-          jerseyNumber: 18
-        },
-        {
-          id: "27",
-          name: "Christian Eriksen",
-          position: "CDM",
-          jerseyNumber: 14
-        },
-        {
-          id: "28",
-          name: "Antony",
-          position: "RW",
-          jerseyNumber: 21
-        },
-        {
-          id: "29",
-          name: "Bruno Fernandes",
-          position: "AM",
-          jerseyNumber: 8
-        },
-        {
-          id: "30",
-          name: "Marcus Rashford",
-          position: "LW",
-          jerseyNumber: 10
-        },
-        {
-          id: "31",
-          name: "Anthony Martial",
-          position: "ST",
-          jerseyNumber: 9
-        }
+        { id: "21", name: "David de Gea", position: "GK", jerseyNumber: 1 },
+        { id: "22", name: "Diogo Dalot", position: "RB", jerseyNumber: 20 },
+        { id: "23", name: "Raphaël Varane", position: "CB", jerseyNumber: 19 },
+        { id: "24", name: "Lisandro Martínez", position: "CB", jerseyNumber: 6 },
+        { id: "25", name: "Luke Shaw", position: "LB", jerseyNumber: 23 },
+        { id: "26", name: "Casemiro", position: "CDM", jerseyNumber: 18 },
+        { id: "27", name: "Christian Eriksen", position: "CDM", jerseyNumber: 14 },
+        { id: "28", name: "Bruno Fernandes", position: "RW", jerseyNumber: 8 },
+        { id: "29", name: "Jadon Sancho", position: "AM", jerseyNumber: 25 },
+        { id: "30", name: "Marcus Rashford", position: "LW", jerseyNumber: 10 },
+        { id: "31", name: "Anthony Martial", position: "ST", jerseyNumber: 9 }
       ],
       substitutes: [
         { id: "32", name: "Tom Heaton", position: "GK", jerseyNumber: 22 },
@@ -532,7 +588,7 @@ const getTeamLineups = (homeTeam: string, awayTeam: string): { home: TeamLineup;
   };
 };
 
-// Mock match stats data
+// Mock match stats data (fallback)
 const getMatchStats = (homeTeam: string, awayTeam: string): { home: MatchStats; away: MatchStats } => {
   return {
     home: {
@@ -594,9 +650,83 @@ const getMatchStats = (homeTeam: string, awayTeam: string): { home: MatchStats; 
   };
 };
 
+// Transform API statistics to MatchStats format
+const getMatchStatsFromAPI = (matchStatistics: any[]): { home: MatchStats; away: MatchStats } | null => {
+  if (!matchStatistics || !Array.isArray(matchStatistics) || matchStatistics.length < 2) {
+    return null;
+  }
+  
+  try {
+    const homeTeamStats = matchStatistics[0];
+    const awayTeamStats = matchStatistics[1];
+    
+    // Helper function to find stat value by name
+    const findStatValue = (statistics: any[], statName: string): number => {
+      if (!Array.isArray(statistics)) return 0;
+      
+      const stat = statistics.find((s: any) => 
+        s.type?.toLowerCase().includes(statName.toLowerCase()) ||
+        s.name?.toLowerCase().includes(statName.toLowerCase()) ||
+        s.displayName?.toLowerCase().includes(statName.toLowerCase())
+      );
+      
+      return parseInt(stat?.value || '0') || 0;
+    };
+    
+    // Map API statistics to our format
+    const mapTeamStats = (teamStats: any): MatchStats => {
+      const stats = teamStats.statistics || [];
+      
+      return {
+        ballPossession: findStatValue(stats, 'possession'),
+        expectedGoals: parseFloat((findStatValue(stats, 'expected') / 10).toFixed(1)) || 0,
+        shotsOnTarget: findStatValue(stats, 'shots on target'),
+        bigScoringChances: findStatValue(stats, 'big chances'),
+        totalAttempts: findStatValue(stats, 'total shots') || findStatValue(stats, 'shots'),
+        blockedShots: findStatValue(stats, 'blocked shots'),
+        shotsInBox: findStatValue(stats, 'shots inside box'),
+        shotsOutsideBox: findStatValue(stats, 'shots outside box'),
+        woodworkHits: findStatValue(stats, 'hit woodwork'),
+        fouls: findStatValue(stats, 'fouls'),
+        corners: findStatValue(stats, 'corner kicks'),
+        throwIns: findStatValue(stats, 'throw ins'),
+        saves: findStatValue(stats, 'saves'),
+        freeKicks: findStatValue(stats, 'free kicks'),
+        offsides: findStatValue(stats, 'offsides'),
+        passesIntoFinalThird: findStatValue(stats, 'passes final third'),
+        completedPassesFinalThird: findStatValue(stats, 'completed passes final third'),
+        touchesInOpponentBox: findStatValue(stats, 'touches opponent box'),
+        tackles: findStatValue(stats, 'tackles'),
+        completedTackles: findStatValue(stats, 'successful tackles'),
+        totalCrosses: findStatValue(stats, 'crosses'),
+        successfulCrosses: findStatValue(stats, 'successful crosses'),
+        interceptions: findStatValue(stats, 'interceptions'),
+        clearances: findStatValue(stats, 'clearances'),
+        yellowCards: findStatValue(stats, 'yellow cards'),
+        redCards: findStatValue(stats, 'red cards')
+      };
+    };
+    
+    return {
+      home: mapTeamStats(homeTeamStats),
+      away: mapTeamStats(awayTeamStats)
+    };
+  } catch (error) {
+    console.error('[FullTimeSummary] Error transforming statistics:', error);
+    return null;
+  }
+};
+
 // Stats display component
-const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, awayTeam }) => {
-  const stats = getMatchStats(homeTeam.name, awayTeam.name);
+const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any; matchStatistics?: any[] }> = ({ 
+  homeTeam, 
+  awayTeam, 
+  matchStatistics 
+}) => {
+  // Use API data if available, otherwise fallback to hardcoded data
+  const stats = matchStatistics && matchStatistics.length >= 2
+    ? getMatchStatsFromAPI(matchStatistics) || getMatchStats(homeTeam.name, awayTeam.name)
+    : getMatchStats(homeTeam.name, awayTeam.name);
   
   // Function to get team primary colors
   const getTeamColor = (teamName: string): string => {
@@ -804,11 +934,19 @@ const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam,
 };
 
 // Team Lineup component
-const TeamLineupChart: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, awayTeam }) => {
+const TeamLineupChart: React.FC<{ homeTeam: any; awayTeam: any; matchLineups?: any }> = ({ 
+  homeTeam, 
+  awayTeam, 
+  matchLineups 
+}) => {
   const [activeTab, setActiveTab] = useState<'home' | 'away'>('home');
   const [showSubstitutes, setShowSubstitutes] = useState(false);
-  const lineups = getTeamLineups(homeTeam.name, awayTeam.name);
-  const currentTeam = activeTab === 'home' ? homeTeam : awayTeam;
+  
+  // Use API data if available, otherwise fallback to hardcoded data
+  const lineups = matchLineups
+    ? getTeamLineupsFromAPI(matchLineups) || getTeamLineups(homeTeam.name, awayTeam.name)
+    : getTeamLineups(homeTeam.name, awayTeam.name);
+  
   const currentLineup = lineups[activeTab];
 
   return (
@@ -1397,6 +1535,75 @@ const FullTimeSummary = () => {
     }
   };
 
+  // Add video URL validation and processing functions (copied from MatchDetails.tsx)
+  const isValidVideoUrl = (url: string): boolean => {
+    if (!url || typeof url !== 'string') {
+      console.log('[FullTimeSummary] Invalid video URL - empty or not string:', url);
+      return false;
+    }
+    
+    console.log('[FullTimeSummary] Checking video URL:', url);
+    
+    // List of problematic domains that often refuse connections
+    const blockedDomains = [
+      'streamff.com',
+      'streamff.net',
+      'streamff.org',
+      'streamff.tv',
+      'streamable.com',
+      'dailymotion.com'
+    ];
+    
+    // Check if URL contains any blocked domains (more thorough check)
+    const urlLowerCase = url.toLowerCase();
+    const containsBlockedDomain = blockedDomains.some(domain => {
+      const isBlocked = urlLowerCase.includes(domain);
+      if (isBlocked) {
+        console.log(`[FullTimeSummary] Blocked video URL - contains ${domain}:`, url);
+      }
+      return isBlocked;
+    });
+    
+    if (containsBlockedDomain) {
+      return false;
+    }
+    
+    // Basic URL validation
+    try {
+      const urlObj = new URL(url);
+      console.log('[FullTimeSummary] Valid video URL:', url, 'Host:', urlObj.hostname);
+      return true;
+    } catch (error) {
+      console.log('[FullTimeSummary] Invalid video URL format:', url, 'Error:', error);
+      return false;
+    }
+  };
+
+  const getVideoEmbedUrl = (url: string): string => {
+    if (!url) return '';
+    
+    console.log('[FullTimeSummary] Processing video URL:', url);
+    
+    // If it's already an embed URL, use it
+    if (url.includes('embed')) {
+      console.log('[FullTimeSummary] Already embed URL:', url);
+      return url;
+    }
+    
+    // Extract YouTube video ID
+    const youtubeRegex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch) {
+      const videoId = youtubeMatch[1];
+      console.log('[FullTimeSummary] YouTube video ID:', videoId);
+      return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`;
+    }
+    
+    // For other video URLs, try to use them directly
+    console.log('[FullTimeSummary] Using direct video URL:', url);
+    return url;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#111111] flex items-center justify-center">
@@ -1535,7 +1742,7 @@ const FullTimeSummary = () => {
                 {/* Fade overlay for top */}
                 <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"></div>
                 
-                <CompactMatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
+                <CompactMatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchEvents={match.events} />
                 
                 {/* Fade overlay for bottom */}
                 <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none"></div>
@@ -1566,18 +1773,48 @@ const FullTimeSummary = () => {
               border: '1px solid #1B1B1B'
             }}
           >
-            {/* Highlights not available message */}
-            <div className="text-center py-8">
-              <div className="text-gray-400 text-sm">
-                <p className="text-white font-medium text-sm mb-2">Video Highlights Coming Soon</p>
-                <p className="text-xs px-4 mb-3">
-                  Match highlights are being processed and will be available shortly after the final whistle.
-                </p>
-                <p className="text-gray-500 text-xs">
-                  Still waiting? Contact our support team for assistance.
-                </p>
+            {match.videoUrl && isValidVideoUrl(match.videoUrl) ? (
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <iframe
+                  src={getVideoEmbedUrl(match.videoUrl)}
+                  title={`${match.homeTeam.name} vs ${match.awayTeam.name} Highlights`}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-gray-400 text-sm">
+                  <div className="mb-3">
+                    <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+                      <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
+                    </div>
+                  </div>
+                  <p className="text-white font-medium text-base mb-3">Highlights Coming Soon</p>
+                  <p className="text-sm mb-4 max-w-md mx-auto">
+                    Match highlights are being processed and will be available shortly after the final whistle. 
+                    Our team is working to bring you the best moments from this match.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
+                    <div className="flex items-center text-blue-400">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+                      Usually available within 2-4 hours
+                    </div>
+                    <span className="hidden sm:inline text-gray-600">•</span>
+                    <button 
+                      onClick={() => {
+                        window.location.href = 'mailto:support@leaguelens.com?subject=Match%20Highlights%20Request&body=Hi,%20I%27m%20looking%20for%20highlights%20for%20the%20match%20' + encodeURIComponent(`${match.homeTeam.name} vs ${match.awayTeam.name}`) + '%20on%20' + encodeURIComponent(new Date(match.date).toLocaleDateString());
+                      }}
+                      className="text-yellow-400 hover:text-yellow-300 transition-colors underline"
+                    >
+                      Contact Support
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Match Stats */}
@@ -1590,7 +1827,20 @@ const FullTimeSummary = () => {
           >
             <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH STATISTICS</h4>
             
-            <MatchStatsChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
+            <MatchStatsChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchStatistics={match.statistics} />
+          </div>
+
+          {/* Full Match Timeline */}
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH TIMELINE</h4>
+            
+            <MatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchEvents={match.events} />
           </div>
 
           {/* Team Lineup */}
@@ -1603,7 +1853,7 @@ const FullTimeSummary = () => {
           >
             <h4 className="text-lg font-semibold mb-6 text-center text-white">TEAM LINEUP</h4>
             
-            <TeamLineupChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
+            <TeamLineupChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchLineups={match.lineups} />
           </div>
 
           {/* League Standings */}

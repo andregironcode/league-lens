@@ -2082,7 +2082,7 @@ const MatchDetails = () => {
                   </div>
                 </div>
               ) : (
-                // Fallback to mock statistics with comprehensive football metrics
+                // Use real API statistics when available, otherwise fallback to mock data
                 <div>
                   {/* Team Headers */}
                   <div className="flex justify-between items-center mb-6">
@@ -2096,7 +2096,7 @@ const MatchDetails = () => {
                     </div>
                   </div>
 
-                  {/* Mock Statistics */}
+                  {/* Mock Statistics (fallback) - only shown if no real statistics available */}
                   <div className="space-y-4">
                     {[
                       { name: 'Ball Possession', home: 58, away: 42, unit: '%' },
@@ -2156,13 +2156,13 @@ const MatchDetails = () => {
                           {/* Stat name and values */}
                           <div className="flex justify-between items-center mb-2">
                             <span className={`text-sm font-medium ${homeIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>
-                              {stat.home}{stat.unit}
+                              {stat.name.includes('Expected') ? stat.home.toFixed(1) : stat.home}{stat.unit}
                             </span>
                             <span className="text-sm font-medium text-white text-center flex-1 mx-4">
                               {stat.name}
                             </span>
                             <span className={`text-sm font-medium ${awayIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>
-                              {stat.away}{stat.unit}
+                              {stat.name.includes('Expected') ? stat.away.toFixed(1) : stat.away}{stat.unit}
                             </span>
                           </div>
                           

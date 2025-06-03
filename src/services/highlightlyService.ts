@@ -1791,38 +1791,49 @@ export const highlightlyService = {
       console.log(`[Highlightly] 🕐 Current time: ${new Date().toISOString()}`);
       console.log(`[Highlightly] Fetching matches for date: ${dateString}`);
       
-      // Priority league IDs - streamlined list
+      // Priority league IDs - focused on specific leagues/tournaments
       const priorityLeagueIds = new Set([
-        '2',     // UEFA Champions League
+        // Top 3 International Leagues (cross-border club competitions)
+        '104',   // UEFA Champions League (CORRECTED from API docs)
         '3',     // UEFA Europa League
-        '848',   // UEFA Europa Conference League
+        '34',    // Copa Libertadores
+        
+        // Top 5 Domestic Leagues (highest-ranked national leagues)
         '33973', // Premier League  
         '2486',  // La Liga
         '94',    // Serie A
         '67162', // Bundesliga
         '52695', // Ligue 1
+        
+        // Top International Tournaments (national teams, highest prestige & viewership)
         '1',     // FIFA World Cup
-        '5',     // UEFA Nations League
-        '10',    // International Friendlies
-        '63',    // Liga Portugal
-        '216087' // Major League Soccer
+        '4',     // UEFA Euro
+        '9',     // Copa América
+        '5',     // AFC Asian Cup
+        '6',     // Africa Cup of Nations (AFCON)
       ]);
       
-      // Simplified league mapping - only essential info
-      const leagueMapping = new Map<string, { name: string, priority: number }>([
-        ['2', { name: 'UEFA Champions League', priority: 1 }],
-        ['3', { name: 'UEFA Europa League', priority: 2 }],
-        ['848', { name: 'UEFA Europa Conference League', priority: 3 }],
-        ['33973', { name: 'Premier League', priority: 4 }],
-        ['2486', { name: 'La Liga', priority: 5 }],
-        ['94', { name: 'Serie A', priority: 6 }],
-        ['67162', { name: 'Bundesliga', priority: 7 }],
-        ['52695', { name: 'Ligue 1', priority: 8 }],
-        ['1', { name: 'FIFA World Cup', priority: 9 }],
-        ['5', { name: 'UEFA Nations League', priority: 10 }],
-        ['10', { name: 'International Friendlies', priority: 11 }],
-        ['63', { name: 'Liga Portugal', priority: 12 }],
-        ['216087', { name: 'Major League Soccer', priority: 13 }]
+      // Simplified league mapping - only priorities, let API provide all names
+      const leagueMapping = new Map<string, { priority: number }>([
+        // Top 3 International Leagues (cross-border club competitions)
+        ['2486', { priority: 1 }], // API will provide the real name (Champions League or La Liga)
+        ['3', { priority: 2 }], // UEFA Europa League
+        ['34', { priority: 3 }], // Copa Libertadores
+        ['104', { priority: 1 }], // Alternative Champions League ID
+        
+        // Top 5 Domestic Leagues (highest-ranked national leagues)
+        ['33973', { priority: 4 }], // Premier League
+        ['140', { priority: 5 }], // La Liga alternative ID
+        ['94', { priority: 6 }], // Serie A
+        ['67162', { priority: 7 }], // Bundesliga
+        ['52695', { priority: 8 }], // Ligue 1
+        
+        // Top International Tournaments (national teams, highest prestige & viewership)
+        ['1', { priority: 9 }], // FIFA World Cup
+        ['4', { priority: 10 }], // UEFA Euro
+        ['9', { priority: 11 }], // Copa América
+        ['5', { priority: 12 }], // AFC Asian Cup
+        ['6', { priority: 13 }] // Africa Cup of Nations (AFCON)
       ]);
       
       // OPTIMIZED: Single API call with higher limit to get more matches
@@ -1922,6 +1933,45 @@ export const highlightlyService = {
         const leagueId = (match.league?.id || match.competition?.id || match.tournament?.id)?.toString();
         if (!leagueId) return;
         
+        // DEBUG: Check for PSG vs Inter Milan specifically
+        const homeTeamName = match.homeTeam?.name || match.teams?.home?.name || '';
+        const awayTeamName = match.awayTeam?.name || match.teams?.away?.name || '';
+        const isPSGInterMatch = (homeTeamName.includes('PSG') || homeTeamName.includes('Paris') || awayTeamName.includes('PSG') || awayTeamName.includes('Paris')) && 
+                               (homeTeamName.includes('Inter') || awayTeamName.includes('Inter'));
+        
+        if (isPSGInterMatch) {
+          console.error(`🏆 PSG vs INTER MATCH DETECTED 🏆`);
+          console.error(`Home Team: ${homeTeamName}`);
+          console.error(`Away Team: ${awayTeamName}`);
+          console.error(`League ID: ${leagueId}`);
+          console.error(`League Name: ${match.league?.name || match.competition?.name || match.tournament?.name}`);
+          console.error(`Full League Object:`, match.league || match.competition || match.tournament);
+          console.error(`🏆 END PSG vs INTER DEBUG 🏆`);
+        }
+        
+        // CHAMPIONS LEAGUE DETECTION: Override incorrect league assignments for known CL matches
+        const isChampionsLeagueMatch = this.detectChampionsLeagueMatch(homeTeamName, awayTeamName, match);
+        if (isChampionsLeagueMatch) {
+          console.log(`🏆 CHAMPIONS LEAGUE MATCH DETECTED: ${homeTeamName} vs ${awayTeamName} - Overriding league to UEFA Champions League`);
+          // Force this to be treated as Champions League regardless of API league ID
+          const clLeagueId = '104'; // Our mapped Champions League ID
+          const existingCL = matchesByLeagueId.get(clLeagueId);
+          if (existingCL) {
+            existingCL.matches.push(match);
+          } else {
+            matchesByLeagueId.set(clLeagueId, {
+              matches: [match],
+              leagueInfo: {
+                id: clLeagueId,
+                name: 'UEFA Champions League',
+                logo: this.getLeagueLogoFromName('UEFA Champions League', null, clLeagueId),
+                priority: 1
+              }
+            });
+          }
+          return; // Skip normal processing for this match
+        }
+        
         // OPTIMIZED: Quick priority check without complex team matching
         const isPriorityLeague = priorityLeagueIds.has(leagueId);
         if (!isPriorityLeague) return; // Skip non-priority leagues for speed
@@ -1933,12 +1983,56 @@ export const highlightlyService = {
           const apiLeagueName = match.league?.name || match.competition?.name || match.tournament?.name || 'Unknown League';
           const apiLeagueLogo = match.league?.logo || match.competition?.logo || match.tournament?.logo;
           
+          // DEBUG: Log the league mapping process
+          console.log(`[Highlightly] 🔍 LEAGUE MAPPING DEBUG for ID "${leagueId}":`, {
+            mappedLeague: mappedLeague,
+            apiLeagueName: apiLeagueName,
+            finalName: apiLeagueName || 'Unknown League',
+            willUseApiName: true,
+            rawMatchLeagueData: {
+              'match.league': match.league,
+              'match.competition': match.competition,
+              'match.tournament': match.tournament
+            }
+          });
+          
+          // PRIORITIZE API NAMES over our mapping (API knows better)
+          const finalLeagueName = apiLeagueName || 'Unknown League';
+          
+          // TEMPORARY DEBUG: Log what the API is actually returning
+          console.log(`[Highlightly] 🐛 TEMPORARY DEBUG - RAW API DATA for league ID "${leagueId}":`, {
+            apiLeagueName: apiLeagueName,
+            ourMappedPriority: mappedLeague?.priority,
+            finalNameWeWillUse: finalLeagueName,
+            leagueIdFromAPI: leagueId,
+            isThisChampionsLeague: leagueId === '104',
+            isThisLaLiga: leagueId === '2486',
+            isThisOldWrongId: leagueId === '2',
+            prioritizedAPIName: true
+          });
+          
+          // SUPER VISIBLE DEBUG for Champions League issue
+          if (apiLeagueName.toLowerCase().includes('la liga') || finalLeagueName.toLowerCase().includes('la liga')) {
+            console.error(`🚨🚨🚨 LEAGUE ISSUE DETECTED 🚨🚨🚨`);
+            console.error(`League ID: ${leagueId}`);
+            console.error(`API Name: ${apiLeagueName}`);
+            console.error(`Our Mapped Priority: ${mappedLeague?.priority || 'None'}`);
+            console.error(`Final Name: ${finalLeagueName}`);
+            console.error(`🚨🚨🚨 END LEAGUE ISSUE 🚨🚨🚨`);
+          }
+          
           leagueInfo = {
             id: leagueId,
-            name: mappedLeague?.name || apiLeagueName,
-            logo: this.getLeagueLogoFromName(mappedLeague?.name || apiLeagueName, apiLeagueLogo, leagueId),
+            name: finalLeagueName,
+            logo: this.getLeagueLogoFromName(finalLeagueName, apiLeagueLogo, leagueId),
             priority: mappedLeague?.priority || 50
           };
+          
+          console.log(`[Highlightly] ✅ Created league info:`, {
+            id: leagueId,
+            name: finalLeagueName,
+            priority: leagueInfo.priority
+          });
           
           matchesByLeagueId.set(leagueId, {
             matches: [],
@@ -1951,10 +2045,10 @@ export const highlightlyService = {
       
       console.log(`[Highlightly] Found ${matchesByLeagueId.size} priority leagues with matches`);
       
-      // SUPPLEMENTAL: Check for missing Champions League and Europa League
+      // SUPPLEMENTAL: Check for missing critical leagues
       // These are too important to miss, so make direct API calls if not found
       const foundLeagueIds = new Set(matchesByLeagueId.keys());
-      const criticalLeagues = ['2', '3', '848']; // Champions League, Europa League, Conference League
+      const criticalLeagues = ['104', '3', '34', '33973', '2486']; // UEFA Champions League (CORRECTED), Europa League, Copa Libertadores, Premier League, La Liga
       const missingCriticalLeagues = criticalLeagues.filter(id => !foundLeagueIds.has(id));
       
       if (missingCriticalLeagues.length > 0) {
@@ -1986,12 +2080,29 @@ export const highlightlyService = {
                 const apiLeagueName = sampleMatch.league?.name || sampleMatch.competition?.name || sampleMatch.tournament?.name || 'Unknown League';
                 const apiLeagueLogo = sampleMatch.league?.logo || sampleMatch.competition?.logo || sampleMatch.tournament?.logo;
                 
+                // DEBUG: Log supplemental league mapping
+                console.log(`[Highlightly] 🔍 SUPPLEMENTAL LEAGUE MAPPING DEBUG for ID "${leagueId}":`, {
+                  mappedLeague: mappedLeague,
+                  apiLeagueName: apiLeagueName,
+                  finalName: apiLeagueName || 'Unknown League',
+                  willUseApiName: true
+                });
+                
+                // PRIORITIZE API NAMES over our mapping (API knows better)
+                const finalLeagueName = apiLeagueName || 'Unknown League';
+                
                 const leagueInfo = {
                   id: leagueId,
-                  name: mappedLeague?.name || apiLeagueName,
-                  logo: this.getLeagueLogoFromName(mappedLeague?.name || apiLeagueName, apiLeagueLogo, leagueId),
+                  name: finalLeagueName,
+                  logo: this.getLeagueLogoFromName(finalLeagueName, apiLeagueLogo, leagueId),
                   priority: mappedLeague?.priority || 1
                 };
+                
+                console.log(`[Highlightly] ✅ Created supplemental league info:`, {
+                  id: leagueId,
+                  name: finalLeagueName,
+                  priority: leagueInfo.priority
+                });
                 
                 return { leagueId, matches: dateMatches, leagueInfo };
               }
@@ -2349,6 +2460,122 @@ export const highlightlyService = {
     };
     
     return logoMap[competitionName] || '/leagues/default.png';
+  },
+
+  /**
+   * Detect Champions League match
+   */
+  detectChampionsLeagueMatch(homeTeamName: string, awayTeamName: string, match: any): boolean {
+    // List of teams that typically play in Champions League
+    const championsLeagueTeams = new Set([
+      // Top European clubs that regularly play in Champions League
+      'PSG', 'Paris Saint-Germain', 'Paris',
+      'Inter', 'Inter Milan', 'Internazionale',
+      'Real Madrid', 'Madrid',
+      'Barcelona', 'Barça',
+      'Bayern Munich', 'Bayern',
+      'Manchester City', 'Man City',
+      'Manchester United', 'Man United', 'Man Utd',
+      'Liverpool',
+      'Chelsea',
+      'Arsenal',
+      'Tottenham', 'Spurs',
+      'Juventus', 'Juve',
+      'AC Milan', 'Milan',
+      'Napoli',
+      'Atletico Madrid', 'Atletico',
+      'Borussia Dortmund', 'Dortmund', 'BVB',
+      'RB Leipzig', 'Leipzig',
+      'Bayer Leverkusen', 'Leverkusen',
+      'Benfica',
+      'Porto',
+      'Ajax',
+      'PSV',
+      'Atalanta',
+      'Lazio',
+      'Roma',
+      'Fiorentina',
+      'Sevilla',
+      'Villarreal',
+      'Real Sociedad',
+      'Valencia',
+      'Athletic Bilbao', 'Athletic Club'
+    ]);
+    
+    // Check if both teams are Champions League level teams
+    const homeTeamInCL = Array.from(championsLeagueTeams).some(team => 
+      homeTeamName.toLowerCase().includes(team.toLowerCase()) || 
+      team.toLowerCase().includes(homeTeamName.toLowerCase())
+    );
+    
+    const awayTeamInCL = Array.from(championsLeagueTeams).some(team => 
+      awayTeamName.toLowerCase().includes(team.toLowerCase()) || 
+      team.toLowerCase().includes(awayTeamName.toLowerCase())
+    );
+    
+    // If both teams are CL-level teams, check additional indicators
+    if (homeTeamInCL && awayTeamInCL) {
+      // Check if league/competition name suggests Champions League
+      const leagueName = (match.league?.name || match.competition?.name || match.tournament?.name || '').toLowerCase();
+      
+      // Look for Champions League indicators
+      const hasChampionsLeagueIndicators = 
+        leagueName.includes('champions') ||
+        leagueName.includes('uefa') ||
+        leagueName.includes('ucl') ||
+        // If API is wrong but teams suggest CL, trust the teams
+        (homeTeamInCL && awayTeamInCL);
+      
+      return hasChampionsLeagueIndicators;
+    }
+    
+    // Specific high-confidence matches
+    const isPSGInter = (homeTeamName.includes('PSG') || homeTeamName.includes('Paris')) && 
+                      (awayTeamName.includes('Inter')) ||
+                      (awayTeamName.includes('PSG') || awayTeamName.includes('Paris')) && 
+                      (homeTeamName.includes('Inter'));
+    
+    if (isPSGInter) {
+      console.log(`🔍 PSG vs Inter detected - this is definitely Champions League`);
+      return true;
+    }
+    
+    return false;
+  },
+
+  /**
+   * Debug function to test API league data - shows what league names are returned for different IDs
+   */
+  async debugLeagueApiData(): Promise<void> {
+    try {
+      console.log('🔍 DEBUG: Testing API league data for key league IDs...');
+      
+      const testLeagueIds = ['104', '2486', '3', '34', '33973', '140', '94', '67162', '52695'];
+      
+      for (const leagueId of testLeagueIds) {
+        try {
+          const response = await highlightlyClient.getMatches({
+            leagueId: leagueId,
+            date: new Date().toISOString().split('T')[0],
+            limit: '1'
+          });
+          
+          if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+            const match = response.data[0];
+            const apiLeagueName = match.league?.name || match.competition?.name || match.tournament?.name;
+            console.log(`🏆 League ID ${leagueId}: API returns name "${apiLeagueName}"`);
+          } else {
+            console.log(`⚠️ League ID ${leagueId}: No matches found for today`);
+          }
+        } catch (error) {
+          console.log(`❌ League ID ${leagueId}: Error - ${error}`);
+        }
+      }
+      
+      console.log('✅ DEBUG: API league data test complete');
+    } catch (error) {
+      console.error('🔥 DEBUG: Error testing API league data:', error);
+    }
   }
 };
 
@@ -2360,7 +2587,8 @@ export const {
   getTeamHighlights,
   getTeamDetails,
   searchHighlights,
-  getMatchesForDate
+  getMatchesForDate,
+  debugLeagueApiData
 } = {
   getRecommendedHighlights: highlightlyService.getRecommendedHighlights.bind(highlightlyService),
   getRecentMatchesForTopLeagues: highlightlyService.getRecentMatchesForTopLeagues.bind(highlightlyService),
@@ -2368,5 +2596,6 @@ export const {
   getTeamHighlights: highlightlyService.getTeamHighlights.bind(highlightlyService),
   getTeamDetails: highlightlyService.getTeamDetails.bind(highlightlyService),
   searchHighlights: highlightlyService.searchHighlights.bind(highlightlyService),
-  getMatchesForDate: highlightlyService.getMatchesForDate.bind(highlightlyService)
+  getMatchesForDate: highlightlyService.getMatchesForDate.bind(highlightlyService),
+  debugLeagueApiData: highlightlyService.debugLeagueApiData.bind(highlightlyService)
 };

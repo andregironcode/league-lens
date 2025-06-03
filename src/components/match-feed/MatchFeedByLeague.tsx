@@ -16,53 +16,78 @@ interface MatchFeedByLeagueProps {
 }
 
 const LEAGUE_FILTERS = [
+  // Top 3 International Leagues (cross-border club competitions)
+  {
+    id: '104',
+    logoUrl: '/leagues/104.svg',
+    countryCode: 'EU'
+  },
+  {
+    id: '2486', // Champions League or La Liga - API will provide the name
+    logoUrl: '/leagues/2486.svg',
+    countryCode: 'EU' // Will be updated dynamically based on API data
+  },
+  {
+    id: '3',
+    logoUrl: '/leagues/3.svg',
+    countryCode: 'EU'
+  },
+  {
+    id: '34',
+    logoUrl: '/leagues/34.svg',
+    countryCode: 'SA'
+  },
+  // Top 5 Domestic Leagues (highest-ranked national leagues)
   {
     id: '33973',
-    name: 'Premier League',
     logoUrl: '/competitions/premier-league.png',
     countryCode: 'GB'
   },
   {
-    id: '2486',
-    name: 'La Liga',
+    id: '140', // Alternative La Liga ID
     logoUrl: '/leagues/140.svg',
     countryCode: 'ES'
   },
   {
     id: '94',
-    name: 'Serie A',
     logoUrl: '/leagues/135.svg',
     countryCode: 'IT'
   },
   {
     id: '67162',
-    name: 'Bundesliga',
     logoUrl: '/leagues/78.svg',
     countryCode: 'DE'
   },
   {
     id: '52695',
-    name: 'Ligue 1',
     logoUrl: '/leagues/61.svg',
     countryCode: 'FR'
   },
+  // Top International Tournaments (national teams, highest prestige & viewership)
   {
-    id: '2',
-    name: 'UEFA Champions League',
-    logoUrl: '/leagues/2.svg',
+    id: '1',
+    logoUrl: '/leagues/1.svg',
+    countryCode: 'WW'
+  },
+  {
+    id: '4',
+    logoUrl: '/leagues/4.svg',
     countryCode: 'EU'
   },
   {
-    id: '3',
-    name: 'UEFA Europa League',
-    logoUrl: '/leagues/3.svg',
-    countryCode: 'EU'
+    id: '9',
+    logoUrl: '/leagues/9.svg',
+    countryCode: 'SA'
   },
   {
-    id: '848',
-    name: 'UEFA Europa Conference League',
-    logoUrl: '/leagues/848.svg',
-    countryCode: 'EU'
+    id: '5',
+    logoUrl: '/leagues/5.svg',
+    countryCode: 'AS'
+  },
+  {
+    id: '6',
+    logoUrl: '/leagues/6.svg',
+    countryCode: 'AF'
   }
 ];
 
@@ -123,8 +148,8 @@ const LeagueFilter: React.FC<{
     
     return {
       id: filter.id,
-      name: filter.name,
-      logoUrl: filter.logoUrl,
+      name: leagueData?.name || 'Unknown League', // Use API name, not hardcoded
+      logoUrl: leagueData?.logo || filter.logoUrl, // Prefer API logo
       countryCode: filter.countryCode,
       matchCount: matchCount,
       liveMatchCount: liveMatchCount,

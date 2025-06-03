@@ -1,27 +1,21 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MatchHighlight } from '@/types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { MatchHighlight, LeagueWithMatches } from '@/types';
 import { serviceAdapter } from '@/services/serviceAdapter';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
-import DateFilter from '@/components/DateFilter';
 import CountryFilter from '@/components/CountryFilter';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
-  const [dateMatches, setDateMatches] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [last7DaysMatches, setLast7DaysMatches] = useState<LeagueWithMatches[]>([]);
   const [selectedLeagueIds, setSelectedLeagueIds] = useState<string[]>([]);
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [dateMatchesLoading, setDateMatchesLoading] = useState<boolean>(false);
+  const [matchesLoading, setMatchesLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Live update functionality for today's matches
-  const liveUpdateInterval = useRef<NodeJS.Timeout | null>(null);
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
-  // Load data in parallel on mount
+  // Load initial data on mount
   useEffect(() => {
     let isMounted = true;
     
@@ -33,13 +27,13 @@ const Index: React.FC = () => {
         console.log('[Index] Loading initial data...');
 
         // Load data in parallel
-        const [highlightsData, todayMatches] = await Promise.all([
+        const [highlightsData, matchesData] = await Promise.all([
           serviceAdapter.getRecommendedHighlights().catch(err => {
             console.error('[Index] Error loading highlights:', err);
             return [];
           }),
-          serviceAdapter.getMatchesForDate(new Date().toISOString().split('T')[0]).catch(err => {
-            console.error('[Index] Error loading today\'s matches:', err);
+          serviceAdapter.getMatchesFromLast7Days().catch(err => {
+            console.error('[Index] Error loading last 7 days matches:', err);
             return [];
           })
         ]);
@@ -47,11 +41,10 @@ const Index: React.FC = () => {
         if (isMounted) {
           console.log('[Index] Initial data loaded:', {
             highlights: highlightsData.length,
-            matches: todayMatches.length
+            leagues: matchesData.length
           });
           setFeaturedHighlights(highlightsData);
-          setDateMatches(todayMatches);
-          setSelectedDate(new Date().toISOString().split('T')[0]);
+          setLast7DaysMatches(matchesData);
         }
 
       } catch (err) {
@@ -73,78 +66,16 @@ const Index: React.FC = () => {
     };
   }, []);
 
-  // Load matches for selected date - memoized to prevent infinite loops
-  const loadMatchesForDate = useCallback(async (dateString: string) => {
-    try {
-      setDateMatchesLoading(true);
-      console.log(`[Index] Loading matches for date: ${dateString}`);
-      
-      const matchesData = await serviceAdapter.getMatchesForDate(dateString);
-      
-      console.log(`[Index] Loaded ${matchesData.length} leagues with matches for ${dateString}`);
-      setDateMatches(matchesData);
-      
-    } catch (err) {
-      console.error(`[Index] Error loading matches for ${dateString}:`, err);
-      setDateMatches([]);
-    } finally {
-      setDateMatchesLoading(false);
-    }
-  }, []); // No dependencies needed - function is pure
-
-  // Handle date selection - memoized to prevent infinite loops in DateFilter
-  const handleDateSelect = useCallback((dateString: string) => {
-    console.log(`[Index] Date selected: ${dateString}`);
-    setSelectedDate(dateString);
-    loadMatchesForDate(dateString);
-  }, [loadMatchesForDate]); // Only depends on loadMatchesForDate (which is also memoized)
-
-  // Handle league filter selection - memoized for consistency
+  // Handle league filter selection
   const handleLeagueSelect = useCallback((leagueIds: string[]) => {
     console.log(`[Index] League filter selected: ${leagueIds.join(', ')}`);
     setSelectedLeagueIds(leagueIds);
   }, []);
 
-  // Handle country filter selection - memoized for consistency
+  // Handle country filter selection
   const handleCountrySelect = useCallback((countryCode: string | null) => {
     console.log(`[Index] Country filter selected: ${countryCode}`);
     setSelectedCountryCode(countryCode);
-  }, []);
-
-  // Set up live updates for today's matches
-  useEffect(() => {
-    if (isToday && selectedDate) {
-      console.log('[Index] Setting up live updates for today\'s matches');
-      
-      // Set up interval to refresh today's matches every 30 seconds
-      liveUpdateInterval.current = setInterval(() => {
-        console.log('[Index] Live update: refreshing today\'s matches');
-        loadMatchesForDate(selectedDate);
-      }, 30000); // 30 seconds
-      
-      return () => {
-        if (liveUpdateInterval.current) {
-          console.log('[Index] Clearing live update interval');
-          clearInterval(liveUpdateInterval.current);
-        }
-      };
-    } else {
-      // Clear interval if not today
-      if (liveUpdateInterval.current) {
-        console.log('[Index] Clearing live update interval (not today)');
-        clearInterval(liveUpdateInterval.current);
-        liveUpdateInterval.current = null;
-      }
-    }
-  }, [isToday, selectedDate, loadMatchesForDate]); // Added loadMatchesForDate dependency
-
-  // Clean up interval on unmount
-  useEffect(() => {
-    return () => {
-      if (liveUpdateInterval.current) {
-        clearInterval(liveUpdateInterval.current);
-      }
-    };
   }, []);
 
   if (error) {
@@ -182,40 +113,24 @@ const Index: React.FC = () => {
         </section>
 
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
-          {/* Date Filter - Top */}
+          {/* Page Title */}
           <div className="mb-8">
-            <DateFilter 
-              onDateSelect={handleDateSelect} 
-              selectedDate={selectedDate}
-              selectedLeagueIds={selectedLeagueIds}
-            />
+            <h1 className="text-3xl font-bold text-white mb-2">Recent Matches</h1>
+            <p className="text-gray-400">Matches from the last 7 days</p>
           </div>
 
           {/* Main Content Area */}
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Matches Content - Middle */}
             <div className="flex-1 min-w-0">
-              {selectedDate ? (
-                <MatchFeedByLeague 
-                  leaguesWithMatches={dateMatches}
-                  loading={dateMatchesLoading}
-                  selectedDate={selectedDate}
-                  isToday={isToday}
-                  selectedLeagueIds={selectedLeagueIds}
-                  onLeagueSelect={handleLeagueSelect}
-                  selectedCountryCode={selectedCountryCode}
-                  onCountrySelect={handleCountrySelect}
-                />
-              ) : (
-                <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p className="text-lg">Select a date to view matches</p>
-                  </div>
-                </div>
-              )}
+              <MatchFeedByLeague 
+                leaguesWithMatches={last7DaysMatches}
+                loading={matchesLoading}
+                selectedLeagueIds={selectedLeagueIds}
+                onLeagueSelect={handleLeagueSelect}
+                selectedCountryCode={selectedCountryCode}
+                onCountrySelect={handleCountrySelect}
+              />
             </div>
 
             {/* Country Filter - Right */}

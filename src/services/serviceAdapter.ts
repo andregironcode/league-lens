@@ -171,6 +171,101 @@ export const serviceAdapter = {
         // Could implement fallbacks for other services later
         return [];
     }
+  },
+
+  /**
+   * Get matches from the last 7 days from top leagues
+   */
+  async getMatchesFromLast7Days(): Promise<LeagueWithMatches[]> {
+    try {
+      console.log('[ServiceAdapter] Fetching matches from last 7 days');
+      
+      // Generate the last 7 days
+      const dates: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        dates.push(date.toISOString().split('T')[0]);
+      }
+      
+      console.log('[ServiceAdapter] Fetching matches for dates:', dates);
+      
+      // Fetch matches for all dates in parallel
+      const allDateMatches = await Promise.all(
+        dates.map(date => this.getMatchesForDate(date))
+      );
+      
+      // Combine all matches into a single map by league
+      const leagueMatchesMap = new Map<string, LeagueWithMatches>();
+      
+      allDateMatches.forEach(dateMatches => {
+        dateMatches.forEach(league => {
+          const existingLeague = leagueMatchesMap.get(league.id);
+          if (existingLeague) {
+            // Add matches to existing league
+            existingLeague.matches = [...existingLeague.matches, ...league.matches];
+          } else {
+            // Add new league
+            leagueMatchesMap.set(league.id, { ...league });
+          }
+        });
+      });
+      
+      // Convert back to array and sort matches within each league by date (newest first)
+      const result = Array.from(leagueMatchesMap.values()).map(league => ({
+        ...league,
+        matches: league.matches.sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        )
+      }));
+      
+      // Sort leagues by priority (Champions League, Premier League, etc. first)
+      const leaguePriority = new Map([
+        // Top 3 International Leagues (cross-border club competitions)
+        ['104', 1],   // UEFA Champions League (CORRECTED from API docs)
+        ['3', 2],     // UEFA Europa League  
+        ['34', 3],    // Copa Libertadores
+        
+        // Top 5 Domestic Leagues (highest-ranked national leagues)
+        ['33973', 4], // Premier League
+        ['2486', 5],  // La Liga
+        ['94', 6],    // Serie A
+        ['67162', 7], // Bundesliga
+        ['52695', 8], // Ligue 1
+        
+        // Top International Tournaments (national teams, highest prestige & viewership)
+        ['1', 9],     // FIFA World Cup
+        ['4', 10],    // UEFA Euro
+        ['9', 11],    // Copa América
+        ['5', 12],    // AFC Asian Cup
+        ['6', 13],    // Africa Cup of Nations (AFCON)
+      ]);
+      
+      result.sort((a, b) => {
+        const aPriority = leaguePriority.get(a.id) || 999;
+        const bPriority = leaguePriority.get(b.id) || 999;
+        return aPriority - bPriority;
+      });
+      
+      console.log(`[ServiceAdapter] Combined ${result.length} leagues with matches from last 7 days`);
+      return result;
+      
+    } catch (error) {
+      console.error('[ServiceAdapter] Error fetching matches from last 7 days:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Debug function to test API league data
+   */
+  async debugLeagueApiData(): Promise<void> {
+    switch (activeService) {
+      case 'highlightly':
+        return highlightlyService.debugLeagueApiData();
+      default:
+        console.log('Debug function only available for highlightly service');
+    }
   }
 };
 
@@ -184,8 +279,10 @@ export const {
   searchHighlights,
   getRecentMatchesForTopLeagues,
   getMatchesForDate,
+  getMatchesFromLast7Days,
   setActiveService,
-  getActiveService
+  getActiveService,
+  debugLeagueApiData
 } = {
   getRecommendedHighlights: serviceAdapter.getRecommendedHighlights.bind(serviceAdapter),
   getLeagueHighlights: serviceAdapter.getLeagueHighlights.bind(serviceAdapter),
@@ -195,6 +292,8 @@ export const {
   searchHighlights: (query: string) => serviceAdapter.searchHighlights(query),
   getRecentMatchesForTopLeagues: () => serviceAdapter.getRecentMatchesForTopLeagues(),
   getMatchesForDate: (dateString: string) => serviceAdapter.getMatchesForDate(dateString),
+  getMatchesFromLast7Days: () => serviceAdapter.getMatchesFromLast7Days(),
   setActiveService: (serviceType: ServiceType) => serviceAdapter.setActiveService(serviceType),
-  getActiveService: () => serviceAdapter.getActiveService()
+  getActiveService: () => serviceAdapter.getActiveService(),
+  debugLeagueApiData: () => serviceAdapter.debugLeagueApiData()
 };
