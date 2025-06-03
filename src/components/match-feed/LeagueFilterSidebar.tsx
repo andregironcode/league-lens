@@ -22,7 +22,7 @@ const IMPORTANT_LEAGUES: LeagueFilter[] = [
   { id: '4', name: 'UEFA European Championship', logoUrl: 'https://cdn.scoresite.com/tournaments/4.png' },
   
   // Top domestic leagues
-  { id: '39', name: 'Premier League', logoUrl: 'https://cdn.scoresite.com/logos/leagues/39.png' },
+  { id: '33973', name: 'Premier League', logoUrl: '/competitions/premier-league.png' },
   { id: '140', name: 'La Liga', logoUrl: 'https://cdn.scoresite.com/logos/leagues/140.png' },
   { id: '135', name: 'Serie A', logoUrl: 'https://cdn.scoresite.com/logos/leagues/135.png' },
   { id: '78', name: 'Bundesliga', logoUrl: 'https://cdn.scoresite.com/logos/leagues/78.png' },

@@ -17,31 +17,31 @@ interface MatchFeedByLeagueProps {
 
 const LEAGUE_FILTERS = [
   {
-    id: '39',
+    id: '33973',
     name: 'Premier League',
-    logoUrl: '/leagues/39.svg',
+    logoUrl: '/competitions/premier-league.png',
     countryCode: 'GB'
   },
   {
-    id: '140',
+    id: '2486',
     name: 'La Liga',
     logoUrl: '/leagues/140.svg',
     countryCode: 'ES'
   },
   {
-    id: '135',
+    id: '94',
     name: 'Serie A',
     logoUrl: '/leagues/135.svg',
     countryCode: 'IT'
   },
   {
-    id: '78',
+    id: '67162',
     name: 'Bundesliga',
     logoUrl: '/leagues/78.svg',
     countryCode: 'DE'
   },
   {
-    id: '61',
+    id: '52695',
     name: 'Ligue 1',
     logoUrl: '/leagues/61.svg',
     countryCode: 'FR'
@@ -229,17 +229,17 @@ const LoadingSkeleton: React.FC = () => (
                 <div key={i} className="h-12 bg-gray-700 rounded"></div>
               ))}
             </div>
-          </div>
-          
+      </div>
+      
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-700 rounded w-1/2 mx-auto"></div>
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-12 bg-gray-700 rounded"></div>
               ))}
-            </div>
-          </div>
-        </div>
+                    </div>
+                  </div>
+                  </div>
         
         {/* Main content - Match cards */}
         <div className="lg:col-span-9">
@@ -251,15 +251,15 @@ const LoadingSkeleton: React.FC = () => (
                   {[1, 2, 3].map((j) => (
                     <div key={j} className="h-48 bg-gray-700 rounded"></div>
                   ))}
-                </div>
-              </div>
+                            </div>
+                          </div>
             ))}
+                  </div>
+              </div>
           </div>
-        </div>
       </div>
     </div>
-  </div>
-);
+  );
 
 const formatSelectedDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -292,8 +292,8 @@ const formatSelectedDate = (dateString: string): string => {
   });
 };
 
-const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
-  leaguesWithMatches,
+const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({ 
+  leaguesWithMatches, 
   loading = false,
   selectedDate,
   isToday = false,
@@ -356,12 +356,12 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     }
     setExpandedLeagues(newExpanded);
   };
-
+  
   if (loading) {
     return <LoadingSkeleton />;
   }
-
-  return (
+    
+    return (
     <div className="min-h-screen bg-[#111111] text-white">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -384,7 +384,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                   {isToday && (
                     <span className="ml-2 px-2 py-1 bg-yellow-500 text-black text-sm rounded-full">
                       Today
-                    </span>
+                  </span>
                   )}
                 </h2>
               </div>
@@ -399,7 +399,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                 
                 return (
                   <div key={league.id} className="space-y-4">
-                    <button
+                <button
                       onClick={() => toggleLeagueExpansion(league.id)}
                       className="flex items-center gap-4 group focus:outline-none w-full text-left"
                     >
@@ -417,10 +417,10 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                           {liveMatchCount > 0 && (
                             <span className="ml-2 px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
                               {liveMatchCount} LIVE
-                            </span>
+                  </span>
                           )}
-                        </p>
-                      </div>
+                </p>
+              </div>
                       <div className={`w-6 h-6 transition-transform duration-200 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
                         <svg 
                           className="w-full h-full text-gray-400 group-hover:text-yellow-500 transition-colors"
@@ -429,13 +429,13 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                           viewBox="0 0 24 24"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
+                  </svg>
+                </div>
                       {liveMatchCount > 0 && (
                         <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                      )}
-                    </button>
-                    
+                )}
+              </button>
+              
                     {isExpanded && (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {league.matches.map((match) => (
@@ -448,7 +448,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                         ))}
                       </div>
                     )}
-                  </div>
+            </div>
                 );
               })}
               
@@ -456,13 +456,13 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
                 <div className="text-center text-gray-500 py-12">
                   <p className="text-lg">No matches found</p>
                   <p className="text-sm mt-2">Try selecting different leagues or check back later</p>
-                </div>
-              )}
             </div>
+              )}
           </div>
         </div>
-      </div>
-    </div>
+          </div>
+          </div>
+        </div>
   );
 };
 

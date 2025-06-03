@@ -1,16 +1,16 @@
 // League country mapping and country names
 export const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
   // UEFA Competitions
-  '2486': 'EU', '2': 'EU', '3337': 'EU', '3': 'EU', '722432': 'EU', // UEFA competitions
+  '2': 'EU', '3': 'EU', '848': 'EU', // UEFA competitions
   
   // Major domestic leagues (1st tier)
-  '39': 'GB', // Premier League
-  '140': 'ES', // La Liga
-  '135': 'IT', // Serie A
-  '78': 'DE', // Bundesliga
-  '61': 'FR', // Ligue 1
+  '33973': 'GB', // Premier League
+  '2486': 'ES', // La Liga
+  '94': 'IT', // Serie A
+  '67162': 'DE', // Bundesliga
+  '52695': 'FR', // Ligue 1
   '216087': 'US', '253': 'US', // MLS
-  '94': 'PT', // Liga Portugal
+  '63': 'PT', // Liga Portugal
   '307': 'SA', // Saudi Pro League
   '88': 'NL', // Eredivisie
   '71': 'BR', // Série A Brasil
@@ -33,7 +33,7 @@ export const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
   '142': 'ES', // Primera División RFEF
   '137': 'IT', // Serie C
   '81': 'DE', // 3. Liga
-  '63': 'FR', // Championnat National
+  '64': 'FR', // Championnat National
   '73': 'BR', // Série C Brasil
   
   // Additional major leagues and smaller nations

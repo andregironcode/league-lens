@@ -12,32 +12,21 @@ import HighlightCard from '@/components/HighlightCard';
 // League country mapping - same comprehensive mapping as other components
 const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
   // UEFA Competitions
-  '2486': 'EU', '2': 'EU', '3337': 'EU', '3': 'EU',
+  '2': 'EU', '3': 'EU', '848': 'EU', // UEFA competitions
   
   // Major domestic leagues (1st tier)
-  '39': 'GB', // Premier League
-  '140': 'ES', // La Liga
-  '135': 'IT', // Serie A
-  '78': 'DE', // Bundesliga
-  '61': 'FR', // Ligue 1
+  '33973': 'GB', // Premier League
+  '2486': 'ES', // La Liga
+  '94': 'IT', // Serie A
+  '67162': 'DE', // Bundesliga
+  '52695': 'FR', // Ligue 1
   '216087': 'US', '253': 'US', // MLS
-  '94': 'PT', // Liga Portugal
+  '63': 'PT', // Liga Portugal
   '307': 'SA', // Saudi Pro League
   '88': 'NL', // Eredivisie
   '71': 'BR', // Série A Brasil
   '128': 'AR', // Primera División Argentina
   '1': 'WORLD', // FIFA World Cup
-  
-  // Legacy mappings for older league IDs used in this component
-  'pl': 'GB', // Premier League (legacy ID)
-  'laliga': 'ES', // La Liga (legacy ID)
-  'bundesliga': 'DE', // Bundesliga (legacy ID)
-  'seriea': 'IT', // Serie A (legacy ID)
-  'ligue1': 'FR', // Ligue 1 (legacy ID)
-  'eredivisie': 'NL', // Eredivisie (legacy ID)
-  'portugal': 'PT', // Liga Portugal (legacy ID)
-  'brazil': 'BR', // Brazilian leagues (legacy ID)
-  'argentina': 'AR', // Argentine leagues (legacy ID)
   
   // Second tier domestic leagues (2nd division)
   '40': 'GB', // Championship
@@ -295,11 +284,17 @@ const LeaguePage = () => {
                 <h2 className="text-xl font-semibold text-gray-300">Highlights</h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {league.highlights.map((highlight: MatchHighlight) => (
+                  {(league.highlights || []).map((highlight: MatchHighlight) => (
                     <div key={highlight.id} className="transform transition-all duration-300 hover:scale-105">
                       <HighlightCard highlight={highlight} />
                     </div>
                   ))}
+                  
+                  {(!league.highlights || league.highlights.length === 0) && (
+                    <div className="col-span-full text-center py-8">
+                      <p className="text-gray-400">No highlights available for this league yet.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </>

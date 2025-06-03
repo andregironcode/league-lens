@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
 import DateFilter from '@/components/DateFilter';
+import CountryFilter from '@/components/CountryFilter';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
@@ -20,7 +21,7 @@ const Index: React.FC = () => {
   const liveUpdateInterval = useRef<NodeJS.Timeout | null>(null);
   const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
-  // Load highlights immediately on mount
+  // Load data in parallel on mount
   useEffect(() => {
     let isMounted = true;
     
@@ -31,26 +32,36 @@ const Index: React.FC = () => {
 
         console.log('[Index] Loading initial data...');
 
-        const highlightsData = await serviceAdapter.getRecommendedHighlights().catch(err => {
-          console.error('[Index] Error loading highlights:', err);
-          return [];
-        });
+        // Load data in parallel
+        const [highlightsData, todayMatches] = await Promise.all([
+          serviceAdapter.getRecommendedHighlights().catch(err => {
+            console.error('[Index] Error loading highlights:', err);
+            return [];
+          }),
+          serviceAdapter.getMatchesForDate(new Date().toISOString().split('T')[0]).catch(err => {
+            console.error('[Index] Error loading today\'s matches:', err);
+            return [];
+          })
+        ]);
 
         if (isMounted) {
-        console.log('[Index] Initial data loaded:', {
-          highlights: highlightsData.length
-        });
-        setFeaturedHighlights(highlightsData);
+          console.log('[Index] Initial data loaded:', {
+            highlights: highlightsData.length,
+            matches: todayMatches.length
+          });
+          setFeaturedHighlights(highlightsData);
+          setDateMatches(todayMatches);
+          setSelectedDate(new Date().toISOString().split('T')[0]);
         }
 
       } catch (err) {
         if (isMounted) {
-        console.error('[Index] Error during initial load:', err);
-        setError('Failed to load initial data');
+          console.error('[Index] Error during initial load:', err);
+          setError('Failed to load initial data');
         }
       } finally {
         if (isMounted) {
-        setLoading(false);
+          setLoading(false);
         }
       }
     };
@@ -157,56 +168,71 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-[#111111] text-white">
       <Header />
       
-      {/* Main content - removed sidebar layout */}
+      {/* Main content */}
       <main className="flex-1 pb-10 pt-16">
-          {/* Hero Carousel */}
-          <section className="mb-12">
-            <div className="w-full mx-auto px-0 sm:px-0">
-              {loading ? (
-                <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
-              ) : (
-                <HeroCarousel highlights={featuredHighlights} />
-              )}
-            </div>
-          </section>
+        {/* Hero Carousel */}
+        <section className="mb-12">
+          <div className="w-full mx-auto px-0 sm:px-0">
+            {loading ? (
+              <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
+            ) : (
+              <HeroCarousel highlights={featuredHighlights} />
+            )}
+          </div>
+        </section>
 
-          {/* Date Filter */}
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
-          <DateFilter 
-            onDateSelect={handleDateSelect} 
-            selectedDate={selectedDate}
-            selectedLeagueIds={selectedLeagueIds}
-          />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+          {/* Date Filter - Top */}
+          <div className="mb-8">
+            <DateFilter 
+              onDateSelect={handleDateSelect} 
+              selectedDate={selectedDate}
+              selectedLeagueIds={selectedLeagueIds}
+            />
           </div>
 
-        {/* Matches Content */}
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
-          {selectedDate ? (
-            <MatchFeedByLeague 
-              leaguesWithMatches={dateMatches}
-              loading={dateMatchesLoading}
-              selectedDate={selectedDate}
-              isToday={isToday}
-              selectedLeagueIds={selectedLeagueIds}
-              onLeagueSelect={handleLeagueSelect}
-              selectedCountryCode={selectedCountryCode}
-              onCountrySelect={handleCountrySelect}
-            />
-          ) : (
-            <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
-              <div className="text-gray-400 mb-4">
-                <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Select a Date</h3>
-              <p className="text-gray-400">
-                Choose a date above to view matches from the world's top football leagues.
-              </p>
+          {/* Main Content Area */}
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Matches Content - Middle */}
+            <div className="flex-1 min-w-0">
+              {selectedDate ? (
+                <MatchFeedByLeague 
+                  leaguesWithMatches={dateMatches}
+                  loading={dateMatchesLoading}
+                  selectedDate={selectedDate}
+                  isToday={isToday}
+                  selectedLeagueIds={selectedLeagueIds}
+                  onLeagueSelect={handleLeagueSelect}
+                  selectedCountryCode={selectedCountryCode}
+                  onCountrySelect={handleCountrySelect}
+                />
+              ) : (
+                <div className="bg-[#1a1a1a] rounded-lg p-12 text-center border border-gray-700/30">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-lg">Select a date to view matches</p>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Country Filter - Right */}
+            <div className="lg:w-80 flex-shrink-0">
+              <div className="lg:sticky lg:top-24">
+                <CountryFilter
+                  selectedCountryCode={selectedCountryCode}
+                  onCountrySelect={handleCountrySelect}
+                  onCountriesLoaded={(countries) => {
+                    console.log('[Index] Countries loaded:', countries.length);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
-        </main>
+      </main>
 
       {/* Footer */}
       <footer className="bg-[#222222] py-8">

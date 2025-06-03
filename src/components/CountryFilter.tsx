@@ -21,19 +21,86 @@ interface CountryFilterProps {
   onCountriesLoaded?: (countries: Country[]) => void;
 }
 
+// Pre-defined list of major countries and their leagues for faster initial load
+const MAJOR_COUNTRIES: Country[] = [
+  { code: 'GB', name: 'England', leagueCount: 4 },
+  { code: 'ES', name: 'Spain', leagueCount: 2 },
+  { code: 'IT', name: 'Italy', leagueCount: 2 },
+  { code: 'DE', name: 'Germany', leagueCount: 2 },
+  { code: 'FR', name: 'France', leagueCount: 2 },
+  { code: 'EU', name: 'UEFA', leagueCount: 3 },
+  { code: 'US', name: 'United States', leagueCount: 1 },
+  { code: 'BR', name: 'Brazil', leagueCount: 2 },
+  { code: 'AR', name: 'Argentina', leagueCount: 2 },
+  { code: 'PT', name: 'Portugal', leagueCount: 1 },
+  { code: 'NL', name: 'Netherlands', leagueCount: 1 },
+  { code: 'SA', name: 'Saudi Arabia', leagueCount: 1 },
+];
+
+// Pre-defined leagues for major countries for faster initial load
+const MAJOR_LEAGUES: Record<string, League[]> = {
+  'GB': [
+    { id: '33973', name: 'Premier League' },
+    { id: '40', name: 'Championship' },
+    { id: '41', name: 'League One' },
+    { id: '42', name: 'League Two' }
+  ],
+  'ES': [
+    { id: '140', name: 'La Liga' },
+    { id: '141', name: 'Segunda División' }
+  ],
+  'IT': [
+    { id: '135', name: 'Serie A' },
+    { id: '136', name: 'Serie B' }
+  ],
+  'DE': [
+    { id: '78', name: 'Bundesliga' },
+    { id: '80', name: '2. Bundesliga' }
+  ],
+  'FR': [
+    { id: '61', name: 'Ligue 1' },
+    { id: '62', name: 'Ligue 2' }
+  ],
+  'EU': [
+    { id: '2', name: 'UEFA Champions League' },
+    { id: '3', name: 'UEFA Europa League' },
+    { id: '848', name: 'UEFA Conference League' }
+  ],
+  'US': [
+    { id: '253', name: 'Major League Soccer' }
+  ],
+  'BR': [
+    { id: '71', name: 'Série A' },
+    { id: '72', name: 'Série B' }
+  ],
+  'AR': [
+    { id: '128', name: 'Primera División' },
+    { id: '129', name: 'Primera B Nacional' }
+  ],
+  'PT': [
+    { id: '94', name: 'Liga Portugal' }
+  ],
+  'NL': [
+    { id: '88', name: 'Eredivisie' }
+  ],
+  'SA': [
+    { id: '307', name: 'Saudi Pro League' }
+  ]
+};
+
 const CountryFilter: React.FC<CountryFilterProps> = ({
   selectedCountryCode,
   onCountrySelect,
   onCountriesLoaded
 }) => {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [countries, setCountries] = useState<Country[]>(MAJOR_COUNTRIES);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [initialDisplayCount] = useState(10);
   const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
-  const [countryLeagues, setCountryLeagues] = useState<Map<string, League[]>>(new Map());
+  const [countryLeagues, setCountryLeagues] = useState<Map<string, League[]>>(new Map(Object.entries(MAJOR_LEAGUES)));
   const [loadingLeagues, setLoadingLeagues] = useState<Set<string>>(new Set());
 
   // Filter countries based on search query
@@ -46,102 +113,43 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
   const displayedCountries = showAll ? filteredCountries : filteredCountries.slice(0, initialDisplayCount);
   const hasMoreCountries = filteredCountries.length > initialDisplayCount;
 
+  // Load additional countries in the background
   useEffect(() => {
-    const fetchCountriesWithLeagues = async () => {
+    let isMounted = true;
+    
+    const loadAdditionalCountries = async () => {
       try {
         setLoading(true);
-        setError(null);
         
-        console.log('[CountryFilter] Fetching leagues to find countries with football leagues...');
+        const response = await highlightlyClient.getLeagues({
+          limit: '100'
+        });
         
-        // Try to get comprehensive league coverage using pagination
-        let allLeagues: any[] = [];
+        if (!isMounted) return;
         
-        try {
-          console.log('[CountryFilter] Trying pagination approach to get comprehensive coverage...');
-          
-          // Fetch multiple pages to get more comprehensive coverage
-          const fetchPromises = [];
-          
-          // Try multiple batches with different offsets to get diverse leagues
-          for (let offset = 0; offset < 500; offset += 100) {
-            fetchPromises.push(
-              highlightlyClient.getLeagues({
-                limit: '100',
-                offset: offset.toString()
-              }).catch(err => {
-                console.log(`[CountryFilter] Offset ${offset} failed:`, err.message);
-                return null;
-              })
-            );
-          }
-          
-          console.log('[CountryFilter] Fetching 5 batches of 100 leagues each...');
-          const responses = await Promise.all(fetchPromises);
-          
-          // Combine all successful responses
-          responses.forEach((response, index) => {
-            if (response) {
-              let leaguesArray;
-              if (Array.isArray(response)) {
-                leaguesArray = response;
-              } else if (response.data && Array.isArray(response.data)) {
-                leaguesArray = response.data;
-              }
-              
-              if (leaguesArray && leaguesArray.length > 0) {
-                console.log(`[CountryFilter] Batch ${index} (offset ${index * 100}): ${leaguesArray.length} leagues`);
-                allLeagues.push(...leaguesArray);
-              }
-            }
-          });
-          
-          console.log(`[CountryFilter] Successfully fetched ${allLeagues.length} total leagues via pagination`);
-          
-        } catch (paginationError) {
-          console.log('[CountryFilter] Pagination failed, trying single batch fallback...');
-          
-          // Fallback to single call without limit
-          const response = await highlightlyClient.getLeagues({});
-          
-          if (Array.isArray(response)) {
-            allLeagues = response;
-          } else if (response.data && Array.isArray(response.data)) {
-            allLeagues = response.data;
-          }
-          
-          console.log(`[CountryFilter] Fallback: fetched ${allLeagues.length} leagues`);
+        let leaguesArray: any[] = [];
+        if (Array.isArray(response)) {
+          leaguesArray = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          leaguesArray = response.data;
         }
         
-        if (!allLeagues || allLeagues.length === 0) {
-          setError('No leagues found');
-          return;
-        }
-        
-        // Remove duplicates by league ID
-        const uniqueLeagues = allLeagues.filter((league, index, self) => 
-          index === self.findIndex(l => l.id === league.id)
-        );
-        
-        console.log(`[CountryFilter] After deduplication: ${uniqueLeagues.length} unique leagues`);
-        
-        // Extract unique countries from leagues
         const countryMap = new Map<string, Country>();
         
-        uniqueLeagues.forEach((league: any) => {
+        // Add pre-defined countries first
+        MAJOR_COUNTRIES.forEach(country => {
+          countryMap.set(country.code, country);
+        });
+        
+        // Add additional countries from API
+        leaguesArray.forEach((league: any) => {
           if (league.country && league.country.code && league.country.name) {
             const countryCode = league.country.code;
-            const countryName = league.country.name;
             
-            if (countryMap.has(countryCode)) {
-              // Increment league count for existing country
-              const existing = countryMap.get(countryCode)!;
-              existing.leagueCount = (existing.leagueCount || 0) + 1;
-            } else {
-              // Add new country
+            if (!countryMap.has(countryCode)) {
               countryMap.set(countryCode, {
                 code: countryCode,
-                name: countryName,
+                name: league.country.name,
                 flag: league.country.logo,
                 leagueCount: 1
               });
@@ -149,30 +157,35 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
           }
         });
         
-        // Convert map to array and sort by name
-        const countriesWithLeagues = Array.from(countryMap.values())
-          .sort((a, b) => a.name.localeCompare(b.name));
+        const allCountries = Array.from(countryMap.values())
+          .sort((a, b) => {
+            // Sort major countries first, then alphabetically
+            const aIsMajor = MAJOR_COUNTRIES.some(c => c.code === a.code);
+            const bIsMajor = MAJOR_COUNTRIES.some(c => c.code === b.code);
+            if (aIsMajor && !bIsMajor) return -1;
+            if (!aIsMajor && bIsMajor) return 1;
+            return a.name.localeCompare(b.name);
+          });
         
-        setCountries(countriesWithLeagues);
-        console.log(`[CountryFilter] Loaded ${countriesWithLeagues.length} countries with football leagues from ${uniqueLeagues.length} leagues`);
-        
-        // Log some major countries to verify coverage
-        const majorCountries = ['Spain', 'England', 'Germany', 'France', 'Italy', 'Brazil', 'Argentina'];
-        const foundMajor = countriesWithLeagues.filter(c => majorCountries.includes(c.name));
-        console.log(`[CountryFilter] Major countries found:`, foundMajor.map(c => c.name));
+        setCountries(allCountries);
         
         if (onCountriesLoaded) {
-          onCountriesLoaded(countriesWithLeagues);
+          onCountriesLoaded(allCountries);
         }
+        
       } catch (err) {
-        console.error('[CountryFilter] Error fetching countries with leagues:', err);
-        setError('Failed to load countries');
+        console.error('[CountryFilter] Error loading additional countries:', err);
+        setError('Failed to load all countries');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchCountriesWithLeagues();
+    
+    loadAdditionalCountries();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleCountryClick = async (countryCode: string) => {
@@ -189,8 +202,8 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
       newExpanded.add(countryCode);
       setExpandedCountries(newExpanded);
       
-      // Fetch leagues for this country if not already loaded
-      if (!countryLeagues.has(countryCode)) {
+      // Fetch additional leagues for this country if not in pre-defined list
+      if (!MAJOR_LEAGUES[countryCode] && !countryLeagues.has(countryCode)) {
         await fetchLeaguesForCountry(countryCode);
       }
     }
@@ -200,11 +213,9 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
     try {
       setLoadingLeagues(prev => new Set(prev).add(countryCode));
       
-      console.log(`[CountryFilter] Fetching leagues for country: ${countryCode}`);
-      
       const response = await highlightlyClient.getLeagues({
         countryCode: countryCode,
-        limit: '50' // Get up to 50 leagues per country
+        limit: '50'
       });
       
       let leaguesArray: any[] = [];
@@ -222,7 +233,6 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
       }));
       
       setCountryLeagues(prev => new Map(prev).set(countryCode, leagues));
-      console.log(`[CountryFilter] Loaded ${leagues.length} leagues for ${countryCode}`);
       
     } catch (err) {
       console.error(`[CountryFilter] Error fetching leagues for ${countryCode}:`, err);
@@ -237,18 +247,17 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
   };
 
   const handleLeagueClick = (leagueId: string, leagueName: string) => {
-    console.log(`[CountryFilter] Navigating to league: ${leagueName} (${leagueId})`);
     window.open(`/league/${leagueId}`, '_blank');
   };
 
   const handleClearFilter = () => {
     onCountrySelect(null);
-    setExpandedCountries(new Set()); // Collapse all countries when clearing
+    setExpandedCountries(new Set());
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setShowAll(false); // Reset to initial count when searching
+    setShowAll(false);
   };
 
   const handleClearSearch = () => {
@@ -261,47 +270,26 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
   };
 
   const getCountryFlag = (country: Country): string => {
-    // First try to use the flag from API (logo)
     if (country.flag) {
       return country.flag;
     }
     
-    // Fallback to emoji flag
-    try {
-      return country.code
-        .toUpperCase()
-        .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt(0)));
-    } catch {
-      return '🏳️';
-    }
+    // Use a CDN for country flags
+    return `https://flagcdn.com/${country.code.toLowerCase()}.svg`;
   };
 
   const renderFlag = (country: Country) => {
-    const flag = getCountryFlag(country);
-    
-    // Check if it's a URL (API logo) or emoji
-    if (flag.startsWith('http')) {
-      return (
-        <img 
-          src={flag} 
-          alt={`${country.name} flag`}
-          className="w-6 h-4 object-cover rounded-sm"
-          onError={(e) => {
-            // Fallback to emoji if image fails
-            const img = e.currentTarget;
-            const fallbackSpan = img.nextElementSibling as HTMLSpanElement;
-            if (fallbackSpan) {
-              img.style.display = 'none';
-              fallbackSpan.style.display = 'block';
-            }
-          }}
-        />
-      );
-    } else {
-      return (
-        <span className="text-xl">{flag}</span>
-      );
-    }
+    return (
+      <img
+        src={getCountryFlag(country)}
+        alt={`${country.name} flag`}
+        className="w-6 h-6 rounded-full object-cover"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          target.src = "/icons/default-flag.svg";
+        }}
+      />
+    );
   };
 
   if (loading) {

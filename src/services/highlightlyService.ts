@@ -1793,34 +1793,36 @@ export const highlightlyService = {
       
       // Priority league IDs - streamlined list
       const priorityLeagueIds = new Set([
-        '2486',  // UEFA Champions League
-        '3337',  // UEFA Europa League
-        '39',    // Premier League  
-        '140',   // La Liga
-        '135',   // Serie A
-        '78',    // Bundesliga
-        '61',    // Ligue 1
+        '2',     // UEFA Champions League
+        '3',     // UEFA Europa League
+        '848',   // UEFA Europa Conference League
+        '33973', // Premier League  
+        '2486',  // La Liga
+        '94',    // Serie A
+        '67162', // Bundesliga
+        '52695', // Ligue 1
         '1',     // FIFA World Cup
         '5',     // UEFA Nations League
         '10',    // International Friendlies
-        '94',    // Liga Portugal
+        '63',    // Liga Portugal
         '216087' // Major League Soccer
       ]);
       
       // Simplified league mapping - only essential info
       const leagueMapping = new Map<string, { name: string, priority: number }>([
-        ['2486', { name: 'UEFA Champions League', priority: 1 }],
-        ['3337', { name: 'UEFA Europa League', priority: 2 }],
-        ['39', { name: 'Premier League', priority: 3 }],
-        ['140', { name: 'La Liga', priority: 4 }],
-        ['135', { name: 'Serie A', priority: 5 }],
-        ['78', { name: 'Bundesliga', priority: 6 }],
-        ['61', { name: 'Ligue 1', priority: 7 }],
-        ['1', { name: 'FIFA World Cup', priority: 8 }],
-        ['5', { name: 'UEFA Nations League', priority: 9 }],
-        ['10', { name: 'International Friendlies', priority: 10 }],
-        ['94', { name: 'Liga Portugal', priority: 11 }],
-        ['216087', { name: 'Major League Soccer', priority: 12 }]
+        ['2', { name: 'UEFA Champions League', priority: 1 }],
+        ['3', { name: 'UEFA Europa League', priority: 2 }],
+        ['848', { name: 'UEFA Europa Conference League', priority: 3 }],
+        ['33973', { name: 'Premier League', priority: 4 }],
+        ['2486', { name: 'La Liga', priority: 5 }],
+        ['94', { name: 'Serie A', priority: 6 }],
+        ['67162', { name: 'Bundesliga', priority: 7 }],
+        ['52695', { name: 'Ligue 1', priority: 8 }],
+        ['1', { name: 'FIFA World Cup', priority: 9 }],
+        ['5', { name: 'UEFA Nations League', priority: 10 }],
+        ['10', { name: 'International Friendlies', priority: 11 }],
+        ['63', { name: 'Liga Portugal', priority: 12 }],
+        ['216087', { name: 'Major League Soccer', priority: 13 }]
       ]);
       
       // OPTIMIZED: Single API call with higher limit to get more matches
@@ -1952,7 +1954,7 @@ export const highlightlyService = {
       // SUPPLEMENTAL: Check for missing Champions League and Europa League
       // These are too important to miss, so make direct API calls if not found
       const foundLeagueIds = new Set(matchesByLeagueId.keys());
-      const criticalLeagues = ['2486', '3337']; // Champions League, Europa League
+      const criticalLeagues = ['2', '3', '848']; // Champions League, Europa League, Conference League
       const missingCriticalLeagues = criticalLeagues.filter(id => !foundLeagueIds.has(id));
       
       if (missingCriticalLeagues.length > 0) {

@@ -21,7 +21,7 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ match, leagueName, leagueLogo }
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-white truncate">{leagueName}</div>
         </div>
-      </div>
+        </div>
       <MatchRow match={match} />
     </div>
   );
