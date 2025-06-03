@@ -14,6 +14,7 @@ const MatchDetails = () => {
   const [match, setMatch] = useState<EnhancedMatchHighlight | null>(null);
   const [loading, setLoading] = useState(true);
   const [navigating, setNavigating] = useState(false);
+  const [videoLoadError, setVideoLoadError] = useState(false);
   const [formattedDate, setFormattedDate] = useState('');
   const [exactDate, setExactDate] = useState('');
   const [activeTab, setActiveTab] = useState('stats');
@@ -188,6 +189,7 @@ const MatchDetails = () => {
         
         if (isMounted) {
           setMatch(matchData);
+          setVideoLoadError(false);
           if (matchData) {
             const date = new Date(matchData.date);
             setFormattedDate(formatDistanceToNow(date, { addSuffix: true }));
@@ -216,6 +218,49 @@ const MatchDetails = () => {
       isMounted = false;
     };
   }, [id]);
+
+  const isValidVideoUrl = (url: string): boolean => {
+    if (!url || typeof url !== 'string') {
+      console.log('[MatchDetails] Invalid video URL - empty or not string:', url);
+      return false;
+    }
+    
+    console.log('[MatchDetails] Checking video URL:', url);
+    
+    // List of problematic domains that often refuse connections
+    const blockedDomains = [
+      'streamff.com',
+      'streamff.net',
+      'streamff.org',
+      'streamff.tv',
+      'streamable.com',
+      'dailymotion.com'
+    ];
+    
+    // Check if URL contains any blocked domains (more thorough check)
+    const urlLowerCase = url.toLowerCase();
+    const containsBlockedDomain = blockedDomains.some(domain => {
+      const isBlocked = urlLowerCase.includes(domain);
+      if (isBlocked) {
+        console.log(`[MatchDetails] Blocked video URL - contains ${domain}:`, url);
+      }
+      return isBlocked;
+    });
+    
+    if (containsBlockedDomain) {
+      return false;
+    }
+    
+    // Basic URL validation
+    try {
+      const urlObj = new URL(url);
+      console.log('[MatchDetails] Valid video URL:', url, 'Host:', urlObj.hostname);
+      return true;
+    } catch (error) {
+      console.log('[MatchDetails] Invalid video URL format:', url, 'Error:', error);
+      return false;
+    }
+  };
 
   const getVideoEmbedUrl = (url: string): string => {
     if (!url) return '';

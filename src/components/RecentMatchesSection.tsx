@@ -24,7 +24,7 @@ const MatchCard: React.FC<{ match: Match }> = React.memo(({ match }) => {
   }, [matchDate.getTime(), Math.floor(now.getTime() / 60000)]); // Update every minute
   
   const handleMatchClick = async () => {
-    if (isFinished && !isNavigating) {
+    if (!isNavigating) {
       try {
         setIsNavigating(true);
         console.log(`[MatchCard] Navigating to match details for ID: ${match.id}`);
@@ -64,19 +64,15 @@ const MatchCard: React.FC<{ match: Match }> = React.memo(({ match }) => {
   return (
     <div 
       className={`bg-gray-800/60 rounded-xl p-5 transition-all duration-200 border border-gray-700/50 shadow-lg ${
-        isFinished 
-          ? isNavigating 
-            ? 'bg-gray-700/60 border-yellow-500/50 cursor-wait opacity-75' 
-            : 'hover:bg-gray-800/80 hover:border-gray-600/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98]'
-          : 'hover:bg-gray-800/80 hover:border-gray-600/50'
+        isNavigating 
+          ? 'bg-gray-700/60 border-yellow-500/50 cursor-wait opacity-75' 
+          : 'hover:bg-gray-800/80 hover:border-gray-600/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98]'
       }`}
       onClick={handleMatchClick}
       title={
-        isFinished 
-          ? isNavigating 
-            ? 'Loading match details...' 
-            : 'Click to view match details'
-          : undefined
+        isNavigating 
+          ? 'Loading match details...' 
+          : 'Click to view match details'
       }
     >
       {/* League and Status Header */}
@@ -162,11 +158,9 @@ const MatchCard: React.FC<{ match: Match }> = React.memo(({ match }) => {
         {match.venue && (
           <div className="mt-1 text-gray-500">📍 {match.venue}</div>
         )}
-        {isFinished && (
-          <div className="mt-2 text-gray-500 text-xs opacity-70">
-            {isNavigating ? 'Loading...' : 'Click for details'}
-          </div>
-        )}
+        <div className="mt-2 text-gray-500 text-xs opacity-70">
+          {isNavigating ? 'Loading...' : 'Click for details'}
+        </div>
       </div>
     </div>
   );

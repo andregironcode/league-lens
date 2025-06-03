@@ -29,7 +29,7 @@ const exampleGames: MatchHighlight[] = [{
     away: 1
   },
   competition: {
-    id: "1",
+    id: "33973",
     name: "Premier League",
     logo: "/competitions/premier-league.png"
   }
@@ -56,7 +56,7 @@ const exampleGames: MatchHighlight[] = [{
     away: 2
   },
   competition: {
-    id: "2",
+    id: "2486",
     name: "La Liga",
     logo: "/competitions/la-liga.png"
   }
@@ -83,7 +83,7 @@ const exampleGames: MatchHighlight[] = [{
     away: 2
   },
   competition: {
-    id: "3",
+    id: "67162",
     name: "Bundesliga",
     logo: "/competitions/bundesliga.png"
   }

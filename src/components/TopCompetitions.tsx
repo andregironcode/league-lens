@@ -28,7 +28,7 @@ interface TournamentData {
 const TopCompetitions: React.FC = () => {
   // Top 15 global leagues with their actual IDs for CDN logos - aligned with priority filtering
   const topLeagues: LeagueData[] = [
-    { id: '39', name: 'Premier League' },
+    { id: '33973', name: 'Premier League' },
     { id: '140', name: 'La Liga' },
     { id: '135', name: 'Serie A' },
     { id: '78', name: 'Bundesliga' },

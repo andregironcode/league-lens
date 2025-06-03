@@ -11,32 +11,21 @@ interface LeagueSectionProps {
 // League country mapping - same comprehensive mapping as other components
 const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
   // UEFA Competitions
-  '2486': 'EU', '2': 'EU', '3337': 'EU', '3': 'EU',
+  '2': 'EU', '3': 'EU', '848': 'EU', // UEFA competitions
   
   // Major domestic leagues (1st tier)
-  '39': 'GB', // Premier League
-  '140': 'ES', // La Liga
-  '135': 'IT', // Serie A
-  '78': 'DE', // Bundesliga
-  '61': 'FR', // Ligue 1
+  '33973': 'GB', // Premier League
+  '2486': 'ES', // La Liga
+  '94': 'IT', // Serie A
+  '67162': 'DE', // Bundesliga
+  '52695': 'FR', // Ligue 1
   '216087': 'US', '253': 'US', // MLS
-  '94': 'PT', // Liga Portugal
+  '63': 'PT', // Liga Portugal
   '307': 'SA', // Saudi Pro League
   '88': 'NL', // Eredivisie
   '71': 'BR', // Série A Brasil
   '128': 'AR', // Primera División Argentina
   '1': 'WORLD', // FIFA World Cup
-  
-  // Legacy mappings for older league IDs used in this component
-  'pl': 'GB', // Premier League (legacy ID)
-  'laliga': 'ES', // La Liga (legacy ID)
-  'bundesliga': 'DE', // Bundesliga (legacy ID)
-  'seriea': 'IT', // Serie A (legacy ID)
-  'ligue1': 'FR', // Ligue 1 (legacy ID)
-  'eredivisie': 'NL', // Eredivisie (legacy ID)
-  'portugal': 'PT', // Liga Portugal (legacy ID)
-  'brazil': 'BR', // Brazilian leagues (legacy ID)
-  'argentina': 'AR', // Argentine leagues (legacy ID)
   
   // Second tier domestic leagues (2nd division)
   '40': 'GB', // Championship

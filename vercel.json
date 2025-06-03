@@ -8,6 +8,10 @@
     {
       "source": "/api/highlightly/(.*)",
       "destination": "/api/highlightly?path=$1"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 } 

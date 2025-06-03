@@ -101,7 +101,7 @@ const Header = () => {
 
         {/* Search Bar - Center */}
         <div className="flex-1 flex justify-center px-8">
-          <div ref={searchRef} className="relative w-full max-w-2xl">
+          <div ref={searchRef} className="relative w-full max-w-xl">
             <div className="flex items-center bg-[#333333] rounded-full w-full shadow-lg border border-gray-600/30">
               <Search size={24} className={`ml-5 ${isSearching ? 'text-[#FFC30B]' : 'text-gray-400'} flex-shrink-0`} />
               <input
@@ -109,7 +109,7 @@ const Header = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for teams or matches"
-                className="bg-transparent text-white placeholder:text-gray-400 w-full pl-4 pr-5 py-3.5 rounded-full focus:outline-none text-lg font-medium"
+                className="bg-transparent text-white placeholder:text-gray-400 w-full pl-4 pr-5 py-2 rounded-full focus:outline-none text-lg font-medium"
                 onFocus={() => {
                   if (searchResults.length > 0) {
                     setShowResults(true);
