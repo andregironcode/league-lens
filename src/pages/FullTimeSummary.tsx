@@ -352,6 +352,186 @@ interface MatchStats {
   redCards: number;
 }
 
+// Team lineup interfaces
+interface LineupPlayer {
+  id: string;
+  name: string;
+  position: string;
+  jerseyNumber: number;
+}
+
+interface TeamLineup {
+  formation: string;
+  startingXI: LineupPlayer[];
+  substitutes: LineupPlayer[];
+}
+
+// Mock lineup data
+const getTeamLineups = (homeTeam: string, awayTeam: string): { home: TeamLineup; away: TeamLineup } => {
+  return {
+    home: {
+      formation: "4-3-3",
+      startingXI: [
+        {
+          id: "1",
+          name: "Aaron Ramsdale",
+          position: "GK",
+          jerseyNumber: 1
+        },
+        {
+          id: "2",
+          name: "Ben White",
+          position: "RB",
+          jerseyNumber: 4
+        },
+        {
+          id: "3",
+          name: "William Saliba",
+          position: "CB",
+          jerseyNumber: 12
+        },
+        {
+          id: "4",
+          name: "Gabriel",
+          position: "CB",
+          jerseyNumber: 6
+        },
+        {
+          id: "5",
+          name: "Oleksandr Zinchenko",
+          position: "LB",
+          jerseyNumber: 35
+        },
+        {
+          id: "6",
+          name: "Thomas Partey",
+          position: "CDM",
+          jerseyNumber: 5
+        },
+        {
+          id: "7",
+          name: "Martin Ødegaard",
+          position: "CM",
+          jerseyNumber: 8
+        },
+        {
+          id: "8",
+          name: "Granit Xhaka",
+          position: "CM",
+          jerseyNumber: 34
+        },
+        {
+          id: "9",
+          name: "Bukayo Saka",
+          position: "RW",
+          jerseyNumber: 7
+        },
+        {
+          id: "10",
+          name: "Gabriel Jesus",
+          position: "ST",
+          jerseyNumber: 9
+        },
+        {
+          id: "11",
+          name: "Gabriel Martinelli",
+          position: "LW",
+          jerseyNumber: 11
+        }
+      ],
+      substitutes: [
+        { id: "12", name: "Matt Turner", position: "GK", jerseyNumber: 30 },
+        { id: "13", name: "Kieran Tierney", position: "LB", jerseyNumber: 3 },
+        { id: "14", name: "Rob Holding", position: "CB", jerseyNumber: 16 },
+        { id: "15", name: "Takehiro Tomiyasu", position: "RB", jerseyNumber: 18 },
+        { id: "16", name: "Fabio Vieira", position: "AM", jerseyNumber: 21 },
+        { id: "17", name: "Emile Smith Rowe", position: "AM", jerseyNumber: 10 },
+        { id: "18", name: "Eddie Nketiah", position: "ST", jerseyNumber: 14 }
+      ]
+    },
+    away: {
+      formation: "4-2-3-1",
+      startingXI: [
+        {
+          id: "21",
+          name: "David de Gea",
+          position: "GK",
+          jerseyNumber: 1
+        },
+        {
+          id: "22",
+          name: "Diogo Dalot",
+          position: "RB",
+          jerseyNumber: 20
+        },
+        {
+          id: "23",
+          name: "Raphael Varane",
+          position: "CB",
+          jerseyNumber: 19
+        },
+        {
+          id: "24",
+          name: "Lisandro Martinez",
+          position: "CB",
+          jerseyNumber: 6
+        },
+        {
+          id: "25",
+          name: "Luke Shaw",
+          position: "LB",
+          jerseyNumber: 23
+        },
+        {
+          id: "26",
+          name: "Casemiro",
+          position: "CDM",
+          jerseyNumber: 18
+        },
+        {
+          id: "27",
+          name: "Christian Eriksen",
+          position: "CDM",
+          jerseyNumber: 14
+        },
+        {
+          id: "28",
+          name: "Antony",
+          position: "RW",
+          jerseyNumber: 21
+        },
+        {
+          id: "29",
+          name: "Bruno Fernandes",
+          position: "AM",
+          jerseyNumber: 8
+        },
+        {
+          id: "30",
+          name: "Marcus Rashford",
+          position: "LW",
+          jerseyNumber: 10
+        },
+        {
+          id: "31",
+          name: "Anthony Martial",
+          position: "ST",
+          jerseyNumber: 9
+        }
+      ],
+      substitutes: [
+        { id: "32", name: "Tom Heaton", position: "GK", jerseyNumber: 22 },
+        { id: "33", name: "Harry Maguire", position: "CB", jerseyNumber: 5 },
+        { id: "34", name: "Aaron Wan-Bissaka", position: "RB", jerseyNumber: 29 },
+        { id: "35", name: "Scott McTominay", position: "CM", jerseyNumber: 39 },
+        { id: "36", name: "Fred", position: "CM", jerseyNumber: 17 },
+        { id: "37", name: "Jadon Sancho", position: "LW", jerseyNumber: 25 },
+        { id: "38", name: "Wout Weghorst", position: "ST", jerseyNumber: 27 }
+      ]
+    }
+  };
+};
+
 // Mock match stats data
 const getMatchStats = (homeTeam: string, awayTeam: string): { home: MatchStats; away: MatchStats } => {
   return {
@@ -619,6 +799,425 @@ const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam,
           </div>
         );
       })}
+    </div>
+  );
+};
+
+// Team Lineup component
+const TeamLineupChart: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, awayTeam }) => {
+  const [activeTab, setActiveTab] = useState<'home' | 'away'>('home');
+  const [showSubstitutes, setShowSubstitutes] = useState(false);
+  const lineups = getTeamLineups(homeTeam.name, awayTeam.name);
+  const currentTeam = activeTab === 'home' ? homeTeam : awayTeam;
+  const currentLineup = lineups[activeTab];
+
+  return (
+    <div className="space-y-6">
+      {/* Team tabs */}
+      <div className="flex rounded-xl overflow-hidden">
+        <button
+          onClick={() => setActiveTab('home')}
+          className={`flex-1 py-3 px-6 font-medium transition-all ${
+            activeTab === 'home'
+              ? 'bg-[#FFC30B] text-black'
+              : 'bg-gray-800 text-gray-400 hover:text-white'
+          }`}
+        >
+          {homeTeam.name}
+        </button>
+        <button
+          onClick={() => setActiveTab('away')}
+          className={`flex-1 py-3 px-6 font-medium transition-all ${
+            activeTab === 'away'
+              ? 'bg-[#FFC30B] text-black'
+              : 'bg-gray-800 text-gray-400 hover:text-white'
+          }`}
+        >
+          {awayTeam.name}
+        </button>
+      </div>
+
+      {/* Formation-based tactical display */}
+      <TacticalFormation lineup={currentLineup} teamColor="#DC143C" />
+
+      {/* Formation display */}
+      <div className="text-center py-1">
+        <div 
+          className="text-lg font-bold"
+          style={{ color: '#F7CC45' }}
+        >
+          {currentLineup.formation}
+        </div>
+      </div>
+
+      {/* Starting XI list */}
+      <div className="space-y-2">
+        {currentLineup.startingXI.map((player) => (
+          <div
+            key={player.id}
+            className="flex items-center gap-4 bg-gray-800/50 rounded-lg p-3"
+          >
+            <div className="w-8 h-8 bg-red-600 rounded-full border border-gray-600 flex items-center justify-center">
+              <span className="text-white text-xs font-bold">{player.jerseyNumber}</span>
+            </div>
+            <div className="flex-1">
+              <div className="text-white font-medium">{player.name}</div>
+              <div className="text-gray-400 text-sm">{player.position}</div>
+            </div>
+            {(player.name.includes('Ødegaard') || player.name.includes('Bruno')) && (
+              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Substitutes */}
+      <div className="border-t border-gray-700 pt-4">
+        <button
+          onClick={() => setShowSubstitutes(!showSubstitutes)}
+          className="flex items-center justify-between w-full text-left text-white font-medium hover:text-[#FFC30B] transition-colors"
+        >
+          <span>▼ Substitutes</span>
+          <span className="text-sm text-gray-400">
+            {showSubstitutes ? 'Hide' : 'Show'} ({currentLineup.substitutes.length})
+          </span>
+        </button>
+        
+        {showSubstitutes && (
+          <div className="mt-4 space-y-2">
+            {currentLineup.substitutes.map((player) => (
+              <div
+                key={player.id}
+                className="flex items-center gap-4 bg-gray-800/30 rounded-lg p-3"
+              >
+                <div className="w-8 h-8 bg-gray-600 rounded-full border border-gray-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">{player.jerseyNumber}</span>
+                </div>
+                <div className="flex-1">
+                  <div className="text-white font-medium">{player.name}</div>
+                  <div className="text-gray-400 text-sm">{player.position}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Formation parser utility
+const parseFormation = (formation: string): number[] => {
+  return formation.split('-').map(Number);
+};
+
+// Player card component
+interface PlayerCardProps {
+  player: LineupPlayer;
+  teamColor: string;
+  hasGoal?: boolean;
+  hasAssist?: boolean;
+  isSubstituted?: boolean;
+  isCaptain?: boolean;
+}
+
+const PlayerCard: React.FC<PlayerCardProps> = ({ 
+  player, 
+  teamColor, 
+  hasGoal = false, 
+  hasAssist = false, 
+  isSubstituted = false, 
+  isCaptain = false 
+}) => {
+  return (
+    <div className="flex flex-col items-center space-y-1">
+      {/* Player shirt with icons */}
+      <div className="relative">
+        <div 
+          className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center shadow-lg"
+          style={{ backgroundColor: teamColor }}
+        >
+          <span className="text-white text-sm font-bold">{player.jerseyNumber}</span>
+        </div>
+        
+        {/* Status icons */}
+        <div className="absolute -top-1 -right-1 flex flex-col space-y-0.5">
+          {isCaptain && (
+            <div className="w-3 h-3 bg-yellow-400 rounded-full border border-white" title="Captain"></div>
+          )}
+          {hasGoal && (
+            <div className="w-3 h-3 bg-green-500 rounded-full border border-white" title="Goal"></div>
+          )}
+          {hasAssist && (
+            <div className="w-3 h-3 bg-blue-500 rounded-full border border-white" title="Assist"></div>
+          )}
+          {isSubstituted && (
+            <div className="w-3 h-3 bg-orange-500 rounded-full border border-white" title="Substituted"></div>
+          )}
+        </div>
+      </div>
+      
+      {/* Player name */}
+      <div className="text-center">
+        <div className="text-white text-xs font-medium bg-black/70 px-2 py-1 rounded whitespace-nowrap">
+          {player.name.split(' ').pop()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Tactical formation component
+interface TacticalFormationProps {
+  lineup: TeamLineup;
+  teamColor: string;
+}
+
+const TacticalFormation: React.FC<TacticalFormationProps> = ({ lineup, teamColor }) => {
+  const formationRows = parseFormation(lineup.formation);
+  const players = [...lineup.startingXI];
+  
+  // Distribute players across formation rows
+  const distributePlayersInFormation = (): LineupPlayer[][] => {
+    const rows: LineupPlayer[][] = [];
+    let playerIndex = 0;
+    
+    // Start with goalkeeper (always first)
+    if (players[0]?.position === 'GK') {
+      rows.push([players[0]]);
+      playerIndex = 1;
+    }
+    
+    // Distribute field players according to formation
+    for (const rowSize of formationRows) {
+      const row = players.slice(playerIndex, playerIndex + rowSize);
+      if (row.length > 0) {
+        rows.push(row);
+        playerIndex += rowSize;
+      }
+    }
+    
+    return rows;
+  };
+
+  const playerRows = distributePlayersInFormation();
+
+  // Mock match events for demo
+  const getPlayerEvents = (playerId: string) => ({
+    hasGoal: ['10', '31'].includes(playerId),
+    hasAssist: ['7', '29'].includes(playerId),
+    isSubstituted: ['5', '8'].includes(playerId),
+    isCaptain: ['7', '29'].includes(playerId)
+  });
+
+  return (
+    <div className="relative w-full h-96 bg-transparent rounded-xl overflow-hidden">
+      {/* 3D Perspective Container for half field */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          perspective: '1000px',
+          perspectiveOrigin: '50% 90%'
+        }}
+      >
+        {/* Half Football Field */}
+        <div 
+          className="absolute border-8 rounded-lg"
+          style={{
+            borderColor: '#1C1C1C',
+            transform: 'rotateX(20deg)',
+            transformOrigin: '50% 90%',
+            background: 'transparent',
+            top: '-60px',
+            left: '8px',
+            right: '8px',
+            bottom: '8px'
+          }}
+        >
+          {/* Half field markings - showing team's defensive half */}
+          <div className="absolute inset-0">
+            {/* Goal line (bottom) */}
+            <div 
+              className="absolute w-full h-2"
+              style={{ 
+                backgroundColor: '#1C1C1C',
+                bottom: '0'
+              }}
+            ></div>
+            
+            {/* Side lines */}
+            <div 
+              className="absolute h-full w-2"
+              style={{ 
+                backgroundColor: '#1C1C1C',
+                left: '0'
+              }}
+            ></div>
+            <div 
+              className="absolute h-full w-2"
+              style={{ 
+                backgroundColor: '#1C1C1C',
+                right: '0'
+              }}
+            ></div>
+            
+            {/* Center circle arc (partial - at top) */}
+            <div 
+              className="absolute border-8 border-t-0 rounded-b-full"
+              style={{
+                borderColor: '#1C1C1C',
+                width: '160px',
+                height: '80px',
+                left: '50%',
+                top: '0',
+                transform: 'translateX(-50%)'
+              }}
+            ></div>
+            
+            {/* Center dot */}
+            <div 
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                backgroundColor: '#1C1C1C',
+                left: '50%',
+                top: '0',
+                transform: 'translateX(-50%)'
+              }}
+            ></div>
+            
+            {/* Goal area (6-yard box) */}
+            <div 
+              className="absolute border-8 border-b-0"
+              style={{
+                borderColor: '#1C1C1C',
+                width: '120px',
+                height: '48px',
+                left: '50%',
+                bottom: '0',
+                transform: 'translateX(-50%)'
+              }}
+            ></div>
+            
+            {/* Penalty area (18-yard box) */}
+            <div 
+              className="absolute border-8 border-b-0"
+              style={{
+                borderColor: '#1C1C1C',
+                width: '240px',
+                height: '96px',
+                left: '50%',
+                bottom: '0',
+                transform: 'translateX(-50%)'
+              }}
+            ></div>
+            
+            {/* Penalty spot */}
+            <div 
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                backgroundColor: '#1C1C1C',
+                left: '50%',
+                bottom: '72px',
+                transform: 'translateX(-50%)'
+              }}
+            ></div>
+            
+            {/* Penalty arc */}
+            <div 
+              className="absolute border-8 border-b-0 border-l-0 border-r-0 rounded-t-full"
+              style={{
+                borderColor: '#1C1C1C',
+                width: '140px',
+                height: '48px',
+                left: '50%',
+                bottom: '96px',
+                transform: 'translateX(-50%)'
+              }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Players positioned within the half field boundaries */}
+      <div 
+        className="absolute z-10"
+        style={{
+          top: '4px',
+          left: '8px',
+          right: '8px',
+          bottom: '8px'
+        }}
+      >
+        {playerRows.map((row, rowIndex) => {
+          // Position players realistically relative to field markings
+          const fieldPositions = [
+            10, // Goalkeeper - inside goal area, close to goal line
+            28, // Defenders - just outside penalty area
+            46, // Defensive midfielders - deeper midfield position
+            64, // Attacking midfielders - higher midfield position  
+            82  // Strikers - near center line/circle
+          ];
+          
+          const fieldPosition = fieldPositions[rowIndex] || 50;
+          
+          return (
+            <div
+              key={rowIndex}
+              className="absolute w-full flex justify-center items-center"
+              style={{
+                bottom: `${fieldPosition}%`,
+                transform: 'translateY(50%)',
+                left: '0',
+                right: '0'
+              }}
+            >
+              {/* Use flexbox for better spacing */}
+              <div 
+                className="flex justify-center items-center"
+                style={{
+                  width: '75%', // Slightly wider for better field coverage
+                  justifyContent: row.length === 1 ? 'center' : 'space-evenly'
+                }}
+              >
+                {row.map((player, playerIndex) => {
+                  const events = getPlayerEvents(player.id);
+                  const totalPlayers = row.length;
+                  
+                  // For single player (goalkeeper), center them
+                  if (totalPlayers === 1) {
+                    return (
+                      <div key={player.id}>
+                        <PlayerCard
+                          player={player}
+                          teamColor={teamColor}
+                          {...events}
+                        />
+                      </div>
+                    );
+                  }
+                  
+                  // For multiple players, use flex distribution
+                  return (
+                    <div 
+                      key={player.id}
+                      style={{
+                        flex: '0 0 auto',
+                        minWidth: '55px' // Slightly reduced for better fit
+                      }}
+                    >
+                      <PlayerCard
+                        player={player}
+                        teamColor={teamColor}
+                        {...events}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
@@ -992,6 +1591,19 @@ const FullTimeSummary = () => {
             <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH STATISTICS</h4>
             
             <MatchStatsChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
+          </div>
+
+          {/* Team Lineup */}
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            <h4 className="text-lg font-semibold mb-6 text-center text-white">TEAM LINEUP</h4>
+            
+            <TeamLineupChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
           </div>
 
           {/* League Standings */}
