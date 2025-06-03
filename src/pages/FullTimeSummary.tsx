@@ -322,6 +322,210 @@ const MatchTimeline: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, a
   );
 };
 
+// Add match stats interface and mock data after the MatchAction interface
+interface MatchStats {
+  ballPossession: number;
+  expectedGoals: number;
+  shotsOnTarget: number;
+  bigScoringChances: number;
+  totalAttempts: number;
+  blockedShots: number;
+  shotsInBox: number;
+  shotsOutsideBox: number;
+  woodworkHits: number;
+  fouls: number;
+  corners: number;
+  throwIns: number;
+  saves: number;
+  freeKicks: number;
+  offsides: number;
+  passesIntoFinalThird: number;
+  completedPassesFinalThird: number;
+  touchesInOpponentBox: number;
+  tackles: number;
+  completedTackles: number;
+  totalCrosses: number;
+  successfulCrosses: number;
+  interceptions: number;
+  clearances: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+// Mock match stats data
+const getMatchStats = (homeTeam: string, awayTeam: string): { home: MatchStats; away: MatchStats } => {
+  return {
+    home: {
+      ballPossession: 58,
+      expectedGoals: 2.3,
+      shotsOnTarget: 6,
+      bigScoringChances: 4,
+      totalAttempts: 14,
+      blockedShots: 3,
+      shotsInBox: 8,
+      shotsOutsideBox: 6,
+      woodworkHits: 1,
+      fouls: 12,
+      corners: 7,
+      throwIns: 18,
+      saves: 4,
+      freeKicks: 15,
+      offsides: 3,
+      passesIntoFinalThird: 42,
+      completedPassesFinalThird: 28,
+      touchesInOpponentBox: 24,
+      tackles: 18,
+      completedTackles: 14,
+      totalCrosses: 12,
+      successfulCrosses: 5,
+      interceptions: 8,
+      clearances: 15,
+      yellowCards: 2,
+      redCards: 0
+    },
+    away: {
+      ballPossession: 42,
+      expectedGoals: 1.7,
+      shotsOnTarget: 4,
+      bigScoringChances: 2,
+      totalAttempts: 11,
+      blockedShots: 2,
+      shotsInBox: 5,
+      shotsOutsideBox: 6,
+      woodworkHits: 0,
+      fouls: 16,
+      corners: 4,
+      throwIns: 14,
+      saves: 6,
+      freeKicks: 12,
+      offsides: 5,
+      passesIntoFinalThird: 35,
+      completedPassesFinalThird: 22,
+      touchesInOpponentBox: 18,
+      tackles: 22,
+      completedTackles: 16,
+      totalCrosses: 9,
+      successfulCrosses: 3,
+      interceptions: 12,
+      clearances: 18,
+      yellowCards: 3,
+      redCards: 1
+    }
+  };
+};
+
+// Stats display component
+const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, awayTeam }) => {
+  const stats = getMatchStats(homeTeam.name, awayTeam.name);
+  
+  const statsOrder = [
+    { key: 'ballPossession', label: 'Ball Possession', suffix: '%' },
+    { key: 'expectedGoals', label: 'Expected Goals', suffix: '', decimal: true },
+    { key: 'shotsOnTarget', label: 'Shots On Target', suffix: '' },
+    { key: 'bigScoringChances', label: 'Big Scoring Chances', suffix: '' },
+    { key: 'totalAttempts', label: 'Total Attempts', suffix: '' },
+    { key: 'blockedShots', label: 'Blocked Shots', suffix: '' },
+    { key: 'shotsInBox', label: 'Shots in the Box', suffix: '' },
+    { key: 'shotsOutsideBox', label: 'Shots from Outside the Box', suffix: '' },
+    { key: 'woodworkHits', label: 'Woodwork Hits', suffix: '' },
+    { key: 'fouls', label: 'Fouls', suffix: '' },
+    { key: 'corners', label: 'Corners', suffix: '' },
+    { key: 'throwIns', label: 'Throw-Ins', suffix: '' },
+    { key: 'saves', label: 'Saves', suffix: '' },
+    { key: 'freeKicks', label: 'Free Kicks', suffix: '' },
+    { key: 'offsides', label: 'Offsides', suffix: '' },
+    { key: 'passesIntoFinalThird', label: 'Passes into Final Third', suffix: '' },
+    { key: 'completedPassesFinalThird', label: 'Completed Passes in Final Third', suffix: '' },
+    { key: 'touchesInOpponentBox', label: 'Touches in Opponent\'s Box', suffix: '' },
+    { key: 'tackles', label: 'Tackles', suffix: '' },
+    { key: 'completedTackles', label: 'Completed Tackles', suffix: '' },
+    { key: 'totalCrosses', label: 'Total Crosses', suffix: '' },
+    { key: 'successfulCrosses', label: 'Successful Crosses', suffix: '' },
+    { key: 'interceptions', label: 'Interceptions', suffix: '' },
+    { key: 'clearances', label: 'Clearances', suffix: '' },
+    { key: 'yellowCards', label: 'Yellow Cards', suffix: '' },
+    { key: 'redCards', label: 'Red Cards', suffix: '' }
+  ];
+
+  const formatValue = (value: number, decimal: boolean = false, suffix: string = '') => {
+    const formatted = decimal ? value.toFixed(1) : value.toString();
+    return formatted + suffix;
+  };
+
+  const getBarWidth = (homeValue: number, awayValue: number, isHome: boolean) => {
+    const total = homeValue + awayValue;
+    if (total === 0) return 0;
+    const percentage = isHome ? (homeValue / total) * 50 : (awayValue / total) * 50;
+    return Math.max(percentage, 2); // Minimum 2% width for visibility
+  };
+
+  return (
+    <div className="space-y-4">
+      {statsOrder.map((stat) => {
+        const homeValue = stats.home[stat.key as keyof MatchStats];
+        const awayValue = stats.away[stat.key as keyof MatchStats];
+        const homeWidth = getBarWidth(homeValue, awayValue, true);
+        const awayWidth = getBarWidth(homeValue, awayValue, false);
+        
+        // Determine which team is leading to assign yellow color
+        const homeLeading = homeValue > awayValue;
+        const awayLeading = awayValue > homeValue;
+        
+        return (
+          <div key={stat.key} className="space-y-2">
+            {/* Stat values */}
+            <div className="flex justify-between items-center">
+              <span className="text-white text-sm font-medium">
+                {formatValue(homeValue, stat.decimal, stat.suffix)}
+              </span>
+              <span className="text-gray-400 text-xs text-center flex-1 px-4">
+                {stat.label}
+              </span>
+              <span className="text-white text-sm font-medium">
+                {formatValue(awayValue, stat.decimal, stat.suffix)}
+              </span>
+            </div>
+            
+            {/* Horizontal split bar chart */}
+            <div className="flex gap-1" style={{ height: '28px' }}>
+              {/* Home team side (left 50%) */}
+              <div className="flex-1 flex justify-end">
+                <div 
+                  className="w-full h-full rounded-full flex justify-end"
+                  style={{ backgroundColor: '#1C1C1C' }}
+                >
+                  <div 
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${homeWidth * 2}%`,
+                      backgroundColor: homeLeading ? '#F7CC45' : '#585858'
+                    }}
+                  ></div>
+                </div>
+              </div>
+              {/* Away team side (right 50%) */}
+              <div className="flex-1 flex justify-start">
+                <div 
+                  className="w-full h-full rounded-full flex justify-start"
+                  style={{ backgroundColor: '#1C1C1C' }}
+                >
+                  <div 
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${awayWidth * 2}%`,
+                      backgroundColor: awayLeading ? '#F7CC45' : '#585858'
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const FullTimeSummary = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -656,6 +860,41 @@ const FullTimeSummary = () => {
                 })}
               </div>
             </div>
+          </div>
+
+          {/* Video Highlights */}
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            {/* Highlights not available message */}
+            <div className="text-center py-8">
+              <div className="text-gray-400 text-sm">
+                <p className="text-white font-medium text-sm mb-2">Video Highlights Coming Soon</p>
+                <p className="text-xs px-4 mb-3">
+                  Match highlights are being processed and will be available shortly after the final whistle.
+                </p>
+                <p className="text-gray-500 text-xs">
+                  Still waiting? Contact our support team for assistance.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Match Stats */}
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH STATISTICS</h4>
+            
+            <MatchStatsChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
           </div>
 
           {/* League Standings */}
