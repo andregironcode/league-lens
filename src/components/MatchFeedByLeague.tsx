@@ -83,7 +83,14 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
   // Handle match click
   const handleMatchClick = (match: Match) => {
     console.log(`[MatchFeedByLeague] Navigating to match details for ID: ${match.id}`);
-    navigate(`/match/${match.id}`);
+    
+    // Route finished matches to Full-time Summary page
+    const isFinished = match.status === 'finished';
+    if (isFinished) {
+      navigate(`/fulltime/${match.id}`);
+    } else {
+      navigate(`/match/${match.id}`);
+    }
   };
 
   // Check if match is clickable - all matches are now clickable

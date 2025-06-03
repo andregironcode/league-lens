@@ -105,7 +105,13 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
       try {
         setIsNavigating(true);
         console.log(`[MatchCard] Navigating to match details for ID: ${match.id}`);
-        navigate(`/match/${match.id}`);
+        
+        // Route finished matches to Full-time Summary page
+        if (isFinished) {
+          navigate(`/fulltime/${match.id}`);
+        } else {
+          navigate(`/match/${match.id}`);
+        }
       } catch (error) {
         console.error('Navigation error:', error);
         setIsNavigating(false);

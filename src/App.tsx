@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from '@/pages/Index';
 import IndexNew from '@/pages/IndexNew';
 import MatchDetails from '@/pages/MatchDetails';
+import FullTimeSummary from '@/pages/FullTimeSummary';
 import TeamPage from '@/pages/TeamPage';
 import LeaguePage from '@/pages/LeaguePage';
 import NotFound from '@/pages/NotFound';
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/new" element={<IndexNew />} />
         <Route path="/match/:id" element={<MatchDetails />} />
+        <Route path="/fulltime/:id" element={<FullTimeSummary />} />
         <Route path="/team/:teamId" element={<TeamPage />} />
         <Route path="/league/:leagueId" element={<LeaguePage />} />
         <Route path="*" element={<NotFound />} />

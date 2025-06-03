@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Clock } from 'lucide-react';
@@ -41,7 +40,8 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
   const formattedDate = formatDistanceToNow(new Date(highlight.date), { addSuffix: true });
 
   const handleCardClick = () => {
-    navigate(`/match/${highlight.id}`);
+    // HighlightCard represents finished matches (they have scores), so route to Full-time Summary
+    navigate(`/fulltime/${highlight.id}`);
   };
 
   const handleTeamClick = (teamId: string, event: React.MouseEvent) => {

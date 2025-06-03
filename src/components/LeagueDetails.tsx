@@ -358,8 +358,22 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
     });
   };
 
-  const handleMatchClick = (matchId: string) => {
-    navigate(`/match/${matchId}`);
+  const handleMatchClick = (match: any) => {
+    // Check if match is finished by looking for scores
+    const hasScore = (match.score?.home !== undefined && match.score?.away !== undefined) ||
+                     (match.score?.fulltime?.home !== undefined && match.score?.fulltime?.away !== undefined) ||
+                     (match.score?.final?.home !== undefined && match.score?.final?.away !== undefined) ||
+                     (match.goals?.home !== undefined && match.goals?.away !== undefined) ||
+                     (match.fixture?.score?.fulltime?.home !== undefined && match.fixture?.score?.fulltime?.away !== undefined) ||
+                     (match.fixture?.score?.final?.home !== undefined && match.fixture?.score?.final?.away !== undefined);
+    
+    if (hasScore) {
+      // Route finished matches to Full-time Summary page
+      navigate(`/fulltime/${match.id}`);
+    } else {
+      // Route other matches to regular match details
+      navigate(`/match/${match.id}`);
+    }
   };
 
   const StandingsTable = () => (
@@ -505,7 +519,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
               <div 
                 key={match.id}
                 className={`py-2 cursor-pointer hover:bg-gray-800/30 ${isLive ? 'bg-green-900/20' : ''}`}
-                onClick={() => handleMatchClick(match.id)}
+                onClick={() => handleMatchClick(match)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -741,7 +755,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
                               <div 
                                 key={match.id} 
                                 className="p-4 hover:bg-[#222222] transition-colors cursor-pointer"
-                                onClick={() => handleMatchClick(match.id)}
+                                onClick={() => handleMatchClick(match)}
                                 title="Click to view match details"
                               >
                                 <div className="flex items-center justify-between">
