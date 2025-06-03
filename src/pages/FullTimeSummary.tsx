@@ -418,6 +418,54 @@ const getMatchStats = (homeTeam: string, awayTeam: string): { home: MatchStats; 
 const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, awayTeam }) => {
   const stats = getMatchStats(homeTeam.name, awayTeam.name);
   
+  // Function to get team primary colors
+  const getTeamColor = (teamName: string): string => {
+    const teamColors: { [key: string]: string } = {
+      // Premier League
+      'Arsenal': '#DC143C',
+      'Manchester United': '#E81C23',
+      'Manchester City': '#6CABDD',
+      'Liverpool': '#C8102E',
+      'Chelsea': '#034694',
+      'Tottenham': '#132257',
+      'Newcastle': '#241F20',
+      'Brighton': '#0057B8',
+      'Aston Villa': '#95BFE5',
+      'West Ham': '#7A263A',
+      
+      // La Liga
+      'Real Madrid': '#FFFFFF',
+      'Barcelona': '#A50044',
+      'Atletico Madrid': '#CE3524',
+      'Sevilla': '#FFFFFF',
+      'Valencia': '#FF8C00',
+      'Villarreal': '#FFE500',
+      
+      // Serie A
+      'Juventus': '#000000',
+      'Inter Milan': '#0068A8',
+      'AC Milan': '#FB090B',
+      'Napoli': '#057FFF',
+      'Roma': '#FFD700',
+      'Lazio': '#87CEEB',
+      
+      // Bundesliga
+      'Bayern Munich': '#DC143C',
+      'Borussia Dortmund': '#FFE500',
+      'RB Leipzig': '#DD0741',
+      'Bayer Leverkusen': '#E32221',
+      
+      // Default colors
+      'default_home': '#FFFFFF',
+      'default_away': '#0057B8'
+    };
+    
+    return teamColors[teamName] || (teamName === homeTeam.name ? teamColors['default_home'] : teamColors['default_away']);
+  };
+
+  const homeTeamColor = getTeamColor(homeTeam.name);
+  const awayTeamColor = getTeamColor(awayTeam.name);
+  
   const statsOrder = [
     { key: 'ballPossession', label: 'Ball Possession', suffix: '%' },
     { key: 'expectedGoals', label: 'Expected Goals', suffix: '', decimal: true },
@@ -487,38 +535,87 @@ const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam,
             </div>
             
             {/* Horizontal split bar chart */}
-            <div className="flex gap-1" style={{ height: '28px' }}>
-              {/* Home team side (left 50%) */}
-              <div className="flex-1 flex justify-end">
+            {stat.key === 'ballPossession' ? (
+              // Special handling for ball possession - show actual percentages of 100%
+              <div className="flex relative" style={{ height: '28px' }}>
+                {/* Home team logo at left edge */}
+                <img 
+                  src={homeTeam.logo} 
+                  alt={homeTeam.name}
+                  className="absolute left-1 top-1/2 transform -translate-y-1/2 w-5 h-5 object-contain z-10" 
+                />
+                
+                {/* Home team possession */}
                 <div 
-                  className="w-full h-full rounded-full flex justify-end"
-                  style={{ backgroundColor: '#1C1C1C' }}
+                  className="h-full rounded-l-full flex items-center justify-center pl-7"
+                  style={{ 
+                    width: `${homeValue}%`,
+                    backgroundColor: homeTeamColor
+                  }}
                 >
+                  <span className="text-xs font-medium" style={{ 
+                    color: homeTeamColor === '#FFFFFF' || homeTeamColor === '#FFE500' || homeTeamColor === '#FFD700' ? '#000000' : '#FFFFFF'
+                  }}>
+                    {homeValue}%
+                  </span>
+                </div>
+                {/* Away team possession */}
+                <div 
+                  className="h-full rounded-r-full flex items-center justify-center pr-7"
+                  style={{ 
+                    width: `${awayValue}%`,
+                    backgroundColor: awayTeamColor
+                  }}
+                >
+                  <span className="text-xs font-medium" style={{ 
+                    color: awayTeamColor === '#FFFFFF' || awayTeamColor === '#FFE500' || awayTeamColor === '#FFD700' ? '#000000' : '#FFFFFF'
+                  }}>
+                    {awayValue}%
+                  </span>
+                </div>
+                
+                {/* Away team logo at right edge */}
+                <img 
+                  src={awayTeam.logo} 
+                  alt={awayTeam.name}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 w-5 h-5 object-contain z-10" 
+                />
+              </div>
+            ) : (
+              // Regular comparison bars for other stats
+              <div className="flex gap-1" style={{ height: '28px' }}>
+                {/* Home team side (left 50%) */}
+                <div className="flex-1 flex justify-end">
                   <div 
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{ 
-                      width: `${homeWidth * 2}%`,
-                      backgroundColor: homeLeading ? '#F7CC45' : '#585858'
-                    }}
-                  ></div>
+                    className="w-full h-full rounded-full flex justify-end"
+                    style={{ backgroundColor: '#1C1C1C' }}
+                  >
+                    <div 
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{ 
+                        width: `${homeWidth * 2}%`,
+                        backgroundColor: homeLeading ? '#F7CC45' : '#585858'
+                      }}
+                    ></div>
+                  </div>
+                </div>
+                {/* Away team side (right 50%) */}
+                <div className="flex-1 flex justify-start">
+                  <div 
+                    className="w-full h-full rounded-full flex justify-start"
+                    style={{ backgroundColor: '#1C1C1C' }}
+                  >
+                    <div 
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{ 
+                        width: `${awayWidth * 2}%`,
+                        backgroundColor: awayLeading ? '#F7CC45' : '#585858'
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
-              {/* Away team side (right 50%) */}
-              <div className="flex-1 flex justify-start">
-                <div 
-                  className="w-full h-full rounded-full flex justify-start"
-                  style={{ backgroundColor: '#1C1C1C' }}
-                >
-                  <div 
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{ 
-                      width: `${awayWidth * 2}%`,
-                      backgroundColor: awayLeading ? '#F7CC45' : '#585858'
-                    }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         );
       })}
