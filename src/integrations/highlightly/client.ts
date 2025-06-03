@@ -198,16 +198,33 @@ export const highlightlyClient = {
     date?: string;
     timezone?: string;
     season?: string;
-    homeTeamId?: string;
-    awayTeamId?: string;
-    homeTeamName?: string;
-    awayTeamName?: string;
-    countryCode?: string;
-    countryName?: string;
     limit?: string;
     offset?: string;
   }) {
-    return apiRequest<any>('/matches', params);
+    try {
+      const response = await apiRequest<any>('/matches', params);
+      
+      // DEBUG: Log the structure of the first match to understand score format
+      if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+        console.log('[Highlightly] DEBUG: First match structure from API:', {
+          id: response.data[0].id,
+          date: response.data[0].date,
+          teams: {
+            home: response.data[0].homeTeam || response.data[0].teams?.home,
+            away: response.data[0].awayTeam || response.data[0].teams?.away
+          },
+          score: response.data[0].score,
+          goals: response.data[0].goals,
+          fixture: response.data[0].fixture,
+          fullMatch: response.data[0] // Log the entire match object
+        });
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('[Highlightly] Error in getMatches:', error);
+      throw error;
+    }
   },
   
   /**

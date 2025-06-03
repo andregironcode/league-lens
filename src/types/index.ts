@@ -10,6 +10,19 @@ export interface Country {
   logo?: string;
 }
 
+export interface FixtureScore {
+  home?: number;
+  away?: number;
+  fulltime?: {
+    home: number;
+    away: number;
+  };
+  final?: {
+    home: number;
+    away: number;
+  };
+}
+
 export interface Match {
   id: string;
   homeTeam: Team;
@@ -17,7 +30,8 @@ export interface Match {
   date: string;
   time?: string;
   status: string; // 'finished', 'live', 'upcoming'
-  score?: {
+  score?: FixtureScore;
+  goals?: {
     home: number;
     away: number;
   };
@@ -29,9 +43,11 @@ export interface Match {
   venue?: string;
   fixture?: {
     date: string;
-    status: {
+    status?: {
       short: string;
+      long: string;
     };
+    score?: FixtureScore;
   };
 }
 

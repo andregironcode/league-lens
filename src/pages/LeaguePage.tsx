@@ -3,8 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { getLeagueHighlights, getActiveService } from '@/services/serviceAdapter';
 import { League, MatchHighlight } from '@/types';
 import Header from '@/components/Header';
-import LeaguePage from '@/components/LeaguePage';
+import LeagueDetails from '@/components/LeagueDetails';
 import { highlightlyClient } from '@/integrations/highlightly/client';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import HighlightCard from '@/components/HighlightCard';
 
 // League country mapping - same comprehensive mapping as other components
 const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
@@ -315,4 +318,4 @@ const LeaguePage = () => {
   );
 };
 
-export default LeaguePageRoute;
+export default LeaguePage;

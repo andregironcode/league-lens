@@ -1862,6 +1862,20 @@ export const highlightlyService = {
         const homeTeamName = match.homeTeam?.name || match.teams?.home?.name || '';
         const awayTeamName = match.awayTeam?.name || match.teams?.away?.name || '';
         
+        // Define priority teams
+        const priorityTeams = new Set([
+          'Real Madrid',
+          'Barcelona',
+          'Manchester City',
+          'Manchester United',
+          'Liverpool',
+          'Arsenal',
+          'Chelsea',
+          'Bayern Munich',
+          'Paris Saint-Germain',
+          'PSG'
+        ]);
+        
         // Check for exact matches and common variations
         const checkTeamName = (teamName: string): boolean => {
           return Array.from(priorityTeams).some(priorityTeam => {
@@ -2002,9 +2016,7 @@ export const highlightlyService = {
       }
       
       // Convert grouped matches to LeagueWithMatches format
-      const leaguesWithMatches: import('@/types').LeagueWithMatches[] = [];
-      
-      for (const [leagueId, { matches, leagueInfo }] of matchesByLeagueId.entries()) {
+      const leaguePromises = Array.from(matchesByLeagueId.entries()).map(async ([leagueId, { matches, leagueInfo }]) => {
         console.log(`[Highlightly] Processing ${matches.length} matches for ${leagueInfo.name} (ID: ${leagueId})`);
         console.log(`[Highlightly] 🕐 About to call processLeagueMatches with dateString: "${dateString}"`);
         
