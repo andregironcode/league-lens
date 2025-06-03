@@ -540,14 +540,14 @@ const FullTimeSummary = () => {
             Back
           </button>
           
-          <h1 className="text-2xl font-bold text-white">Full-time Summary</h1>
+          <div></div>
           
           <button
             onClick={handleShare}
-            className="flex items-center text-gray-400 hover:text-white transition-colors"
+            className="flex items-center text-gray-400 hover:text-white transition-colors bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-2"
           >
-            <Share2 className="mr-2" size={20} />
-            Share
+            <Share2 className="w-4 h-4 mr-2" />
+            <span className="text-sm">Share</span>
           </button>
         </div>
 
@@ -576,7 +576,7 @@ const FullTimeSummary = () => {
               </div>
             </div>
 
-            {/* Summary Toggle - Top Right */}
+            {/* Share Button - Top Right */}
             <div className="absolute top-4 right-4">
               <button
                 onClick={toggleSummaryNotification}
@@ -613,12 +613,8 @@ const FullTimeSummary = () => {
                 <div className="text-base font-bold mb-4" style={{ color: '#FF4C4C' }}>
                   FULL TIME
                 </div>
-                <div className="text-white text-6xl font-bold mb-2">
+                <div className="text-white font-bold mb-2" style={{ fontSize: '64px' }}>
                   {match.score?.home || 0} - {match.score?.away || 0}
-                </div>
-                <div className="text-gray-400 text-sm mb-3">FINAL SCORE</div>
-                <div className="text-yellow-400 text-lg font-semibold mb-2">
-                  {getMatchResult()}
                 </div>
               </div>
 
@@ -633,23 +629,8 @@ const FullTimeSummary = () => {
               </div>
             </div>
 
-            {/* Match Date - Bottom */}
-            <div className="text-center text-gray-400 text-sm">
-              <Clock size={14} className="inline mr-1" />
-              {new Date(match.date).toLocaleDateString('en-US', { 
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long', 
-                day: 'numeric'
-              })} • {new Date(match.date).toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: false 
-              })}
-            </div>
-
             {/* Match Timeline - Below everything but in same container */}
-            <div className="mt-8 pt-6 border-t border-gray-700/30">
+            <div className="mt-8 pt-6">
               <div className="max-w-lg mx-auto relative">
                 {/* Fade overlay for top */}
                 <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"></div>
@@ -658,6 +639,21 @@ const FullTimeSummary = () => {
                 
                 {/* Fade overlay for bottom */}
                 <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none"></div>
+              </div>
+              
+              {/* Match Date - Below timeline */}
+              <div className="text-center text-gray-400 text-sm mt-6">
+                <Clock size={14} className="inline mr-1" />
+                {new Date(match.date).toLocaleDateString('en-US', { 
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long', 
+                  day: 'numeric'
+                })} • {new Date(match.date).toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit', 
+                  hour12: false 
+                })}
               </div>
             </div>
           </div>
