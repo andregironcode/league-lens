@@ -97,7 +97,7 @@ const getMatchActions = (homeTeam: string, awayTeam: string): MatchAction[] => {
       player: 'Bukayo Saka',
       description: 'Counter-attack finish'
     }
-  ].sort((a, b) => a.minute - b.minute);
+  ].sort((a, b) => b.minute - a.minute); // Reverse sort: later actions first (top), earlier last (bottom)
 };
 
 // Compact Timeline component for inside the score container
@@ -123,46 +123,60 @@ const CompactMatchTimeline: React.FC<{ homeTeam: any; awayTeam: any }> = ({ home
 
   const getActionColor = (type: string) => {
     switch (type) {
-      case 'goal':
-      case 'penalty':
-        return 'bg-green-500';
       case 'yellow_card':
         return 'bg-yellow-500';
       case 'red_card':
         return 'bg-red-500';
-      case 'substitution':
-        return 'bg-blue-500';
       default:
-        return 'bg-gray-500';
+        return 'bg-gray-600'; // All other actions use neutral gray
     }
   };
 
   return (
-    <div className="relative max-h-48 overflow-y-auto">
-      {/* Compact timeline line */}
-      <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gray-600 h-full"></div>
-      
+    <div className="relative max-h-48 overflow-y-auto px-8">
       {/* Compact actions */}
-      <div className="space-y-3 py-2">
+      <div className="space-y-3 py-2 relative">
+        {/* Compact timeline line with fade effects - positioned to span all actions */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 top-0 bottom-0">
+          <div 
+            className="w-full h-full relative"
+            style={{ backgroundColor: '#1F1F1F' }}
+          >
+            {/* Top fade */}
+            <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-black to-transparent"></div>
+            {/* Bottom fade */}
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black to-transparent"></div>
+          </div>
+        </div>
+        
         {actions.map((action, index) => (
           <div key={action.id} className="relative">
-            {/* Small timeline dot */}
-            <div className={`absolute left-1/2 transform -translate-x-1/2 w-2 h-2 ${getActionColor(action.type)} rounded-full border border-gray-800 z-10`}></div>
-            
             {/* Compact action card */}
-            <div className={`flex ${action.team === 'home' ? 'justify-start pr-1/2' : 'justify-end pl-1/2'}`}>
-              <div className={`max-w-36 ${action.team === 'home' ? 'mr-4' : 'ml-4'}`}>
-                <div className={`bg-gray-900/80 rounded p-2 border border-gray-700/30 ${action.team === 'away' ? 'text-right' : ''}`}>
-                  <div className={`flex items-center gap-1 text-xs ${action.team === 'away' ? 'justify-end' : ''}`}>
-                    <span className={`px-1.5 py-0.5 rounded text-xs font-bold text-white ${getActionColor(action.type)}`}>
-                      {action.minute}'
-                    </span>
-                    <div className="text-white flex items-center gap-0.5">
-                      {getActionIcon(action.type)}
-                    </div>
-                  </div>
-                  <div className="text-white text-xs font-medium mt-1">
-                    {action.player}
+            <div className={`flex ${action.team === 'home' ? 'justify-start' : 'justify-end'}`}>
+              <div className={`w-56 ${action.team === 'home' ? 'mr-20 pr-4' : 'ml-20 pl-4'}`}>
+                <div className={`rounded-full px-4 py-2 ${action.team === 'home' ? 'text-right' : ''}`} style={{ backgroundColor: '#1F1F1F' }}>
+                  <div className={`flex items-center gap-2 text-xs ${action.team === 'home' ? 'justify-end' : ''}`}>
+                    {action.team === 'home' ? (
+                      <>
+                        <div className="text-white flex items-center gap-1">
+                          <span className="font-medium">{action.player}</span>
+                          {getActionIcon(action.type)}
+                        </div>
+                        <span className="text-xs font-bold text-white">
+                          {action.minute}'
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xs font-bold text-white">
+                          {action.minute}'
+                        </span>
+                        <div className="text-white flex items-center gap-1">
+                          {getActionIcon(action.type)}
+                          <span className="font-medium">{action.player}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -199,21 +213,12 @@ const MatchTimeline: React.FC<{ homeTeam: any; awayTeam: any }> = ({ homeTeam, a
 
   const getActionColor = (type: string) => {
     switch (type) {
-      case 'goal':
-      case 'penalty':
-        return 'bg-green-600';
-      case 'own_goal':
-        return 'bg-red-600';
       case 'yellow_card':
         return 'bg-yellow-500';
       case 'red_card':
         return 'bg-red-500';
-      case 'substitution':
-        return 'bg-blue-600';
-      case 'var':
-        return 'bg-purple-600';
       default:
-        return 'bg-gray-600';
+        return 'bg-gray-600'; // All other actions use neutral gray
     }
   };
 
@@ -605,21 +610,15 @@ const FullTimeSummary = () => {
 
               {/* Final Score and Result - Centered */}
               <div className="text-center px-8">
-                <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
+                <div className="text-base font-bold mb-4" style={{ color: '#FF4C4C' }}>
                   FULL TIME
                 </div>
                 <div className="text-white text-6xl font-bold mb-2">
                   {match.score?.home || 0} - {match.score?.away || 0}
                 </div>
                 <div className="text-gray-400 text-sm mb-3">FINAL SCORE</div>
-                <div className="text-yellow-400 text-lg font-semibold mb-6">
+                <div className="text-yellow-400 text-lg font-semibold mb-2">
                   {getMatchResult()}
-                </div>
-                
-                {/* Compact Match Timeline */}
-                <div className="max-w-md mx-auto">
-                  <div className="text-gray-400 text-xs mb-4">Key Match Events</div>
-                  <CompactMatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
                 </div>
               </div>
 
@@ -647,6 +646,19 @@ const FullTimeSummary = () => {
                 minute: '2-digit', 
                 hour12: false 
               })}
+            </div>
+
+            {/* Match Timeline - Below everything but in same container */}
+            <div className="mt-8 pt-6 border-t border-gray-700/30">
+              <div className="max-w-lg mx-auto relative">
+                {/* Fade overlay for top */}
+                <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none"></div>
+                
+                <CompactMatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
+                
+                {/* Fade overlay for bottom */}
+                <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none"></div>
+              </div>
             </div>
           </div>
 
