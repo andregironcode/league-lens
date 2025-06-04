@@ -57,8 +57,8 @@ const exampleGames: MatchHighlight[] = [{
   },
   competition: {
     id: "2486",
-    name: "La Liga",
-    logo: "/competitions/la-liga.png"
+    name: "UEFA Champions League",
+    logo: "/competitions/uefa-champions-league.png"
   }
 }, {
   id: "3",

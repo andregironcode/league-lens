@@ -1,7 +1,7 @@
+import type { MatchHighlight, League, LeagueWithMatches, TeamDetails } from '@/types';
 import * as mockService from './highlightService';
 import * as supabaseService from './supabaseService';
-import * as highlightlyService from './highlightlyService';
-import type { MatchHighlight, League, TeamDetails, LeagueWithMatches } from '@/types';
+import { highlightlyService } from './highlightlyService'; // Force TypeScript to recognize the export
 
 /**
  * Service Type
@@ -145,12 +145,19 @@ export const serviceAdapter = {
    * Get recent matches for top leagues
    */
   async getRecentMatchesForTopLeagues(): Promise<LeagueWithMatches[]> {
+    console.log('[ServiceAdapter] 🔍 DEBUGGING: getRecentMatchesForTopLeagues called');
+    console.log('[ServiceAdapter] 🔍 DEBUGGING: activeService =', activeService);
+    
     switch (activeService) {
       case 'highlightly':
-        return highlightlyService.getRecentMatchesForTopLeagues();
+        console.log('[ServiceAdapter] 🔍 DEBUGGING: Calling highlightlyService.getRecentMatchesForTopLeagues()');
+        const result = await highlightlyService.getRecentMatchesForTopLeagues();
+        console.log('[ServiceAdapter] 🔍 DEBUGGING: Result from highlightlyService:', result.length, 'leagues');
+        return result;
       case 'mock':
       case 'supabase':
       default:
+        console.log('[ServiceAdapter] 🔍 DEBUGGING: Using fallback (empty array) for service:', activeService);
         // For now, only supported in highlightly service
         // Could implement fallbacks for other services later
         return [];
@@ -163,7 +170,9 @@ export const serviceAdapter = {
   async getMatchesForDate(dateString: string): Promise<LeagueWithMatches[]> {
     switch (activeService) {
       case 'highlightly':
-        return highlightlyService.getMatchesForDate(dateString);
+        // This function doesn't exist in highlightlyService, so return empty array
+        console.log('[ServiceAdapter] getMatchesForDate not implemented for highlightly service');
+        return [];
       case 'mock':
       case 'supabase':
       default:
@@ -222,14 +231,15 @@ export const serviceAdapter = {
       // Sort leagues by priority (Champions League, Premier League, etc. first)
       const leaguePriority = new Map([
         // Top 3 International Leagues (cross-border club competitions)
-        ['104', 1],   // UEFA Champions League (CORRECTED from API docs)
+        ['104', 1],   // UEFA Champions League (alternative ID)
+        ['2486', 1],  // UEFA Champions League (corrected from La Liga)
         ['3', 2],     // UEFA Europa League  
         ['34', 3],    // Copa Libertadores
         
         // Top 5 Domestic Leagues (highest-ranked national leagues)
         ['33973', 4], // Premier League
-        ['2486', 5],  // La Liga
-        ['94', 6],    // Serie A
+        ['119924', 5], // La Liga (corrected ID)
+        ['115669', 6], // Serie A (Italy)
         ['67162', 7], // Bundesliga
         ['52695', 8], // Ligue 1
         
@@ -262,7 +272,8 @@ export const serviceAdapter = {
   async debugLeagueApiData(): Promise<void> {
     switch (activeService) {
       case 'highlightly':
-        return highlightlyService.debugLeagueApiData();
+        console.log('[ServiceAdapter] debugLeagueApiData not implemented for highlightly service');
+        return;
       default:
         console.log('Debug function only available for highlightly service');
     }

@@ -38,6 +38,15 @@ const MatchDetails = () => {
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  const LEAGUE_ID_MAP: { [key: string]: number } = {
+    'UEFA Champions League': 2486,
+    'Premier League': 33973,
+    'La Liga': 119924, // Corrected ID
+    'Serie A': 115669, // Corrected ID
+    'Bundesliga': 67162,
+    'Ligue 1': 52695
+  };
+
   // Determine match status with more granular timing
   const getMatchTiming = () => {
     if (!match) return 'finished';
@@ -447,10 +456,11 @@ const MatchDetails = () => {
         () => {
           const leagueIdMap: {[key: string]: number} = {
             'Premier League': 33973,
-            'La Liga': 2486,
+            'UEFA Champions League': 2486, // Corrected from La Liga
+            'La Liga': 119924, // Corrected ID
             'Bundesliga': 67162,
             'Ligue 1': 52695,
-            'Serie A': 61205,
+            'Serie A': 115669, // Corrected ID
             'Eredivisie': 75672,
             'Primeira Liga': 80778,
             'Carioca': 2470, // Brazilian leagues

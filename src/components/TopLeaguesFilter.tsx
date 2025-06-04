@@ -19,13 +19,21 @@ interface TopLeaguesFilterProps {
   onLeagueSelect?: (leagueId: string | null) => void;
 }
 
+// Priority league IDs as specified by the user
+const PRIORITY_LEAGUE_IDS = [
+  '2486', '3337', '4188', '5890', '11847', '13549', 
+  '8443', '33973', '52695', '67162', '119924', '16102',
+  '115669', // Serie A (Italy)
+  '1635' // FIFA World Cup
+];
+
 // Helper function to get category display name
 const getCategoryDisplayName = (category: string): string => {
   switch (category) {
     case 'international-club':
       return 'International Club';
     case 'domestic':
-      return 'Top Domestic Leagues';
+      return 'Big 5 European Leagues';
     case 'international-tournament':
       return 'International Tournaments';
     default:
@@ -66,53 +74,66 @@ const getCategoryIcon = (category: string): JSX.Element => {
 // Helper function to categorize leagues based on their names and attributes
 const categorizeLeague = (league: any): 'international-club' | 'domestic' | 'international-tournament' => {
   const name = league.name.toLowerCase();
+  const leagueId = league.id?.toString();
   
-  // International club competitions
-  if (name.includes('champions league') || 
+  // International club competitions (only the big 3)
+  if (name.includes('uefa champions league') || 
+      name.includes('champions league') || 
+      leagueId === '2486' || // UEFA Champions League specific ID
+      name.includes('uefa europa league') || 
       name.includes('europa league') || 
-      name.includes('libertadores') ||
+      name.includes('conmebol libertadores') ||
       name.includes('copa libertadores') ||
-      name.includes('conference league')) {
+      name.includes('libertadores')) {
     return 'international-club';
   }
   
-  // International tournaments (national teams)
-  if (name.includes('world cup') || 
-      name.includes('euro') ||
+  // International tournaments (major national team competitions + AFC Cup)
+  if (leagueId === '1635' || // FIFA World Cup specifically by ID
+      (name.includes('world cup') && !name.includes('club') && !name.includes('fifa club')) || // FIFA World Cup by name (excluding club versions)
+      name.includes('euro championship') ||
+      name.includes('european championship') ||
+      name.includes('uefa euro') ||
+      (name.includes('euro') && name.includes('202')) || // Euro 2020, 2024, etc.
+      name.includes('africa cup of nations') ||
+      name.includes('afcon') ||
       name.includes('copa américa') ||
       name.includes('copa america') ||
-      name.includes('asian cup') ||
-      name.includes('afcon') ||
-      name.includes('africa cup')) {
+      name.includes('afc cup') || // AFC Cup moved here
+      name.includes('asian cup')) {
     return 'international-tournament';
   }
   
-  // Default to domestic leagues
+  // Top domestic leagues (Big 5 European leagues + specific IDs)
+  if ((name.includes('premier league') && !name.includes('australian') && !name.includes('south african')) ||
+      leagueId === '33973' || // Premier League specific ID
+      name.includes('la liga') || 
+      name.includes('laliga') ||
+      leagueId === '119924' || // La Liga alternative ID
+      (name.includes('serie a') && (leagueId === '115669' || name.includes('italy') || name.includes('italia'))) || // Serie A Italy specifically
+      (name.includes('bundesliga') && !name.includes('2.') && !name.includes('frauen')) ||
+      leagueId === '67162' || // Bundesliga specific ID
+      name.includes('ligue 1') ||
+      leagueId === '52695') {
+    return 'domestic';
+  }
+  
+  // Everything else defaults to 'domestic' but will be less prioritized
   return 'domestic';
 };
 
-// Helper function to get league priority for sorting
+// Helper function to get league priority based on exact ID matching
 const getLeaguePriority = (league: any): number => {
-  const name = league.name.toLowerCase();
+  const leagueId = league.id?.toString();
   
-  // International competitions (highest priority)
-  if (name.includes('champions league')) return 1;
-  if (name.includes('europa league')) return 2;
-  if (name.includes('libertadores')) return 3;
+  // Use exact ID matching for priority leagues
+  const priorityIndex = PRIORITY_LEAGUE_IDS.indexOf(leagueId);
+  if (priorityIndex !== -1) {
+    // Return priority based on position in array (lower index = higher priority)
+    return priorityIndex + 1;
+  }
   
-  // Major domestic leagues
-  if (name.includes('premier league') && !name.includes('australian')) return 10;
-  if (name.includes('la liga') || name.includes('laliga')) return 11;
-  if (name.includes('serie a') && !name.includes('brasil')) return 12;
-  if (name.includes('bundesliga') && !name.includes('2.')) return 13;
-  if (name.includes('ligue 1')) return 14;
-  
-  // International tournaments
-  if (name.includes('world cup')) return 20;
-  if (name.includes('euro')) return 21;
-  if (name.includes('copa américa') || name.includes('copa america')) return 22;
-  
-  // Default priority
+  // Default priority for non-priority leagues
   return 999;
 };
 
@@ -127,38 +148,136 @@ const TopLeaguesFilter: React.FC<TopLeaguesFilterProps> = ({
     new Set(['international-club', 'domestic']) // Default expanded categories
   );
 
-  // Fetch top leagues from API
+  // Fetch leagues from API with focus on priority IDs
   useEffect(() => {
     const fetchTopLeagues = async () => {
       try {
         setLoading(true);
-        console.log('[TopLeaguesFilter] Fetching leagues from API...');
+        console.log('[TopLeaguesFilter] Fetching ONLY priority leagues from API...');
+        console.log('[TopLeaguesFilter] Target priority league IDs:', PRIORITY_LEAGUE_IDS);
         
-        const response = await highlightlyClient.getLeagues({
-          limit: '50' // Get more leagues to filter from
+        // OPTIMIZED: Direct API calls for specific leagues using getLeagueById
+        // This is much more efficient than fetching 600+ leagues
+        const priorityLeagues: any[] = [];
+        
+        console.log('[TopLeaguesFilter] Fetching leagues by specific IDs...');
+        
+        // Fetch each priority league directly by ID
+        const leaguePromises = PRIORITY_LEAGUE_IDS.map(async (leagueId) => {
+          try {
+            console.log(`[TopLeaguesFilter] Fetching league ID: ${leagueId}`);
+            const response = await highlightlyClient.getLeagueById(leagueId);
+            
+            if (response && response.data) {
+              // Handle different response formats
+              let leagueData = null;
+              if (Array.isArray(response.data)) {
+                leagueData = response.data[0];
+              } else {
+                leagueData = response.data;
+              }
+              
+              if (leagueData && leagueData.id) {
+                console.log(`[TopLeaguesFilter] ✅ Found: ${leagueData.name} (ID: ${leagueData.id})`);
+                return { ...leagueData, id: leagueData.id.toString() };
+              }
+            } else if (response && !response.data && response.id) {
+              // Direct response format
+              console.log(`[TopLeaguesFilter] ✅ Found: ${response.name} (ID: ${response.id})`);
+              return { ...response, id: response.id.toString() };
+            }
+            
+            console.log(`[TopLeaguesFilter] ❌ League ${leagueId} not found or invalid response`);
+            return null;
+          } catch (error) {
+            console.log(`[TopLeaguesFilter] ❌ Error fetching league ${leagueId}:`, error.message);
+            return null;
+          }
         });
         
-        if (response.data && Array.isArray(response.data)) {
-          console.log(`[TopLeaguesFilter] Found ${response.data.length} leagues from API`);
+        // Wait for all leagues to be fetched
+        const leagueResults = await Promise.allSettled(leaguePromises);
+        
+        // Process results
+        leagueResults.forEach((result, index) => {
+          const leagueId = PRIORITY_LEAGUE_IDS[index];
+          if (result.status === 'fulfilled' && result.value) {
+            priorityLeagues.push(result.value);
+          } else {
+            console.log(`[TopLeaguesFilter] Failed to fetch league ${leagueId}:`, 
+              result.status === 'rejected' ? result.reason : 'No data');
+          }
+        });
+        
+        console.log(`[TopLeaguesFilter] Successfully fetched ${priorityLeagues.length}/${PRIORITY_LEAGUE_IDS.length} priority leagues`);
+        
+        if (priorityLeagues.length === 0) {
+          console.warn('[TopLeaguesFilter] No priority leagues found, falling back to pagination method');
           
-          // Transform API leagues to our format with categorization
-          const transformedLeagues: League[] = response.data
-            .map((league: any) => ({
-              id: league.id.toString(),
-              name: league.name,
-              logo: league.logo,
-              country: league.country,
-              category: categorizeLeague(league)
-            }))
-            .sort((a, b) => getLeaguePriority(a) - getLeaguePriority(b))
-            .slice(0, 15); // Limit to top 15 leagues
+          // Fallback: Use the original pagination method if direct fetching fails
+          let allLeagues: any[] = [];
+          let offset = 0;
+          const limit = 100;
           
-          setLeagues(transformedLeagues);
-          console.log('[TopLeaguesFilter] Processed leagues:', transformedLeagues.map(l => l.name));
-        } else {
-          console.warn('[TopLeaguesFilter] No leagues data found in API response');
-          setLeagues([]);
+          while (offset < 600) {
+            try {
+              const response = await highlightlyClient.getLeagues({
+                limit: limit.toString(),
+                offset: offset.toString()
+              });
+              
+              if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+                break;
+              }
+              
+              allLeagues.push(...response.data);
+              if (response.data.length < limit) break;
+              offset += limit;
+            } catch (error) {
+              console.error(`[TopLeaguesFilter] Pagination error at offset ${offset}:`, error);
+              break;
+            }
+          }
+          
+          // Filter to only priority leagues
+          priorityLeagues.push(...allLeagues.filter((league: any) => 
+            PRIORITY_LEAGUE_IDS.includes(league.id?.toString())
+          ));
         }
+        
+        // EXPLICITLY EXCLUDE unwanted leagues (like FIFA Club World Cup)
+        const filteredLeagues = priorityLeagues.filter((league: any) => {
+          const name = league.name?.toLowerCase() || '';
+          
+          // EXPLICITLY EXCLUDE FIFA Club World Cup by name
+          if (name.includes('fifa club world cup') || 
+              name.includes('club world cup') ||
+              (name.includes('club') && name.includes('world cup'))) {
+            console.log(`[TopLeaguesFilter] EXCLUDING Club World Cup: ${league.name} (ID: ${league.id})`);
+            return false;
+          }
+          
+          return true;
+        });
+        
+        // Transform API leagues to our format with categorization
+        const transformedLeagues: League[] = filteredLeagues
+          .map((league: any) => ({
+            id: league.id.toString(),
+            name: league.name,
+            logo: league.logo,
+            country: league.country,
+            category: categorizeLeague(league)
+          }))
+          .sort((a, b) => getLeaguePriority(a) - getLeaguePriority(b));
+        
+        setLeagues(transformedLeagues);
+        console.log('[TopLeaguesFilter] Processed priority leagues:', transformedLeagues.map(l => ({
+          id: l.id,
+          name: l.name,
+          priority: getLeaguePriority(l),
+          isPriorityLeague: PRIORITY_LEAGUE_IDS.includes(l.id)
+        })));
       } catch (error) {
         console.error('[TopLeaguesFilter] Error fetching leagues:', error);
         setLeagues([]);
@@ -245,7 +364,7 @@ const TopLeaguesFilter: React.FC<TopLeaguesFilterProps> = ({
             <svg className="w-5 h-5 text-yellow-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            <span className="text-white font-semibold">Loading Leagues...</span>
+            <span className="text-white font-semibold">Loading Priority Leagues...</span>
           </div>
         </div>
         <div className="p-4">
@@ -269,7 +388,7 @@ const TopLeaguesFilter: React.FC<TopLeaguesFilterProps> = ({
           <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
           </svg>
-          <span className="text-white font-semibold">Top Leagues</span>
+          <span className="text-white font-semibold">Featured Leagues</span>
           <span className="text-gray-400 text-sm">({leagues.length})</span>
         </div>
       </div>
@@ -277,8 +396,8 @@ const TopLeaguesFilter: React.FC<TopLeaguesFilterProps> = ({
       <div className="p-4">
         {leagues.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">No leagues available</div>
-            <div className="text-gray-500 text-sm">Unable to load leagues from API</div>
+            <div className="text-gray-400 mb-2">No featured leagues available</div>
+            <div className="text-gray-500 text-sm">Unable to load priority leagues from API</div>
           </div>
         ) : (
           /* Categories */
@@ -311,47 +430,57 @@ const TopLeaguesFilter: React.FC<TopLeaguesFilterProps> = ({
                   {/* Leagues in Category */}
                   {isExpanded && (
                     <div className="ml-4 space-y-1">
-                      {categoryLeagues.map((league) => (
-                        <button
-                          key={league.id}
-                          onClick={() => handleLeagueClick(league.id)}
-                          className={`
-                            w-full bg-[#0a0a0a] rounded-lg p-3 flex items-center gap-3
-                            transition-all duration-200 hover:bg-[#121212] border
-                            ${selectedLeagueId === league.id
-                              ? 'border-yellow-400/50 ring-1 ring-yellow-400/30 text-white' 
-                              : 'border-transparent text-gray-400 hover:text-white hover:border-gray-600/50'
-                            }
-                          `}
-                        >
-                          {/* League Icon */}
-                          <div className="flex-shrink-0">
-                            {getLeagueIcon(league)}
-                          </div>
-                          
-                          {/* League Info */}
-                          <div className="flex-1 text-left min-w-0">
-                            <div className={`
-                              font-medium leading-tight truncate
-                              ${selectedLeagueId === league.id ? 'text-white' : 'text-gray-300'}
-                            `}>
-                              {league.name}
+                      {categoryLeagues.map((league) => {
+                        const isPriorityLeague = PRIORITY_LEAGUE_IDS.includes(league.id);
+                        
+                        return (
+                          <button
+                            key={league.id}
+                            onClick={() => handleLeagueClick(league.id)}
+                            className={`
+                              w-full bg-[#0a0a0a] rounded-lg p-3 flex items-center gap-3
+                              transition-all duration-200 hover:bg-[#121212] border
+                              ${selectedLeagueId === league.id
+                                ? 'border-yellow-400/50 ring-1 ring-yellow-400/30 text-white' 
+                                : 'border-transparent text-gray-400 hover:text-white hover:border-gray-600/50'
+                              }
+                              ${isPriorityLeague ? 'ring-1 ring-blue-500/20 border-blue-500/30' : ''}
+                            `}
+                          >
+                            {/* League Icon */}
+                            <div className="flex-shrink-0">
+                              {getLeagueIcon(league)}
                             </div>
-                            {league.country && (
-                              <div className="text-xs text-gray-500 truncate">
-                                {league.country.name}
+                            
+                            {/* League Info */}
+                            <div className="flex-1 text-left min-w-0">
+                              <div className={`
+                                font-medium leading-tight truncate flex items-center gap-2
+                                ${selectedLeagueId === league.id ? 'text-white' : 'text-gray-300'}
+                              `}>
+                                {league.name}
+                                {isPriorityLeague && (
+                                  <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded font-bold">
+                                    FEATURED
+                                  </span>
+                                )}
                               </div>
-                            )}
-                          </div>
-                          
-                          {/* Arrow Icon */}
-                          <div className="flex-shrink-0">
-                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
-                        </button>
-                      ))}
+                              {league.country && (
+                                <div className="text-xs text-gray-500 truncate">
+                                  {league.country.name}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Arrow Icon */}
+                            <div className="flex-shrink-0">
+                              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -363,7 +492,7 @@ const TopLeaguesFilter: React.FC<TopLeaguesFilterProps> = ({
         {/* Footer Info */}
         <div className="mt-6 pt-4 border-t border-gray-700/30">
           <p className="text-xs text-gray-500 text-center">
-            Click any league to view detailed information, standings, and recent matches
+            Showcasing featured leagues and tournaments. Click any league to view detailed information.
           </p>
         </div>
       </div>

@@ -2,11 +2,12 @@
 export const LEAGUE_COUNTRY_MAPPING: Record<string, string> = {
   // UEFA Competitions
   '2': 'EU', '3': 'EU', '848': 'EU', // UEFA competitions
+  '2486': 'EU', // UEFA Champions League (corrected from ES/La Liga)
   
   // Major domestic leagues (1st tier)
   '33973': 'GB', // Premier League
-  '2486': 'ES', // La Liga
-  '94': 'IT', // Serie A
+  '119924': 'ES', // La Liga (corrected ID)
+  '115669': 'IT', // Serie A (Italy)
   '67162': 'DE', // Bundesliga
   '52695': 'FR', // Ligue 1
   '216087': 'US', '253': 'US', // MLS

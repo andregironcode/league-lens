@@ -105,12 +105,15 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
     if (!isNavigating) {
       try {
         setIsNavigating(true);
+        
         console.log(`[MatchRow] Navigating to match details for ID: ${match.id}, status: ${isUpcoming ? 'upcoming' : isLive ? 'live' : 'finished'}`);
         
         // Route finished matches to Full-time Summary page
         if (isFinished) {
+          console.log(`[MatchRow] 🎯 ROUTING FINISHED MATCH to /fulltime/${match.id}`);
           navigate(`/fulltime/${match.id}`);
         } else {
+          console.log(`[MatchRow] 🎯 ROUTING NON-FINISHED MATCH to /match/${match.id}`);
           navigate(`/match/${match.id}`);
         }
       } catch (error) {

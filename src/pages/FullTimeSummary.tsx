@@ -618,8 +618,8 @@ const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any; matchStatistics?
                 <div 
                   className={`h-2 ${homeIsLeading ? 'bg-yellow-400' : 'bg-gray-600'} rounded-l transition-all duration-300`}
                   style={{ width: `${homeWidth}%` }}
-                        />
-                      </div>
+                />
+              </div>
               
               {/* Center divider */}
               <div className="w-px h-4 bg-gray-500 mx-1" />
@@ -629,11 +629,11 @@ const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any; matchStatistics?
                 <div 
                   className={`h-2 ${awayIsLeading ? 'bg-yellow-400' : 'bg-gray-600'} rounded-r transition-all duration-300`}
                   style={{ width: `${awayWidth}%` }}
-                      />
-                    </div>
+                />
               </div>
             </div>
-          );
+          </div>
+        );
         })}
       
       {/* Debug info for development */}
@@ -765,15 +765,36 @@ const LeagueStandingsChart: React.FC<{
           
           // Handle response format - API returns groups with standings
           let standingsData = [];
+          let groupInfo = null;
+          
           if (response.groups && Array.isArray(response.groups) && response.groups.length > 0) {
-            // Use first group's standings
-            standingsData = response.groups[0].standings || [];
-            console.log(`[FullTimeSummary] Using response.groups[0].standings`);
+            console.log(`[FullTimeSummary] 🔍 Found ${response.groups.length} groups in API response`);
+            
+            // For leagues with multiple groups (like Champions League), combine all groups
+            // For regular leagues, there should be only one group with all teams
+            if (response.groups.length === 1) {
+              // Single group - likely a regular league
+              standingsData = response.groups[0].standings || [];
+              groupInfo = response.groups[0].name || null;
+              console.log(`[FullTimeSummary] Using single group: ${groupInfo || 'Main Group'} - ${standingsData.length} teams`);
+            } else {
+              // Multiple groups - likely a tournament (Champions League, etc.)
+              // For now, show the first group but indicate there are more
+              standingsData = response.groups[0].standings || [];
+              groupInfo = `${response.groups[0].name || 'Group A'} (${response.groups.length} groups total)`;
+              console.log(`[FullTimeSummary] Multiple groups detected! Showing first group: ${groupInfo}`);
+              console.log(`[FullTimeSummary] All groups:`, response.groups.map((g: any, i: number) => ({
+                index: i,
+                name: g.name || `Group ${i + 1}`,
+                teamsCount: g.standings?.length || 0
+              })));
+            }
           } else if (Array.isArray(response)) {
             standingsData = response;
-            console.log(`[FullTimeSummary] Using direct array response`);
+            console.log(`[FullTimeSummary] Using direct array response - ${standingsData.length} teams`);
           } else if (response.data && Array.isArray(response.data)) {
             standingsData = response.data;
+            console.log(`[FullTimeSummary] Using response.data array - ${standingsData.length} teams`);
             console.log(`[FullTimeSummary] Using response.data array`);
           } else if (response.league && response.league.standings) {
             standingsData = response.league.standings[0] || []; // First group of standings
@@ -793,6 +814,12 @@ const LeagueStandingsChart: React.FC<{
           // Map the API response format to our expected format
           const mappedStandings = standingsData.map((standing: any, index: number) => {
             console.log(`[FullTimeSummary] Mapping standing ${index}:`, JSON.stringify(standing, null, 2));
+            
+            // The API provides home/away/total breakdown
+            const homeStats = standing.home || {};
+            const awayStats = standing.away || {};
+            const totalStats = standing.total || {};
+            
             return {
               position: standing.position || index + 1,
               team: {
@@ -800,14 +827,31 @@ const LeagueStandingsChart: React.FC<{
                 name: standing.team?.name || '',
                 logo: standing.team?.logo || ''
               },
-              points: standing.points || standing.total?.points || 0,
-              played: standing.total?.games || standing.total?.played || 0,
-              won: standing.total?.wins || 0,
-              drawn: standing.total?.draws || 0,
-              lost: standing.total?.loses || standing.total?.lost || 0,
-              goalsFor: standing.total?.scoredGoals || standing.total?.goalsFor || 0,
-              goalsAgainst: standing.total?.receivedGoals || standing.total?.goalsAgainst || 0,
-              goalDifference: (standing.total?.scoredGoals || 0) - (standing.total?.receivedGoals || 0)
+              points: standing.points || 0,
+              played: totalStats.games || totalStats.played || 0,
+              won: totalStats.wins || 0,
+              drawn: totalStats.draws || 0,
+              lost: totalStats.loses || totalStats.lost || 0, // Note: API uses "loses"
+              goalsFor: totalStats.scoredGoals || totalStats.goalsFor || 0,
+              goalsAgainst: totalStats.receivedGoals || totalStats.goalsAgainst || 0,
+              goalDifference: (totalStats.scoredGoals || 0) - (totalStats.receivedGoals || 0),
+              // Additional breakdown data
+              homeRecord: {
+                played: homeStats.games || 0,
+                won: homeStats.wins || 0,
+                drawn: homeStats.draws || 0,
+                lost: homeStats.loses || 0,
+                goalsFor: homeStats.scoredGoals || 0,
+                goalsAgainst: homeStats.receivedGoals || 0
+              },
+              awayRecord: {
+                played: awayStats.games || 0,
+                won: awayStats.wins || 0,
+                drawn: awayStats.draws || 0,
+                lost: awayStats.loses || 0,
+                goalsFor: awayStats.scoredGoals || 0,
+                goalsAgainst: awayStats.receivedGoals || 0
+              }
             };
           });
           
@@ -850,22 +894,28 @@ const LeagueStandingsChart: React.FC<{
                 standingsData = fallbackResponse.league.standings[0] || [];
               }
               
-              const mappedStandings = standingsData.map((standing: any, index: number) => ({
-                position: standing.position || index + 1,
-                team: {
-                  id: standing.team?.id || '',
-                  name: standing.team?.name || '',
-                  logo: standing.team?.logo || ''
-                },
-                points: standing.points || standing.total?.points || 0,
-                played: standing.total?.games || standing.total?.played || 0,
-                won: standing.total?.wins || 0,
-                drawn: standing.total?.draws || 0,
-                lost: standing.total?.loses || standing.total?.lost || 0,
-                goalsFor: standing.total?.scoredGoals || standing.total?.goalsFor || 0,
-                goalsAgainst: standing.total?.receivedGoals || standing.total?.goalsAgainst || 0,
-                goalDifference: (standing.total?.scoredGoals || 0) - (standing.total?.receivedGoals || 0)
-              }));
+              const mappedStandings = standingsData.map((standing: any, index: number) => {
+                const homeStats = standing.home || {};
+                const awayStats = standing.away || {};
+                const totalStats = standing.total || {};
+                
+                return {
+                  position: standing.position || index + 1,
+                  team: {
+                    id: standing.team?.id || '',
+                    name: standing.team?.name || '',
+                    logo: standing.team?.logo || ''
+                  },
+                  points: standing.points || 0,
+                  played: totalStats.games || totalStats.played || 0,
+                  won: totalStats.wins || 0,
+                  drawn: totalStats.draws || 0,
+                  lost: totalStats.loses || totalStats.lost || 0,
+                  goalsFor: totalStats.scoredGoals || totalStats.goalsFor || 0,
+                  goalsAgainst: totalStats.receivedGoals || totalStats.goalsAgainst || 0,
+                  goalDifference: (totalStats.scoredGoals || 0) - (totalStats.receivedGoals || 0)
+                };
+              });
               
               console.log(`[FullTimeSummary] ✅ Fallback success! Using 2024 data (${mappedStandings.length} teams)`);
               setStandings(mappedStandings);
@@ -917,39 +967,51 @@ const LeagueStandingsChart: React.FC<{
         <div className="text-gray-400 text-sm">
           <div className="mb-3">
             <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
-              <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
-              </div>
+              <div className="w-8 h-8 border-l-4 border-yellow-400 rounded-full animate-spin"></div>
             </div>
+          </div>
           <p className="text-white font-medium text-base mb-3">Loading League Standings...</p>
           <p className="text-sm mb-4 max-w-md mx-auto">
-            Fetching the latest standings for {competition.name} to show where both teams currently rank.
+            Fetching the latest standings for {competition.name} ({competition.id}) from the {matchSeason} season.
           </p>
+          <div className="text-xs text-gray-500">
+            This may take a few moments for leagues with many teams.
           </div>
-              </div>
+        </div>
+      </div>
     );
   }
 
   if (error || standings.length === 0) {
     return (
-              <div className="text-center py-8">
-                <div className="text-gray-400 text-sm">
-                  <div className="mb-3">
-                    <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+      <div className="text-center py-8">
+        <div className="text-gray-400 text-sm">
+          <div className="mb-3">
+            <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
               <div className="text-2xl">📊</div>
-                    </div>
-                  </div>
+            </div>
+          </div>
           <p className="text-white font-medium text-base mb-3">Standings Not Available</p>
-                  <p className="text-sm mb-4 max-w-md mx-auto">
-            {error || `League standings are not available for ${competition.name} at this time.`}
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
-                    <div className="flex items-center text-blue-400">
+          <p className="text-sm mb-4 max-w-md mx-auto">
+            {error || `League standings are not available for ${competition.name} (${competition.id}) for the ${matchSeason} season.`}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
+            <div className="flex items-center text-blue-400">
               <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-              Check back later for updates
-                    </div>
-                  </div>
-                </div>
-              </div>
+              May be available during active season
+            </div>
+            <span className="hidden sm:inline text-gray-600">•</span>
+            <div className="flex items-center text-yellow-400">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+              Match statistics available above
+            </div>
+          </div>
+          {/* Debug info for development */}
+          <div className="mt-4 text-xs text-gray-600">
+            Competition: {competition.name} • ID: {competition.id} • Season: {matchSeason}
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -964,11 +1026,17 @@ const LeagueStandingsChart: React.FC<{
             className="w-8 h-8 object-contain" 
           />
           <div className="text-white font-medium text-lg">{competition.name}</div>
-          </div>
+        </div>
         <div className="text-gray-400 text-sm">
           {matchSeason} Season • {standings.length} Teams
-          </div>
-          </div>
+          {/* Show if this is from a specific group */}
+          {(standings as any).groupName && (
+            <span className="ml-2 px-2 py-1 bg-gray-800 rounded text-xs">
+              {(standings as any).groupName}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Standings Table */}
       <div className="overflow-x-auto">
@@ -977,14 +1045,14 @@ const LeagueStandingsChart: React.FC<{
             <tr className="text-xs text-gray-400 uppercase tracking-wider">
               <th className="px-2 py-3 text-left w-12">#</th>
               <th className="px-3 py-3 text-left min-w-[180px]">Team</th>
-              <th className="px-2 py-3 text-center w-10">P</th>
-              <th className="px-2 py-3 text-center w-10">W</th>
-              <th className="px-2 py-3 text-center w-10">D</th>
-              <th className="px-2 py-3 text-center w-10">L</th>
-              <th className="px-2 py-3 text-center w-12 hidden sm:table-cell">GF</th>
-              <th className="px-2 py-3 text-center w-12 hidden sm:table-cell">GA</th>
-              <th className="px-2 py-3 text-center w-12">GD</th>
-              <th className="px-2 py-3 text-center w-12 font-semibold">Pts</th>
+              <th className="px-2 py-3 text-center w-10" title="Played">P</th>
+              <th className="px-2 py-3 text-center w-10" title="Won">W</th>
+              <th className="px-2 py-3 text-center w-10" title="Drawn">D</th>
+              <th className="px-2 py-3 text-center w-10" title="Lost">L</th>
+              <th className="px-2 py-3 text-center w-12 hidden sm:table-cell" title="Goals For">GF</th>
+              <th className="px-2 py-3 text-center w-12 hidden sm:table-cell" title="Goals Against">GA</th>
+              <th className="px-2 py-3 text-center w-12" title="Goal Difference">GD</th>
+              <th className="px-2 py-3 text-center w-12 font-semibold" title="Points">Pts</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700/30">
@@ -996,6 +1064,7 @@ const LeagueStandingsChart: React.FC<{
                     ? `${getTeamHighlightColor(standing.team.name)} border-l-2` 
                     : ''
                 }`}
+                title={`${standing.team.name}: ${standing.won}W ${standing.drawn}D ${standing.lost}L`}
               >
                 <td className="px-2 py-3 text-center">
                   <span className={`text-sm font-medium ${
@@ -1010,18 +1079,21 @@ const LeagueStandingsChart: React.FC<{
                       src={standing.team.logo} 
                       alt={standing.team.name}
                       className="w-6 h-6 object-contain" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                     <span className={`text-sm font-medium truncate ${
                       isMatchTeam(standing.team.name) ? 'text-white' : 'text-gray-300'
                     }`}>
                       {standing.team.name}
                     </span>
-                          </div>
+                  </div>
                 </td>
                 <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.played}</td>
-                <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.won}</td>
-                <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.drawn}</td>
-                <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.lost}</td>
+                <td className="px-2 py-3 text-center text-sm text-green-400">{standing.won}</td>
+                <td className="px-2 py-3 text-center text-sm text-yellow-400">{standing.drawn}</td>
+                <td className="px-2 py-3 text-center text-sm text-red-400">{standing.lost}</td>
                 <td className="px-2 py-3 text-center text-sm text-gray-300 hidden sm:table-cell">{standing.goalsFor}</td>
                 <td className="px-2 py-3 text-center text-sm text-gray-300 hidden sm:table-cell">{standing.goalsAgainst}</td>
                 <td className="px-2 py-3 text-center text-sm">
@@ -1043,30 +1115,30 @@ const LeagueStandingsChart: React.FC<{
             ))}
           </tbody>
         </table>
-                      </div>
+      </div>
 
-      {/* Legend */}
+      {/* Enhanced Legend */}
       <div className="flex flex-wrap gap-4 justify-center text-xs text-gray-400 mt-4">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-blue-900/30 border border-blue-500/50 rounded"></div>
           <span>{homeTeam.name}</span>
-                      </div>
+        </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-red-900/30 border border-red-500/50 rounded"></div>
           <span>{awayTeam.name}</span>
-                      </div>
-        <div className="hidden sm:flex items-center gap-2 ml-4">
+        </div>
+        <div className="hidden sm:flex items-center gap-6 ml-4 text-gray-500">
           <span>P: Played</span>
-          <span>W: Won</span>
-          <span>D: Drawn</span>
-          <span>L: Lost</span>
+          <span className="text-green-400">W: Won</span>
+          <span className="text-yellow-400">D: Drawn</span>
+          <span className="text-red-400">L: Lost</span>
           <span>GF: Goals For</span>
           <span>GA: Goals Against</span>
           <span>GD: Goal Difference</span>
           <span>Pts: Points</span>
-                      </div>
-                          </div>
-                      </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -1764,6 +1836,37 @@ const FullTimeSummary: React.FC = () => {
                   minute: '2-digit', 
                   hour12: false 
                 })}
+                
+                {/* Additional Match Metadata */}
+                <div className="mt-3 flex justify-center items-center gap-4 text-xs">
+                  {(match as any).round && (
+                    <span className="bg-gray-800/50 px-2 py-1 rounded">
+                      {(match as any).round}
+                    </span>
+                  )}
+                  {(match as any).country && (
+                    <div className="flex items-center gap-1">
+                      {(match as any).country.logo && (
+                        <img 
+                          src={(match as any).country.logo} 
+                          alt={(match as any).country.name}
+                          className="w-4 h-4 object-contain"
+                        />
+                      )}
+                      <span>{(match as any).country.name}</span>
+                    </div>
+                  )}
+                  {match.competition && (
+                    <div className="flex items-center gap-1">
+                      <img 
+                        src={match.competition.logo} 
+                        alt={match.competition.name}
+                        className="w-4 h-4 object-contain"
+                      />
+                      <span>{match.competition.name}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1791,34 +1894,35 @@ const FullTimeSummary: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                    <div className="text-gray-400 text-sm">
+                <div className="text-gray-400 text-sm">
                   <div className="mb-3">
                     <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
-                      <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
+                      <div className="text-2xl">🎬</div>
                     </div>
                   </div>
-                  <p className="text-white font-medium text-base mb-3">Highlights Coming Soon</p>
+                  <p className="text-white font-medium text-base mb-3">Video Highlights Not Available</p>
                   <p className="text-sm mb-4 max-w-md mx-auto">
-                    Match highlights are being processed and will be available shortly after the final whistle. 
-                    Our team is working to bring you the best moments from this match.
+                    Video highlights are not included in the current API response for this match. 
+                    However, detailed match statistics, events, and news coverage are available above.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
-                    <div className="flex items-center text-blue-400">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
-                      Usually available within 2-4 hours
+                    <div className="flex items-center text-green-400">
+                      <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                      Match events & timeline available
                     </div>
                     <span className="hidden sm:inline text-gray-600">•</span>
-                    <button 
-                      onClick={() => {
-                        window.location.href = 'mailto:support@leaguelens.com?subject=Match%20Highlights%20Request&body=Hi,%20I%27m%20looking%20for%20highlights%20for%20the%20match%20' + encodeURIComponent(`${match.homeTeam.name} vs ${match.awayTeam.name}`) + '%20on%20' + encodeURIComponent(new Date(match.date).toLocaleDateString());
-                      }}
-                      className="text-yellow-400 hover:text-yellow-300 transition-colors underline"
-                    >
-                      Contact Support
-                    </button>
-                  </div>
+                    <div className="flex items-center text-yellow-400">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+                      Full match statistics above
+                    </div>
+                    <span className="hidden sm:inline text-gray-600">•</span>
+                    <div className="flex items-center text-purple-400">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full mr-2"></div>
+                      News coverage below
                     </div>
                   </div>
+                </div>
+              </div>
             )}
           </div>
 
@@ -1834,6 +1938,263 @@ const FullTimeSummary: React.FC = () => {
             
             <MatchStatsChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchStatistics={match.statistics} />
         </div>
+
+        {/* Enhanced Match Data - News, Predictions, Top Players */}
+        {(match as any).news && (match as any).news.length > 0 && (
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH NEWS</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(match as any).news.slice(0, 6).map((article: any, index: number) => (
+                <a 
+                  key={index}
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-gray-900/50 rounded-lg p-4 hover:bg-gray-800/50 transition-colors border border-gray-700/50"
+                >
+                  {article.image && (
+                    <img 
+                      src={article.image} 
+                      alt={article.title}
+                      className="w-full h-32 object-cover rounded mb-3"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <h5 className="text-white text-sm font-medium mb-2 line-clamp-2">{article.title}</h5>
+                  <p className="text-gray-400 text-xs">
+                    {article.datePublished ? new Date(article.datePublished).toLocaleDateString() : 'Recent'}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Match Predictions */}
+        {(match as any).predictions && (
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH PREDICTIONS</h4>
+            
+            {(match as any).predictions.prematch && (match as any).predictions.prematch.length > 0 && (
+              <div className="mb-6">
+                <h5 className="text-gray-300 text-sm font-medium mb-4">Pre-Match Prediction</h5>
+                {(() => {
+                  const latest = (match as any).predictions.prematch[(match as any).predictions.prematch.length - 1];
+                  return (
+                    <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+                      <p className="text-white text-sm mb-3">{latest.description}</p>
+                      <div className="flex justify-between items-center">
+                        <div className="text-center">
+                          <div className="text-blue-400 font-bold">{latest.probabilities.home}</div>
+                          <div className="text-gray-400 text-xs">{match.homeTeam.name}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-gray-400 font-bold">{latest.probabilities.draw}</div>
+                          <div className="text-gray-400 text-xs">Draw</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-red-400 font-bold">{latest.probabilities.away}</div>
+                          <div className="text-gray-400 text-xs">{match.awayTeam.name}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {(match as any).predictions.live && (match as any).predictions.live.length > 0 && (
+              <div>
+                <h5 className="text-gray-300 text-sm font-medium mb-4">Live Predictions</h5>
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {(match as any).predictions.live.slice(-3).map((prediction: any, index: number) => (
+                    <div key={index} className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                      <div className="flex justify-between items-center text-xs mb-2">
+                        <span className="text-gray-400">
+                          {new Date(prediction.generatedAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-center">
+                          <div className="text-blue-400 text-sm font-medium">{prediction.probabilities.home}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-gray-400 text-sm">{prediction.probabilities.draw}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-red-400 text-sm font-medium">{prediction.probabilities.away}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Top Players Performance */}
+        {((match as any).homeTeam?.topPlayers || (match as any).awayTeam?.topPlayers) && (
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            <h4 className="text-lg font-semibold mb-6 text-center text-white">TOP PLAYERS</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Home Team Top Players */}
+              {(match as any).homeTeam?.topPlayers && (
+                <div>
+                  <h5 className="text-gray-300 text-sm font-medium mb-4 text-center">{match.homeTeam.name}</h5>
+                  <div className="space-y-3">
+                    {(match as any).homeTeam.topPlayers.slice(0, 3).map((player: any, index: number) => (
+                      <div key={index} className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="text-white text-sm font-medium">{player.name}</div>
+                            <div className="text-gray-400 text-xs">{player.position}</div>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {player.statistics?.slice(0, 3).map((stat: any, statIndex: number) => (
+                            <div key={statIndex} className="bg-black/30 rounded px-2 py-1">
+                              <div className="text-white text-xs font-medium">{stat.value}</div>
+                              <div className="text-gray-400 text-xs">{stat.name}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Away Team Top Players */}
+              {(match as any).awayTeam?.topPlayers && (
+                <div>
+                  <h5 className="text-gray-300 text-sm font-medium mb-4 text-center">{match.awayTeam.name}</h5>
+                  <div className="space-y-3">
+                    {(match as any).awayTeam.topPlayers.slice(0, 3).map((player: any, index: number) => (
+                      <div key={index} className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="text-white text-sm font-medium">{player.name}</div>
+                            <div className="text-gray-400 text-xs">{player.position}</div>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {player.statistics?.slice(0, 3).map((stat: any, statIndex: number) => (
+                            <div key={statIndex} className="bg-black/30 rounded px-2 py-1">
+                              <div className="text-white text-xs font-medium">{stat.value}</div>
+                              <div className="text-gray-400 text-xs">{stat.name}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Shots Analysis */}
+        {((match as any).homeTeam?.shots || (match as any).awayTeam?.shots) && (
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            <h4 className="text-lg font-semibold mb-6 text-center text-white">SHOTS ANALYSIS</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Home Team Shots */}
+              {(match as any).homeTeam?.shots && (
+                <div>
+                  <h5 className="text-gray-300 text-sm font-medium mb-4 text-center">{match.homeTeam.name}</h5>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {(match as any).homeTeam.shots.map((shot: any, index: number) => (
+                      <div key={index} className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="text-white text-sm">{shot.playerName}</div>
+                            <div className="text-gray-400 text-xs">{shot.time}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-sm font-medium ${
+                              shot.outcome === 'Goal' ? 'text-green-400' :
+                              shot.outcome === 'Saved' ? 'text-yellow-400' :
+                              shot.outcome === 'Blocked' ? 'text-red-400' :
+                              'text-gray-400'
+                            }`}>
+                              {shot.outcome}
+                            </div>
+                            {shot.goalTarget && (
+                              <div className="text-gray-400 text-xs">{shot.goalTarget}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Away Team Shots */}
+              {(match as any).awayTeam?.shots && (
+                <div>
+                  <h5 className="text-gray-300 text-sm font-medium mb-4 text-center">{match.awayTeam.name}</h5>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {(match as any).awayTeam.shots.map((shot: any, index: number) => (
+                      <div key={index} className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="text-white text-sm">{shot.playerName}</div>
+                            <div className="text-gray-400 text-xs">{shot.time}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-sm font-medium ${
+                              shot.outcome === 'Goal' ? 'text-green-400' :
+                              shot.outcome === 'Saved' ? 'text-yellow-400' :
+                              shot.outcome === 'Blocked' ? 'text-red-400' :
+                              'text-gray-400'
+                            }`}>
+                              {shot.outcome}
+                            </div>
+                            {shot.goalTarget && (
+                              <div className="text-gray-400 text-xs">{shot.goalTarget}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Team Lineups */}
           <div 
@@ -1883,6 +2244,62 @@ const FullTimeSummary: React.FC = () => {
             competition={match.competition}
           />
       </div>
+
+        {/* Match Information - Venue, Referee, etc. */}
+        {((match as any).venue || (match as any).referee) && (
+          <div 
+            className="rounded-xl p-6 border overflow-hidden"
+            style={{
+              background: '#000000',
+              border: '1px solid #1B1B1B'
+            }}
+          >
+            <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH INFORMATION</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Venue Information */}
+              {(match as any).venue && (
+                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+                  <h5 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
+                    <MapPin size={16} className="text-yellow-400" />
+                    Venue
+                  </h5>
+                  <div className="space-y-2">
+                    <div className="text-white font-medium">{(match as any).venue.name}</div>
+                    {(match as any).venue.city && (
+                      <div className="text-gray-400 text-sm">
+                        {(match as any).venue.city}, {(match as any).venue.country}
+                      </div>
+                    )}
+                    {(match as any).venue.capacity && (
+                      <div className="text-gray-400 text-sm">
+                        Capacity: {parseInt((match as any).venue.capacity).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Referee Information */}
+              {(match as any).referee && (
+                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+                  <h5 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
+                    <User size={16} className="text-yellow-400" />
+                    Referee
+                  </h5>
+                  <div className="space-y-2">
+                    <div className="text-white font-medium">{(match as any).referee.name}</div>
+                    {(match as any).referee.nationality && (
+                      <div className="text-gray-400 text-sm">
+                        {(match as any).referee.nationality}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         </div>
       </div>
   );
@@ -1899,25 +2316,31 @@ const TeamLineupsChart: React.FC<{ homeTeam: any; awayTeam: any; lineups?: any }
   if (!lineups || (!lineups.homeTeam && !lineups.awayTeam)) {
     return (
       <div className="text-center py-8">
-                    <div className="text-gray-400 text-sm">
+        <div className="text-gray-400 text-sm">
           <div className="mb-3">
             <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
-              <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
-                    </div>
-                  </div>
-          <p className="text-white font-medium text-base mb-3">Lineups Coming Soon</p>
+              <div className="text-2xl">⚽</div>
+            </div>
+          </div>
+          <p className="text-white font-medium text-base mb-3">Team Lineups Not Available</p>
           <p className="text-sm mb-4 max-w-md mx-auto">
-            Team lineups will be available 30 minutes before kickoff or shortly after the match begins.
+            Detailed team lineups and formations are typically available for live or upcoming matches only. 
+            For finished matches, this information is often not retained in the database.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
             <div className="flex items-center text-blue-400">
-              <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
-              Usually available 30 minutes before kickoff
-                  </div>
-                            </div>
-                      </div>
-                            </div>
-                          );
+              <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+              Check live matches for lineup information
+            </div>
+            <span className="hidden sm:inline text-gray-600">•</span>
+            <div className="flex items-center text-yellow-400">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+              Player statistics available above
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const renderTeamLineup = (team: any, isHome: boolean) => {

@@ -16,31 +16,26 @@ interface LeagueFilterSidebarProps {
   hasMatches?: boolean;
 }
 
-// Helper function to get league priority for sorting
+// Priority league IDs as specified by the user
+const PRIORITY_LEAGUE_IDS = [
+  '2486', '3337', '4188', '5890', '11847', '13549', 
+  '8443', '33973', '52695', '67162', '119924', '16102',
+  '115669', // Serie A (Italy)
+  '1635' // FIFA World Cup
+];
+
+// Helper function to get league priority based on exact ID matching
 const getLeaguePriority = (league: any): number => {
-  const name = league.name.toLowerCase();
+  const leagueId = league.id?.toString();
   
-  // International competitions (highest priority)
-  if (name.includes('champions league')) return 1;
-  if (name.includes('europa league')) return 2;
-  if (name.includes('world cup')) return 3;
-  if (name.includes('european championship') || name.includes('euro')) return 4;
-  if (name.includes('libertadores')) return 5;
+  // Use exact ID matching for priority leagues
+  const priorityIndex = PRIORITY_LEAGUE_IDS.indexOf(leagueId);
+  if (priorityIndex !== -1) {
+    // Return priority based on position in array (lower index = higher priority)
+    return priorityIndex + 1;
+  }
   
-  // Major domestic leagues
-  if (name.includes('premier league') && !name.includes('australian')) return 10;
-  if (name.includes('la liga') || name.includes('laliga')) return 11;
-  if (name.includes('serie a') && !name.includes('brasil')) return 12;
-  if (name.includes('bundesliga') && !name.includes('2.')) return 13;
-  if (name.includes('ligue 1')) return 14;
-  if (name.includes('liga portugal') || name.includes('primeira liga')) return 15;
-  if (name.includes('major league soccer') || name.includes('mls')) return 16;
-  if (name.includes('eredivisie')) return 17;
-  if (name.includes('série a') && name.includes('brasil')) return 18;
-  if (name.includes('primera división') && name.includes('argen')) return 19;
-  if (name.includes('pro league') && name.includes('saudi')) return 20;
-  
-  // Default priority
+  // Default priority for non-priority leagues
   return 999;
 };
 
@@ -54,22 +49,47 @@ const LeagueFilterSidebar: React.FC<LeagueFilterSidebarProps> = ({
   const [loading, setLoading] = useState(true);
   const availableLeagueIdsSet = new Set(availableLeagueIds);
 
-  // Fetch top leagues from API
+  // Fetch priority leagues from API
   useEffect(() => {
-    const fetchTopLeagues = async () => {
+    const fetchPriorityLeagues = async () => {
       try {
         setLoading(true);
-        console.log('[LeagueFilterSidebar] Fetching leagues from API...');
+        console.log('[LeagueFilterSidebar] Fetching priority leagues from API...');
+        console.log('[LeagueFilterSidebar] Priority league IDs:', PRIORITY_LEAGUE_IDS);
         
         const response = await highlightlyClient.getLeagues({
-          limit: '30' // Get more leagues to filter from
+          limit: '100' // Get more leagues to ensure we capture all priority ones
         });
         
         if (response.data && Array.isArray(response.data)) {
           console.log(`[LeagueFilterSidebar] Found ${response.data.length} leagues from API`);
           
+          // Filter to prioritize the specified league IDs
+          const priorityLeagues = response.data.filter((league: any) => {
+            const leagueId = league.id?.toString();
+            return PRIORITY_LEAGUE_IDS.includes(leagueId);
+          });
+          
+          // Add popular leagues for completeness if we have fewer than 16 priority leagues
+          const additionalLeagues = response.data.filter((league: any) => {
+            const leagueId = league.id?.toString();
+            const name = league.name?.toLowerCase() || '';
+            return !PRIORITY_LEAGUE_IDS.includes(leagueId) && (
+              name.includes('champions league') ||
+              name.includes('europa league') ||
+              name.includes('premier league') ||
+              name.includes('la liga') ||
+              name.includes('serie a') ||
+              name.includes('bundesliga') ||
+              name.includes('ligue 1') ||
+              name.includes('libertadores')
+            );
+          }).slice(0, Math.max(0, 16 - priorityLeagues.length)); // Add additional leagues up to 16 total
+          
+          const allSelectedLeagues = [...priorityLeagues, ...additionalLeagues];
+          
           // Transform API leagues to our format and prioritize them
-          const transformedLeagues: LeagueFilter[] = response.data
+          const transformedLeagues: LeagueFilter[] = allSelectedLeagues
             .map((league: any) => ({
               id: league.id.toString(),
               name: league.name,
@@ -77,65 +97,69 @@ const LeagueFilterSidebar: React.FC<LeagueFilterSidebarProps> = ({
               hasMatches: availableLeagueIdsSet.has(league.id.toString()),
               matchCount: 0 // Will be updated by parent component if needed
             }))
-            .sort((a, b) => getLeaguePriority(a) - getLeaguePriority(b))
-            .slice(0, 16); // Limit to top 16 leagues
+            .sort((a, b) => {
+              // First sort by priority
+              const aPriority = getLeaguePriority(a);
+              const bPriority = getLeaguePriority(b);
+              if (aPriority !== bPriority) return aPriority - bPriority;
+              
+              // If matches are available, prioritize leagues with matches
+              if (hasMatches) {
+                if (a.hasMatches && !b.hasMatches) return -1;
+                if (!a.hasMatches && b.hasMatches) return 1;
+              }
+              
+              // Finally sort alphabetically
+              return a.name.localeCompare(b.name);
+            });
           
           setLeagues(transformedLeagues);
-          console.log('[LeagueFilterSidebar] Processed leagues:', transformedLeagues.map(l => l.name));
+          console.log('[LeagueFilterSidebar] Processed priority leagues:', transformedLeagues.map(l => ({
+            id: l.id,
+            name: l.name,
+            priority: getLeaguePriority(l),
+            isPriorityLeague: PRIORITY_LEAGUE_IDS.includes(l.id),
+            hasMatches: l.hasMatches
+          })));
         } else {
           console.warn('[LeagueFilterSidebar] No leagues data found in API response');
           setLeagues([]);
         }
       } catch (error) {
-        console.error('[LeagueFilterSidebar] Error fetching leagues:', error);
-        // Fallback to minimal hardcoded list if API fails
-        setLeagues([
-          { id: '2', name: 'UEFA Champions League', logoUrl: '/leagues/2.svg' },
-          { id: '33973', name: 'Premier League', logoUrl: '/leagues/33973.svg' },
-          { id: '140', name: 'La Liga', logoUrl: '/leagues/140.svg' },
-          { id: '135', name: 'Serie A', logoUrl: '/leagues/135.svg' },
-          { id: '78', name: 'Bundesliga', logoUrl: '/leagues/78.svg' },
-          { id: '61', name: 'Ligue 1', logoUrl: '/leagues/61.svg' }
-        ]);
+        console.error('[LeagueFilterSidebar] Error fetching priority leagues:', error);
+        setLeagues([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTopLeagues();
-  }, []);
+    fetchPriorityLeagues();
+  }, [availableLeagueIds, hasMatches]);
 
-  // Update hasMatches status when availableLeagueIds changes
-  useEffect(() => {
-    if (leagues.length > 0) {
-      setLeagues(prevLeagues => 
-        prevLeagues.map(league => ({
-          ...league,
-          hasMatches: availableLeagueIdsSet.has(league.id)
-        }))
-      );
-    }
-  }, [availableLeagueIds]);
+  const handleLeagueSelect = (leagueId: string) => {
+    const newSelectedId = selectedLeagueId === leagueId ? null : leagueId;
+    onLeagueSelect?.(newSelectedId);
+  };
 
-  const handleLeagueClick = (leagueId: string) => {
-    console.log(`[LeagueFilterSidebar] League clicked: ${leagueId}`);
-    
-    if (onLeagueSelect) {
-      // Toggle selection: if already selected, deselect (null), otherwise select the league
-      onLeagueSelect(selectedLeagueId === leagueId ? null : leagueId);
-    }
+  const handleShowAll = () => {
+    onLeagueSelect?.(null);
   };
 
   if (loading) {
     return (
-      <div className="h-full bg-[#121212] border-r border-gray-700">
-        <div className="p-4 border-b border-gray-700">
-          <h3 className="text-white text-lg font-semibold">Loading Leagues...</h3>
+      <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/30">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span className="text-white font-semibold">Loading Featured Leagues...</span>
+          </div>
         </div>
         <div className="p-4">
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="bg-[#1a1a1a] rounded-lg p-3 animate-pulse">
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-[#121212] rounded-lg p-3 animate-pulse">
                 <div className="h-4 bg-gray-600 rounded w-3/4"></div>
               </div>
             ))}
@@ -146,83 +170,138 @@ const LeagueFilterSidebar: React.FC<LeagueFilterSidebarProps> = ({
   }
 
   return (
-    <div className="h-full bg-[#121212] border-r border-gray-700">
-      <div className="p-4 border-b border-gray-700">
-        <h3 className="text-white text-lg font-semibold">Top Leagues</h3>
-        <p className="text-gray-400 text-sm mt-1">Select a league to filter matches</p>
+    <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/30">
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <span className="text-white font-semibold">Featured Leagues</span>
+          <span className="text-gray-400 text-sm">({leagues.length})</span>
+        </div>
       </div>
-      
-      <div className="flex-1 overflow-y-auto">
-        <div className="w-full px-4 py-2">
-          <h6 className="text-white text-xs font-semibold uppercase mb-2">
-            Available Leagues ({leagues.length})
-          </h6>
-          <ul className="space-y-1">
-            {leagues.map((league) => {
+
+      <div className="p-4">
+        {/* Show All Button */}
+        <div className="mb-4">
+          <button
+            onClick={handleShowAll}
+            className={`
+              w-full bg-gradient-to-r rounded-lg p-3 flex items-center gap-3
+              transition-all duration-200 border
+              ${!selectedLeagueId
+                ? 'from-blue-600 to-purple-600 border-blue-500/50 text-white shadow-lg shadow-blue-500/25' 
+                : 'from-[#0a0a0a] to-[#121212] border-gray-600/50 text-gray-400 hover:text-white hover:border-gray-500/50'
+              }
+            `}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <span className="font-medium">All Leagues</span>
+            <div className="ml-auto">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+        </div>
+
+        {/* League List */}
+        <div className="space-y-2">
+          {leagues.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-gray-400 mb-2">No featured leagues available</div>
+              <div className="text-gray-500 text-sm">Unable to load priority leagues from API</div>
+            </div>
+          ) : (
+            leagues.map((league) => {
+              const isPriorityLeague = PRIORITY_LEAGUE_IDS.includes(league.id);
               const isSelected = selectedLeagueId === league.id;
-              const hasMatchesForLeague = league.hasMatches || availableLeagueIdsSet.has(league.id);
-              const isDisabled = hasMatches && !hasMatchesForLeague;
               
               return (
-                <li
+                <button
                   key={league.id}
-                  onClick={() => !isDisabled && handleLeagueClick(league.id)}
+                  onClick={() => handleLeagueSelect(league.id)}
                   className={`
-                    flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors
-                    ${isSelected 
-                      ? 'bg-[#2a2a2a] border-l-2 border-yellow-400 text-white' 
-                      : isDisabled 
-                        ? 'opacity-50 cursor-not-allowed text-gray-500' 
-                        : 'hover:bg-[#1f1f1f] text-gray-300 hover:text-white'
+                    w-full bg-[#0a0a0a] rounded-lg p-3 flex items-center gap-3
+                    transition-all duration-200 hover:bg-[#121212] border
+                    ${isSelected
+                      ? 'border-blue-400/50 ring-1 ring-blue-400/30 text-white' 
+                      : 'border-transparent text-gray-400 hover:text-white hover:border-gray-600/50'
                     }
+                    ${isPriorityLeague ? 'ring-1 ring-yellow-500/20 border-yellow-500/30' : ''}
                   `}
-                  title={isDisabled ? 'No matches available for this league' : `Filter by ${league.name}`}
+                  disabled={hasMatches && !league.hasMatches}
                 >
-                  <img
-                    src={league.logoUrl}
-                    alt={`${league.name} logo`}
-                    className={`w-6 h-6 object-contain rounded-full flex-shrink-0 ${isDisabled ? 'grayscale' : ''}`}
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      // Fallback to default icon if logo fails to load
-                      target.src = '/icons/default.svg';
-                    }}
-                  />
-                  <span className="text-sm font-medium truncate">
-                    {league.name}
-                  </span>
-                  {/* Match count indicator */}
-                  {hasMatchesForLeague && (
-                    <div className="ml-auto">
-                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                  {/* League Logo */}
+                  <div className="flex-shrink-0">
+                    <div className="w-6 h-6 flex-shrink-0">
+                      {league.logoUrl && league.logoUrl !== `/leagues/${league.id}.svg` ? (
+                        <img 
+                          src={league.logoUrl} 
+                          alt={`${league.name} logo`}
+                          className="w-full h-full object-contain rounded"
+                          onError={(e) => {
+                            // Fallback to initials if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      {/* Fallback initials icon */}
+                      <div className={`w-6 h-6 bg-gradient-to-br from-gray-500 to-gray-700 rounded-full flex items-center justify-center ${league.logoUrl && league.logoUrl !== `/leagues/${league.id}.svg` ? 'hidden' : ''}`}>
+                        <span className="text-white text-xs font-bold">
+                          {league.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase()}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </li>
+                  </div>
+                  
+                  {/* League Name and Status */}
+                  <div className="flex-1 text-left min-w-0">
+                    <div className={`
+                      font-medium leading-tight truncate flex items-center gap-2
+                      ${isSelected ? 'text-white' : 'text-gray-300'}
+                      ${hasMatches && !league.hasMatches ? 'opacity-50' : ''}
+                    `}>
+                      {league.name}
+                      {isPriorityLeague && (
+                        <span className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded font-bold">
+                          FEATURED
+                        </span>
+                      )}
+                    </div>
+                    {hasMatches && (
+                      <div className="text-xs text-gray-500 truncate">
+                        {league.hasMatches ? 
+                          `${league.matchCount || 0} matches` : 
+                          'No matches'
+                        }
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Status Indicator */}
+                  <div className="flex-shrink-0">
+                    {hasMatches && league.hasMatches && (
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    )}
+                  </div>
+                </button>
               );
-            })}
-          </ul>
+            })
+          )}
         </div>
-        
-        {/* Help text when no matches */}
-        {hasMatches && availableLeagueIds.length === 0 && (
-          <div className="px-4 py-8 text-center">
-            <div className="text-gray-400 text-sm">
-              No matches available for today
-            </div>
-            <div className="text-gray-500 text-xs mt-1">
-              Try selecting a different date
-            </div>
-          </div>
-        )}
-        
-        {/* Footer info */}
-        {!hasMatches && (
-          <div className="px-4 py-4 border-t border-gray-700 mt-auto">
-            <p className="text-xs text-gray-500 text-center">
-              Showing top leagues from the Highlightly API
-            </p>
-          </div>
-        )}
+
+        {/* Footer Info */}
+        <div className="mt-6 pt-4 border-t border-gray-700/30">
+          <p className="text-xs text-gray-500 text-center">
+            Featured leagues and tournaments. Select a league to filter matches.
+          </p>
+        </div>
       </div>
     </div>
   );

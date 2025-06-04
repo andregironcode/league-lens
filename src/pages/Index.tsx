@@ -8,7 +8,7 @@ import TopLeaguesFilter from '@/components/TopLeaguesFilter';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
-  const [last7DaysMatches, setLast7DaysMatches] = useState<LeagueWithMatches[]>([]);
+  const [recentMatches, setRecentMatches] = useState<LeagueWithMatches[]>([]);
   const [selectedLeagueIds, setSelectedLeagueIds] = useState<string[]>([]);
   const [selectedTopLeagueId, setSelectedTopLeagueId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -19,7 +19,7 @@ const Index: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     
-    const loadInitialData = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
@@ -32,34 +32,29 @@ const Index: React.FC = () => {
             console.error('[Index] Error loading highlights:', err);
             return [];
           }),
-          serviceAdapter.getMatchesFromLast7Days().catch(err => {
-            console.error('[Index] Error loading last 7 days matches:', err);
+          serviceAdapter.getRecentMatchesForTopLeagues().catch(err => {
+            console.error('[Index] Error loading recent matches:', err);
             return [];
           })
         ]);
 
         if (isMounted) {
-          console.log('[Index] Initial data loaded:', {
+          console.log('[Index] Data loaded:', {
             highlights: highlightsData.length,
             leagues: matchesData.length
           });
           setFeaturedHighlights(highlightsData);
-          setLast7DaysMatches(matchesData);
+          setRecentMatches(matchesData);
         }
 
-      } catch (err) {
-        if (isMounted) {
-          console.error('[Index] Error during initial load:', err);
-          setError('Failed to load initial data');
-        }
+      } catch (error) {
+        console.error('[Index] Error loading data:', error);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
-    loadInitialData();
+    loadData();
     
     return () => {
       isMounted = false;
@@ -122,7 +117,7 @@ const Index: React.FC = () => {
           {/* Page Title */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">Recent Matches</h1>
-            <p className="text-gray-400">Matches from the last 7 days</p>
+            <p className="text-gray-400">Recent finished matches from top leagues</p>
           </div>
 
           {/* Main Content Area */}
@@ -130,12 +125,11 @@ const Index: React.FC = () => {
             {/* Matches Content - Middle */}
             <div className="flex-1 min-w-0">
               <MatchFeedByLeague 
-                leaguesWithMatches={last7DaysMatches}
+                leaguesWithMatches={recentMatches}
                 loading={matchesLoading}
                 selectedLeagueIds={selectedLeagueIds}
                 onLeagueSelect={handleLeagueSelect}
                 selectedCountryCode={null}
-                onCountrySelect={() => {}}
               />
             </div>
 
