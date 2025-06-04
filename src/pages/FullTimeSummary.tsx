@@ -2301,6 +2301,15 @@ const FullTimeSummary = () => {
           </button>
         </div>
       </div>
+
+      {/* API Source Attribution */}
+      {false && (
+        <div className="text-center mt-6 pt-4 border-t border-gray-700">
+          <p className="text-gray-500 text-xs">
+            Powered by Highlightly Football API • Real-time data
+          </p>
+        </div>
+      )}
     </div>
   );
 };
