@@ -447,212 +447,17 @@ const MatchTimeline: React.FC<{ homeTeam: any; awayTeam: any; matchEvents?: any[
   );
 };
 
-// Add match stats interface and mock data after the MatchAction interface
-interface MatchStats {
-  ballPossession: number;
-  expectedGoals: number;
-  shotsOnTarget: number;
-  bigScoringChances: number;
-  totalAttempts: number;
-  blockedShots: number;
-  shotsInBox: number;
-  shotsOutsideBox: number;
-  woodworkHits: number;
-  fouls: number;
-  corners: number;
-  throwIns: number;
-  saves: number;
-  freeKicks: number;
-  offsides: number;
-  passesIntoFinalThird: number;
-  completedPassesFinalThird: number;
-  touchesInOpponentBox: number;
-  tackles: number;
-  completedTackles: number;
-  totalCrosses: number;
-  successfulCrosses: number;
-  interceptions: number;
-  clearances: number;
-  yellowCards: number;
-  redCards: number;
+// Dynamic statistics interface - handles ANY stat from the API
+interface DynamicStatistic {
+  displayName: string;
+  homeValue: number;
+  awayValue: number;
 }
 
-// Team lineup interfaces
-interface LineupPlayer {
-  id: string;
-  name: string;
-  position: string;
-  jerseyNumber: number;
-}
-
-interface TeamLineup {
-  formation: string;
-  startingXI: LineupPlayer[];
-  substitutes: LineupPlayer[];
-}
-
-// Transform API lineups to TeamLineup format
-const getTeamLineupsFromAPI = (matchLineups: any): { home: TeamLineup; away: TeamLineup } | null => {
-  if (!matchLineups || !matchLineups.homeTeam || !matchLineups.awayTeam) {
-    return null;
-  }
-  
-  try {
-    const transformLineup = (teamLineup: any): TeamLineup => {
-      const formation = teamLineup.formation || '4-4-2';
-      
-      // Transform players
-      const transformPlayer = (player: any): LineupPlayer => ({
-        id: player.id?.toString() || Math.random().toString(36).substring(2, 9),
-        name: player.name || 'Unknown Player',
-        position: player.position || 'Unknown',
-        jerseyNumber: player.number || player.jerseyNumber || 0
-      });
-      
-      const startingXI = (teamLineup.initialLineup || teamLineup.startingXI || [])
-        .map(transformPlayer);
-      
-      const substitutes = (teamLineup.substitutes || [])
-        .map(transformPlayer);
-      
-      return {
-        formation,
-        startingXI,
-        substitutes
-      };
-    };
-    
-    return {
-      home: transformLineup(matchLineups.homeTeam),
-      away: transformLineup(matchLineups.awayTeam)
-    };
-  } catch (error) {
-    console.error('[FullTimeSummary] Error transforming lineups:', error);
-    return null;
-  }
-};
-
-// Mock lineup data (fallback)
-const getTeamLineups = (homeTeam: string, awayTeam: string): { home: TeamLineup; away: TeamLineup } => {
-  return {
-    home: {
-      formation: "4-3-3",
-      startingXI: [
-        { id: "1", name: "Aaron Ramsdale", position: "GK", jerseyNumber: 1 },
-        { id: "2", name: "Ben White", position: "RB", jerseyNumber: 4 },
-        { id: "3", name: "William Saliba", position: "CB", jerseyNumber: 12 },
-        { id: "4", name: "Gabriel Magalhães", position: "CB", jerseyNumber: 6 },
-        { id: "5", name: "Oleksandr Zinchenko", position: "LB", jerseyNumber: 35 },
-        { id: "6", name: "Thomas Partey", position: "CDM", jerseyNumber: 5 },
-        { id: "7", name: "Granit Xhaka", position: "CM", jerseyNumber: 34 },
-        { id: "8", name: "Martin Ødegaard", position: "CM", jerseyNumber: 8 },
-        { id: "9", name: "Bukayo Saka", position: "RW", jerseyNumber: 7 },
-        { id: "10", name: "Gabriel Jesus", position: "ST", jerseyNumber: 9 },
-        { id: "11", name: "Gabriel Martinelli", position: "LW", jerseyNumber: 11 }
-      ],
-      substitutes: [
-        { id: "12", name: "Matt Turner", position: "GK", jerseyNumber: 30 },
-        { id: "13", name: "Kieran Tierney", position: "LB", jerseyNumber: 3 },
-        { id: "14", name: "Rob Holding", position: "CB", jerseyNumber: 16 },
-        { id: "15", name: "Takehiro Tomiyasu", position: "RB", jerseyNumber: 18 },
-        { id: "16", name: "Fabio Vieira", position: "AM", jerseyNumber: 21 },
-        { id: "17", name: "Emile Smith Rowe", position: "AM", jerseyNumber: 10 },
-        { id: "18", name: "Eddie Nketiah", position: "ST", jerseyNumber: 14 }
-      ]
-    },
-    away: {
-      formation: "4-2-3-1",
-      startingXI: [
-        { id: "21", name: "David de Gea", position: "GK", jerseyNumber: 1 },
-        { id: "22", name: "Diogo Dalot", position: "RB", jerseyNumber: 20 },
-        { id: "23", name: "Raphaël Varane", position: "CB", jerseyNumber: 19 },
-        { id: "24", name: "Lisandro Martínez", position: "CB", jerseyNumber: 6 },
-        { id: "25", name: "Luke Shaw", position: "LB", jerseyNumber: 23 },
-        { id: "26", name: "Casemiro", position: "CDM", jerseyNumber: 18 },
-        { id: "27", name: "Christian Eriksen", position: "CDM", jerseyNumber: 14 },
-        { id: "28", name: "Bruno Fernandes", position: "RW", jerseyNumber: 8 },
-        { id: "29", name: "Jadon Sancho", position: "AM", jerseyNumber: 25 },
-        { id: "30", name: "Marcus Rashford", position: "LW", jerseyNumber: 10 },
-        { id: "31", name: "Anthony Martial", position: "ST", jerseyNumber: 9 }
-      ],
-      substitutes: [
-        { id: "32", name: "Tom Heaton", position: "GK", jerseyNumber: 22 },
-        { id: "33", name: "Harry Maguire", position: "CB", jerseyNumber: 5 },
-        { id: "34", name: "Aaron Wan-Bissaka", position: "RB", jerseyNumber: 29 },
-        { id: "35", name: "Scott McTominay", position: "CM", jerseyNumber: 39 },
-        { id: "36", name: "Fred", position: "CM", jerseyNumber: 17 },
-        { id: "37", name: "Jadon Sancho", position: "LW", jerseyNumber: 25 },
-        { id: "38", name: "Wout Weghorst", position: "ST", jerseyNumber: 27 }
-      ]
-    }
-  };
-};
-
-// Mock match stats data (fallback)
-const getMatchStats = (homeTeam: string, awayTeam: string): { home: MatchStats; away: MatchStats } => {
-  return {
-    home: {
-      ballPossession: 58,
-      expectedGoals: 2.3,
-      shotsOnTarget: 6,
-      bigScoringChances: 4,
-      totalAttempts: 14,
-      blockedShots: 3,
-      shotsInBox: 8,
-      shotsOutsideBox: 6,
-      woodworkHits: 1,
-      fouls: 12,
-      corners: 7,
-      throwIns: 18,
-      saves: 4,
-      freeKicks: 15,
-      offsides: 3,
-      passesIntoFinalThird: 42,
-      completedPassesFinalThird: 28,
-      touchesInOpponentBox: 24,
-      tackles: 18,
-      completedTackles: 14,
-      totalCrosses: 12,
-      successfulCrosses: 5,
-      interceptions: 8,
-      clearances: 15,
-      yellowCards: 2,
-      redCards: 0
-    },
-    away: {
-      ballPossession: 42,
-      expectedGoals: 1.7,
-      shotsOnTarget: 4,
-      bigScoringChances: 2,
-      totalAttempts: 11,
-      blockedShots: 2,
-      shotsInBox: 5,
-      shotsOutsideBox: 6,
-      woodworkHits: 0,
-      fouls: 16,
-      corners: 4,
-      throwIns: 14,
-      saves: 6,
-      freeKicks: 12,
-      offsides: 5,
-      passesIntoFinalThird: 35,
-      completedPassesFinalThird: 22,
-      touchesInOpponentBox: 18,
-      tackles: 22,
-      completedTackles: 16,
-      totalCrosses: 9,
-      successfulCrosses: 3,
-      interceptions: 12,
-      clearances: 18,
-      yellowCards: 3,
-      redCards: 1
-    }
-  };
-};
-
-// Transform API statistics to MatchStats format
-const getMatchStatsFromAPI = (matchStatistics: any[]): { home: MatchStats; away: MatchStats } | null => {
+// Process ALL statistics from the API response - shows everything dynamically
+const processAllStatisticsFromAPI = (matchStatistics: any[]): DynamicStatistic[] | null => {
   if (!matchStatistics || !Array.isArray(matchStatistics) || matchStatistics.length < 2) {
+    console.log('[MatchStats] No statistics data available or insufficient teams');
     return null;
   }
   
@@ -660,882 +465,186 @@ const getMatchStatsFromAPI = (matchStatistics: any[]): { home: MatchStats; away:
     const homeTeamStats = matchStatistics[0];
     const awayTeamStats = matchStatistics[1];
     
-    // Helper function to find stat value by name
-    const findStatValue = (statistics: any[], statName: string): number => {
-      if (!Array.isArray(statistics)) return 0;
-      
-      const stat = statistics.find((s: any) => 
-        s.type?.toLowerCase().includes(statName.toLowerCase()) ||
-        s.name?.toLowerCase().includes(statName.toLowerCase()) ||
-        s.displayName?.toLowerCase().includes(statName.toLowerCase())
-      );
-      
-      return parseInt(stat?.value || '0') || 0;
-    };
+    console.log('[MatchStats] Processing ALL statistics from API:', {
+      homeTeam: homeTeamStats?.team?.name,
+      homeStatsCount: homeTeamStats?.statistics?.length,
+      awayTeam: awayTeamStats?.team?.name,
+      awayStatsCount: awayTeamStats?.statistics?.length
+    });
     
-    // Map API statistics to our format
-    const mapTeamStats = (teamStats: any): MatchStats => {
-      const stats = teamStats.statistics || [];
-      
-      return {
-        ballPossession: findStatValue(stats, 'possession'),
-        expectedGoals: parseFloat((findStatValue(stats, 'expected') / 10).toFixed(1)) || 0,
-        shotsOnTarget: findStatValue(stats, 'shots on target'),
-        bigScoringChances: findStatValue(stats, 'big chances'),
-        totalAttempts: findStatValue(stats, 'total shots') || findStatValue(stats, 'shots'),
-        blockedShots: findStatValue(stats, 'blocked shots'),
-        shotsInBox: findStatValue(stats, 'shots inside box'),
-        shotsOutsideBox: findStatValue(stats, 'shots outside box'),
-        woodworkHits: findStatValue(stats, 'hit woodwork'),
-        fouls: findStatValue(stats, 'fouls'),
-        corners: findStatValue(stats, 'corner kicks'),
-        throwIns: findStatValue(stats, 'throw ins'),
-        saves: findStatValue(stats, 'saves'),
-        freeKicks: findStatValue(stats, 'free kicks'),
-        offsides: findStatValue(stats, 'offsides'),
-        passesIntoFinalThird: findStatValue(stats, 'passes final third'),
-        completedPassesFinalThird: findStatValue(stats, 'completed passes final third'),
-        touchesInOpponentBox: findStatValue(stats, 'touches opponent box'),
-        tackles: findStatValue(stats, 'tackles'),
-        completedTackles: findStatValue(stats, 'successful tackles'),
-        totalCrosses: findStatValue(stats, 'crosses'),
-        successfulCrosses: findStatValue(stats, 'successful crosses'),
-        interceptions: findStatValue(stats, 'interceptions'),
-        clearances: findStatValue(stats, 'clearances'),
-        yellowCards: findStatValue(stats, 'yellow cards'),
-        redCards: findStatValue(stats, 'red cards')
-      };
-    };
+    if (!homeTeamStats?.statistics || !awayTeamStats?.statistics) {
+      console.log('[MatchStats] No statistics arrays found in API response');
+    return null;
+  }
     
-    return {
-      home: mapTeamStats(homeTeamStats),
-      away: mapTeamStats(awayTeamStats)
-    };
+    // Create a map to match statistics by displayName
+    const homeStatsMap = new Map();
+    const awayStatsMap = new Map();
+    
+    // Process home team statistics
+    homeTeamStats.statistics.forEach((stat: any) => {
+      if (stat.displayName && typeof stat.value === 'number') {
+        homeStatsMap.set(stat.displayName, stat.value);
+      }
+    });
+    
+    // Process away team statistics  
+    awayTeamStats.statistics.forEach((stat: any) => {
+      if (stat.displayName && typeof stat.value === 'number') {
+        awayStatsMap.set(stat.displayName, stat.value);
+      }
+    });
+    
+    // Get all unique statistic names from both teams
+    const allStatNames = new Set([...homeStatsMap.keys(), ...awayStatsMap.keys()]);
+    
+    // Create dynamic statistics array
+    const dynamicStats: DynamicStatistic[] = [];
+    
+    allStatNames.forEach(statName => {
+      const homeValue = homeStatsMap.get(statName) || 0;
+      const awayValue = awayStatsMap.get(statName) || 0;
+      
+      // Only include stats where at least one team has a value > 0
+      if (homeValue > 0 || awayValue > 0) {
+        dynamicStats.push({
+          displayName: statName,
+          homeValue: homeValue,
+          awayValue: awayValue
+        });
+      }
+    });
+    
+    console.log('[MatchStats] Processed dynamic statistics:', {
+      totalStats: dynamicStats.length,
+      statsNames: dynamicStats.map(s => s.displayName)
+    });
+    
+    return dynamicStats.length > 0 ? dynamicStats : null;
+    
   } catch (error) {
-    console.error('[FullTimeSummary] Error transforming statistics:', error);
+    console.error('[MatchStats] Error processing statistics from API:', error);
     return null;
   }
 };
 
-// Stats display component
+// All-new MatchStatsChart component - shows ALL API data with horizontal bars
 const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any; matchStatistics?: any[] }> = ({ 
   homeTeam, 
   awayTeam, 
   matchStatistics 
 }) => {
-  // Use API data if available, otherwise fallback to hardcoded data
-  const stats = matchStatistics && matchStatistics.length >= 2
-    ? getMatchStatsFromAPI(matchStatistics) || getMatchStats(homeTeam.name, awayTeam.name)
-    : getMatchStats(homeTeam.name, awayTeam.name);
+  // Process ALL statistics from the API
+  const allStats = matchStatistics && matchStatistics.length >= 2
+    ? processAllStatisticsFromAPI(matchStatistics)
+    : null;
   
-  // Function to get team primary colors
-  const getTeamColor = (teamName: string): string => {
-    const teamColors: { [key: string]: string } = {
-      // Premier League
-      'Arsenal': '#DC143C',
-      'Manchester United': '#E81C23',
-      'Manchester City': '#6CABDD',
-      'Liverpool': '#C8102E',
-      'Chelsea': '#034694',
-      'Tottenham': '#132257',
-      'Newcastle': '#241F20',
-      'Brighton': '#0057B8',
-      'Aston Villa': '#95BFE5',
-      'West Ham': '#7A263A',
-      
-      // La Liga
-      'Real Madrid': '#FFFFFF',
-      'Barcelona': '#A50044',
-      'Atletico Madrid': '#CE3524',
-      'Sevilla': '#FFFFFF',
-      'Valencia': '#FF8C00',
-      'Villarreal': '#FFE500',
-      
-      // Serie A
-      'Juventus': '#000000',
-      'Inter Milan': '#0068A8',
-      'AC Milan': '#FB090B',
-      'Napoli': '#057FFF',
-      'Roma': '#FFD700',
-      'Lazio': '#87CEEB',
-      
-      // Bundesliga
-      'Bayern Munich': '#DC143C',
-      'Borussia Dortmund': '#FFE500',
-      'RB Leipzig': '#DD0741',
-      'Bayer Leverkusen': '#E32221',
-      
-      // Default colors
-      'default_home': '#FFFFFF',
-      'default_away': '#0057B8'
-    };
-    
-    return teamColors[teamName] || (teamName === homeTeam.name ? teamColors['default_home'] : teamColors['default_away']);
-  };
+  // If no stats available, show a message
+  if (!allStats || allStats.length === 0) {
+  return (
+      <div className="text-center py-12">
+        <div className="text-gray-400 text-sm mb-2">
+          📊 Match statistics are not available for this game
+            </div>
+        <div className="text-gray-500 text-xs">
+          Statistics are typically available for matches from major leagues and recent games
+                </div>
+          </div>
+        );
+  }
 
-  const homeTeamColor = getTeamColor(homeTeam.name);
-  const awayTeamColor = getTeamColor(awayTeam.name);
-  
-  const statsOrder = [
-    { key: 'ballPossession', label: 'Ball Possession', suffix: '%' },
-    { key: 'expectedGoals', label: 'Expected Goals', suffix: '', decimal: true },
-    { key: 'shotsOnTarget', label: 'Shots On Target', suffix: '' },
-    { key: 'bigScoringChances', label: 'Big Scoring Chances', suffix: '' },
-    { key: 'totalAttempts', label: 'Total Attempts', suffix: '' },
-    { key: 'blockedShots', label: 'Blocked Shots', suffix: '' },
-    { key: 'shotsInBox', label: 'Shots in the Box', suffix: '' },
-    { key: 'shotsOutsideBox', label: 'Shots from Outside the Box', suffix: '' },
-    { key: 'woodworkHits', label: 'Woodwork Hits', suffix: '' },
-    { key: 'fouls', label: 'Fouls', suffix: '' },
-    { key: 'corners', label: 'Corners', suffix: '' },
-    { key: 'throwIns', label: 'Throw-Ins', suffix: '' },
-    { key: 'saves', label: 'Saves', suffix: '' },
-    { key: 'freeKicks', label: 'Free Kicks', suffix: '' },
-    { key: 'offsides', label: 'Offsides', suffix: '' },
-    { key: 'passesIntoFinalThird', label: 'Passes into Final Third', suffix: '' },
-    { key: 'completedPassesFinalThird', label: 'Completed Passes in Final Third', suffix: '' },
-    { key: 'touchesInOpponentBox', label: 'Touches in Opponent\'s Box', suffix: '' },
-    { key: 'tackles', label: 'Tackles', suffix: '' },
-    { key: 'completedTackles', label: 'Completed Tackles', suffix: '' },
-    { key: 'totalCrosses', label: 'Total Crosses', suffix: '' },
-    { key: 'successfulCrosses', label: 'Successful Crosses', suffix: '' },
-    { key: 'interceptions', label: 'Interceptions', suffix: '' },
-    { key: 'clearances', label: 'Clearances', suffix: '' },
-    { key: 'yellowCards', label: 'Yellow Cards', suffix: '' },
-    { key: 'redCards', label: 'Red Cards', suffix: '' }
-  ];
-
-  const formatValue = (value: number, decimal: boolean = false, suffix: string = '') => {
-    const formatted = decimal ? value.toFixed(1) : value.toString();
-    return formatted + suffix;
-  };
-
-  const getBarWidth = (homeValue: number, awayValue: number, isHome: boolean) => {
-    const total = homeValue + awayValue;
+  // Calculate bar widths based on relative values
+  const getBarWidth = (value: number, otherValue: number, isLeft: boolean): number => {
+    const total = value + otherValue;
     if (total === 0) return 0;
-    const percentage = isHome ? (homeValue / total) * 50 : (awayValue / total) * 50;
-    return Math.max(percentage, 2); // Minimum 2% width for visibility
+    
+    const percentage = (value / total) * 100;
+    return isLeft ? percentage : 100 - percentage;
+  };
+
+  // Format values for display
+  const formatValue = (value: number): string => {
+    // Handle percentage values (typically > 1 for percentages like 65.5)
+    if (value > 1 && value <= 100 && value % 1 !== 0) {
+      return `${value.toFixed(1)}%`;
+    }
+    
+    // Handle decimal values (like xG: 1.5)
+    if (value % 1 !== 0) {
+      return value.toFixed(1);
+    }
+    
+    // Handle whole numbers
+    return value.toString();
   };
 
   return (
     <div className="space-y-4">
-      {statsOrder.map((stat) => {
-        const homeValue = stats.home[stat.key as keyof MatchStats];
-        const awayValue = stats.away[stat.key as keyof MatchStats];
-        const homeWidth = getBarWidth(homeValue, awayValue, true);
-        const awayWidth = getBarWidth(homeValue, awayValue, false);
+      {/* Header showing teams */}
+      <div className="flex justify-between items-center text-sm text-gray-400 mb-6">
+        <span>{homeTeam.name}</span>
+        <span className="text-xs">MATCH STATISTICS ({allStats.length})</span>
+        <span>{awayTeam.name}</span>
+      </div>
+
+      {/* Render ALL statistics from API */}
+      {allStats.map((stat, index) => {
+        const homeWidth = getBarWidth(stat.homeValue, stat.awayValue, true);
+        const awayWidth = getBarWidth(stat.homeValue, stat.awayValue, false);
         
         // Determine which team is leading to assign yellow color
-        const homeLeading = homeValue > awayValue;
-        const awayLeading = awayValue > homeValue;
-        
-        return (
-          <div key={stat.key} className="space-y-2">
-            {/* Stat values */}
-            <div className="flex justify-between items-center">
-              <span className="text-white text-sm font-medium">
-                {formatValue(homeValue, stat.decimal, stat.suffix)}
-              </span>
-              <span className="text-gray-400 text-xs text-center flex-1 px-4">
-                {stat.label}
-              </span>
-              <span className="text-white text-sm font-medium">
-                {formatValue(awayValue, stat.decimal, stat.suffix)}
-              </span>
-            </div>
-            
-            {/* Horizontal split bar chart */}
-            {stat.key === 'ballPossession' ? (
-              // Special handling for ball possession - show actual percentages of 100%
-              <div className="flex relative" style={{ height: '28px' }}>
-                {/* Home team logo at left edge */}
-                <img 
-                  src={homeTeam.logo} 
-                  alt={homeTeam.name}
-                  className="absolute left-1 top-1/2 transform -translate-y-1/2 w-5 h-5 object-contain z-10" 
-                />
-                
-                {/* Home team possession */}
-                <div 
-                  className="h-full rounded-l-full flex items-center justify-center pl-7"
-                  style={{ 
-                    width: `${homeValue}%`,
-                    backgroundColor: homeTeamColor
-                  }}
-                >
-                  <span className="text-xs font-medium" style={{ 
-                    color: homeTeamColor === '#FFFFFF' || homeTeamColor === '#FFE500' || homeTeamColor === '#FFD700' ? '#000000' : '#FFFFFF'
-                  }}>
-                    {homeValue}%
-                  </span>
-                </div>
-                {/* Away team possession */}
-                <div 
-                  className="h-full rounded-r-full flex items-center justify-center pr-7"
-                  style={{ 
-                    width: `${awayValue}%`,
-                    backgroundColor: awayTeamColor
-                  }}
-                >
-                  <span className="text-xs font-medium" style={{ 
-                    color: awayTeamColor === '#FFFFFF' || awayTeamColor === '#FFE500' || awayTeamColor === '#FFD700' ? '#000000' : '#FFFFFF'
-                  }}>
-                    {awayValue}%
-                  </span>
-                </div>
-                
-                {/* Away team logo at right edge */}
-                <img 
-                  src={awayTeam.logo} 
-                  alt={awayTeam.name}
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 w-5 h-5 object-contain z-10" 
-                />
-              </div>
-            ) : (
-              // Regular comparison bars for other stats
-              <div className="flex gap-1" style={{ height: '28px' }}>
-                {/* Home team side (left 50%) */}
-                <div className="flex-1 flex justify-end">
-                  <div 
-                    className="w-full h-full rounded-full flex justify-end"
-                    style={{ backgroundColor: '#1C1C1C' }}
-                  >
-                    <div 
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{ 
-                        width: `${homeWidth * 2}%`,
-                        backgroundColor: homeLeading ? '#F7CC45' : '#585858'
-                      }}
-                    ></div>
-                  </div>
-                </div>
-                {/* Away team side (right 50%) */}
-                <div className="flex-1 flex justify-start">
-                  <div 
-                    className="w-full h-full rounded-full flex justify-start"
-                    style={{ backgroundColor: '#1C1C1C' }}
-                  >
-                    <div 
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{ 
-                        width: `${awayWidth * 2}%`,
-                        backgroundColor: awayLeading ? '#F7CC45' : '#585858'
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-// Team Lineup component
-const TeamLineupChart: React.FC<{ homeTeam: any; awayTeam: any; matchLineups?: any }> = ({ 
-  homeTeam, 
-  awayTeam, 
-  matchLineups 
-}) => {
-  const [activeTab, setActiveTab] = useState<'home' | 'away'>('home');
-  const [showSubstitutes, setShowSubstitutes] = useState(false);
-  
-  // Use API data if available, otherwise fallback to hardcoded data
-  const lineups = matchLineups
-    ? getTeamLineupsFromAPI(matchLineups) || getTeamLineups(homeTeam.name, awayTeam.name)
-    : getTeamLineups(homeTeam.name, awayTeam.name);
-  
-  const currentLineup = lineups[activeTab];
-
-  return (
-    <div className="space-y-6">
-      {/* Team tabs */}
-      <div className="flex rounded-xl overflow-hidden">
-        <button
-          onClick={() => setActiveTab('home')}
-          className={`flex-1 py-3 px-6 font-medium transition-all ${
-            activeTab === 'home'
-              ? 'bg-[#FFC30B] text-black'
-              : 'bg-gray-800 text-gray-400 hover:text-white'
-          }`}
-        >
-          {homeTeam.name}
-        </button>
-        <button
-          onClick={() => setActiveTab('away')}
-          className={`flex-1 py-3 px-6 font-medium transition-all ${
-            activeTab === 'away'
-              ? 'bg-[#FFC30B] text-black'
-              : 'bg-gray-800 text-gray-400 hover:text-white'
-          }`}
-        >
-          {awayTeam.name}
-        </button>
-      </div>
-
-      {/* Formation-based tactical display */}
-      <TacticalFormation lineup={currentLineup} teamColor="#DC143C" />
-
-      {/* Formation display */}
-      <div className="text-center py-1">
-        <div 
-          className="text-lg font-bold"
-          style={{ color: '#F7CC45' }}
-        >
-          {currentLineup.formation}
-        </div>
-      </div>
-
-      {/* Starting XI list */}
-      <div className="space-y-2">
-        {currentLineup.startingXI.map((player) => (
-          <div
-            key={player.id}
-            className="flex items-center gap-4 bg-gray-800/50 rounded-lg p-3"
-          >
-            <div className="w-8 h-8 bg-red-600 rounded-full border border-gray-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">{player.jerseyNumber}</span>
-            </div>
-            <div className="flex-1">
-              <div className="text-white font-medium">{player.name}</div>
-              <div className="text-gray-400 text-sm">{player.position}</div>
-            </div>
-            {(player.name.includes('Ødegaard') || player.name.includes('Bruno')) && (
-              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Substitutes */}
-      <div className="border-t border-gray-700 pt-4">
-        <button
-          onClick={() => setShowSubstitutes(!showSubstitutes)}
-          className="flex items-center justify-between w-full text-left text-white font-medium hover:text-[#FFC30B] transition-colors"
-        >
-          <span>▼ Substitutes</span>
-          <span className="text-sm text-gray-400">
-            {showSubstitutes ? 'Hide' : 'Show'} ({currentLineup.substitutes.length})
-          </span>
-        </button>
-        
-        {showSubstitutes && (
-          <div className="mt-4 space-y-2">
-            {currentLineup.substitutes.map((player) => (
-              <div
-                key={player.id}
-                className="flex items-center gap-4 bg-gray-800/30 rounded-lg p-3"
-              >
-                <div className="w-8 h-8 bg-gray-600 rounded-full border border-gray-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">{player.jerseyNumber}</span>
-                </div>
-                <div className="flex-1">
-                  <div className="text-white font-medium">{player.name}</div>
-                  <div className="text-gray-400 text-sm">{player.position}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Formation parser utility
-const parseFormation = (formation: string): number[] => {
-  return formation.split('-').map(Number);
-};
-
-// Player card component
-interface PlayerCardProps {
-  player: LineupPlayer;
-  teamColor: string;
-  hasGoal?: boolean;
-  hasAssist?: boolean;
-  isSubstituted?: boolean;
-  isCaptain?: boolean;
-}
-
-const PlayerCard: React.FC<PlayerCardProps> = ({ 
-  player, 
-  teamColor, 
-  hasGoal = false, 
-  hasAssist = false, 
-  isSubstituted = false, 
-  isCaptain = false 
-}) => {
-  return (
-    <div className="flex flex-col items-center space-y-1">
-      {/* Player shirt with icons */}
-      <div className="relative">
-        <div 
-          className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center shadow-lg"
-          style={{ backgroundColor: teamColor }}
-        >
-          <span className="text-white text-sm font-bold">{player.jerseyNumber}</span>
-        </div>
-        
-        {/* Status icons */}
-        <div className="absolute -top-1 -right-1 flex flex-col space-y-0.5">
-          {isCaptain && (
-            <div className="w-3 h-3 bg-yellow-400 rounded-full border border-white" title="Captain"></div>
-          )}
-          {hasGoal && (
-            <div className="w-3 h-3 bg-green-500 rounded-full border border-white" title="Goal"></div>
-          )}
-          {hasAssist && (
-            <div className="w-3 h-3 bg-blue-500 rounded-full border border-white" title="Assist"></div>
-          )}
-          {isSubstituted && (
-            <div className="w-3 h-3 bg-orange-500 rounded-full border border-white" title="Substituted"></div>
-          )}
-        </div>
-      </div>
-      
-      {/* Player name */}
-      <div className="text-center">
-        <div className="text-white text-xs font-medium bg-black/70 px-2 py-1 rounded whitespace-nowrap">
-          {player.name.split(' ').pop()}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Tactical formation component
-interface TacticalFormationProps {
-  lineup: TeamLineup;
-  teamColor: string;
-}
-
-const TacticalFormation: React.FC<TacticalFormationProps> = ({ lineup, teamColor }) => {
-  const formationRows = parseFormation(lineup.formation);
-  const players = [...lineup.startingXI];
-  
-  // Distribute players across formation rows
-  const distributePlayersInFormation = (): LineupPlayer[][] => {
-    const rows: LineupPlayer[][] = [];
-    let playerIndex = 0;
-    
-    // Start with goalkeeper (always first)
-    if (players[0]?.position === 'GK') {
-      rows.push([players[0]]);
-      playerIndex = 1;
-    }
-    
-    // Distribute field players according to formation
-    for (const rowSize of formationRows) {
-      const row = players.slice(playerIndex, playerIndex + rowSize);
-      if (row.length > 0) {
-        rows.push(row);
-        playerIndex += rowSize;
-      }
-    }
-    
-    return rows;
-  };
-
-  const playerRows = distributePlayersInFormation();
-
-  // Mock match events for demo
-  const getPlayerEvents = (playerId: string) => ({
-    hasGoal: ['10', '31'].includes(playerId),
-    hasAssist: ['7', '29'].includes(playerId),
-    isSubstituted: ['5', '8'].includes(playerId),
-    isCaptain: ['7', '29'].includes(playerId)
-  });
-
-  return (
-    <div className="relative w-full h-96 bg-transparent rounded-xl overflow-hidden">
-      {/* 3D Perspective Container for half field */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          perspective: '1000px',
-          perspectiveOrigin: '50% 90%'
-        }}
-      >
-        {/* Half Football Field */}
-        <div 
-          className="absolute border-8 rounded-lg"
-          style={{
-            borderColor: '#1C1C1C',
-            transform: 'rotateX(20deg)',
-            transformOrigin: '50% 90%',
-            background: 'transparent',
-            top: '-60px',
-            left: '8px',
-            right: '8px',
-            bottom: '8px'
-          }}
-        >
-          {/* Half field markings - showing team's defensive half */}
-          <div className="absolute inset-0">
-            {/* Goal line (bottom) */}
-            <div 
-              className="absolute w-full h-2"
-              style={{ 
-                backgroundColor: '#1C1C1C',
-                bottom: '0'
-              }}
-            ></div>
-            
-            {/* Side lines */}
-            <div 
-              className="absolute h-full w-2"
-              style={{ 
-                backgroundColor: '#1C1C1C',
-                left: '0'
-              }}
-            ></div>
-            <div 
-              className="absolute h-full w-2"
-              style={{ 
-                backgroundColor: '#1C1C1C',
-                right: '0'
-              }}
-            ></div>
-            
-            {/* Center circle arc (partial - at top) */}
-            <div 
-              className="absolute border-8 border-t-0 rounded-b-full"
-              style={{
-                borderColor: '#1C1C1C',
-                width: '160px',
-                height: '80px',
-                left: '50%',
-                top: '0',
-                transform: 'translateX(-50%)'
-              }}
-            ></div>
-            
-            {/* Center dot */}
-            <div 
-              className="absolute w-2 h-2 rounded-full"
-              style={{
-                backgroundColor: '#1C1C1C',
-                left: '50%',
-                top: '0',
-                transform: 'translateX(-50%)'
-              }}
-            ></div>
-            
-            {/* Goal area (6-yard box) */}
-            <div 
-              className="absolute border-8 border-b-0"
-              style={{
-                borderColor: '#1C1C1C',
-                width: '120px',
-                height: '48px',
-                left: '50%',
-                bottom: '0',
-                transform: 'translateX(-50%)'
-              }}
-            ></div>
-            
-            {/* Penalty area (18-yard box) */}
-            <div 
-              className="absolute border-8 border-b-0"
-              style={{
-                borderColor: '#1C1C1C',
-                width: '240px',
-                height: '96px',
-                left: '50%',
-                bottom: '0',
-                transform: 'translateX(-50%)'
-              }}
-            ></div>
-            
-            {/* Penalty spot */}
-            <div 
-              className="absolute w-2 h-2 rounded-full"
-              style={{
-                backgroundColor: '#1C1C1C',
-                left: '50%',
-                bottom: '72px',
-                transform: 'translateX(-50%)'
-              }}
-            ></div>
-            
-            {/* Penalty arc */}
-            <div 
-              className="absolute border-8 border-b-0 border-l-0 border-r-0 rounded-t-full"
-              style={{
-                borderColor: '#1C1C1C',
-                width: '140px',
-                height: '48px',
-                left: '50%',
-                bottom: '96px',
-                transform: 'translateX(-50%)'
-              }}
-            ></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Players positioned within the half field boundaries */}
-      <div 
-        className="absolute z-10"
-        style={{
-          top: '4px',
-          left: '8px',
-          right: '8px',
-          bottom: '8px'
-        }}
-      >
-        {playerRows.map((row, rowIndex) => {
-          // Position players realistically relative to field markings
-          const fieldPositions = [
-            10, // Goalkeeper - inside goal area, close to goal line
-            28, // Defenders - just outside penalty area
-            46, // Defensive midfielders - deeper midfield position
-            64, // Attacking midfielders - higher midfield position  
-            82  // Strikers - near center line/circle
-          ];
-          
-          const fieldPosition = fieldPositions[rowIndex] || 50;
+        const homeIsLeading = stat.homeValue > stat.awayValue;
+        const awayIsLeading = stat.awayValue > stat.homeValue;
           
           return (
-            <div
-              key={rowIndex}
-              className="absolute w-full flex justify-center items-center"
-              style={{
-                bottom: `${fieldPosition}%`,
-                transform: 'translateY(50%)',
-                left: '0',
-                right: '0'
-              }}
-            >
-              {/* Use flexbox for better spacing */}
-              <div 
-                className="flex justify-center items-center"
-                style={{
-                  width: '75%', // Slightly wider for better field coverage
-                  justifyContent: row.length === 1 ? 'center' : 'space-evenly'
-                }}
-              >
-                {row.map((player, playerIndex) => {
-                  const events = getPlayerEvents(player.id);
-                  const totalPlayers = row.length;
-                  
-                  // For single player (goalkeeper), center them
-                  if (totalPlayers === 1) {
-                    return (
-                      <div key={player.id}>
-                        <PlayerCard
-                          player={player}
-                          teamColor={teamColor}
-                          {...events}
+          <div key={`${stat.displayName}-${index}`} className="space-y-2">
+            {/* Statistic name and values */}
+            <div className="flex justify-between items-center text-sm">
+              <span className={`text-right ${homeIsLeading ? 'text-yellow-400 font-medium' : 'text-gray-300'}`}>
+                {formatValue(stat.homeValue)}
+              </span>
+              <span className="text-center text-gray-400 text-xs font-medium px-4">
+                {stat.displayName}
+              </span>
+              <span className={`text-left ${awayIsLeading ? 'text-yellow-400 font-medium' : 'text-gray-300'}`}>
+                {formatValue(stat.awayValue)}
+              </span>
+            </div>
+            
+            {/* Horizontal bar chart */}
+            <div className="flex items-center">
+              {/* Home team bar */}
+              <div className="flex-1 flex justify-end">
+                <div 
+                  className={`h-2 ${homeIsLeading ? 'bg-yellow-400' : 'bg-gray-600'} rounded-l transition-all duration-300`}
+                  style={{ width: `${homeWidth}%` }}
                         />
                       </div>
-                    );
-                  }
-                  
-                  // For multiple players, use flex distribution
-                  return (
-                    <div 
-                      key={player.id}
-                      style={{
-                        flex: '0 0 auto',
-                        minWidth: '55px' // Slightly reduced for better fit
-                      }}
-                    >
-                      <PlayerCard
-                        player={player}
-                        teamColor={teamColor}
-                        {...events}
+              
+              {/* Center divider */}
+              <div className="w-px h-4 bg-gray-500 mx-1" />
+              
+              {/* Away team bar */}
+              <div className="flex-1 flex justify-start">
+                <div 
+                  className={`h-2 ${awayIsLeading ? 'bg-yellow-400' : 'bg-gray-600'} rounded-r transition-all duration-300`}
+                  style={{ width: `${awayWidth}%` }}
                       />
                     </div>
-                  );
-                })}
               </div>
             </div>
           );
         })}
+      
+      {/* Debug info for development */}
+      <div className="text-center text-gray-500 text-xs mt-6 pt-4 border-t border-gray-800">
+        Showing all {allStats.length} statistics from API • Updated in real-time
       </div>
     </div>
   );
 };
 
-const FullTimeSummary = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [match, setMatch] = useState<EnhancedMatchHighlight | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [navigating, setNavigating] = useState(false);
-  const [formattedDate, setFormattedDate] = useState('');
-  const [exactDate, setExactDate] = useState('');
-  const [summaryEnabled, setSummaryEnabled] = useState(false);
-  
-  // State for consistent mock data
-  const [homeTeamForm, setHomeTeamForm] = useState<any>(null);
-  const [awayTeamForm, setAwayTeamForm] = useState<any>(null);
-  const [homeLeaguePosition, setHomeLeaguePosition] = useState<any>(null);
-  const [awayLeaguePosition, setAwayLeaguePosition] = useState<any>(null);
-  const [headToHeadData, setHeadToHeadData] = useState<any[]>([]);
-  const [impressiveStats, setImpressiveStats] = useState<any[]>([]);
-  
-  // State for real API data
-  const [realLeagueStandings, setRealLeagueStandings] = useState<any>(null);
-  const [realHomeTeamStats, setRealHomeTeamStats] = useState<any>(null);
-  const [realAwayTeamStats, setRealAwayTeamStats] = useState<any>(null);
-  const [realHeadToHead, setRealHeadToHead] = useState<any>(null);
-  const [apiDataLoading, setApiDataLoading] = useState(false);
-  
-  const { toast } = useToast();
-
-  // Check if Full-time summary is enabled
-  useEffect(() => {
-    const fullTimeConfig = notificationService.getSummaryConfig('full_time');
-    setSummaryEnabled(fullTimeConfig?.enabled || false);
-  }, []);
-
-  useEffect(() => {
-    const fetchMatch = async () => {
-      if (!id) return;
-      
-      try {
-        setLoading(true);
-        console.log(`[FullTimeSummary] Fetching match with ID: ${id}`);
-        
-        const matchData = await getMatchById(id) as EnhancedMatchHighlight;
-        
-        if (matchData) {
-          setMatch(matchData);
-          console.log(`[FullTimeSummary] Match loaded:`, matchData);
-          
-          // Set formatted dates
-          const date = new Date(matchData.date);
-          setFormattedDate(formatDistanceToNow(date, { addSuffix: true }));
-          setExactDate(date.toLocaleDateString('en-US', { 
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long', 
-            day: 'numeric'
-          }));
-        } else {
-          console.error('[FullTimeSummary] No match data found');
-          navigate('/');
-        }
-      } catch (error) {
-        console.error('[FullTimeSummary] Error fetching match:', error);
-        navigate('/');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMatch();
-  }, [id, navigate]);
-
-  // Get match season from match date
-  const getMatchSeason = () => {
-    if (!match) return new Date().getFullYear().toString();
-    
-    const matchDate = new Date(match.date);
-    const matchYear = matchDate.getFullYear();
-    const matchMonth = matchDate.getMonth();
-    
-    // European football season runs from August to May
-    // If match is between August and December, it's the current year season
-    // If match is between January and May, it's the previous year season
-    if (matchMonth >= 7) { // August or later
-      return matchYear.toString();
-    } else { // Before August
-      return (matchYear - 1).toString(); 
-    }
-  };
-
-  const matchSeason = getMatchSeason();
-
-  // Check if this appears to be a pre-season match
-  const isPreSeasonMatch = () => {
-    if (!match) return false;
-    
-    const matchDate = new Date(match.date);
-    const matchMonth = matchDate.getMonth();
-    const matchYear = matchDate.getFullYear();
-    
-    // Pre-season is typically June-July, sometimes early August
-    const isPreSeasonTime = matchMonth >= 5 && matchMonth <= 7; // June, July, August
-    
-    // Also check if it's very early in the season (first few weeks of official season)
-    const isEarlySeason = matchMonth === 7 && matchDate.getDate() < 15; // Early August
-    
-    return isPreSeasonTime || isEarlySeason;
-  };
-
-  const getNoDataMessage = (dataType: 'form' | 'standings' | 'h2h') => {
-    const serviceMessages = {
-      highlightly: {
-        form: "Team form data not available in the Highlightly API for this match.",
-        standings: "League standings not available in the Highlightly API for this competition.",
-        h2h: "Head-to-head history not available in the Highlightly API for these teams."
-      },
-      supabase: {
-        form: "Team form data not available in our database for this match.",
-        standings: "League standings not available in our database for this competition.", 
-        h2h: "Head-to-head history not available in our database for these teams."
-      }
-    };
-    
-    const service = getActiveService();
-    return serviceMessages[service]?.[dataType] || `${dataType} data not available.`;
-  };
-
-  const handleGoBack = () => {
-    navigate(-1);
-  };
-
-  const handleShare = () => {
-    if (navigator.share && match) {
-      navigator.share({
-        title: `${match.homeTeam.name} vs ${match.awayTeam.name} - Full Time Summary`,
-        text: `Final result: ${match.homeTeam.name} ${match.score?.home || 0} - ${match.score?.away || 0} ${match.awayTeam.name}`,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copied!",
-        description: "Match summary link copied to clipboard",
-      });
-    }
-  };
-
-  const toggleSummaryNotification = () => {
-    notificationService.toggleSummaryConfig('full_time');
-    const newState = !summaryEnabled;
-    setSummaryEnabled(newState);
-    
-    toast({
-      title: newState ? "Full-time Summary Enabled" : "Full-time Summary Disabled",
-      description: newState 
-        ? "You'll receive notifications when matches finish" 
-        : "Full-time notifications have been turned off",
-    });
-  };
-
-  // Get result text for display
-  const getMatchResult = () => {
-    if (!match?.score) return 'Match Finished';
-    
-    const homeScore = match.score.home || 0;
-    const awayScore = match.score.away || 0;
-    
-    if (homeScore > awayScore) {
-      return `${match.homeTeam.name} Wins!`;
-    } else if (awayScore > homeScore) {
-      return `${match.awayTeam.name} Wins!`;
-    } else {
-      return 'Match Ends in Draw!';
-    }
-  };
-
-  // Add video URL validation and processing functions (copied from MatchDetails.tsx)
+// Video utility functions
   const isValidVideoUrl = (url: string): boolean => {
     if (!url || typeof url !== 'string') {
       console.log('[FullTimeSummary] Invalid video URL - empty or not string:', url);
@@ -1554,7 +663,7 @@ const FullTimeSummary = () => {
       'dailymotion.com'
     ];
     
-    // Check if URL contains any blocked domains (more thorough check)
+  // Check if URL contains any blocked domains
     const urlLowerCase = url.toLowerCase();
     const containsBlockedDomain = blockedDomains.some(domain => {
       const isBlocked = urlLowerCase.includes(domain);
@@ -1602,109 +711,992 @@ const FullTimeSummary = () => {
     // For other video URLs, try to use them directly
     console.log('[FullTimeSummary] Using direct video URL:', url);
     return url;
+};
+
+// League Standings Chart Component
+const LeagueStandingsChart: React.FC<{ 
+  homeTeam: any; 
+  awayTeam: any; 
+  competition: any;
+  matchSeason: string;
+}> = ({ homeTeam, awayTeam, competition, matchSeason }) => {
+  const [standings, setStandings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStandings = async () => {
+      // Extract API season from formatted season (e.g., "2024-25" -> "2024")
+      const apiSeason = matchSeason.includes('-') ? matchSeason.split('-')[0] : matchSeason;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log(`[FullTimeSummary] ===== DEBUGGING LEAGUE STANDINGS =====`);
+        console.log(`[FullTimeSummary] Full competition object:`, JSON.stringify(competition, null, 2));
+        console.log(`[FullTimeSummary] Competition ID:`, competition?.id);
+        console.log(`[FullTimeSummary] Competition name:`, competition?.name);
+        console.log(`[FullTimeSummary] Match season:`, matchSeason);
+        
+        // Check if competition ID exists and is valid
+        if (!competition?.id || competition.id === 'unknown-competition') {
+          console.error(`[FullTimeSummary] ❌ Invalid competition ID: ${competition?.id}`);
+          setError('Competition information not available for standings');
+          setLoading(false);
+          return;
+        }
+        
+        // Use the actual competition ID directly from the API data
+        const standingsParams = {
+          leagueId: competition.id.toString(), // Use the actual competition ID from match data
+          season: apiSeason
+        };
+        
+        console.log(`[FullTimeSummary] 📡 Calling standings API with params:`, standingsParams);
+        console.log(`[FullTimeSummary] 📅 Note: Using API season ${apiSeason} for display season ${matchSeason}`);
+        
+        const response = await highlightlyClient.getStandings(standingsParams);
+        
+        console.log(`[FullTimeSummary] 📡 Raw API response:`, JSON.stringify(response, null, 2));
+        
+        if (response && (response.groups || response.standings || response.data)) {
+          console.log(`[FullTimeSummary] ✅ SUCCESS! Found standings data`);
+          
+          // Handle response format - API returns groups with standings
+          let standingsData = [];
+          if (response.groups && Array.isArray(response.groups) && response.groups.length > 0) {
+            // Use first group's standings
+            standingsData = response.groups[0].standings || [];
+            console.log(`[FullTimeSummary] Using response.groups[0].standings`);
+          } else if (Array.isArray(response)) {
+            standingsData = response;
+            console.log(`[FullTimeSummary] Using direct array response`);
+          } else if (response.data && Array.isArray(response.data)) {
+            standingsData = response.data;
+            console.log(`[FullTimeSummary] Using response.data array`);
+          } else if (response.league && response.league.standings) {
+            standingsData = response.league.standings[0] || []; // First group of standings
+            console.log(`[FullTimeSummary] Using response.league.standings[0]`);
+          } else {
+            console.log(`[FullTimeSummary] Trying to find standings in response object:`, Object.keys(response));
+            // Try to find standings data in different possible locations
+            if (response.standings && Array.isArray(response.standings)) {
+              standingsData = response.standings;
+            } else if (response[0] && response[0].standings) {
+              standingsData = response[0].standings;
+            }
+          }
+          
+          console.log(`[FullTimeSummary] Raw standings data:`, JSON.stringify(standingsData, null, 2));
+          
+          // Map the API response format to our expected format
+          const mappedStandings = standingsData.map((standing: any, index: number) => {
+            console.log(`[FullTimeSummary] Mapping standing ${index}:`, JSON.stringify(standing, null, 2));
+            return {
+              position: standing.position || index + 1,
+              team: {
+                id: standing.team?.id || '',
+                name: standing.team?.name || '',
+                logo: standing.team?.logo || ''
+              },
+              points: standing.points || standing.total?.points || 0,
+              played: standing.total?.games || standing.total?.played || 0,
+              won: standing.total?.wins || 0,
+              drawn: standing.total?.draws || 0,
+              lost: standing.total?.loses || standing.total?.lost || 0,
+              goalsFor: standing.total?.scoredGoals || standing.total?.goalsFor || 0,
+              goalsAgainst: standing.total?.receivedGoals || standing.total?.goalsAgainst || 0,
+              goalDifference: (standing.total?.scoredGoals || 0) - (standing.total?.receivedGoals || 0)
+            };
+          });
+          
+          console.log(`[FullTimeSummary] ✅ Final standings data (${mappedStandings.length} teams):`, mappedStandings);
+          setStandings(mappedStandings);
+          setLoading(false);
+        } else {
+          console.log(`[FullTimeSummary] ❌ No standings found in response:`, response);
+          setError('League standings not available for this competition');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error(`[FullTimeSummary] ❌ Error fetching league standings:`, error);
+        
+        // Smart fallback: If 2025 fails with 404, try 2024
+        if (apiSeason === '2025' && error.message && error.message.includes('404')) {
+          console.log(`[FullTimeSummary] 🔄 Season 2025 not available, trying fallback to 2024...`);
+          
+          try {
+            const fallbackParams = {
+              leagueId: competition.id.toString(),
+              season: '2024'
+            };
+            
+            console.log(`[FullTimeSummary] 📡 Fallback API call with params:`, fallbackParams);
+            const fallbackResponse = await highlightlyClient.getStandings(fallbackParams);
+            
+            if (fallbackResponse && (fallbackResponse.groups || fallbackResponse.standings || fallbackResponse.data)) {
+              console.log(`[FullTimeSummary] ✅ SUCCESS with 2024 fallback!`);
+              
+              // Use the same processing logic as above
+              let standingsData = [];
+              if (fallbackResponse.groups && Array.isArray(fallbackResponse.groups) && fallbackResponse.groups.length > 0) {
+                standingsData = fallbackResponse.groups[0].standings || [];
+              } else if (Array.isArray(fallbackResponse)) {
+                standingsData = fallbackResponse;
+              } else if (fallbackResponse.data && Array.isArray(fallbackResponse.data)) {
+                standingsData = fallbackResponse.data;
+              } else if (fallbackResponse.league && fallbackResponse.league.standings) {
+                standingsData = fallbackResponse.league.standings[0] || [];
+              }
+              
+              const mappedStandings = standingsData.map((standing: any, index: number) => ({
+                position: standing.position || index + 1,
+                team: {
+                  id: standing.team?.id || '',
+                  name: standing.team?.name || '',
+                  logo: standing.team?.logo || ''
+                },
+                points: standing.points || standing.total?.points || 0,
+                played: standing.total?.games || standing.total?.played || 0,
+                won: standing.total?.wins || 0,
+                drawn: standing.total?.draws || 0,
+                lost: standing.total?.loses || standing.total?.lost || 0,
+                goalsFor: standing.total?.scoredGoals || standing.total?.goalsFor || 0,
+                goalsAgainst: standing.total?.receivedGoals || standing.total?.goalsAgainst || 0,
+                goalDifference: (standing.total?.scoredGoals || 0) - (standing.total?.receivedGoals || 0)
+              }));
+              
+              console.log(`[FullTimeSummary] ✅ Fallback success! Using 2024 data (${mappedStandings.length} teams)`);
+              setStandings(mappedStandings);
+              setLoading(false);
+              return; // Exit successfully
+            }
+          } catch (fallbackError) {
+            console.error(`[FullTimeSummary] ❌ Fallback to 2024 also failed:`, fallbackError);
+          }
+        }
+        
+        // If we get here, both the original request and fallback failed
+        setError('Failed to load league standings');
+        setLoading(false);
+      }
+    };
+
+    // Only fetch if we have competition and competition ID
+    if (competition && competition.id && competition.id !== 'unknown-competition') {
+      console.log(`[FullTimeSummary] 🚀 Starting standings fetch for competition:`, competition.name);
+      fetchStandings();
+    } else {
+      console.log(`[FullTimeSummary] ❌ No valid competition data available:`, competition);
+      setError('Competition information not available');
+      setLoading(false);
+    }
+  }, [competition, matchSeason]);
+
+  // Helper function to highlight teams in the match
+  const isMatchTeam = (teamName: string) => {
+    return teamName.toLowerCase() === homeTeam.name.toLowerCase() || 
+           teamName.toLowerCase() === awayTeam.name.toLowerCase();
+  };
+
+  // Helper function to get team highlight color
+  const getTeamHighlightColor = (teamName: string) => {
+    if (teamName.toLowerCase() === homeTeam.name.toLowerCase()) {
+      return 'bg-blue-900/30 border-blue-500/50';
+    }
+    if (teamName.toLowerCase() === awayTeam.name.toLowerCase()) {
+      return 'bg-red-900/30 border-red-500/50';
+    }
+    return '';
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#111111] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-[#FFC30B] border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-white">Loading Full-time Summary...</p>
+      <div className="text-center py-8">
+        <div className="text-gray-400 text-sm">
+          <div className="mb-3">
+            <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+              <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <p className="text-white font-medium text-base mb-3">Loading League Standings...</p>
+          <p className="text-sm mb-4 max-w-md mx-auto">
+            Fetching the latest standings for {competition.name} to show where both teams currently rank.
+          </p>
         </div>
       </div>
     );
   }
 
-  if (!match) {
+  if (error || standings.length === 0) {
     return (
-      <div className="min-h-screen bg-[#111111] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-white mb-4">Match not found</p>
-          <button 
-            onClick={() => navigate('/')} 
-            className="bg-[#FFC30B] text-black px-4 py-2 rounded font-medium"
-          >
-            Go Home
-          </button>
+      <div className="text-center py-8">
+        <div className="text-gray-400 text-sm">
+          <div className="mb-3">
+            <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+              <div className="text-2xl">📊</div>
+            </div>
+          </div>
+          <p className="text-white font-medium text-base mb-3">Standings Not Available</p>
+          <p className="text-sm mb-4 max-w-md mx-auto">
+            {error || `League standings are not available for ${competition.name} at this time.`}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
+            <div className="flex items-center text-blue-400">
+              <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+              Check back later for updates
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#111111]">
-      <Header />
-      
-      <div className="max-w-4xl mx-auto px-4 pt-24 pb-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={handleGoBack}
-            className="flex items-center text-gray-400 hover:text-white transition-colors"
-            disabled={navigating}
-          >
-            <ArrowLeft className="mr-2" size={20} />
-            Back
-          </button>
-          
-          <div></div>
-          
-          <button
-            onClick={handleShare}
-            className="flex items-center text-gray-400 hover:text-white transition-colors bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-2"
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            <span className="text-sm">Share</span>
-          </button>
+    <div className="space-y-4">
+      {/* Competition Header */}
+      <div className="text-center mb-4">
+        <div className="flex items-center justify-center space-x-3 mb-2">
+          <img 
+            src={competition.logo} 
+            alt={competition.name}
+            className="w-8 h-8 object-contain" 
+          />
+          <div className="text-white font-medium text-lg">{competition.name}</div>
         </div>
+        <div className="text-gray-400 text-sm">
+          {matchSeason} Season • {standings.length} Teams
+        </div>
+      </div>
 
-        {/* Full-time Summary Content */}
-        <div className="mb-8 w-full space-y-6">
-          {/* Teams and Final Result - Main Box */}
-          <div 
-            className="rounded-xl overflow-hidden p-6 relative"
-            style={{
-              background: 'linear-gradient(15deg, #000000 0%, #000000 60%, #1F1F1F 100%)',
-              border: '1px solid #1B1B1B',
-              minHeight: '200px'
-            }}
-          >
-            {/* Country and League/Tournament Info - Top Left */}
-            <div className="absolute top-4 left-4 flex items-center gap-3">
-              <img
-                src={match.competition.logo}
-                alt={match.competition.name}
-                className="w-5 h-5 object-contain rounded-full bg-white p-0.5"
-                style={{ minWidth: '20px', minHeight: '20px' }}
-              />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white truncate">{match.competition.name}</div>
-                <div className="text-xs text-gray-400">Final Result</div>
-              </div>
-            </div>
-
-            {/* Share Button - Top Right */}
-            <div className="absolute top-4 right-4">
-              <button
-                onClick={toggleSummaryNotification}
-                className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-transparent ${
-                  summaryEnabled ? 'bg-[#FFC30B]' : 'bg-black/30 backdrop-blur-sm border border-white/20'
+      {/* Standings Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[600px]">
+          <thead className="bg-[#121212]">
+            <tr className="text-xs text-gray-400 uppercase tracking-wider">
+              <th className="px-2 py-3 text-left w-12">#</th>
+              <th className="px-3 py-3 text-left min-w-[180px]">Team</th>
+              <th className="px-2 py-3 text-center w-10">P</th>
+              <th className="px-2 py-3 text-center w-10">W</th>
+              <th className="px-2 py-3 text-center w-10">D</th>
+              <th className="px-2 py-3 text-center w-10">L</th>
+              <th className="px-2 py-3 text-center w-12 hidden sm:table-cell">GF</th>
+              <th className="px-2 py-3 text-center w-12 hidden sm:table-cell">GA</th>
+              <th className="px-2 py-3 text-center w-12">GD</th>
+              <th className="px-2 py-3 text-center w-12 font-semibold">Pts</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-700/30">
+            {standings.map((standing: any, index: number) => (
+              <tr 
+                key={index}
+                className={`hover:bg-gray-800/30 transition-colors ${
+                  isMatchTeam(standing.team.name) 
+                    ? `${getTeamHighlightColor(standing.team.name)} border-l-2` 
+                    : ''
                 }`}
               >
-                <span
-                  className={`inline-flex h-6 w-6 items-center justify-center transform rounded-full bg-white transition-transform shadow-sm ${
-                    summaryEnabled ? 'translate-x-9' : 'translate-x-1'
-                  }`}
-                >
-                  <Bell 
-                    className={`h-3 w-3 ${summaryEnabled ? 'text-[#FFC30B]' : 'text-gray-400'}`}
-                  />
-                </span>
-              </button>
-            </div>
+                <td className="px-2 py-3 text-center">
+                  <span className={`text-sm font-medium ${
+                    isMatchTeam(standing.team.name) ? 'text-white' : 'text-gray-300'
+                  }`}>
+                    {standing.position}
+                  </span>
+                </td>
+                <td className="px-3 py-3">
+                  <div className="flex items-center space-x-3">
+                    <img 
+                      src={standing.team.logo} 
+                      alt={standing.team.name}
+                      className="w-6 h-6 object-contain" 
+                    />
+                    <span className={`text-sm font-medium truncate ${
+                      isMatchTeam(standing.team.name) ? 'text-white' : 'text-gray-300'
+                    }`}>
+                      {standing.team.name}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.played}</td>
+                <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.won}</td>
+                <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.drawn}</td>
+                <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.lost}</td>
+                <td className="px-2 py-3 text-center text-sm text-gray-300 hidden sm:table-cell">{standing.goalsFor}</td>
+                <td className="px-2 py-3 text-center text-sm text-gray-300 hidden sm:table-cell">{standing.goalsAgainst}</td>
+                <td className="px-2 py-3 text-center text-sm">
+                  <span className={`${
+                    standing.goalDifference > 0 ? 'text-green-400' : 
+                    standing.goalDifference < 0 ? 'text-red-400' : 'text-gray-300'
+                  }`}>
+                    {standing.goalDifference > 0 ? '+' : ''}{standing.goalDifference}
+                  </span>
+                </td>
+                <td className="px-2 py-3 text-center">
+                  <span className={`text-sm font-semibold ${
+                    isMatchTeam(standing.team.name) ? 'text-yellow-400' : 'text-white'
+                  }`}>
+                    {standing.points}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-            {/* Teams Section - Centered */}
-            <div className="flex items-center justify-center mt-16 mb-6">
+      {/* Legend */}
+      <div className="flex flex-wrap gap-4 justify-center text-xs text-gray-400 mt-4">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-blue-900/30 border border-blue-500/50 rounded"></div>
+          <span>{homeTeam.name}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-red-900/30 border border-red-500/50 rounded"></div>
+          <span>{awayTeam.name}</span>
+        </div>
+        <div className="hidden sm:flex items-center gap-2 ml-4">
+          <span>P: Played</span>
+          <span>W: Won</span>
+          <span>D: Drawn</span>
+          <span>L: Lost</span>
+          <span>GF: Goals For</span>
+          <span>GA: Goals Against</span>
+          <span>GD: Goal Difference</span>
+          <span>Pts: Points</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Team Form Chart Component - Shows last matches form and head-to-head
+const TeamFormChart: React.FC<{ 
+  homeTeam: any; 
+  awayTeam: any; 
+  apiSeason: string;
+  competition: any;
+}> = ({ homeTeam, awayTeam, apiSeason, competition }) => {
+  const [homeTeamForm, setHomeTeamForm] = useState<any>(null);
+  const [awayTeamForm, setAwayTeamForm] = useState<any>(null);
+  const [headToHeadData, setHeadToHeadData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTeamFormData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log(`[TeamFormChart] Fetching form data for ${homeTeam.name} vs ${awayTeam.name}...`);
+        
+        // Fetch recent matches for both teams and head-to-head data in parallel
+        const [homeTeamHomeMatches, homeTeamAwayMatches, awayTeamHomeMatches, awayTeamAwayMatches, h2hMatches] = await Promise.all([
+          // Get home matches for home team
+          highlightlyClient.getMatches({
+            homeTeamName: homeTeam.name,
+            leagueId: competition?.id?.toString() || undefined,
+            limit: '15'
+          }).catch((err) => {
+            console.error(`Error fetching home team home matches:`, err);
+            return { data: [] };
+          }),
+          
+          // Get away matches for home team
+          highlightlyClient.getMatches({
+            awayTeamName: homeTeam.name,
+            leagueId: competition?.id?.toString() || undefined,
+            limit: '15'
+          }).catch((err) => {
+            console.error(`Error fetching home team away matches:`, err);
+            return { data: [] };
+          }),
+          
+          // Get home matches for away team
+          highlightlyClient.getMatches({
+            homeTeamName: awayTeam.name,
+            leagueId: competition?.id?.toString() || undefined,
+            limit: '15'
+          }).catch((err) => {
+            console.error(`Error fetching away team home matches:`, err);
+            return { data: [] };
+          }),
+          
+          // Get away matches for away team
+          highlightlyClient.getMatches({
+            awayTeamName: awayTeam.name,
+            leagueId: competition?.id?.toString() || undefined,
+            limit: '15'
+          }).catch((err) => {
+            console.error(`Error fetching away team away matches:`, err);
+            return { data: [] };
+          }),
+          
+          // Get head-to-head matches between these teams
+          highlightlyClient.getMatches({
+            homeTeamName: homeTeam.name,
+            awayTeamName: awayTeam.name,
+            limit: '10'
+          }).catch((err) => {
+            console.error(`Error fetching head-to-head matches:`, err);
+            return { data: [] };
+          })
+        ]);
+        
+        // Combine home and away matches for each team
+        const allHomeTeamMatches = [
+          ...(homeTeamHomeMatches?.data || []),
+          ...(homeTeamAwayMatches?.data || [])
+        ];
+        
+        const allAwayTeamMatches = [
+          ...(awayTeamHomeMatches?.data || []),
+          ...(awayTeamAwayMatches?.data || [])
+        ];
+        
+        console.log(`[TeamFormChart] API Results:`, {
+          homeTeamMatches: allHomeTeamMatches.length,
+          awayTeamMatches: allAwayTeamMatches.length,
+          h2hMatches: h2hMatches?.data?.length || 0
+        });
+        
+        // Filter for finished matches only and sort by date (most recent first)
+        const finishedHomeMatches = allHomeTeamMatches
+          .filter((match: any) => 
+            match.state?.description === 'Finished' || 
+            match.state?.description === 'Full Time'
+          )
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 10);
+        
+        const finishedAwayMatches = allAwayTeamMatches
+          .filter((match: any) => 
+            match.state?.description === 'Finished' || 
+            match.state?.description === 'Full Time'
+          )
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 10);
+        
+        const finishedH2HMatches = h2hMatches?.data?.filter((match: any) => 
+          match.state?.description === 'Finished' || 
+          match.state?.description === 'Full Time'
+        ) || [];
+        
+        console.log(`[TeamFormChart] Finished matches:`, {
+          homeFinished: finishedHomeMatches.length,
+          awayFinished: finishedAwayMatches.length,
+          h2hFinished: finishedH2HMatches.length
+        });
+        
+        // Transform data for both teams
+        const homeFormData = transformTeamFormData(finishedHomeMatches, homeTeam.name);
+        const awayFormData = transformTeamFormData(finishedAwayMatches, awayTeam.name);
+        const h2hData = transformHeadToHeadData(finishedH2HMatches);
+        
+        console.log(`[TeamFormChart] Transformed data:`, {
+          homeFormData: homeFormData ? 'success' : 'null',
+          awayFormData: awayFormData ? 'success' : 'null',
+          h2hData: h2hData.length
+        });
+        
+        setHomeTeamForm(homeFormData);
+        setAwayTeamForm(awayFormData);
+        setHeadToHeadData(h2hData);
+        setLoading(false);
+        
+      } catch (error) {
+        console.error(`[TeamFormChart] Error fetching team form data:`, error);
+        setError('Failed to load team form data');
+        setLoading(false);
+      }
+    };
+
+    fetchTeamFormData();
+  }, [homeTeam, awayTeam, apiSeason, competition]);
+
+  // Transform match data into team form statistics
+  const transformTeamFormData = (matches: any[], teamName: string) => {
+    if (!matches || matches.length === 0) return null;
+    
+    const recentMatches = matches.slice(0, 10).map((match: any) => {
+      const isHome = match.homeTeam?.name === teamName;
+      
+      // Parse score from the API format (e.g., "1 - 1" or "2 - 0")
+      let homeScore = 0;
+      let awayScore = 0;
+      
+      if (match.state?.score?.current) {
+        const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+        if (scoreMatch) {
+          homeScore = parseInt(scoreMatch[1], 10);
+          awayScore = parseInt(scoreMatch[2], 10);
+        }
+      }
+      
+      const totalGoals = homeScore + awayScore;
+      
+      // Determine result for this team
+      let result = 'D';
+      if (homeScore !== awayScore) {
+        result = isHome ? (homeScore > awayScore ? 'W' : 'L') : (awayScore > homeScore ? 'W' : 'L');
+      }
+      
+      return {
+        result,
+        isHome,
+        homeScore,
+        awayScore,
+        totalGoals,
+        opponent: isHome ? match.awayTeam?.name : match.homeTeam?.name,
+        date: match.date
+      };
+    });
+    
+    // Calculate form statistics
+    const stats = {
+      over25: recentMatches.filter(m => m.totalGoals > 2.5).length,
+      under25: recentMatches.filter(m => m.totalGoals <= 2.5).length,
+      cleanSheet: recentMatches.filter(m => 
+        (m.isHome && m.awayScore === 0) || (!m.isHome && m.homeScore === 0)
+      ).length,
+      failedToScore: recentMatches.filter(m => 
+        (m.isHome && m.homeScore === 0) || (!m.isHome && m.awayScore === 0)
+      ).length,
+      conceded: recentMatches.filter(m => 
+        (m.isHome && m.awayScore > 0) || (!m.isHome && m.homeScore > 0)
+      ).length,
+      concededTwo: recentMatches.filter(m => 
+        (m.isHome && m.awayScore >= 2) || (!m.isHome && m.homeScore >= 2)
+      ).length
+    };
+    
+    return {
+      form: recentMatches.map(m => m.result),
+      recentMatches,
+      stats
+    };
+  };
+
+  // Transform head-to-head match data
+  const transformHeadToHeadData = (matches: any[]) => {
+    if (!matches || matches.length === 0) return [];
+    
+    return matches.slice(0, 2).map((match: any) => {
+      // Parse score from the API format (e.g., "1 - 1" or "2 - 0")
+      let homeScore = 0;
+      let awayScore = 0;
+      
+      if (match.state?.score?.current) {
+        const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+        if (scoreMatch) {
+          homeScore = parseInt(scoreMatch[1], 10);
+          awayScore = parseInt(scoreMatch[2], 10);
+        }
+      }
+      
+      const homeTeamName = match.homeTeam?.name || '';
+      const awayTeamName = match.awayTeam?.name || '';
+      
+      const matchDate = match.date || '';
+      const formattedDate = new Date(matchDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      
+      return {
+        date: formattedDate,
+        homeTeam: homeTeamName,
+        awayTeam: awayTeamName,
+        score: `${homeScore}-${awayScore}`,
+        competition: match.competition?.name || 'Unknown'
+      };
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-400 text-sm">
+          <div className="mb-3">
+            <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+              <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <p className="text-white font-medium text-base mb-3">Loading Team Form...</p>
+          <p className="text-sm mb-4 max-w-md mx-auto">
+            Fetching recent match data and statistics for both teams.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || (!homeTeamForm && !awayTeamForm)) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-400 text-sm">
+          <div className="mb-3">
+            <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+              <div className="text-2xl">📊</div>
+            </div>
+          </div>
+          <p className="text-white font-medium text-base mb-3">Form Data Not Available</p>
+          <p className="text-sm mb-4 max-w-md mx-auto">
+            Recent match data for these teams is not available at this time.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Teams Header */}
+      <div className="flex justify-between items-center text-sm text-gray-400 mb-6">
+        <div className="flex items-center gap-2">
+          <img src={homeTeam.logo} alt={homeTeam.name} className="w-6 h-6 object-contain" />
+          <span>{homeTeam.name}</span>
+        </div>
+        <span className="text-xs">LAST 10 MATCHES</span>
+        <div className="flex items-center gap-2">
+          <span>{awayTeam.name}</span>
+          <img src={awayTeam.logo} alt={awayTeam.name} className="w-6 h-6 object-contain" />
+        </div>
+      </div>
+
+      {/* Form Statistics */}
+      <div className="space-y-4">
+        {/* Over 2.5 Goals */}
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = homeTeamForm?.recentMatches?.[index];
+              const over25 = match ? match.totalGoals > 2.5 : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && over25 && <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="text-center px-8">
+            <div className="text-white text-sm font-medium">OVER 2.5</div>
+            <div className="flex gap-4 text-xs text-gray-400 mt-1">
+              <span>{homeTeamForm?.stats?.over25 || 0}/10</span>
+              <span>{awayTeamForm?.stats?.over25 || 0}/10</span>
+            </div>
+          </div>
+          
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = awayTeamForm?.recentMatches?.[index];
+              const over25 = match ? match.totalGoals > 2.5 : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && over25 && <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Under 2.5 Goals */}
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = homeTeamForm?.recentMatches?.[index];
+              const under25 = match ? match.totalGoals <= 2.5 : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && under25 && <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="text-center px-8">
+            <div className="text-white text-sm font-medium">UNDER 2.5</div>
+            <div className="flex gap-4 text-xs text-gray-400 mt-1">
+              <span>{homeTeamForm?.stats?.under25 || 0}/10</span>
+              <span>{awayTeamForm?.stats?.under25 || 0}/10</span>
+            </div>
+          </div>
+          
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = awayTeamForm?.recentMatches?.[index];
+              const under25 = match ? match.totalGoals <= 2.5 : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && under25 && <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Clean Sheet */}
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = homeTeamForm?.recentMatches?.[index];
+              const cleanSheet = match ? (match.isHome ? match.awayScore === 0 : match.homeScore === 0) : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && cleanSheet && <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="text-center px-8">
+            <div className="text-white text-sm font-medium">CLEAN SHEET</div>
+            <div className="flex gap-4 text-xs text-gray-400 mt-1">
+              <span>{homeTeamForm?.stats?.cleanSheet || 0}/10</span>
+              <span>{awayTeamForm?.stats?.cleanSheet || 0}/10</span>
+            </div>
+          </div>
+          
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = awayTeamForm?.recentMatches?.[index];
+              const cleanSheet = match ? (match.isHome ? match.awayScore === 0 : match.homeScore === 0) : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && cleanSheet && <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Failed to Score */}
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = homeTeamForm?.recentMatches?.[index];
+              const failedToScore = match ? (match.isHome ? match.homeScore === 0 : match.awayScore === 0) : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && failedToScore && <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="text-center px-8">
+            <div className="text-white text-sm font-medium">FAILED TO SCORE</div>
+            <div className="flex gap-4 text-xs text-gray-400 mt-1">
+              <span>{homeTeamForm?.stats?.failedToScore || 0}/10</span>
+              <span>{awayTeamForm?.stats?.failedToScore || 0}/10</span>
+            </div>
+          </div>
+          
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = awayTeamForm?.recentMatches?.[index];
+              const failedToScore = match ? (match.isHome ? match.homeScore === 0 : match.awayScore === 0) : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && failedToScore && <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Conceded */}
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = homeTeamForm?.recentMatches?.[index];
+              const conceded = match ? (match.isHome ? match.awayScore > 0 : match.homeScore > 0) : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && conceded && <div className="w-1.5 h-1.5 bg-orange-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="text-center px-8">
+            <div className="text-white text-sm font-medium">CONCEDED</div>
+            <div className="flex gap-4 text-xs text-gray-400 mt-1">
+              <span>{homeTeamForm?.stats?.conceded || 0}/10</span>
+              <span>{awayTeamForm?.stats?.conceded || 0}/10</span>
+            </div>
+          </div>
+          
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = awayTeamForm?.recentMatches?.[index];
+              const conceded = match ? (match.isHome ? match.awayScore > 0 : match.homeScore > 0) : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && conceded && <div className="w-1.5 h-1.5 bg-orange-400 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Conceded Two */}
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = homeTeamForm?.recentMatches?.[index];
+              const concededTwo = match ? (match.isHome ? match.awayScore >= 2 : match.homeScore >= 2) : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && concededTwo && <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="text-center px-8">
+            <div className="text-white text-sm font-medium">CONCEDED TWO</div>
+            <div className="flex gap-4 text-xs text-gray-400 mt-1">
+              <span>{homeTeamForm?.stats?.concededTwo || 0}/10</span>
+              <span>{awayTeamForm?.stats?.concededTwo || 0}/10</span>
+            </div>
+          </div>
+          
+          <div className="flex space-x-1.5">
+            {Array.from({ length: 10 }, (_, index) => {
+              const match = awayTeamForm?.recentMatches?.[index];
+              const concededTwo = match ? (match.isHome ? match.awayScore >= 2 : match.homeScore >= 2) : false;
+              return (
+                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                  {match && concededTwo && <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Head-to-Head Section */}
+      {headToHeadData.length > 0 && (
+        <>
+          <div className="border-t border-white/10 pt-6 mb-4">
+            <h4 className="text-lg font-semibold text-center text-white mb-4">HEAD-TO-HEAD</h4>
+          </div>
+          
+          <div className="space-y-3">
+            {headToHeadData.map((encounter, index) => (
+              <div key={index} className="flex items-center justify-between bg-gray-800/50 rounded-lg p-4">
+                <div className="text-sm text-gray-400 min-w-[100px]">{encounter.date}</div>
+                <div className="flex items-center justify-center flex-1">
+                  <div className="text-center">
+                    <div className="text-white font-medium text-sm">
+                      {encounter.homeTeam} <span className="text-yellow-400 font-bold mx-3">{encounter.score}</span> {encounter.awayTeam}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-400 min-w-[120px] text-right">{encounter.competition}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// Main FullTimeSummary component
+const FullTimeSummary: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [match, setMatch] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [apiDataLoading, setApiDataLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMatch = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        setApiDataLoading(true);
+        
+        // Fetch match data from API
+        const matchData = await getMatchById(id);
+        setMatch(matchData);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load match data');
+        setApiDataLoading(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatch();
+  }, [id]);
+
+  // Helper functions
+  const getActiveService = () => 'highlightly';
+  const isPreSeasonMatch = () => false;
+  const getNoDataMessage = (type: string) => {
+    if (type === 'standings') return 'League standings are not available for this competition';
+    if (type === 'form') return 'Team form data is not available for these teams';
+    return 'Data not available';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-white text-lg font-medium">Loading Match Summary...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !match) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-400 text-lg font-medium mb-4">
+            {error || 'Match not found'}
+          </div>
+          <button 
+            onClick={() => navigate('/')} 
+            className="bg-yellow-500 text-black px-6 py-3 rounded-lg font-medium hover:bg-yellow-400 transition-colors"
+          >
+            Back to Matches
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate the season for standings - use proper football season logic
+  // Football seasons span two years: 2024-25 season runs from Aug 2024 to May 2025
+  // For API calls, this is represented as the starting year (2024)
+  const matchDate = new Date(match.date);
+  const matchYear = matchDate.getFullYear();
+  const matchMonth = matchDate.getMonth() + 1; // getMonth() is 0-indexed
+  
+  // If match is in Jan-May, it belongs to the previous year's season
+  // If match is in Jun-Dec, it belongs to the current year's season
+  const seasonYear = matchMonth <= 5 ? matchYear - 1 : matchYear;
+  const matchSeason = seasonYear.toString();
+  
+  // Create formatted season display (e.g., "2024-25 Season")
+  const formattedSeason = `${seasonYear}-${(seasonYear + 1).toString().slice(-2)}`;
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        {/* Match Header */}
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-8 mb-6">
               {/* Home Team */}
               <div className="text-center flex-1">
                 <img 
@@ -1773,6 +1765,8 @@ const FullTimeSummary = () => {
               border: '1px solid #1B1B1B'
             }}
           >
+          <h4 className="text-lg font-semibold mb-4 text-center text-white">MATCH HIGHLIGHTS</h4>
+          
             {match.videoUrl && isValidVideoUrl(match.videoUrl) ? (
               <div className="aspect-video bg-black rounded-lg overflow-hidden">
                 <iframe
@@ -1830,7 +1824,7 @@ const FullTimeSummary = () => {
             <MatchStatsChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchStatistics={match.statistics} />
           </div>
 
-          {/* Full Match Timeline */}
+        {/* Team Lineups */}
           <div 
             className="rounded-xl p-6 border overflow-hidden"
             style={{
@@ -1838,478 +1832,220 @@ const FullTimeSummary = () => {
               border: '1px solid #1B1B1B'
             }}
           >
-            <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH TIMELINE</h4>
+          <h4 className="text-lg font-semibold mb-6 text-center text-white">TEAM LINEUPS</h4>
             
-            <MatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchEvents={match.events} />
+          <TeamLineupsChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} lineups={match.lineups} />
           </div>
 
-          {/* Team Lineup */}
-          <div 
-            className="rounded-xl p-6 border overflow-hidden"
-            style={{
-              background: '#000000',
-              border: '1px solid #1B1B1B'
-            }}
-          >
-            <h4 className="text-lg font-semibold mb-6 text-center text-white">TEAM LINEUP</h4>
-            
-            <TeamLineupChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchLineups={match.lineups} />
-          </div>
-
-          {/* League Standings */}
-          <div 
-            className="rounded-xl p-6 border overflow-hidden"
-            style={{
-              background: '#000000',
-              border: '1px solid #1B1B1B'
-            }}
-          >
-            <h4 className="text-lg font-semibold mb-4 text-center text-white">LEAGUE STANDINGS</h4>
-            
-            {apiDataLoading ? (
-              <div className="text-center text-gray-400 py-8">
-                <div className="animate-spin w-6 h-6 border-2 border-yellow-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                {getActiveService() === 'highlightly' ? 'Loading real standings from Highlightly API...' : 'Loading standings...'}
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Home Team Position */}
-                  {homeLeaguePosition ? (
-                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-yellow-400">
-                        {homeLeaguePosition.position}
-                      </div>
-                      <div className="text-sm text-gray-400">Position</div>
-                      <div className="text-lg font-semibold text-white mt-2">
-                        {match.homeTeam.name}
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        {homeLeaguePosition.points} pts • {homeLeaguePosition.played} games
-                      </div>
-                      <div className="flex justify-center space-x-1 mt-2">
-                        {(homeLeaguePosition.form || []).map((result: string, idx: number) => (
-                          <div key={idx} className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                            result === 'W' ? 'bg-green-500 text-white' : 
-                            result === 'L' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'
-                          }`}>
-                            {result}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-                      <div className="text-gray-400 text-sm">
-                        <div className="mb-2">📊</div>
-                        <div className="text-white font-medium text-sm mb-1">{match.homeTeam.name}</div>
-                        <div className="text-xs">
-                          {isPreSeasonMatch() 
-                            ? "Season hasn't started yet" 
-                            : "No standings data available"}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Away Team Position */}
-                  {awayLeaguePosition ? (
-                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-yellow-400">
-                        {awayLeaguePosition.position}
-                      </div>
-                      <div className="text-sm text-gray-400">Position</div>
-                      <div className="text-lg font-semibold text-white mt-2">
-                        {match.awayTeam.name}
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        {awayLeaguePosition.points} pts • {awayLeaguePosition.played} games
-                      </div>
-                      <div className="flex justify-center space-x-1 mt-2">
-                        {(awayLeaguePosition.form || []).map((result: string, idx: number) => (
-                          <div key={idx} className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                            result === 'W' ? 'bg-green-500 text-white' : 
-                            result === 'L' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white'
-                          }`}>
-                            {result}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-                      <div className="text-gray-400 text-sm">
-                        <div className="mb-2">📊</div>
-                        <div className="text-white font-medium text-sm mb-1">{match.awayTeam.name}</div>
-                        <div className="text-xs">
-                          {isPreSeasonMatch() 
-                            ? "Season hasn't started yet" 
-                            : "No standings data available"}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Show comprehensive empty state if neither team has standings */}
-                {!homeLeaguePosition && !awayLeaguePosition && (
-                  <div className="text-center py-4 mt-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                    <div className="text-gray-400 text-sm">
-                      <div className="mb-2">📋</div>
-                      <p className="text-white font-medium text-sm mb-2">League Standings Unavailable</p>
-                      <p className="text-xs px-4">
-                        {getNoDataMessage('standings')}
-                      </p>
-                      {isPreSeasonMatch() && (
-                        <p className="text-gray-500 text-xs mt-3 px-4">
-                          📅 League tables will be updated once the {match.competition.name} {matchSeason} season begins and teams have played matches.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Recent Form with Integrated Head-to-Head */}
-          <div 
-            className="rounded-xl p-6 border overflow-hidden"
-            style={{
-              background: '#000000',
-              border: '1px solid #1B1B1B'
-            }}
-          >
-            {/* Team Headers */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-center">
-                <h4 className="text-white font-semibold text-sm uppercase tracking-wide">
-                  {match.homeTeam.name}: RECENT FORM
-                </h4>
-              </div>
-              <div className="text-center">
-                <h4 className="text-white font-semibold text-sm uppercase tracking-wide">
-                  {match.awayTeam.name}: RECENT FORM
-                </h4>
-              </div>
-            </div>
-            
-            {apiDataLoading ? (
-              <div className="text-center text-gray-400 py-8">
-                <div className="animate-spin w-6 h-6 border-2 border-yellow-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                {getActiveService() === 'highlightly' ? 'Loading real team data from Highlightly API...' : 'Loading form data...'}
-              </div>
-            ) : (
-              <>
-                {/* Pre-season context banner */}
-                {isPreSeasonMatch() && (homeTeamForm || awayTeamForm) && (
-                  <div className="mb-4 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
-                    <p className="text-center text-xs text-orange-300">
-                      🏆 Match completed: Form data shown is from the previous season ({parseInt(matchSeason) - 1})
-                    </p>
-                  </div>
-                )}
-                
-                {homeTeamForm || awayTeamForm ? (
-                  <>
-                    {/* Form circles */}
-                    <div className="flex justify-between items-center mb-8">
-                      <div className="flex space-x-1.5">
-                        {Array.from({ length: 10 }, (_, index) => {
-                          const result = homeTeamForm?.form?.[index];
-                          return (
-                            <div key={index} className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${
-                              result === 'W' ? 'bg-green-500 text-white' : 
-                              result === 'L' ? 'bg-red-500 text-white' : 
-                              result === 'D' ? 'bg-yellow-500 text-black' : 'bg-gray-800 border border-gray-400 text-gray-400'
-                            }`}>
-                              {result || '-'}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      <div className="text-center px-8">
-                        <div className="text-white text-sm font-medium">OUTCOME</div>
-                      </div>
-                      
-                      <div className="flex space-x-1.5">
-                        {Array.from({ length: 10 }, (_, index) => {
-                          const result = awayTeamForm?.form?.[index];
-                          return (
-                            <div key={index} className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${
-                              result === 'W' ? 'bg-green-500 text-white' : 
-                              result === 'L' ? 'bg-red-500 text-white' : 
-                              result === 'D' ? 'bg-yellow-500 text-black' : 'bg-gray-800 border border-gray-400 text-gray-400'
-                            }`}>
-                              {result || '-'}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 gap-4 mb-8">
-                      {/* Over 2.5 Goals */}
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = homeTeamForm?.recentMatches?.[index];
-                            const over25 = match ? (match.homeScore + match.awayScore) > 2.5 : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && over25 && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        <div className="text-center px-8">
-                          <div className="text-white text-sm font-medium">OVER 2.5</div>
-                        </div>
-                        
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = awayTeamForm?.recentMatches?.[index];
-                            const over25 = match ? (match.homeScore + match.awayScore) > 2.5 : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && over25 && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Under 2.5 Goals */}
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = homeTeamForm?.recentMatches?.[index];
-                            const under25 = match ? (match.homeScore + match.awayScore) <= 2.5 : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && under25 && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        <div className="text-center px-8">
-                          <div className="text-white text-sm font-medium">UNDER 2.5</div>
-                        </div>
-                        
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = awayTeamForm?.recentMatches?.[index];
-                            const under25 = match ? (match.homeScore + match.awayScore) <= 2.5 : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && under25 && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Clean Sheet */}
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = homeTeamForm?.recentMatches?.[index];
-                            const cleanSheet = match ? (match.isHome ? match.awayScore === 0 : match.homeScore === 0) : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && cleanSheet && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        <div className="text-center px-8">
-                          <div className="text-white text-sm font-medium">CLEAN SHEET</div>
-                        </div>
-                        
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = awayTeamForm?.recentMatches?.[index];
-                            const cleanSheet = match ? (match.isHome ? match.awayScore === 0 : match.homeScore === 0) : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && cleanSheet && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Failed to Score */}
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = homeTeamForm?.recentMatches?.[index];
-                            const failedToScore = match ? (match.isHome ? match.homeScore === 0 : match.awayScore === 0) : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && failedToScore && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        <div className="text-center px-8">
-                          <div className="text-white text-sm font-medium">FAILED TO SCORE</div>
-                        </div>
-                        
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = awayTeamForm?.recentMatches?.[index];
-                            const failedToScore = match ? (match.isHome ? match.homeScore === 0 : match.awayScore === 0) : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && failedToScore && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Conceded */}
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = homeTeamForm?.recentMatches?.[index];
-                            const conceded = match ? (match.isHome ? match.awayScore > 0 : match.homeScore > 0) : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && conceded && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        <div className="text-center px-8">
-                          <div className="text-white text-sm font-medium">CONCEDED</div>
-                        </div>
-                        
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = awayTeamForm?.recentMatches?.[index];
-                            const conceded = match ? (match.isHome ? match.awayScore > 0 : match.homeScore > 0) : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && conceded && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Conceded Two */}
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = homeTeamForm?.recentMatches?.[index];
-                            const concededTwo = match ? (match.isHome ? match.awayScore >= 2 : match.homeScore >= 2) : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && concededTwo && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        <div className="text-center px-8">
-                          <div className="text-white text-sm font-medium">CONCEDED TWO</div>
-                        </div>
-                        
-                        <div className="flex space-x-1.5">
-                          {Array.from({ length: 10 }, (_, index) => {
-                            const match = awayTeamForm?.recentMatches?.[index];
-                            const concededTwo = match ? (match.isHome ? match.awayScore >= 2 : match.homeScore >= 2) : false;
-                            return (
-                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
-                                {match && concededTwo && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Head-to-Head Section */}
-                    {headToHeadData.length > 0 && (
-                      <>
-                        <div className="border-t border-white/10 pt-6 mb-4">
-                          <h4 className="text-lg font-semibold text-center text-white mb-4">HEAD-TO-HEAD</h4>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          {headToHeadData.map((encounter, index) => (
-                            <div key={index} className="flex items-center justify-between bg-gray-800/50 rounded-lg p-4">
-                              <div className="text-sm text-gray-400 min-w-[100px]">{encounter.date}</div>
-                              <div className="flex items-center justify-center flex-1">
-                                <div className="text-center">
-                                  <div className="text-white font-medium text-sm">
-                                    {encounter.homeTeam} <span className="text-yellow-400 font-bold mx-3">{encounter.score}</span> {encounter.awayTeam}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-sm text-gray-400 min-w-[120px] text-right">{encounter.competition}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-6">
-                    <div className="text-gray-400 text-sm">
-                      <div className="mb-2">📊</div>
-                      <p className="text-white font-medium text-sm mb-2">Team Form Data Unavailable</p>
-                      <p className="text-xs px-4">
-                        {getNoDataMessage('form')}
-                      </p>
-                      {isPreSeasonMatch() && (
-                        <p className="text-gray-500 text-xs mt-3 px-4">
-                          📅 Form data will be updated once teams have played matches in the {match.competition.name} {matchSeason} season.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+        {/* League Standings */}
+        <div 
+          className="rounded-xl p-6 border overflow-hidden"
+          style={{
+            background: '#000000',
+            border: '1px solid #1B1B1B'
+          }}
+        >
+          <h4 className="text-lg font-semibold mb-6 text-center text-white">LEAGUE STANDINGS</h4>
+          
+          <LeagueStandingsChart 
+            homeTeam={match.homeTeam} 
+            awayTeam={match.awayTeam} 
+            competition={match.competition}
+            matchSeason={formattedSeason}
+          />
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={() => navigate(`/match/${match.id}`)}
-            className="bg-[#FFC30B] text-black px-6 py-3 rounded-lg font-medium hover:bg-[#FFD700] transition-colors"
-          >
-            View Full Match Details
-          </button>
+        {/* Last Matches Form */}
+        <div 
+          className="rounded-xl p-6 border overflow-hidden"
+          style={{
+            background: '#000000',
+            border: '1px solid #1B1B1B'
+          }}
+        >
+          <h4 className="text-lg font-semibold mb-6 text-center text-white">LAST MATCHES</h4>
           
-          <button
-            onClick={() => navigate('/')}
-            className="bg-gray-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors border border-gray-600"
-          >
-            Back to Matches
-          </button>
+          <TeamFormChart 
+            homeTeam={match.homeTeam} 
+            awayTeam={match.awayTeam} 
+            apiSeason={matchSeason}
+            competition={match.competition}
+          />
+        </div>
         </div>
       </div>
+  );
+};
 
-      {/* API Source Attribution */}
-      {false && (
-        <div className="text-center mt-6 pt-4 border-t border-gray-700">
-          <p className="text-gray-500 text-xs">
-            Powered by Highlightly Football API • Real-time data
+// Team Lineups Chart Component
+const TeamLineupsChart: React.FC<{ homeTeam: any; awayTeam: any; lineups?: any }> = ({ 
+  homeTeam, 
+  awayTeam, 
+  lineups 
+}) => {
+  const [activeTab, setActiveTab] = useState<'home' | 'away'>('home');
+
+  if (!lineups || (!lineups.homeTeam && !lineups.awayTeam)) {
+    return (
+      <div className="text-center py-8">
+                    <div className="text-gray-400 text-sm">
+          <div className="mb-3">
+            <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+              <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
+                    </div>
+                  </div>
+          <p className="text-white font-medium text-base mb-3">Lineups Coming Soon</p>
+          <p className="text-sm mb-4 max-w-md mx-auto">
+            Team lineups will be available 30 minutes before kickoff or shortly after the match begins.
           </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
+            <div className="flex items-center text-blue-400">
+              <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+              Usually available 30 minutes before kickoff
+                  </div>
+                            </div>
+                      </div>
+                            </div>
+                          );
+  }
+
+  const renderTeamLineup = (team: any, isHome: boolean) => {
+    if (!team || !team.initialLineup || !team.formation) {
+                            return (
+        <div className="text-center text-gray-400 text-sm py-8">
+          <p>Lineup not available for this team</p>
+                              </div>
+                            );
+    }
+
+                            return (
+      <div className="space-y-6">
+        {/* Team Header */}
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-3 mb-2">
+            <img 
+              src={team.logo} 
+              alt={team.name}
+              className="w-10 h-10 object-contain" 
+            />
+            <div className="text-white font-medium text-lg">{team.name}</div>
+                              </div>
+          <div className="text-yellow-400 text-sm font-medium">
+            Formation: {team.formation}
+                        </div>
+                      </div>
+
+        {/* Formation Visualization */}
+        <div className="relative bg-green-900/20 rounded-lg p-4 min-h-[300px] border border-green-700/30">
+          {/* Field Lines */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="w-full h-full border border-white/20 rounded-lg relative">
+              {/* Center Line */}
+              <div className="absolute top-1/2 left-0 right-0 h-px bg-white/20"></div>
+              {/* Center Circle */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 border border-white/20 rounded-full"></div>
+              {/* Goal Areas */}
+              <div className="absolute top-1/3 left-0 w-4 h-1/3 border-r border-t border-b border-white/20"></div>
+              <div className="absolute top-1/3 right-0 w-4 h-1/3 border-l border-t border-b border-white/20"></div>
+                              </div>
+                        </div>
+                        
+          {/* Players by Formation Rows */}
+          <div className="relative z-10 h-full flex flex-col justify-between py-2">
+            {team.initialLineup.map((row: any[], rowIndex: number) => (
+              <div key={rowIndex} className="flex justify-center space-x-2">
+                {row.map((player: any, playerIndex: number) => (
+                  <div 
+                    key={playerIndex}
+                    className="bg-black/60 border border-yellow-400/50 rounded-lg p-2 text-center min-w-[80px] backdrop-blur-sm"
+                  >
+                    <div className="text-yellow-400 text-xs font-bold mb-1">
+                      #{player.number}
+                        </div>
+                    <div className="text-white text-xs font-medium leading-tight">
+                      {player.name}
+                              </div>
+                    <div className="text-gray-400 text-xs mt-1">
+                      {player.position}
+                        </div>
+                      </div>
+                ))}
+                              </div>
+            ))}
+                        </div>
+                        </div>
+                        
+        {/* Substitutes */}
+        {team.substitutes && team.substitutes.length > 0 && (
+          <div className="mt-4">
+            <h5 className="text-white font-medium text-sm mb-2">Substitutes</h5>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {team.substitutes.map((sub: any, index: number) => (
+                <div 
+                  key={index}
+                  className="bg-gray-800/50 border border-gray-600/50 rounded p-2 text-center"
+                >
+                  <div className="text-yellow-400 text-xs font-bold">
+                    #{sub.number}
+                              </div>
+                  <div className="text-white text-xs font-medium">
+                    {sub.name}
+                        </div>
+                  <div className="text-gray-400 text-xs">
+                    {sub.position}
+                      </div>
+                            </div>
+                          ))}
+                    </div>
+                  </div>
+            )}
+          </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Team Tabs */}
+      <div className="border-b border-gray-700">
+        <nav className="-mb-px flex space-x-8 justify-center">
+          <button
+            onClick={() => setActiveTab('home')}
+            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2
+              ${activeTab === 'home' 
+                ? 'border-yellow-400 text-yellow-400' 
+                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+              }`}
+          >
+            <img 
+              src={homeTeam.logo} 
+              alt={homeTeam.name}
+              className="w-5 h-5 object-contain" 
+            />
+            {homeTeam.name}
+          </button>
+          <button
+            onClick={() => setActiveTab('away')}
+            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2
+              ${activeTab === 'away' 
+                ? 'border-yellow-400 text-yellow-400' 
+                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+              }`}
+          >
+            <img 
+              src={awayTeam.logo} 
+              alt={awayTeam.name}
+              className="w-5 h-5 object-contain" 
+            />
+            {awayTeam.name}
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div>
+        {activeTab === 'home' && renderTeamLineup(lineups.homeTeam, true)}
+        {activeTab === 'away' && renderTeamLineup(lineups.awayTeam, false)}
         </div>
-      )}
     </div>
   );
 };

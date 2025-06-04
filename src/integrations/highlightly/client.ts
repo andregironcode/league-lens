@@ -198,6 +198,8 @@ export const highlightlyClient = {
     date?: string;
     timezone?: string;
     season?: string;
+    homeTeamName?: string;
+    awayTeamName?: string;
     limit?: string;
     offset?: string;
   }) {
@@ -288,16 +290,36 @@ export const highlightlyClient = {
     leagueId?: string;
     season?: string;
   }) {
-    // Map client interface to API parameters
+    // Build API parameters - API requires leagueId and season as required params
     const apiParams: Record<string, string> = {};
-    if (params.league) {
-      apiParams.leagueId = params.league; // API expects leagueId, not league
-    }
-    if (params.season) {
-      apiParams.season = params.season;
+    
+    // Handle leagueId parameter
+    if (params.leagueId) {
+      apiParams.leagueId = params.leagueId;
+    } else if (params.league) {
+      // If league name is provided, try to resolve it to an ID
+      // For now, pass the league name as leagueId (API might accept both)
+      apiParams.leagueId = params.league;
     }
     
-    return apiRequest<any>('/standings', apiParams);
+    // Handle season parameter - required by API
+    if (params.season) {
+      apiParams.season = params.season;
+    } else {
+      // Fallback to current year if no season provided
+      apiParams.season = new Date().getFullYear().toString();
+    }
+    
+    console.log('[Highlightly Client] Calling standings API with params:', apiParams);
+    
+    try {
+      const response = await apiRequest<any>('/standings', apiParams);
+      console.log('[Highlightly Client] Standings API response:', response);
+      return response;
+    } catch (error) {
+      console.error('[Highlightly Client] Standings API error:', error);
+      throw error;
+    }
   },
   
   /**
