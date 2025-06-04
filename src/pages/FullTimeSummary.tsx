@@ -711,7 +711,7 @@ const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any; matchStatistics?
     // For other video URLs, try to use them directly
     console.log('[FullTimeSummary] Using direct video URL:', url);
     return url;
-};
+  };
 
 // League Standings Chart Component
 const LeagueStandingsChart: React.FC<{ 
@@ -918,38 +918,38 @@ const LeagueStandingsChart: React.FC<{
           <div className="mb-3">
             <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
               <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
+              </div>
             </div>
-          </div>
           <p className="text-white font-medium text-base mb-3">Loading League Standings...</p>
           <p className="text-sm mb-4 max-w-md mx-auto">
             Fetching the latest standings for {competition.name} to show where both teams currently rank.
           </p>
-        </div>
-      </div>
+          </div>
+              </div>
     );
   }
 
   if (error || standings.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="text-gray-400 text-sm">
-          <div className="mb-3">
-            <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
+              <div className="text-center py-8">
+                <div className="text-gray-400 text-sm">
+                  <div className="mb-3">
+                    <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
               <div className="text-2xl">📊</div>
-            </div>
-          </div>
+                    </div>
+                  </div>
           <p className="text-white font-medium text-base mb-3">Standings Not Available</p>
-          <p className="text-sm mb-4 max-w-md mx-auto">
+                  <p className="text-sm mb-4 max-w-md mx-auto">
             {error || `League standings are not available for ${competition.name} at this time.`}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
-            <div className="flex items-center text-blue-400">
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-xs">
+                    <div className="flex items-center text-blue-400">
               <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
               Check back later for updates
-            </div>
-          </div>
-        </div>
-      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
     );
   }
 
@@ -964,11 +964,11 @@ const LeagueStandingsChart: React.FC<{
             className="w-8 h-8 object-contain" 
           />
           <div className="text-white font-medium text-lg">{competition.name}</div>
-        </div>
+          </div>
         <div className="text-gray-400 text-sm">
           {matchSeason} Season • {standings.length} Teams
-        </div>
-      </div>
+          </div>
+          </div>
 
       {/* Standings Table */}
       <div className="overflow-x-auto">
@@ -1016,7 +1016,7 @@ const LeagueStandingsChart: React.FC<{
                     }`}>
                       {standing.team.name}
                     </span>
-                  </div>
+                          </div>
                 </td>
                 <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.played}</td>
                 <td className="px-2 py-3 text-center text-sm text-gray-300">{standing.won}</td>
@@ -1043,18 +1043,18 @@ const LeagueStandingsChart: React.FC<{
             ))}
           </tbody>
         </table>
-      </div>
+                      </div>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 justify-center text-xs text-gray-400 mt-4">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-blue-900/30 border border-blue-500/50 rounded"></div>
           <span>{homeTeam.name}</span>
-        </div>
+                      </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-red-900/30 border border-red-500/50 rounded"></div>
           <span>{awayTeam.name}</span>
-        </div>
+                      </div>
         <div className="hidden sm:flex items-center gap-2 ml-4">
           <span>P: Played</span>
           <span>W: Won</span>
@@ -1064,9 +1064,9 @@ const LeagueStandingsChart: React.FC<{
           <span>GA: Goals Against</span>
           <span>GD: Goal Difference</span>
           <span>Pts: Points</span>
-        </div>
-      </div>
-    </div>
+                      </div>
+                          </div>
+                      </div>
   );
 };
 
@@ -1318,291 +1318,291 @@ const TeamFormChart: React.FC<{
   if (loading) {
     return (
       <div className="text-center py-8">
-        <div className="text-gray-400 text-sm">
+                      <div className="text-gray-400 text-sm">
           <div className="mb-3">
             <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
               <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
-            </div>
-          </div>
+                        </div>
+                      </div>
           <p className="text-white font-medium text-base mb-3">Loading Team Form...</p>
           <p className="text-sm mb-4 max-w-md mx-auto">
             Fetching recent match data and statistics for both teams.
           </p>
-        </div>
-      </div>
+                    </div>
+                </div>
     );
   }
 
   if (error || (!homeTeamForm && !awayTeamForm)) {
     return (
       <div className="text-center py-8">
-        <div className="text-gray-400 text-sm">
+                    <div className="text-gray-400 text-sm">
           <div className="mb-3">
             <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
               <div className="text-2xl">📊</div>
-            </div>
-          </div>
+                    </div>
+                  </div>
           <p className="text-white font-medium text-base mb-3">Form Data Not Available</p>
           <p className="text-sm mb-4 max-w-md mx-auto">
             Recent match data for these teams is not available at this time.
-          </p>
-        </div>
-      </div>
-    );
+                    </p>
+                  </div>
+                            </div>
+                          );
   }
 
-  return (
+                          return (
     <div className="space-y-6">
       {/* Teams Header */}
       <div className="flex justify-between items-center text-sm text-gray-400 mb-6">
         <div className="flex items-center gap-2">
           <img src={homeTeam.logo} alt={homeTeam.name} className="w-6 h-6 object-contain" />
           <span>{homeTeam.name}</span>
-        </div>
+                            </div>
         <span className="text-xs">LAST 10 MATCHES</span>
         <div className="flex items-center gap-2">
           <span>{awayTeam.name}</span>
           <img src={awayTeam.logo} alt={awayTeam.name} className="w-6 h-6 object-contain" />
-        </div>
-      </div>
+                      </div>
+                    </div>
 
       {/* Form Statistics */}
       <div className="space-y-4">
-        {/* Over 2.5 Goals */}
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = homeTeamForm?.recentMatches?.[index];
+                      {/* Over 2.5 Goals */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = homeTeamForm?.recentMatches?.[index];
               const over25 = match ? match.totalGoals > 2.5 : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && over25 && <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="text-center px-8">
-            <div className="text-white text-sm font-medium">OVER 2.5</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="text-center px-8">
+                          <div className="text-white text-sm font-medium">OVER 2.5</div>
             <div className="flex gap-4 text-xs text-gray-400 mt-1">
               <span>{homeTeamForm?.stats?.over25 || 0}/10</span>
               <span>{awayTeamForm?.stats?.over25 || 0}/10</span>
             </div>
-          </div>
-          
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = awayTeamForm?.recentMatches?.[index];
+                        </div>
+                        
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = awayTeamForm?.recentMatches?.[index];
               const over25 = match ? match.totalGoals > 2.5 : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && over25 && <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
 
-        {/* Under 2.5 Goals */}
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = homeTeamForm?.recentMatches?.[index];
+                      {/* Under 2.5 Goals */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = homeTeamForm?.recentMatches?.[index];
               const under25 = match ? match.totalGoals <= 2.5 : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && under25 && <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="text-center px-8">
-            <div className="text-white text-sm font-medium">UNDER 2.5</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="text-center px-8">
+                          <div className="text-white text-sm font-medium">UNDER 2.5</div>
             <div className="flex gap-4 text-xs text-gray-400 mt-1">
               <span>{homeTeamForm?.stats?.under25 || 0}/10</span>
               <span>{awayTeamForm?.stats?.under25 || 0}/10</span>
             </div>
-          </div>
-          
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = awayTeamForm?.recentMatches?.[index];
+                        </div>
+                        
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = awayTeamForm?.recentMatches?.[index];
               const under25 = match ? match.totalGoals <= 2.5 : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && under25 && <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
 
-        {/* Clean Sheet */}
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = homeTeamForm?.recentMatches?.[index];
-              const cleanSheet = match ? (match.isHome ? match.awayScore === 0 : match.homeScore === 0) : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                      {/* Clean Sheet */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = homeTeamForm?.recentMatches?.[index];
+                            const cleanSheet = match ? (match.isHome ? match.awayScore === 0 : match.homeScore === 0) : false;
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && cleanSheet && <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="text-center px-8">
-            <div className="text-white text-sm font-medium">CLEAN SHEET</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="text-center px-8">
+                          <div className="text-white text-sm font-medium">CLEAN SHEET</div>
             <div className="flex gap-4 text-xs text-gray-400 mt-1">
               <span>{homeTeamForm?.stats?.cleanSheet || 0}/10</span>
               <span>{awayTeamForm?.stats?.cleanSheet || 0}/10</span>
             </div>
-          </div>
-          
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = awayTeamForm?.recentMatches?.[index];
-              const cleanSheet = match ? (match.isHome ? match.awayScore === 0 : match.homeScore === 0) : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                        </div>
+                        
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = awayTeamForm?.recentMatches?.[index];
+                            const cleanSheet = match ? (match.isHome ? match.awayScore === 0 : match.homeScore === 0) : false;
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && cleanSheet && <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
 
-        {/* Failed to Score */}
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = homeTeamForm?.recentMatches?.[index];
-              const failedToScore = match ? (match.isHome ? match.homeScore === 0 : match.awayScore === 0) : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                      {/* Failed to Score */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = homeTeamForm?.recentMatches?.[index];
+                            const failedToScore = match ? (match.isHome ? match.homeScore === 0 : match.awayScore === 0) : false;
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && failedToScore && <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="text-center px-8">
-            <div className="text-white text-sm font-medium">FAILED TO SCORE</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="text-center px-8">
+                          <div className="text-white text-sm font-medium">FAILED TO SCORE</div>
             <div className="flex gap-4 text-xs text-gray-400 mt-1">
               <span>{homeTeamForm?.stats?.failedToScore || 0}/10</span>
               <span>{awayTeamForm?.stats?.failedToScore || 0}/10</span>
             </div>
-          </div>
-          
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = awayTeamForm?.recentMatches?.[index];
-              const failedToScore = match ? (match.isHome ? match.homeScore === 0 : match.awayScore === 0) : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                        </div>
+                        
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = awayTeamForm?.recentMatches?.[index];
+                            const failedToScore = match ? (match.isHome ? match.homeScore === 0 : match.awayScore === 0) : false;
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && failedToScore && <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
 
-        {/* Conceded */}
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = homeTeamForm?.recentMatches?.[index];
-              const conceded = match ? (match.isHome ? match.awayScore > 0 : match.homeScore > 0) : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                      {/* Conceded */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = homeTeamForm?.recentMatches?.[index];
+                            const conceded = match ? (match.isHome ? match.awayScore > 0 : match.homeScore > 0) : false;
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && conceded && <div className="w-1.5 h-1.5 bg-orange-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="text-center px-8">
-            <div className="text-white text-sm font-medium">CONCEDED</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="text-center px-8">
+                          <div className="text-white text-sm font-medium">CONCEDED</div>
             <div className="flex gap-4 text-xs text-gray-400 mt-1">
               <span>{homeTeamForm?.stats?.conceded || 0}/10</span>
               <span>{awayTeamForm?.stats?.conceded || 0}/10</span>
             </div>
-          </div>
-          
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = awayTeamForm?.recentMatches?.[index];
-              const conceded = match ? (match.isHome ? match.awayScore > 0 : match.homeScore > 0) : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                        </div>
+                        
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = awayTeamForm?.recentMatches?.[index];
+                            const conceded = match ? (match.isHome ? match.awayScore > 0 : match.homeScore > 0) : false;
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && conceded && <div className="w-1.5 h-1.5 bg-orange-400 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
 
-        {/* Conceded Two */}
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = homeTeamForm?.recentMatches?.[index];
-              const concededTwo = match ? (match.isHome ? match.awayScore >= 2 : match.homeScore >= 2) : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                      {/* Conceded Two */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = homeTeamForm?.recentMatches?.[index];
+                            const concededTwo = match ? (match.isHome ? match.awayScore >= 2 : match.homeScore >= 2) : false;
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && concededTwo && <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="text-center px-8">
-            <div className="text-white text-sm font-medium">CONCEDED TWO</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="text-center px-8">
+                          <div className="text-white text-sm font-medium">CONCEDED TWO</div>
             <div className="flex gap-4 text-xs text-gray-400 mt-1">
               <span>{homeTeamForm?.stats?.concededTwo || 0}/10</span>
               <span>{awayTeamForm?.stats?.concededTwo || 0}/10</span>
             </div>
-          </div>
-          
-          <div className="flex space-x-1.5">
-            {Array.from({ length: 10 }, (_, index) => {
-              const match = awayTeamForm?.recentMatches?.[index];
-              const concededTwo = match ? (match.isHome ? match.awayScore >= 2 : match.homeScore >= 2) : false;
-              return (
-                <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
+                        </div>
+                        
+                        <div className="flex space-x-1.5">
+                          {Array.from({ length: 10 }, (_, index) => {
+                            const match = awayTeamForm?.recentMatches?.[index];
+                            const concededTwo = match ? (match.isHome ? match.awayScore >= 2 : match.homeScore >= 2) : false;
+                            return (
+                              <div key={index} className="w-7 h-7 rounded-full border border-gray-400 flex items-center justify-center bg-gray-800">
                   {match && concededTwo && <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Head-to-Head Section */}
-      {headToHeadData.length > 0 && (
-        <>
-          <div className="border-t border-white/10 pt-6 mb-4">
-            <h4 className="text-lg font-semibold text-center text-white mb-4">HEAD-TO-HEAD</h4>
-          </div>
-          
-          <div className="space-y-3">
-            {headToHeadData.map((encounter, index) => (
-              <div key={index} className="flex items-center justify-between bg-gray-800/50 rounded-lg p-4">
-                <div className="text-sm text-gray-400 min-w-[100px]">{encounter.date}</div>
-                <div className="flex items-center justify-center flex-1">
-                  <div className="text-center">
-                    <div className="text-white font-medium text-sm">
-                      {encounter.homeTeam} <span className="text-yellow-400 font-bold mx-3">{encounter.score}</span> {encounter.awayTeam}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-400 min-w-[120px] text-right">{encounter.competition}</div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+
+                    {/* Head-to-Head Section */}
+                    {headToHeadData.length > 0 && (
+                      <>
+                        <div className="border-t border-white/10 pt-6 mb-4">
+                          <h4 className="text-lg font-semibold text-center text-white mb-4">HEAD-TO-HEAD</h4>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {headToHeadData.map((encounter, index) => (
+                            <div key={index} className="flex items-center justify-between bg-gray-800/50 rounded-lg p-4">
+                              <div className="text-sm text-gray-400 min-w-[100px]">{encounter.date}</div>
+                              <div className="flex items-center justify-center flex-1">
+                                <div className="text-center">
+                                  <div className="text-white font-medium text-sm">
+                                    {encounter.homeTeam} <span className="text-yellow-400 font-bold mx-3">{encounter.score}</span> {encounter.awayTeam}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-400 min-w-[120px] text-right">{encounter.competition}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
     </div>
   );
 };
@@ -1694,6 +1694,17 @@ const FullTimeSummary: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        {/* Back Home Button */}
+        <div className="flex justify-start">
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 bg-gray-800/50 hover:bg-gray-700/50 text-white px-4 py-2 rounded-lg transition-colors border border-gray-600/50 hover:border-gray-500"
+          >
+            <ArrowLeft size={16} />
+            <span className="text-sm font-medium">Back Home</span>
+          </button>
+        </div>
+
         {/* Match Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-8 mb-6">
@@ -1780,7 +1791,7 @@ const FullTimeSummary: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="text-gray-400 text-sm">
+                    <div className="text-gray-400 text-sm">
                   <div className="mb-3">
                     <div className="w-16 h-16 bg-gray-800/50 rounded-full mx-auto flex items-center justify-center mb-4">
                       <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin"></div>
@@ -1806,8 +1817,8 @@ const FullTimeSummary: React.FC = () => {
                       Contact Support
                     </button>
                   </div>
-                </div>
-              </div>
+                    </div>
+                  </div>
             )}
           </div>
 
@@ -1822,7 +1833,7 @@ const FullTimeSummary: React.FC = () => {
             <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH STATISTICS</h4>
             
             <MatchStatsChart homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchStatistics={match.statistics} />
-          </div>
+        </div>
 
         {/* Team Lineups */}
           <div 
@@ -1871,7 +1882,7 @@ const FullTimeSummary: React.FC = () => {
             apiSeason={matchSeason}
             competition={match.competition}
           />
-        </div>
+      </div>
         </div>
       </div>
   );
@@ -1997,8 +2008,8 @@ const TeamLineupsChart: React.FC<{ homeTeam: any; awayTeam: any; lineups?: any }
                             </div>
                           ))}
                     </div>
-                  </div>
-            )}
+        </div>
+      )}
           </div>
     );
   };

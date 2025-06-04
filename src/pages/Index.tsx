@@ -4,13 +4,13 @@ import { serviceAdapter } from '@/services/serviceAdapter';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
-import CountryFilter from '@/components/CountryFilter';
+import TopLeaguesFilter from '@/components/TopLeaguesFilter';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
   const [last7DaysMatches, setLast7DaysMatches] = useState<LeagueWithMatches[]>([]);
   const [selectedLeagueIds, setSelectedLeagueIds] = useState<string[]>([]);
-  const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null);
+  const [selectedTopLeagueId, setSelectedTopLeagueId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [matchesLoading, setMatchesLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,10 +72,16 @@ const Index: React.FC = () => {
     setSelectedLeagueIds(leagueIds);
   }, []);
 
-  // Handle country filter selection
-  const handleCountrySelect = useCallback((countryCode: string | null) => {
-    console.log(`[Index] Country filter selected: ${countryCode}`);
-    setSelectedCountryCode(countryCode);
+  // Handle top league selection
+  const handleTopLeagueSelect = useCallback((leagueId: string | null) => {
+    console.log(`[Index] Top league selected: ${leagueId}`);
+    setSelectedTopLeagueId(leagueId);
+    // When a top league is selected, also filter the match feed to show only that league
+    if (leagueId) {
+      setSelectedLeagueIds([leagueId]);
+    } else {
+      setSelectedLeagueIds([]);
+    }
   }, []);
 
   if (error) {
@@ -128,20 +134,17 @@ const Index: React.FC = () => {
                 loading={matchesLoading}
                 selectedLeagueIds={selectedLeagueIds}
                 onLeagueSelect={handleLeagueSelect}
-                selectedCountryCode={selectedCountryCode}
-                onCountrySelect={handleCountrySelect}
+                selectedCountryCode={null}
+                onCountrySelect={() => {}}
               />
             </div>
 
-            {/* Country Filter - Right */}
+            {/* Top Leagues Filter - Right */}
             <div className="lg:w-80 flex-shrink-0">
               <div className="lg:sticky lg:top-24">
-                <CountryFilter
-                  selectedCountryCode={selectedCountryCode}
-                  onCountrySelect={handleCountrySelect}
-                  onCountriesLoaded={(countries) => {
-                    console.log('[Index] Countries loaded:', countries.length);
-                  }}
+                <TopLeaguesFilter
+                  selectedLeagueId={selectedTopLeagueId}
+                  onLeagueSelect={handleTopLeagueSelect}
                 />
               </div>
             </div>

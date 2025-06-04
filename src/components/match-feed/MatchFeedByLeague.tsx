@@ -15,81 +15,31 @@ interface MatchFeedByLeagueProps {
   onCountrySelect?: (countryCode: string | null) => void;
 }
 
-const LEAGUE_FILTERS = [
-  // Top 3 International Leagues (cross-border club competitions)
-  {
-    id: '104',
-    logoUrl: '/leagues/104.svg',
-    countryCode: 'EU'
-  },
-  {
-    id: '2486', // Champions League or La Liga - API will provide the name
-    logoUrl: '/leagues/2486.svg',
-    countryCode: 'EU' // Will be updated dynamically based on API data
-  },
-  {
-    id: '3',
-    logoUrl: '/leagues/3.svg',
-    countryCode: 'EU'
-  },
-  {
-    id: '34',
-    logoUrl: '/leagues/34.svg',
-    countryCode: 'SA'
-  },
-  // Top 5 Domestic Leagues (highest-ranked national leagues)
-  {
-    id: '33973',
-    logoUrl: '/competitions/premier-league.png',
-    countryCode: 'GB'
-  },
-  {
-    id: '140', // Alternative La Liga ID
-    logoUrl: '/leagues/140.svg',
-    countryCode: 'ES'
-  },
-  {
-    id: '94',
-    logoUrl: '/leagues/135.svg',
-    countryCode: 'IT'
-  },
-  {
-    id: '67162',
-    logoUrl: '/leagues/78.svg',
-    countryCode: 'DE'
-  },
-  {
-    id: '52695',
-    logoUrl: '/leagues/61.svg',
-    countryCode: 'FR'
-  },
-  // Top International Tournaments (national teams, highest prestige & viewership)
-  {
-    id: '1',
-    logoUrl: '/leagues/1.svg',
-    countryCode: 'WW'
-  },
-  {
-    id: '4',
-    logoUrl: '/leagues/4.svg',
-    countryCode: 'EU'
-  },
-  {
-    id: '9',
-    logoUrl: '/leagues/9.svg',
-    countryCode: 'SA'
-  },
-  {
-    id: '5',
-    logoUrl: '/leagues/5.svg',
-    countryCode: 'AS'
-  },
-  {
-    id: '6',
-    logoUrl: '/leagues/6.svg',
-    countryCode: 'AF'
-  }
-];
+// Helper function to get league priority for sorting in the filter
+const getLeagueFilterPriority = (league: LeagueWithMatches): number => {
+  const name = league.name.toLowerCase();
+  
+  // International competitions (highest priority)
+  if (name.includes('champions league')) return 1;
+  if (name.includes('europa league')) return 2;
+  if (name.includes('conference league')) return 3;
+  if (name.includes('libertadores')) return 4;
+  
+  // Major domestic leagues
+  if (name.includes('premier league') && !name.includes('australian')) return 10;
+  if (name.includes('la liga') || name.includes('laliga')) return 11;
+  if (name.includes('serie a') && !name.includes('brasil')) return 12;
+  if (name.includes('bundesliga') && !name.includes('2.')) return 13;
+  if (name.includes('ligue 1')) return 14;
+  
+  // International tournaments
+  if (name.includes('world cup')) return 20;
+  if (name.includes('euro')) return 21;
+  if (name.includes('copa américa') || name.includes('copa america')) return 22;
+  
+  // Default priority
+  return 999;
+};
 
 const LeagueFilter: React.FC<{
   leaguesWithMatches: LeagueWithMatches[];
@@ -97,80 +47,53 @@ const LeagueFilter: React.FC<{
   onLeagueSelect?: (leagueIds: string[]) => void;
 }> = React.memo(({ leaguesWithMatches, selectedLeagueIds, onLeagueSelect }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollPositionRef = useRef<number>(0);
 
-  // Save scroll position before any potential re-render
-  const saveScrollPosition = () => {
-    if (scrollRef.current) {
-      scrollPositionRef.current = scrollRef.current.scrollTop;
-    }
-  };
-
-  // Set up scroll listener and save position on mount
+  // Scroll to show selected leagues
   useLayoutEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', saveScrollPosition);
-      // Save initial position
-      saveScrollPosition();
-      
-      return () => {
-        saveScrollPosition(); // Save on cleanup
-        scrollContainer.removeEventListener('scroll', saveScrollPosition);
-      };
+    if (scrollRef.current && selectedLeagueIds.length > 0) {
+      const firstSelectedId = selectedLeagueIds[0];
+      const selectedElement = scrollRef.current.querySelector(`[data-league-id="${firstSelectedId}"]`);
+      if (selectedElement) {
+        selectedElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'nearest',
+          inline: 'center'
+        });
+      }
     }
-  }, []);
-
-  // Restore scroll position after re-render
-  useLayoutEffect(() => {
-    if (scrollRef.current && scrollPositionRef.current > 0) {
-      // Use requestAnimationFrame to ensure DOM has been updated
-      requestAnimationFrame(() => {
-        if (scrollRef.current && scrollPositionRef.current > 0) {
-          scrollRef.current.scrollTop = scrollPositionRef.current;
-        }
-      });
-    }
-  });
-
-  // Save scroll position when dependencies change
-  useLayoutEffect(() => {
-    saveScrollPosition();
   }, [selectedLeagueIds]);
 
-  // Map league data to filter format
-  const allTopLeagues = LEAGUE_FILTERS.map(filter => {
-    const leagueData = leaguesWithMatches.find(l => l.id === filter.id);
-    const matchCount = leagueData ? leagueData.matches.length : 0;
-    const liveMatchCount = leagueData ? leagueData.matches.filter(m => 
-      m.fixture?.status?.short === 'LIVE' || m.status === 'live'
-    ).length : 0;
-    
-    return {
-      id: filter.id,
-      name: leagueData?.name || 'Unknown League', // Use API name, not hardcoded
-      logoUrl: leagueData?.logo || filter.logoUrl, // Prefer API logo
-      countryCode: filter.countryCode,
-      matchCount: matchCount,
-      liveMatchCount: liveMatchCount,
-      hasLiveMatches: liveMatchCount > 0
-    };
-  });
-
-  // Sort by priority: keep original LEAGUE_FILTERS order, then by live matches, then by match count
-  const sortedLeagues = allTopLeagues.sort((a, b) => {
-    // First: maintain original order from LEAGUE_FILTERS
-    const aIndex = LEAGUE_FILTERS.findIndex(f => f.id === a.id);
-    const bIndex = LEAGUE_FILTERS.findIndex(f => f.id === b.id);
-    if (aIndex !== bIndex) return aIndex - bIndex;
-    
-    // Second: live matches (for leagues not in LEAGUE_FILTERS)
-    if (a.hasLiveMatches && !b.hasLiveMatches) return -1;
-    if (!a.hasLiveMatches && b.hasLiveMatches) return 1;
-    
-    // Third: match count (more matches first)
-    return b.matchCount - a.matchCount;
-  });
+  // Transform leagues data for filter with proper prioritization
+  const filterLeagues = useMemo(() => {
+    return leaguesWithMatches
+      .map(league => {
+        const liveMatchCount = league.matches.filter(m => 
+          m.fixture?.status?.short === 'LIVE' || m.status === 'live'
+        ).length;
+        
+        return {
+          id: league.id,
+          name: league.name,
+          logoUrl: getLeagueLogo(league.id, league.name, league.logo), // Use utility function that prioritizes API logo
+          countryCode: getLeagueCountryInfo(league.id).code || 'WW',
+          matchCount: league.matches.length,
+          liveMatchCount: liveMatchCount,
+          hasLiveMatches: liveMatchCount > 0,
+          priority: getLeagueFilterPriority(league)
+        };
+      })
+      .sort((a, b) => {
+        // First: maintain priority order (Champions League, etc. first)
+        if (a.priority !== b.priority) return a.priority - b.priority;
+        
+        // Second: live matches (for leagues with same priority)
+        if (a.hasLiveMatches && !b.hasLiveMatches) return -1;
+        if (!a.hasLiveMatches && b.hasLiveMatches) return 1;
+        
+        // Third: match count (more matches first)
+        return b.matchCount - a.matchCount;
+      });
+  }, [leaguesWithMatches]);
 
   const handleLeagueClick = (leagueId: string) => {
     if (!onLeagueSelect) return;
@@ -183,63 +106,119 @@ const LeagueFilter: React.FC<{
     }
   };
 
-  return (
-    <div className="sticky top-6">
-      <div className="mb-4 text-center">
-        <h3 className="text-lg font-semibold text-white mb-2">Top Leagues</h3>
-      </div>
-      
-      <div className="space-y-2 max-h-96 overflow-y-auto" ref={scrollRef}>
-        {sortedLeagues.length > 0 ? (
-          sortedLeagues.map((league) => {
-            const isSelected = selectedLeagueIds.includes(league.id);
+  const handleSelectAll = () => {
+    if (!onLeagueSelect) return;
+    
+    if (selectedLeagueIds.length === filterLeagues.length) {
+      // Deselect all
+      onLeagueSelect([]);
+    } else {
+      // Select all
+      onLeagueSelect(filterLeagues.map(league => league.id));
+    }
+  };
 
-            return (
-              <button
-                key={league.id}
-                onClick={() => handleLeagueClick(league.id)}
-                className={`
-                  w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors focus:outline-none backdrop-blur-sm
-                  ${isSelected 
-                    ? 'bg-[#FFC30B] text-black' 
-                    : 'hover:bg-white/10 text-gray-300 border border-white/10'
-                  }
-                `}
-              >
-                <img
-                  src={league.logoUrl}
-                  alt={league.name}
-                  className="w-5 h-5 object-contain rounded-full bg-white p-0.5"
-                  style={{ minWidth: '20px', minHeight: '20px' }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{league.name}</div>
-                  <div className="text-xs text-gray-400">
-                    {league.hasLiveMatches && (
-                      <span className="px-1.5 py-0.5 bg-yellow-500 text-black text-xs rounded font-bold">
-                        {league.liveMatchCount} LIVE
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {isSelected && (
-                  <div className="w-2 h-2 bg-white rounded-full flex-shrink-0"></div>
-                )}
-                {league.hasLiveMatches && !isSelected && (
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                )}
-              </button>
-            );
-          })
-        ) : (
-          <div className="text-center text-gray-500 py-4">
-            <p className="text-sm">No leagues available</p>
-          </div>
-        )}
+  if (filterLeagues.length === 0) {
+    return (
+      <div className="text-center py-4 text-gray-400">
+        <p className="text-sm">No leagues with matches available</p>
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Filter Header */}
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium text-gray-300">
+          League Filter ({filterLeagues.length} available)
+        </h4>
+        <button
+          onClick={handleSelectAll}
+          className="text-xs text-yellow-400 hover:text-yellow-300 transition-colors"
+        >
+          {selectedLeagueIds.length === filterLeagues.length ? 'Deselect All' : 'Select All'}
+        </button>
+      </div>
+
+      {/* League Pills */}
+      <div 
+        ref={scrollRef}
+        className="flex gap-2 overflow-x-auto pb-2"
+        style={{ 
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#374151 transparent'
+        }}
+      >
+        {filterLeagues.map((league) => {
+          const isSelected = selectedLeagueIds.includes(league.id);
+          
+          return (
+            <button
+              key={league.id}
+              data-league-id={league.id}
+              onClick={() => handleLeagueClick(league.id)}
+              className={`
+                flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium 
+                whitespace-nowrap transition-all duration-200 flex-shrink-0
+                ${isSelected
+                  ? 'bg-yellow-400 text-black shadow-lg'
+                  : 'bg-[#1a1a1a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white border border-gray-600'
+                }
+              `}
+            >
+              <img
+                src={league.logoUrl}
+                alt={`${league.name} logo`}
+                className="w-4 h-4 object-contain rounded-full"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.src = '/icons/default.svg';
+                }}
+              />
+              <span>{league.name}</span>
+              
+              {/* Match count */}
+              <span className={`
+                text-xs px-1.5 py-0.5 rounded-full font-bold
+                ${isSelected 
+                  ? 'bg-black/20 text-black' 
+                  : 'bg-gray-600 text-gray-300'
+                }
+              `}>
+                {league.matchCount}
+              </span>
+              
+              {/* Live indicator */}
+              {league.hasLiveMatches && (
+                <div className={`w-2 h-2 rounded-full animate-pulse ${
+                  isSelected ? 'bg-red-600' : 'bg-red-400'
+                }`} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Selection Summary */}
+      {selectedLeagueIds.length > 0 && (
+        <div className="text-xs text-gray-400">
+          Showing {selectedLeagueIds.length} of {filterLeagues.length} leagues
+          {selectedLeagueIds.length > 1 && (
+            <button
+              onClick={() => onLeagueSelect && onLeagueSelect([])}
+              className="ml-2 text-yellow-400 hover:text-yellow-300"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 });
+
+LeagueFilter.displayName = 'LeagueFilter';
 
 const LoadingSkeleton: React.FC = () => (
   <div className="min-h-screen bg-[#111111] text-white">
