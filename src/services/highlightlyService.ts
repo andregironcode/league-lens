@@ -144,6 +144,55 @@ const highlightlyClient = {
     console.log(`[Highlightly Client] Lineups response:`, data);
     return data;
   },
+
+  async getStatistics(matchId: string) {
+    const url = `http://localhost:3001/api/highlightly/statistics/${matchId}`;
+    console.log(`[Highlightly Client] Calling statistics endpoint: ${url}`);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[Highlightly Client] Error fetching statistics for match ${matchId}: ${response.status}`, errorText);
+        return null;
+      }
+      const data = await response.json();
+      console.log(`[Highlightly Client] Statistics response for match ${matchId}:`, data);
+      return data;
+    } catch (error) {
+      console.error(`[Highlightly Client] Exception when fetching statistics for match ${matchId}:`, error);
+      return null;
+    }
+  },
+
+  async getLastFiveGames(teamId: string) {
+    const url = `http://localhost:3001/api/highlightly/last-five-games?teamId=${teamId}`;
+    console.log(`[Highlightly Client] Calling last five games endpoint: ${url}`);
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Error fetching last 5 games for team ${teamId}: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`Error response body:`, errorText);
+      return [];
+    }
+    const data = await response.json();
+    console.log(`[Highlightly Client] Last five games response for team ${teamId}:`, data);
+    return data;
+  },
+
+  async getHeadToHead(params: { teamIdOne: string; teamIdTwo: string }) {
+    const url = `http://localhost:3001/api/highlightly/head-2-head?teamIdOne=${params.teamIdOne}&teamIdTwo=${params.teamIdTwo}`;
+    console.log(`[Highlightly Client] Calling head-to-head endpoint: ${url}`);
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Error fetching H2H for teams ${params.teamIdOne} and ${params.teamIdTwo}: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`Error response body:`, errorText);
+      return [];
+    }
+    const data = await response.json();
+    console.log(`[Highlightly Client] Head-to-head response for teams ${params.teamIdOne} and ${params.teamIdTwo}:`, data);
+    return data;
+  },
 };
 
 // Helper function to transform API player to our Player type
@@ -304,6 +353,57 @@ const apiFixtureToEnhancedMatch = (rawMatchData: any, id: string): EnhancedMatch
 };
 
 // Helper function to transform API highlight to our MatchHighlight type
+// Transform API match data to our Match type structure
+const transformApiMatchToMatch = (apiMatch: any): Match => {
+  // Parse score from API format "2 - 0" to our goals structure
+  const parseScore = (scoreString: string | null | undefined): { home: number | null; away: number | null } => {
+    if (!scoreString || typeof scoreString !== 'string') {
+      return { home: null, away: null };
+    }
+    
+    const parts = scoreString.split(' - ');
+    if (parts.length === 2) {
+      const home = parseInt(parts[0].trim(), 10);
+      const away = parseInt(parts[1].trim(), 10);
+      return {
+        home: isNaN(home) ? null : home,
+        away: isNaN(away) ? null : away
+      };
+    }
+    
+    return { home: null, away: null };
+  };
+
+  const currentScore = apiMatch.state?.score?.current;
+  const goals = parseScore(currentScore);
+
+  return {
+    id: apiMatch.id,
+    date: apiMatch.date,
+    league: {
+      id: apiMatch.league?.id || '',
+      name: apiMatch.league?.name || '',
+      logo: apiMatch.league?.logo,
+      season: apiMatch.league?.season,
+      round: apiMatch.round
+    },
+    homeTeam: {
+      id: apiMatch.homeTeam?.id || '',
+      name: apiMatch.homeTeam?.name || '',
+      logo: apiMatch.homeTeam?.logo || ''
+    },
+    awayTeam: {
+      id: apiMatch.awayTeam?.id || '',
+      name: apiMatch.awayTeam?.name || '',
+      logo: apiMatch.awayTeam?.logo || ''
+    },
+    goals,
+    state: apiMatch.state,
+    round: apiMatch.round,
+    country: apiMatch.country
+  };
+};
+
 const transformApiHighlightToMatchHighlight = (apiHighlight: any): MatchHighlight => {
   const matchDetails = apiHighlight.match || {};
   const homeTeamDetails = matchDetails.homeTeam || {};
@@ -658,6 +758,20 @@ export const highlightlyService = {
         console.error(`[Highlightly] Error fetching lineups for match ID ${id}:`, lineupError);
         // Don't fail the entire request if lineups fail - just continue without them
       }
+
+      // Fetch statistics separately
+      try {
+        console.log(`[Highlightly] Fetching statistics for match ID: ${id}`);
+        const statsResponse = await highlightlyClient.getStatistics(id);
+        if (statsResponse && Array.isArray(statsResponse) && statsResponse.length > 0) {
+          enhancedMatch.statistics = statsResponse;
+          console.log(`[Highlightly] Successfully fetched and attached statistics for match ID: ${id}`);
+        } else {
+          console.log(`[Highlightly] No statistics data available for match ID: ${id}`);
+        }
+      } catch (statsError) {
+        console.error(`[Highlightly] Error fetching statistics for match ID ${id}:`, statsError);
+      }
       
       return enhancedMatch;
       
@@ -770,6 +884,46 @@ export const highlightlyService = {
     } catch (error) {
       console.error('Error fetching match details from Highlightly:', error);
       return null;
+    }
+  },
+
+  async getLastFiveGames(teamId: string): Promise<Match[]> {
+    try {
+      const response = await highlightlyClient.getLastFiveGames(teamId);
+      console.log(`[Highlightly] Last five games response for team ${teamId}:`, response);
+      
+      if (!Array.isArray(response)) {
+        console.warn('Expected array response from getLastFiveGames API');
+        return [];
+      }
+
+      // Transform API response to match our Match type
+      const transformedMatches = response.map(transformApiMatchToMatch);
+      console.log(`[Highlightly] Transformed ${transformedMatches.length} matches for team ${teamId}`);
+      return transformedMatches;
+    } catch (error) {
+      console.error(`Error fetching last 5 games for team ${teamId}:`, error);
+      return [];
+    }
+  },
+
+  async getHeadToHead(teamId1: string, teamId2: string): Promise<Match[]> {
+    try {
+      const response = await highlightlyClient.getHeadToHead({ teamIdOne: teamId1, teamIdTwo: teamId2 });
+      console.log(`[Highlightly] Head-to-head response for teams ${teamId1} vs ${teamId2}:`, response);
+      
+      if (!Array.isArray(response)) {
+        console.warn('Expected array response from getHeadToHead API');
+        return [];
+      }
+
+      // Transform API response to match our Match type
+      const transformedMatches = response.map(transformApiMatchToMatch);
+      console.log(`[Highlightly] Transformed ${transformedMatches.length} H2H matches for teams ${teamId1} vs ${teamId2}`);
+      return transformedMatches;
+    } catch (error) {
+      console.error(`Error fetching H2H for teams ${teamId1} and ${teamId2}:`, error);
+      return [];
     }
   },
 };

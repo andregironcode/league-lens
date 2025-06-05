@@ -1,7 +1,7 @@
-import type { MatchHighlight, League, LeagueWithMatches, TeamDetails } from '@/types';
+import type { MatchHighlight, League, LeagueWithMatches, TeamDetails, StandingsRow, Match } from '@/types';
+import { highlightlyService } from './highlightlyService';
 import * as mockService from './highlightService';
 import * as supabaseService from './supabaseService';
-import { highlightlyService } from './highlightlyService'; // Force TypeScript to recognize the export
 
 /**
  * Service Type
@@ -311,6 +311,46 @@ export const serviceAdapter = {
         return mockService.getAllMatchesForLeagueSeason(leagueId, season);
     }
   },
+
+  async getMatchesForLeagueByDate(leagueId: string, date: string, season?: string): Promise<LeagueWithMatches[]> {
+    // Implementation needed
+    throw new Error('Method not implemented');
+  },
+
+  async getHighlightsForLeague(leagueId: string, season: string, limit?: number, offset?: number): Promise<MatchHighlight[]> {
+    // Implementation needed
+    throw new Error('Method not implemented');
+  },
+
+  async getHighlightsForMatch(matchId: string): Promise<MatchHighlight[]> {
+    // Implementation needed
+    throw new Error('Method not implemented');
+  },
+
+  async getMatchDetails(matchId: string): Promise<MatchHighlight | null> {
+    // Implementation needed
+    throw new Error('Method not implemented');
+  },
+
+  async getLastFiveGames(teamId: string): Promise<Match[]> {
+    const serviceName = this.getActiveService();
+    switch (serviceName) {
+      case 'highlightly':
+        return highlightlyService.getLastFiveGames(teamId);
+      default:
+        return mockService.getLastFiveGames(teamId);
+    }
+  },
+
+  async getHeadToHead(teamId1: string, teamId2: string): Promise<Match[]> {
+    const serviceName = this.getActiveService();
+    switch (serviceName) {
+      case 'highlightly':
+        return highlightlyService.getHeadToHead(teamId1, teamId2);
+      default:
+        return mockService.getHeadToHead(teamId1, teamId2);
+    }
+  },
 };
 
 // Export individual functions for easier importing
@@ -328,7 +368,13 @@ export const {
   getActiveService,
   debugLeagueApiData,
   getStandingsForLeague,
-  getAllMatchesForLeagueSeason
+  getAllMatchesForLeagueSeason,
+  getMatchesForLeagueByDate,
+  getHighlightsForLeague,
+  getHighlightsForMatch,
+  getMatchDetails,
+  getLastFiveGames,
+  getHeadToHead
 } = {
   getRecommendedHighlights: serviceAdapter.getRecommendedHighlights.bind(serviceAdapter),
   getLeagueHighlights: serviceAdapter.getLeagueHighlights.bind(serviceAdapter),
@@ -343,5 +389,11 @@ export const {
   getActiveService: () => serviceAdapter.getActiveService(),
   debugLeagueApiData: () => serviceAdapter.debugLeagueApiData(),
   getStandingsForLeague: (leagueId: string, season: string) => serviceAdapter.getStandingsForLeague(leagueId, season),
-  getAllMatchesForLeagueSeason: (leagueId: string, season: string) => serviceAdapter.getAllMatchesForLeagueSeason(leagueId, season)
+  getAllMatchesForLeagueSeason: (leagueId: string, season: string) => serviceAdapter.getAllMatchesForLeagueSeason(leagueId, season),
+  getMatchesForLeagueByDate: (leagueId: string, date: string, season?: string) => serviceAdapter.getMatchesForLeagueByDate(leagueId, date, season),
+  getHighlightsForLeague: (leagueId: string, season: string, limit?: number, offset?: number) => serviceAdapter.getHighlightsForLeague(leagueId, season, limit, offset),
+  getHighlightsForMatch: (matchId: string) => serviceAdapter.getHighlightsForMatch(matchId),
+  getMatchDetails: (matchId: string) => serviceAdapter.getMatchDetails(matchId),
+  getLastFiveGames: (teamId: string) => serviceAdapter.getLastFiveGames(teamId),
+  getHeadToHead: (teamId1: string, teamId2: string) => serviceAdapter.getHeadToHead(teamId1, teamId2),
 };

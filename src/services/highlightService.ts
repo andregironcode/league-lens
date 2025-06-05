@@ -1073,3 +1073,20 @@ export const getAllMatchesForLeagueSeason = async (leagueId: string, season: str
   ];
   return mockMatches;
 };
+
+export const getMatchDetails = async (matchId: string): Promise<any> => {
+  console.log(`[Mock] Getting match details for ${matchId}`);
+  return {
+    // ... mock data
+  };
+};
+
+export const getLastFiveGames = async (teamId: string): Promise<any> => {
+  console.log(`[Mock] Getting last 5 games for team ${teamId}`);
+  return { data: [] }; // Return empty data structure
+};
+
+export const getHeadToHead = async (teamId1: string, teamId2: string): Promise<any> => {
+  console.log(`[Mock] Getting H2H for teams ${teamId1} and ${teamId2}`);
+  return { data: [] }; // Return empty data structure
+};

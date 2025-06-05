@@ -1,54 +1,65 @@
 import React from 'react';
-import { StandingsRow, Team } from '@/types'; // Assuming StandingsRow and Team types are defined in @/types
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow as UiTableRow } from '@/components/ui/table'; // Assuming you have these UI components
+import { StandingsRow } from '@/types';
+import { ShieldCheck } from 'lucide-react';
 
 interface StandingsTableProps {
   standings: StandingsRow[];
+  homeTeamId: string;
+  awayTeamId: string;
 }
 
-const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => {
+const StandingsTable: React.FC<StandingsTableProps> = ({ standings, homeTeamId, awayTeamId }) => {
   if (!standings || standings.length === 0) {
-    return <p>No standings data available.</p>;
+    return (
+      <div className="text-center text-gray-400 py-8">
+        <ShieldCheck size={24} className="mx-auto mb-2" />
+        Standings are not available for this competition.
+      </div>
+    );
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <UiTableRow>
-          <TableHead className="w-[50px]">#</TableHead>
-          <TableHead>Team</TableHead>
-          <TableHead className="text-center">MP</TableHead>
-          <TableHead className="text-center">W</TableHead>
-          <TableHead className="text-center">D</TableHead>
-          <TableHead className="text-center">L</TableHead>
-          <TableHead className="text-center">GF</TableHead>
-          <TableHead className="text-center">GA</TableHead>
-          <TableHead className="text-center">GD</TableHead>
-          <TableHead className="text-right">Pts</TableHead>
-        </UiTableRow>
-      </TableHeader>
-      <TableBody>
-        {standings.map((row) => (
-          <UiTableRow key={row.team.id}>
-            <TableCell>{row.position}</TableCell>
-            <TableCell>
-              <div className="flex items-center space-x-2">
-                <img src={row.team.logo || '/icons/default-team.png'} alt={row.team.name} className="w-5 h-5 object-contain" />
-                <span>{row.team.name}</span>
-              </div>
-            </TableCell>
-            <TableCell className="text-center">{row.played}</TableCell>
-            <TableCell className="text-center">{row.won}</TableCell>
-            <TableCell className="text-center">{row.drawn}</TableCell>
-            <TableCell className="text-center">{row.lost}</TableCell>
-            <TableCell className="text-center">{row.goalsFor}</TableCell>
-            <TableCell className="text-center">{row.goalsAgainst}</TableCell>
-            <TableCell className="text-center">{row.goalDifference}</TableCell>
-            <TableCell className="text-right">{row.points}</TableCell>
-          </UiTableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm text-left text-gray-300">
+        <thead className="text-xs text-gray-400 uppercase bg-gray-900/50">
+          <tr>
+            <th scope="col" className="px-4 py-3 text-center">Pos</th>
+            <th scope="col" className="px-6 py-3">Team</th>
+            <th scope="col" className="px-2 py-3 text-center">P</th>
+            <th scope="col" className="px-2 py-3 text-center">W</th>
+            <th scope="col" className="px-2 py-3 text-center">D</th>
+            <th scope="col" className="px-2 py-3 text-center">L</th>
+            <th scope="col" className="px-2 py-3 text-center">GD</th>
+            <th scope="col" className="px-4 py-3 text-center">Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {standings.map((row) => {
+            const isHome = row.team.id === homeTeamId;
+            const isAway = row.team.id === awayTeamId;
+            const rowClass = isHome || isAway ? 'bg-yellow-500/10' : '';
+
+            return (
+              <tr key={row.position} className={`border-b border-gray-800 hover:bg-gray-800/60 ${rowClass}`}>
+                <td className="px-4 py-3 font-medium text-center text-white">{row.position}</td>
+                <td className="px-6 py-3 font-medium text-white whitespace-nowrap">
+                  <div className="flex items-center gap-3">
+                    <img src={row.team.logo} alt={row.team.name} className="w-5 h-5 object-contain" />
+                    <span>{row.team.name}</span>
+                  </div>
+                </td>
+                <td className="px-2 py-3 text-center">{row.played}</td>
+                <td className="px-2 py-3 text-center">{row.won}</td>
+                <td className="px-2 py-3 text-center">{row.drawn}</td>
+                <td className="px-2 py-3 text-center">{row.lost}</td>
+                <td className="px-2 py-3 text-center">{row.goalDifference}</td>
+                <td className="px-4 py-3 font-bold text-center text-white">{row.points}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
