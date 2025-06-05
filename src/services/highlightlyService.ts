@@ -1,4 +1,4 @@
-import { MatchHighlight, LeagueWithMatches, TeamDetails } from '@/types';
+import { MatchHighlight, LeagueWithMatches, TeamDetails, League, Match } from '@/types';
 import * as mockService from './highlightService';
 
 // Highlightly API client instance
@@ -9,13 +9,69 @@ const highlightlyClient = {
     return response.json();
   },
 
-  async getMatches(params: { leagueId?: string; date?: string; limit?: string }) {
-    let url = 'http://localhost:3001/api/highlightly/matches?';
-    if (params.leagueId) url += `leagueId=${params.leagueId}&`;
-    if (params.date) url += `date=${params.date}&`;
-    if (params.limit) url += `limit=${params.limit}&`;
-    const response = await fetch(url);
-    return response.json();
+  async getMatches(params: { leagueId?: string; date?: string; limit?: string; season?: string; matchId?: string }) {
+    let baseUrl = 'http://localhost:3001/api/highlightly/matches?';
+    const queryParams = new URLSearchParams();
+
+    if (params.leagueId) queryParams.append('leagueId', params.leagueId);
+    if (params.season) queryParams.append('season', params.season);
+    if (params.date) queryParams.append('date', params.date);
+    if (params.matchId) { // If specific matchId is given, it implies a single match fetch.
+      baseUrl = `http://localhost:3001/api/highlightly/matches/${params.matchId}?`;
+    }
+
+    // If fetching for a league and season, and no specific date, handle pagination to get all matches.
+    if (params.leagueId && params.season && !params.date && !params.matchId) {
+      let allMatches: any[] = [];
+      let offset = 0;
+      const limit = 100; // API default and max is 100
+      let totalCount = Infinity;
+
+      while (allMatches.length < totalCount) {
+        const currentParams = new URLSearchParams(queryParams.toString());
+        currentParams.append('limit', limit.toString());
+        currentParams.append('offset', offset.toString());
+        
+        const response = await fetch(baseUrl + currentParams.toString());
+        if (!response.ok) {
+          // Handle error, maybe throw or return what's fetched so far
+          console.error("Failed to fetch matches:", await response.text());
+          break; 
+        }
+        const pageData = await response.json();
+        
+        if (pageData.data && Array.isArray(pageData.data)) {
+          allMatches = allMatches.concat(pageData.data);
+        } else {
+          // If no data array, break to avoid infinite loop on unexpected response
+          console.error("Unexpected response structure for matches:", pageData);
+          break;
+        }
+        
+        if (pageData.pagination && pageData.pagination.totalCount) {
+          totalCount = pageData.pagination.totalCount;
+        } else {
+          // If no pagination info, assume this is all data or break
+          break;
+        }
+        
+        offset += limit;
+        if (offset >= totalCount) {
+          break;
+        }
+      }
+      // The API wraps the data in a 'data' property and includes pagination.
+      // To maintain a somewhat consistent return type, we might want to return
+      // the same structure, or adjust consumers. For now, returning the aggregated data array.
+      return { data: allMatches, pagination: { totalCount: allMatches.length, limit, offset: 0 } }; // Simulate a final pagination object
+    } else {
+      // For other cases (date specific, single match, or no pagination needed)
+      if (params.limit) queryParams.append('limit', params.limit);
+      else queryParams.append('limit', '100'); // Default limit for non-paginated specific calls if not set
+      
+      const response = await fetch(baseUrl + queryParams.toString());
+      return response.json();
+    }
   },
 
   async getLeagueById(leagueId: string) {
@@ -30,11 +86,46 @@ const highlightlyClient = {
     return response.json();
   },
 
-  async getHighlights(params: { date?: string; limit?: string }) {
+  async getHighlights(params: { leagueId?: string; season?: string; matchId?: string; limit?: string; offset?: string; date?: string; }) {
     let url = 'http://localhost:3001/api/highlightly/highlights?';
-    if (params.date) url += `date=${params.date}&`;
-    if (params.limit) url += `limit=${params.limit}&`;
+    const queryParams = new URLSearchParams();
+    if (params.leagueId) queryParams.append('leagueId', params.leagueId);
+    if (params.season) queryParams.append('season', params.season);
+    if (params.matchId) queryParams.append('matchId', params.matchId);
+    if (params.date) queryParams.append('date', params.date);
+    queryParams.append('limit', params.limit || '20');
+    queryParams.append('offset', params.offset || '0');
+
+    url += queryParams.toString();
     const response = await fetch(url);
+    return response.json();
+  },
+
+  async getStandings(params: { leagueId: string; season: string }) {
+    const url = `http://localhost:3001/api/highlightly/standings?leagueId=${params.leagueId}&season=${params.season}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Error fetching standings for league ${params.leagueId}, season ${params.season}: ${response.status}`);
+      // Return a structure that won't break the consuming code, e.g., empty groups
+      return { groups: [], league: { id: params.leagueId, season: params.season, name: '', logo: '' } };
+    }
+    try {
+      return await response.json();
+    } catch (e) {
+      console.error("Error parsing standings JSON:", e);
+      return { groups: [], league: { id: params.leagueId, season: params.season, name: '', logo: '' } };
+    }
+  },
+
+  // Method to get match details by ID (already somewhat covered by getMatches with matchId)
+  // but this could be a dedicated method for clarity if only matchId is ever passed.
+  async getMatchDetails(matchId: string) {
+    const url = `http://localhost:3001/api/highlightly/matches/${matchId}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Error fetching match details for match ${matchId}: ${response.status}`);
+      return null; // Or throw an error
+    }
     return response.json();
   }
 };
@@ -527,5 +618,82 @@ export const highlightlyService = {
   async searchHighlights(query: string): Promise<MatchHighlight[]> {
     console.log(`[Highlightly] searchHighlights not implemented for "${query}", falling back to mock service`);
     return mockService.searchHighlights(query);
-  }
+  },
+
+  async getLeagueDetails(leagueId: string): Promise<League | null> {
+    try {
+      const response = await highlightlyClient.getLeagueById(leagueId);
+      // The API returns an array, we take the first element.
+      return response && response.length > 0 ? response[0] : null;
+    } catch (error) {
+      console.error('Error fetching league details from Highlightly:', error);
+      return null;
+    }
+  },
+
+  async getStandingsForLeague(leagueId: string, season: string): Promise<any> { // Type properly later
+    try {
+      return await highlightlyClient.getStandings({ leagueId, season });
+    } catch (error) {
+      console.error('Error fetching standings from Highlightly:', error);
+      return { groups: [] }; // Return empty structure on error
+    }
+  },
+
+  async getMatchesForLeagueByDate(leagueId: string, date: string, season?: string): Promise<Match[]> {
+    try {
+      const params: { leagueId: string; date: string; season?: string; limit: string } = { leagueId, date, limit: '10' };
+      if (season) {
+        params.season = season;
+      }
+      const response = await highlightlyClient.getMatches(params);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching matches by date from Highlightly:', error);
+      return [];
+    }
+  },
+
+  async getAllMatchesForLeagueSeason(leagueId: string, season: string): Promise<Match[]> {
+    try {
+      // This now uses the paginated version of getMatches
+      const response = await highlightlyClient.getMatches({ leagueId, season }); 
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching all matches for league season from Highlightly:', error);
+      return [];
+    }
+  },
+
+  async getHighlightsForLeague(leagueId: string, season: string, limit: number = 20, offset: number = 0): Promise<MatchHighlight[]> {
+    try {
+      const response = await highlightlyClient.getHighlights({ leagueId, season, limit: String(limit), offset: String(offset) });
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching highlights from Highlightly:', error);
+      return [];
+    }
+  },
+  
+  async getHighlightsForMatch(matchId: string, limit: number = 5): Promise<MatchHighlight[]> {
+    try {
+      const response = await highlightlyClient.getHighlights({ matchId, limit: String(limit) });
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching highlights for match from Highlightly:', error);
+      return [];
+    }
+  },
+
+  async getMatchDetails(matchId: string): Promise<Match | null> {
+    try {
+      // Use the new getMatchDetails from client or adapt getMatches
+      const response = await highlightlyClient.getMatchDetails(matchId);
+      // API returns an array for match details by ID as well.
+      return response && response.length > 0 ? response[0] : null;
+    } catch (error) {
+      console.error('Error fetching match details from Highlightly:', error);
+      return null;
+    }
+  },
 };

@@ -277,7 +277,40 @@ export const serviceAdapter = {
       default:
         console.log('Debug function only available for highlightly service');
     }
-  }
+  },
+
+  // Add new methods here
+  async getStandingsForLeague(leagueId: string, season: string): Promise<any> {
+    switch (activeService) {
+      case 'highlightly':
+        return highlightlyService.getStandingsForLeague(leagueId, season);
+      case 'mock':
+        return mockService.getStandingsForLeague(leagueId, season);
+      case 'supabase':
+        // TODO: Implement for Supabase or decide on fallback
+        console.warn('[ServiceAdapter] getStandingsForLeague not implemented for supabase, using mock.');
+        return mockService.getStandingsForLeague(leagueId, season);
+      default:
+        console.warn(`[ServiceAdapter] getStandingsForLeague: Unknown service ${activeService}, using mock.`);
+        return mockService.getStandingsForLeague(leagueId, season);
+    }
+  },
+
+  async getAllMatchesForLeagueSeason(leagueId: string, season: string): Promise<import('@/types').Match[]> { // Explicitly type Match
+    switch (activeService) {
+      case 'highlightly':
+        return highlightlyService.getAllMatchesForLeagueSeason(leagueId, season);
+      case 'mock':
+        return mockService.getAllMatchesForLeagueSeason(leagueId, season);
+      case 'supabase':
+        // TODO: Implement for Supabase or decide on fallback
+        console.warn('[ServiceAdapter] getAllMatchesForLeagueSeason not implemented for supabase, using mock.');
+        return mockService.getAllMatchesForLeagueSeason(leagueId, season);
+      default:
+        console.warn(`[ServiceAdapter] getAllMatchesForLeagueSeason: Unknown service ${activeService}, using mock.`);
+        return mockService.getAllMatchesForLeagueSeason(leagueId, season);
+    }
+  },
 };
 
 // Export individual functions for easier importing
@@ -293,7 +326,9 @@ export const {
   getMatchesFromLast7Days,
   setActiveService,
   getActiveService,
-  debugLeagueApiData
+  debugLeagueApiData,
+  getStandingsForLeague,
+  getAllMatchesForLeagueSeason
 } = {
   getRecommendedHighlights: serviceAdapter.getRecommendedHighlights.bind(serviceAdapter),
   getLeagueHighlights: serviceAdapter.getLeagueHighlights.bind(serviceAdapter),
@@ -306,5 +341,7 @@ export const {
   getMatchesFromLast7Days: () => serviceAdapter.getMatchesFromLast7Days(),
   setActiveService: (serviceType: ServiceType) => serviceAdapter.setActiveService(serviceType),
   getActiveService: () => serviceAdapter.getActiveService(),
-  debugLeagueApiData: () => serviceAdapter.debugLeagueApiData()
+  debugLeagueApiData: () => serviceAdapter.debugLeagueApiData(),
+  getStandingsForLeague: (leagueId: string, season: string) => serviceAdapter.getStandingsForLeague(leagueId, season),
+  getAllMatchesForLeagueSeason: (leagueId: string, season: string) => serviceAdapter.getAllMatchesForLeagueSeason(leagueId, season)
 };

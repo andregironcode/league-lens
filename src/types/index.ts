@@ -24,31 +24,36 @@ export interface FixtureScore {
 }
 
 export interface Match {
-  id: string;
-  homeTeam: Team;
-  awayTeam: Team;
+  id: string | number;
   date: string;
   time?: string;
-  status: string; // 'finished', 'live', 'upcoming'
-  score?: FixtureScore;
-  goals?: {
-    home: number;
-    away: number;
-  };
-  competition: {
-    id: string;
+  timestamp?: number;
+  timezone?: string;
+  status?: { short?: string; long?: string; elapsed?: number };
+  league: {
+    id: string | number;
     name: string;
-    logo: string;
+    logo?: string;
+    season?: string | number;
+    round?: string;
   };
-  venue?: string;
-  fixture?: {
-    date: string;
-    status?: {
-      short: string;
-      long: string;
-    };
-    score?: FixtureScore;
+  homeTeam: MatchTeam;
+  awayTeam: MatchTeam;
+  score?: {
+    halftime?: string;
+    fulltime?: string;
+    extratime?: string | null;
+    penalty?: string | null;
   };
+  goals?: {
+    home: number | null;
+    away: number | null;
+  };
+  events?: any[];
+  highlights?: MatchHighlight[];
+  state?: MatchState;
+  round?: string;
+  country?: Country;
 }
 
 export interface MatchHighlight {
@@ -77,13 +82,49 @@ export interface League {
   name: string;
   logo: string;
   country?: Country;
+  seasons?: { season: number; startDate?: string; endDate?: string }[];
   highlights: MatchHighlight[];
 }
 
-export interface Tournament {
-  id: string;
+export interface Season {
+  season: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface MatchTeam {
+  id: string | number;
   name: string;
   logo: string;
+}
+
+export interface MatchState {
+  status: string;
+  description: string;
+  minute?: number;
+  ftScore?: string;
+  htScore?: string;
+  score?: {
+    current?: string;
+    penalties?: string;
+    halfTime?: string;
+    fullTime?: string;
+  };
+}
+
+export interface MatchEvent {
+  team: Team;
+  time: string;
+  type: string;
+  player: string;
+  assist?: string;
+  substituted?: string;
+}
+
+export interface EnhancedMatchHighlight extends MatchHighlight {
+  lineups?: Lineups;
+  statistics?: TeamStatistics[];
+  events?: MatchEvent[];
 }
 
 export interface LeagueWithMatches {
@@ -161,17 +202,32 @@ export interface TeamStatistics {
   statistics: MatchStatistic[];
 }
 
-export interface MatchEvent {
-  team: Team;
-  time: string;
-  type: string;
-  player: string;
-  assist?: string;
-  substituted?: string;
+export interface CalculatedSeasonStats {
+  totalMatchesPlayed: number;
+  totalGoals: number;
+  avgGoalsPerMatch: number;
+  homeWins: number;
+  awayWins: number;
+  draws: number;
+  homeWinPercentage: number;
+  awayWinPercentage: number;
+  drawPercentage: number;
+  cleanSheetsTotal: number;
+  matchesWithAtLeastOneCleanSheet: number;
+  cleanSheetRate: number;
+  frequentScorelines: { score: string; count: number }[];
+  biggestMatch: Match | null;
 }
 
-export interface EnhancedMatchHighlight extends MatchHighlight {
-  lineups?: Lineups;
-  statistics?: TeamStatistics[];
-  events?: MatchEvent[];
+export interface StandingsRow {
+  position: number;
+  team: Team;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
 }

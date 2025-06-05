@@ -1,937 +1,395 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { highlightlyClient } from '@/integrations/highlightly/client';
-import type { Match, Team as BaseTeam } from '@/types';
-
-// Extend the base types with additional properties needed in this component
-interface ExtendedLeague {
-  id: string;
-  name: string;
-  logo?: string;
-  country?: {
-    code: string;
-    name: string;
-    logo?: string;
-  };
-  seasons?: {
-    season: number;
-  }[];
-}
-
-interface StandingsRow {
-  position: number;
-  team: {
-    id: string;
-    name: string;
-    logo?: string;
-  };
-  points: number;
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-}
-
-interface ExtendedTeam extends BaseTeam {
-  founded?: number;
-  venue?: {
-    name: string;
-    capacity?: number;
-  };
-}
+import { serviceAdapter } from '@/services/serviceAdapter';
+import { League, Match as MatchType, StandingsRow, CalculatedSeasonStats, MatchState } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, CalendarDays, ListChecks, BarChart3, Trophy, Home, Info } from 'lucide-react';
+import StandingsTable from './StandingsTable';
+import MatchList from './MatchList';
+import SeasonStatsDisplay from './SeasonStatsDisplay';
+import TodaysMatchesDisplay from './TodaysMatchesDisplay';
+import TopContributorsDisplay from './TopContributorsDisplay';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LEAGUE_COUNTRY_MAPPING, getCountryFlag } from '@/utils/leagueCountryMapping';
 
 interface LeagueDetailsProps {
-  league: ExtendedLeague;
+  league: League;
   onBack: () => void;
 }
 
+// Helper to parse score string "H - A" into numbers
+const parseScore = (scoreString?: string): { home: number | null; away: number | null } => {
+  if (!scoreString || !scoreString.includes(' - ')) {
+    return { home: null, away: null };
+  }
+  const parts = scoreString.split(' - ');
+  const home = parseInt(parts[0], 10);
+  const away = parseInt(parts[1], 10);
+  return { home: isNaN(home) ? null : home, away: isNaN(away) ? null : away };
+};
+
 const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
   const navigate = useNavigate();
-  const [standings, setStandings] = useState<StandingsRow[]>([]);
-  const [recentMatches, setRecentMatches] = useState<Match[]>([]);
-  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
-  const [allMatches, setAllMatches] = useState<Match[]>([]);
-  const [teams, setTeams] = useState<ExtendedTeam[]>([]);
-  const [highlights, setHighlights] = useState<any[]>([]);
-  
-  const [standingsLoading, setStandingsLoading] = useState(true);
-  const [matchesLoading, setMatchesLoading] = useState(false);
-  const [teamsLoading, setTeamsLoading] = useState(true);
-  const [highlightsLoading, setHighlightsLoading] = useState(true);
-  
-  const [standingsError, setStandingsError] = useState<string | null>(null);
-  const [matchesError, setMatchesError] = useState<string | null>(null);
-  const [teamsError, setTeamsError] = useState<string | null>(null);
-  const [highlightsError, setHighlightsError] = useState<string | null>(null);
+  const service = serviceAdapter;
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'highlights'>('overview');
-  const [showAllMatches, setShowAllMatches] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
+  const [standings, setStandings] = useState<StandingsRow[]>([]);
+  const [allMatchesForSeason, setAllMatchesForSeason] = useState<MatchType[]>([]);
+  const [pastMatches, setPastMatches] = useState<MatchType[]>([]);
+  const [upcomingMatches, setUpcomingMatches] = useState<MatchType[]>([]);
+  const [todaysMatches, setTodaysMatches] = useState<MatchType[]>([]);
+  const [seasonStats, setSeasonStats] = useState<CalculatedSeasonStats | null>(null);
+  
+  const [loadingStandings, setLoadingStandings] = useState(false);
+  const [loadingMatches, setLoadingMatches] = useState(false);
+  const [errorStandings, setErrorStandings] = useState<string | null>(null);
+  const [errorMatches, setErrorMatches] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState('Home');
+
 
   useEffect(() => {
-    fetchAllLeagueData();
-  }, [league.id]);
-
-  const fetchAllLeagueData = async () => {
-    // Don't make API calls if league.id is not available
-    if (!league?.id) {
-      console.log('[LeaguePage] League ID not available, skipping API calls');
-      setStandingsLoading(false);
-      setMatchesLoading(false);
-      setTeamsLoading(false);
-      setHighlightsLoading(false);
-      return;
+    if (league?.seasons && league.seasons.length > 0) {
+      // Prioritize season with is_current_season flag if available, else latest, else current year
+      const currentApiSeason = league.seasons.find(s => (s as any).is_current_season === true || s.season?.toString() === new Date().getFullYear().toString());
+      if (currentApiSeason) {
+        setSelectedSeason(currentApiSeason.season.toString());
+      } else {
+        // Fallback to the first season in the list (assuming it's sorted desc by API)
+        setSelectedSeason(league.seasons[0].season.toString());
+      }
+    } else if (league?.id) { // If no seasons, but we have a league, maybe try current year
+      setSelectedSeason(new Date().getFullYear().toString());
     }
-    
-    await Promise.all([
-      fetchStandings(),
-      fetchAllMatches(),
-      fetchTeams(),
-      fetchHighlights()
-    ]);
-  };
+  }, [league]);
 
-  const fetchStandings = async () => {
+  const fetchLeagueData = useCallback(async () => {
+    if (!league?.id || !selectedSeason) return;
+
+    setLoadingStandings(true);
+    setErrorStandings(null);
     try {
-      setStandingsLoading(true);
-      setStandingsError(null);
-      
-      console.log(`[LeaguePage] Fetching standings for league ${league.id}`);
-      
-      // Try with current season - use 2024 instead of old season data
-      const currentSeason = new Date().getFullYear(); // Always use current year
-      
-      console.log(`[LeaguePage] Using season: ${currentSeason}`);
-      
-      // Fix: API requires leagueId (not league) and season parameters
-      try {
-        console.log(`[LeaguePage] Trying standings with leagueId=${league.id} and season=${currentSeason}...`);
-        
-        // Use the highlightlyClient with correct parameter names
-        const response = await highlightlyClient.getStandings({ 
-          league: league.id,  // Client interface uses "league" but API expects "leagueId"
-          season: currentSeason.toString()
-        });
-        
-        console.log(`[LeaguePage] Raw standings response:`, response);
-        
-        // Handle response format - API returns groups with standings
-        let standingsData = [];
-        if (response.groups && Array.isArray(response.groups) && response.groups.length > 0) {
-          // Use first group's standings
-          standingsData = response.groups[0].standings || [];
-          console.log(`[LeaguePage] Using response.groups[0].standings`);
-        } else if (Array.isArray(response)) {
-          standingsData = response;
-          console.log(`[LeaguePage] Using direct array response`);
-        } else if (response.data && Array.isArray(response.data)) {
-          standingsData = response.data;
-          console.log(`[LeaguePage] Using response.data array`);
-        } else if (response.league && response.league.standings) {
-          standingsData = response.league.standings[0] || []; // First group of standings
-          console.log(`[LeaguePage] Using response.league.standings[0]`);
-        } else {
-          console.log(`[LeaguePage] Trying to find standings in response object:`, Object.keys(response));
-          // Try to find standings data in different possible locations
-          if (response.standings && Array.isArray(response.standings)) {
-            standingsData = response.standings;
-          } else if (response[0] && response[0].standings) {
-            standingsData = response[0].standings;
-          }
-        }
-        
-        // Map the API response format to our expected format
-        const mappedStandings = standingsData.map((standing: any, index: number) => ({
-          position: standing.position || index + 1,
-          team: {
-            id: standing.team?.id || '',
-            name: standing.team?.name || '',
-            logo: standing.team?.logo || ''
-          },
-          points: standing.points || standing.total?.points || 0,
-          played: standing.total?.games || standing.total?.played || 0,
-          won: standing.total?.wins || 0,
-          drawn: standing.total?.draws || 0,
-          lost: standing.total?.loses || standing.total?.lost || 0,
-          goalsFor: standing.total?.scoredGoals || standing.total?.goalsFor || 0,
-          goalsAgainst: standing.total?.receivedGoals || standing.total?.goalsAgainst || 0,
-          goalDifference: (standing.total?.scoredGoals || 0) - (standing.total?.receivedGoals || 0)
-        }));
-        
-        console.log(`[LeaguePage] Final standings data:`, mappedStandings);
-        setStandings(mappedStandings);
-        console.log(`[LeaguePage] Loaded ${mappedStandings.length} standings entries`);
-        
-      } catch (firstError) {
-        console.log(`[LeaguePage] Current season failed, trying 2024...`);
-        try {
-          const response = await highlightlyClient.getStandings({ 
-            league: league.id,
-            season: '2024'
-          });
-          console.log(`[LeaguePage] Success with 2024 season!`, response);
-          
-          // Handle response format (same logic as above)
-          let standingsData = [];
-          if (response.groups && Array.isArray(response.groups) && response.groups.length > 0) {
-            standingsData = response.groups[0].standings || [];
-          } else if (Array.isArray(response)) {
-            standingsData = response;
-          } else if (response.data && Array.isArray(response.data)) {
-            standingsData = response.data;
-          } else if (response.league && response.league.standings) {
-            standingsData = response.league.standings[0] || [];
-          }
-          
-          const mappedStandings = standingsData.map((standing: any, index: number) => ({
-            position: standing.position || index + 1,
-            team: {
-              id: standing.team?.id || '',
-              name: standing.team?.name || '',
-              logo: standing.team?.logo || ''
-            },
-            points: standing.points || standing.total?.points || 0,
-            played: standing.total?.games || standing.total?.played || 0,
-            won: standing.total?.wins || 0,
-            drawn: standing.total?.draws || 0,
-            lost: standing.total?.loses || standing.total?.lost || 0,
-            goalsFor: standing.total?.scoredGoals || standing.total?.goalsFor || 0,
-            goalsAgainst: standing.total?.receivedGoals || standing.total?.goalsAgainst || 0,
-            goalDifference: (standing.total?.scoredGoals || 0) - (standing.total?.receivedGoals || 0)
-          }));
-          
-          setStandings(mappedStandings);
-          console.log(`[LeaguePage] Loaded ${mappedStandings.length} standings entries with 2024`);
-          
-        } catch (secondError) {
-          console.log(`[LeaguePage] All standings approaches failed:`, firstError, secondError);
-          throw secondError;
-        }
+      const standingsData = await service.getStandingsForLeague(league.id, selectedSeason);
+      if (standingsData && standingsData.groups && standingsData.groups.length > 0) {
+        // Assuming the first group is the main one, or logic is needed to find the correct group
+        const mainGroup = standingsData.groups[0];
+        setStandings(mainGroup.standings.map((s: any) => ({ ...s, team: s.team })) as StandingsRow[]);
+      } else {
+        setStandings([]);
       }
     } catch (err) {
-      console.error('[LeaguePage] Error fetching standings:', err);
-      setStandingsError('Failed to load standings');
+      console.error('Error fetching standings:', err);
+      setErrorStandings('Failed to load standings.');
+      setStandings([]);
     } finally {
-      setStandingsLoading(false);
+      setLoadingStandings(false);
     }
-  };
 
-  const fetchAllMatches = async () => {
+    setLoadingMatches(true);
+    setErrorMatches(null);
     try {
-      const response = await highlightlyClient.getMatches({
-        leagueId: league.id,
-        season: '2024'
-      });
+      const allMatches = await service.getAllMatchesForLeagueSeason(league.id, selectedSeason);
+      setAllMatchesForSeason(allMatches);
 
-      if (response.data && Array.isArray(response.data)) {
-        const transformedMatches: Match[] = response.data.map((match: any) => ({
-          id: match.id || `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          date: match.date || new Date().toISOString(),
-          homeTeam: {
-            id: match.homeTeam?.id || match.teams?.home?.id || 'unknown',
-            name: match.homeTeam?.name || match.teams?.home?.name || 'Unknown Team',
-            logo: match.homeTeam?.logo || match.teams?.home?.logo || '/teams/default.png'
-          },
-          awayTeam: {
-            id: match.awayTeam?.id || match.teams?.away?.id || 'unknown',
-            name: match.awayTeam?.name || match.teams?.away?.name || 'Unknown Team',
-            logo: match.awayTeam?.logo || match.teams?.away?.logo || '/teams/default.png'
-          },
-          status: match.fixture?.status?.short === 'FT' ? 'finished' : 
-                  match.fixture?.status?.short === 'LIVE' ? 'live' : 'upcoming',
-          competition: {
-            id: league.id,
-            name: league.name,
-            logo: league.logo || '/leagues/default.png'
-          },
-          fixture: match.fixture,
-          goals: match.goals,
-          score: match.score
-        }));
+      const today = new Date().toISOString().split('T')[0];
+      const past: MatchType[] = [];
+      const upcoming: MatchType[] = [];
+      const currentDay: MatchType[] = [];
+      let tempBiggestMatch: MatchType | null = null;
+      let maxGoals = -1;
 
-        setAllMatches(transformedMatches);
+      let totalGoals = 0;
+      let numMatchesPlayed = 0;
+      let homeWins = 0;
+      let awayWins = 0;
+      let draws = 0;
+      let cleanSheetsHome = 0;
+      let cleanSheetsAway = 0;
+      let matchesWithCleanSheet = 0;
+      const scorelineCounts: Record<string, number> = {};
+
+
+      allMatches.forEach(match => {
+        const matchDate = match.date.split('T')[0];
+        const status = match.state?.description?.toLowerCase() || match.status?.long?.toLowerCase() || '';
+        const isFinished = status.includes('finished') || status.includes('ft') || status.includes('aet') || status.includes('pen');
         
-        // Filter for upcoming matches
-        const upcoming = transformedMatches.filter(match => 
-          match.status === 'upcoming' || match.status === 'live'
-        );
-        setUpcomingMatches(upcoming);
-      }
-    } catch (error) {
-      console.error('Error fetching matches:', error);
-    }
-  };
+        if (matchDate === today && !isFinished) { // Consider live matches for today if not strictly finished
+          currentDay.push(match);
+        } else if (isFinished) {
+          past.push(match);
+          numMatchesPlayed++;
+          const { home: homeScore, away: awayScore } = parseScore(match.state?.score?.current || match.score?.fulltime);
 
-  const fetchTeams = async () => {
-    try {
-      setTeamsLoading(true);
-      setTeamsError(null);
-      
-      console.log(`[LeaguePage] Fetching teams for league ${league.id}`);
-      
-      // Try different approaches for teams API since league parameter might not be supported
-      let response;
-      try {
-        // First try with league parameter (as documented)
-        response = await highlightlyClient.getTeams({
-          league: league.id
-        });
-      } catch (firstError) {
-        console.log(`[LeaguePage] league parameter failed, trying without parameters...`);
-        try {
-          // If that fails, try without any parameters (get all teams)
-          response = await highlightlyClient.getTeams({});
-        } catch (secondError) {
-          console.log(`[LeaguePage] Both approaches failed:`, firstError, secondError);
-          throw secondError;
-        }
-      }
-      
-      console.log(`[LeaguePage] Raw teams response:`, response);
-      console.log(`[LeaguePage] Teams response type:`, typeof response);
-      console.log(`[LeaguePage] Teams response is array:`, Array.isArray(response));
-      if (response?.data) {
-        console.log(`[LeaguePage] Teams response.data:`, response.data);
-        console.log(`[LeaguePage] Teams response.data is array:`, Array.isArray(response.data));
-      }
-      
-      let teamsData = [];
-      if (Array.isArray(response)) {
-        teamsData = response;
-      } else if (response.data && Array.isArray(response.data)) {
-        teamsData = response.data;
-      }
-      
-      // Filter teams to only show those from this league if possible
-      // Since teams API returns all teams, we might need to filter them
-      // For now, let's limit to a reasonable number for display
-      const limitedTeams = teamsData.slice(0, 20);
-      
-      setTeams(limitedTeams);
-      console.log(`[LeaguePage] Loaded ${limitedTeams.length} teams (limited from ${teamsData.length})`);
-    } catch (err) {
-      console.error('[LeaguePage] Error fetching teams:', err);
-      setTeamsError('Failed to load teams');
-    } finally {
-      setTeamsLoading(false);
-    }
-  };
+          if (homeScore !== null && awayScore !== null) {
+            const currentScoreString = `${homeScore} - ${awayScore}`;
+            scorelineCounts[currentScoreString] = (scorelineCounts[currentScoreString] || 0) + 1;
+            totalGoals += homeScore + awayScore;
 
-  const fetchHighlights = async () => {
-    try {
-      setHighlightsLoading(true);
-      setHighlightsError(null);
-      
-      console.log(`[LeaguePage] Fetching highlights for league ${league.id}`);
-      const response = await highlightlyClient.getHighlights({
-        leagueId: league.id,
-        limit: '6'
-      });
-      
-      console.log(`[LeaguePage] Raw highlights response:`, response);
-      
-      let highlightsData = [];
-      if (Array.isArray(response)) {
-        highlightsData = response;
-      } else if (response.data && Array.isArray(response.data)) {
-        highlightsData = response.data;
-      }
-      
-      setHighlights(highlightsData);
-      console.log(`[LeaguePage] Loaded ${highlightsData.length} highlights`);
-    } catch (err) {
-      console.error('[LeaguePage] Error fetching highlights:', err);
-      setHighlightsError('Failed to load highlights');
-    } finally {
-      setHighlightsLoading(false);
-    }
-  };
+            if (homeScore > awayScore) homeWins++;
+            else if (awayScore > homeScore) awayWins++;
+            else draws++;
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const handleMatchClick = (match: any) => {
-    // Check if match is finished by looking for scores
-    const hasScore = (match.score?.home !== undefined && match.score?.away !== undefined) ||
-                     (match.score?.fulltime?.home !== undefined && match.score?.fulltime?.away !== undefined) ||
-                     (match.score?.final?.home !== undefined && match.score?.final?.away !== undefined) ||
-                     (match.goals?.home !== undefined && match.goals?.away !== undefined) ||
-                     (match.fixture?.score?.fulltime?.home !== undefined && match.fixture?.score?.fulltime?.away !== undefined) ||
-                     (match.fixture?.score?.final?.home !== undefined && match.fixture?.score?.final?.away !== undefined);
-    
-    if (hasScore) {
-      // Route finished matches to Full-time Summary page
-      navigate(`/fulltime/${match.id}`);
-    } else {
-      // Route other matches to regular match details
-      navigate(`/match/${match.id}`);
-    }
-  };
-
-  const StandingsTable = () => (
-    <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-700/30">
-        <h3 className="text-lg font-semibold text-white">League Table</h3>
-      </div>
-      
-      {standingsLoading ? (
-        <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading standings...</p>
-        </div>
-      ) : standingsError ? (
-        <div className="p-8 text-center">
-          <p className="text-red-400">{standingsError}</p>
-        </div>
-      ) : standings.length === 0 ? (
-        <div className="p-8 text-center">
-          <p className="text-gray-400">No standings available</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
-            <thead className="bg-[#121212]">
-              <tr className="text-xs text-gray-400 uppercase tracking-wider">
-                <th className="px-2 py-3 text-left w-12">#</th>
-                <th className="px-3 py-3 text-left min-w-[180px]">Team</th>
-                <th className="px-2 py-3 text-center w-10">P</th>
-                <th className="px-2 py-3 text-center w-10">W</th>
-                <th className="px-2 py-3 text-center w-10">D</th>
-                <th className="px-2 py-3 text-center w-10">L</th>
-                <th className="px-2 py-3 text-center w-12 hidden sm:table-cell">GF</th>
-                <th className="px-2 py-3 text-center w-12 hidden sm:table-cell">GA</th>
-                <th className="px-2 py-3 text-center w-12">GD</th>
-                <th className="px-2 py-3 text-center w-12 font-semibold">Pts</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700/30">
-              {standings.map((row, index) => (
-                <tr key={row.team?.id || index} className="hover:bg-[#222222] transition-colors">
-                  {/* Position */}
-                  <td className="px-2 py-3">
-                    <span className={`text-sm font-medium ${
-                      row.position <= 4 ? 'text-green-400' :
-                      row.position <= 6 ? 'text-blue-400' :
-                      row.position >= standings.length - 2 ? 'text-red-400' :
-                      'text-white'
-                    }`}>
-                      {row.position || index + 1}
-                    </span>
-                  </td>
-                  
-                  {/* Team */}
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
-                      {row.team?.logo && (
-                        <img 
-                          src={row.team.logo} 
-                          alt={row.team.name}
-                          className="w-5 h-5 object-contain flex-shrink-0"
-                          onError={(e) => e.currentTarget.style.display = 'none'}
-                        />
-                      )}
-                      <span className="text-white text-sm font-medium truncate">
-                        {row.team?.name}
-                      </span>
-                    </div>
-                  </td>
-                  
-                  {/* Played */}
-                  <td className="px-2 py-3 text-center text-sm text-gray-300">{row.played}</td>
-                  
-                  {/* Won */}
-                  <td className="px-2 py-3 text-center text-sm text-gray-300">{row.won}</td>
-                  
-                  {/* Drawn */}
-                  <td className="px-2 py-3 text-center text-sm text-gray-300">{row.drawn}</td>
-                  
-                  {/* Lost */}
-                  <td className="px-2 py-3 text-center text-sm text-gray-300">{row.lost}</td>
-                  
-                  {/* Goals For - Hidden on small screens */}
-                  <td className="px-2 py-3 text-center text-sm text-gray-300 hidden sm:table-cell">{row.goalsFor}</td>
-                  
-                  {/* Goals Against - Hidden on small screens */}
-                  <td className="px-2 py-3 text-center text-sm text-gray-300 hidden sm:table-cell">{row.goalsAgainst}</td>
-                  
-                  {/* Goal Difference */}
-                  <td className="px-2 py-3 text-center text-sm">
-                    <span className={row.goalDifference >= 0 ? 'text-green-400' : 'text-red-400'}>
-                      {row.goalDifference > 0 ? '+' : ''}{row.goalDifference}
-                    </span>
-                  </td>
-                  
-                  {/* Points */}
-                  <td className="px-2 py-3 text-center">
-                    <span className="text-white font-semibold">{row.points}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          
-          {/* Mobile-friendly legend for hidden columns */}
-          <div className="px-4 py-2 text-xs text-gray-500 sm:hidden border-t border-gray-700/30">
-            GF = Goals For, GA = Goals Against, GD = Goal Difference
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const MatchesList = ({ matches, title }: { matches: Match[], title: string }) => {
-    return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">{title}</h3>
-        <div className="divide-y divide-gray-700/30">
-          {matches.map((match) => {
-            // Get score from the match object using the proper type
-            let homeScore: number | undefined = undefined;
-            let awayScore: number | undefined = undefined;
-
-            if (match.score?.home !== undefined && match.score?.away !== undefined) {
-              homeScore = match.score.home;
-              awayScore = match.score.away;
-            } else if (match.score?.fulltime?.home !== undefined && match.score?.fulltime?.away !== undefined) {
-              homeScore = match.score.fulltime.home;
-              awayScore = match.score.fulltime.away;
-            } else if (match.score?.final?.home !== undefined && match.score?.final?.away !== undefined) {
-              homeScore = match.score.final.home;
-              awayScore = match.score.final.away;
-            } else if (match.goals?.home !== undefined && match.goals?.away !== undefined) {
-              homeScore = match.goals.home;
-              awayScore = match.goals.away;
+            let matchHadCleanSheet = false;
+            if (homeScore === 0) {
+              cleanSheetsAway++;
+              matchHadCleanSheet = true;
             }
+            if (awayScore === 0) {
+              cleanSheetsHome++;
+              matchHadCleanSheet = true;
+            }
+            if(matchHadCleanSheet) matchesWithCleanSheet++;
 
-            const hasScore = homeScore !== undefined && awayScore !== undefined;
-            const isFinished = match.status === 'finished';
-            const isLive = match.status === 'live';
+            const totalMatchGoals = homeScore + awayScore;
+            if (totalMatchGoals > maxGoals) {
+              maxGoals = totalMatchGoals;
+              tempBiggestMatch = match;
+            }
+          }
+        } else if (new Date(matchDate) > new Date(today) || status.includes('not started') || status.includes('scheduled') || status.includes('tba')) {
+          upcoming.push(match);
+        } else if (matchDate === today && isFinished) { // Finished today
+           past.push(match); // Add to past as well for stats
+           currentDay.push(match); // Keep in today's list for display
+        }
+      });
+      
+      setPastMatches(past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      setUpcomingMatches(upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+      setTodaysMatches(currentDay.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())); // Or by time
 
-            return (
-              <div 
-                key={match.id}
-                className={`py-2 cursor-pointer hover:bg-gray-800/30 ${isLive ? 'bg-green-900/20' : ''}`}
-                onClick={() => handleMatchClick(match)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <img 
-                      src={match.homeTeam.logo} 
-                      alt={match.homeTeam.name} 
-                      className="w-6 h-6 object-contain"
-                    />
-                    <span className={isFinished ? 'text-gray-400' : 'text-white'}>
-                      {match.homeTeam.name}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {hasScore ? (
-                      <span className="font-semibold">
-                        {homeScore} - {awayScore}
-                      </span>
-                    ) : (
-                      <span className="text-sm text-gray-500">
-                        {isLive ? 'LIVE' : formatDate(match.date)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={isFinished ? 'text-gray-400' : 'text-white'}>
-                      {match.awayTeam.name}
-                    </span>
-                    <img 
-                      src={match.awayTeam.logo} 
-                      alt={match.awayTeam.name} 
-                      className="w-6 h-6 object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      const frequentScorelines = Object.entries(scorelineCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([score, count]) => ({ score, count }));
+
+      if (numMatchesPlayed > 0) {
+        setSeasonStats({
+          totalMatchesPlayed: numMatchesPlayed,
+          totalGoals,
+          avgGoalsPerMatch: parseFloat((totalGoals / numMatchesPlayed).toFixed(2)),
+          homeWins,
+          awayWins,
+          draws,
+          homeWinPercentage: parseFloat(((homeWins / numMatchesPlayed) * 100).toFixed(1)),
+          awayWinPercentage: parseFloat(((awayWins / numMatchesPlayed) * 100).toFixed(1)),
+          drawPercentage: parseFloat(((draws / numMatchesPlayed) * 100).toFixed(1)),
+          cleanSheetsTotal: cleanSheetsHome + cleanSheetsAway,
+          matchesWithAtLeastOneCleanSheet: matchesWithCleanSheet,
+          cleanSheetRate: parseFloat(((matchesWithCleanSheet / numMatchesPlayed) * 100).toFixed(1)),
+          frequentScorelines,
+          biggestMatch: tempBiggestMatch,
+        });
+      } else {
+        setSeasonStats(null);
+      }
+
+    } catch (err) {
+      console.error('Error fetching matches:', err);
+      setErrorMatches('Failed to load match data.');
+      setAllMatchesForSeason([]);
+      setPastMatches([]);
+      setUpcomingMatches([]);
+      setTodaysMatches([]);
+      setSeasonStats(null);
+    } finally {
+      setLoadingMatches(false);
+    }
+  }, [league?.id, selectedSeason, service]);
+
+  useEffect(() => {
+    fetchLeagueData();
+  }, [fetchLeagueData]);
+
+  const handleSeasonChange = (season: string) => {
+    setSelectedSeason(season);
+    // Data will re-fetch due to selectedSeason dependency in fetchLeagueData's useCallback deps
+  };
+  
+  const renderCountryFlag = (leagueId: string | number) => {
+    const countryCode = LEAGUE_COUNTRY_MAPPING[leagueId.toString()];
+    return countryCode ? <img src={getCountryFlag(countryCode)} alt={countryCode} className="w-6 h-4 object-contain rounded-sm" /> : null;
+  };
+
+
+  if (!league || !league.id) {
+    return (
+      <div className="p-4 text-center">
+        <p>League data not found.</p>
+        <Button onClick={onBack} variant="outline" className="mt-4">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Leagues
+        </Button>
       </div>
     );
-  };
+  }
+  
+  // Placeholder for loading state
+  // if (loadingStandings || loadingMatches) {
+  //   return <div className="p-4 text-center">Loading league details...</div>;
+  // }
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white">
-      {/* Header */}
-      <div className="bg-[#1a1a1a] border-b border-gray-700/30">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={onBack}
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+    <div className="container mx-auto p-4">
+      <Button onClick={onBack} variant="outline" className="mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Leagues
+      </Button>
+
+      <Card className="mb-6 shadow-lg">
+        <CardHeader className="flex flex-row items-center space-x-4 bg-gray-50 p-4 rounded-t-lg">
+          <img src={league.logo || '/icons/default-league.png'} alt={league.name} className="w-16 h-16 object-contain" />
+          <div>
+            <div className="flex items-center space-x-2">
+               {renderCountryFlag(league.id)}
+               <h1 className="text-3xl font-bold text-gray-800">{league.name}</h1>
+            </div>
+            {league.country && <p className="text-sm text-gray-500">{league.country.name}</p>}
+          </div>
+          {league.seasons && league.seasons.length > 0 && (
+            <div className="ml-auto">
+              <select 
+                value={selectedSeason || ''} 
+                onChange={(e) => handleSeasonChange(e.target.value)}
+                className="p-2 border rounded-md bg-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back
-              </button>
+                {league.seasons.map(s => (
+                  <option key={s.season} value={s.season.toString()}>
+                    {s.season}{s.startDate && s.endDate ? ` (${s.startDate} - ${s.endDate})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </CardHeader>
+      </Card>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 md:grid-cols-4 gap-2 mb-4">
+          <TabsTrigger value="Home" className="flex items-center justify-center gap-2 py-3 text-sm font-medium">
+            <Home className="h-5 w-5" /> Home
+          </TabsTrigger>
+          <TabsTrigger value="Standings" className="flex items-center justify-center gap-2 py-3 text-sm font-medium">
+            <Trophy className="h-5 w-5" /> Standings
+          </TabsTrigger>
+          <TabsTrigger value="Results" className="flex items-center justify-center gap-2 py-3 text-sm font-medium">
+            <ListChecks className="h-5 w-5" /> Results
+          </TabsTrigger>
+          <TabsTrigger value="Fixtures" className="flex items-center justify-center gap-2 py-3 text-sm font-medium">
+            <CalendarDays className="h-5 w-5" /> Fixtures
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="Home">
+          <Card>
+            <CardHeader><CardTitle>Home Dashboard</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-center text-lg">Welcome to the {league.name} league page for the {selectedSeason} season!</p>
               
-              <div className="flex items-center gap-4">
-                {league.logo && (
-                  <img 
-                    src={league.logo} 
-                    alt={league.name}
-                    className="w-12 h-12 object-contain"
-                    onError={(e) => e.currentTarget.style.display = 'none'}
-                  />
-                )}
-                <div>
-                  <h1 className="text-2xl font-bold text-white">{league.name || `League ${league.id}`}</h1>
-                  {league.country && (
-                    <div className="flex items-center gap-2 mt-1">
-                      {league.country.logo && (
-                        <img 
-                          src={league.country.logo} 
-                          alt={league.country.name}
-                          className="w-4 h-4 object-contain"
-                          onError={(e) => e.currentTarget.style.display = 'none'}
-                        />
-                      )}
-                      <span className="text-gray-400 text-sm">{league.country.name}</span>
-                    </div>
+              {(loadingMatches || loadingStandings) && <p className="text-center">Loading home content...</p>}
+              {errorMatches && <p className="text-center text-red-500">{errorMatches}</p>}
+              {errorStandings && <p className="text-center text-red-500">{errorStandings}</p>}
+
+              {!loadingMatches && !errorMatches && (
+                <>
+                  <TodaysMatchesDisplay matches={todaysMatches} title="Today's Action" />
+                  
+                  {standings.length > 0 && (
+                    <Card>
+                      <CardHeader><CardTitle>Current Standings (Top 5)</CardTitle></CardHeader>
+                      <CardContent><StandingsTable standings={standings.slice(0, 5)} /></CardContent>
+                    </Card>
                   )}
-                  {!league.id && (
-                    <div className="mt-2 px-3 py-1 bg-yellow-600 text-yellow-100 text-xs rounded">
-                      League details are limited - some data may not be available
-                    </div>
+
+                  <MatchList matches={upcomingMatches} title="Upcoming Fixtures (Next 5)" emptyMessage="No upcoming fixtures." maxItems={5} />
+                  
+                  {seasonStats && (
+                    <SeasonStatsDisplay stats={seasonStats} leagueName={league.name} season={selectedSeason} />
                   )}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Tabs */}
-          <div className="flex gap-6 mt-6">
-            {[
-              { key: 'overview', label: 'Overview' },
-              { key: 'matches', label: 'Matches' },
-              { key: 'teams', label: 'Teams' },
-              { key: 'highlights', label: 'Highlights' }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
-                className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === tab.key 
-                    ? 'border-yellow-400 text-white' 
-                    : 'border-transparent text-gray-400 hover:text-white'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+                  
+                  <TopContributorsDisplay leagueName={league.name} season={selectedSeason} />
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="Standings">
+          <Card>
+            <CardHeader><CardTitle>League Standings</CardTitle></CardHeader>
+            <CardContent>
+              {loadingStandings && <p>Loading standings...</p>}
+              {errorStandings && <p className="text-red-500">{errorStandings}</p>}
+              {!loadingStandings && !errorStandings && standings.length > 0 && <StandingsTable standings={standings} />}
+              {!loadingStandings && !errorStandings && standings.length === 0 && <p>No standings available for this season.</p>}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="Results">
+          <Card>
+            <CardHeader><CardTitle>Match Results</CardTitle></CardHeader>
+            <CardContent>
+              {loadingMatches && <p>Loading results...</p>}
+              {errorMatches && <p className="text-red-500">{errorMatches}</p>}
+              {!loadingMatches && !errorMatches && (
+                <MatchList matches={pastMatches} emptyMessage="No results found for this season yet." />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="Fixtures">
+          <Card>
+            <CardHeader><CardTitle>Upcoming Fixtures</CardTitle></CardHeader>
+            <CardContent>
+              {loadingMatches && <p>Loading fixtures...</p>}
+              {errorMatches && <p className="text-red-500">{errorMatches}</p>}
+              {!loadingMatches && !errorMatches && (
+                <MatchList matches={upcomingMatches} emptyMessage="No upcoming fixtures found for this season." />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      {/* Remove the standalone sections if they are now fully represented in the Home tab or specific tabs */}
+      {/* Or keep them if they are meant to be separate detailed views below the tabs */}
+      {/* For this iteration, the Home tab provides snippets, and other tabs provide full views. */}
+      {/* The below cards for Today's Matches, Season Stats, Top Contributors are effectively duplicated by Home tab content */}
+      {/* I will remove them to avoid redundancy for now. They can be added back if specific non-tabbed sections are desired. */}
 
-      {/* Content */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <StandingsTable />
-            <div className="space-y-6">
-              <MatchesList matches={recentMatches} title="Recent Matches" />
-              <MatchesList matches={upcomingMatches} title="Upcoming Matches" />
-            </div>
-          </div>
-        )}
-        
-        {activeTab === 'matches' && (
-          <div className="space-y-6">
-            {matchesLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-                <p className="text-gray-400">Loading matches...</p>
-              </div>
-            ) : (
-              <>
-                {/* Matches Summary */}
-                <div className="bg-[#1a1a1a] rounded-lg p-4 border border-gray-700/30">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-white">{allMatches.length}</div>
-                        <div className="text-sm text-gray-400">Total Matches</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-400">{recentMatches.filter(m => m.goals).length}</div>
-                        <div className="text-sm text-gray-400">With Scores</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-400">{upcomingMatches.length}</div>
-                        <div className="text-sm text-gray-400">Upcoming</div>
-                      </div>
-                    </div>
-                    
-                    <button
-                      onClick={() => setShowAllMatches(!showAllMatches)}
-                      className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors"
-                    >
-                      {showAllMatches ? 'Show Less' : `View All ${allMatches.length} Matches`}
-                    </button>
-                  </div>
-                </div>
+      {/* 
+       <Card className="mt-6">
+        <CardHeader><CardTitle>Today's Matches ({selectedSeason})</CardTitle></CardHeader>
+        <CardContent>
+          {loadingMatches && <p>Loading today's matches...</p>}
+          {errorMatches && <p className="text-red-500">{errorMatches}</p>}
+          {!loadingMatches && !errorMatches && todaysMatches.length > 0 && (
+             <TodaysMatchesDisplay matches={todaysMatches} />
+          )}
+          {!loadingMatches && !errorMatches && todaysMatches.length === 0 && <p>No matches scheduled for today in this league for the selected season.</p>}
+        </CardContent>
+      </Card>
 
-                {/* Matches Display */}
-                {showAllMatches ? (
-                  <div className="space-y-4">
-                    {/* DEBUG: Show match data structure */}
-                    {allMatches.length > 0 && (
-                      <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-                        <h4 className="text-red-400 font-bold mb-2">DEBUG: Match Data Structure</h4>
-                        <div className="text-xs text-gray-300 space-y-2">
-                          <div>Total matches: {allMatches.length}</div>
-                          <div>Matches with goals object: {allMatches.filter(m => m.goals).length}</div>
-                          <div className="max-h-32 overflow-y-auto">
-                            <strong>First match sample:</strong>
-                            <pre className="whitespace-pre-wrap text-xs">
-                              {JSON.stringify(allMatches[0], null, 2)}
-                            </pre>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+       <Card className="mt-6">
+        <CardHeader><CardTitle>Season Statistics ({selectedSeason})</CardTitle></CardHeader>
+        <CardContent>
+          {loadingMatches && <p>Loading season stats...</p>}
+          {errorMatches && <p className="text-red-500">{errorMatches}</p>}
+          {!loadingMatches && !errorMatches && seasonStats && (
+             <SeasonStatsDisplay stats={seasonStats} leagueName={league.name} season={selectedSeason} />
+          )}
+           {!loadingMatches && !errorMatches && !seasonStats && <p>Not enough data to calculate season statistics.</p>}
+        </CardContent>
+      </Card>
+      
+       <Card className="mt-6">
+        <CardHeader><CardTitle>Top Contributors ({selectedSeason})</CardTitle></CardHeader>
+        <CardContent>
+            <TopContributorsDisplay leagueName={league.name} season={selectedSeason} />
+        </CardContent>
+      </Card>
+      */}
 
-                    <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-                      <div className="px-4 py-3 border-b border-gray-700/30">
-                        <h3 className="text-lg font-semibold text-white">Complete Match History</h3>
-                        <p className="text-sm text-gray-400">All matches sorted by date (most recent first)</p>
-                      </div>
-                      
-                      {allMatches.length === 0 ? (
-                        <div className="p-8 text-center">
-                          <p className="text-gray-400">No matches available</p>
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-gray-700/30 max-h-[600px] overflow-y-auto">
-                          {allMatches.map((match) => {
-                            // Better score extraction
-                            let homeScore: number | undefined = undefined;
-                            let awayScore: number | undefined = undefined;
-                            
-                            // Try multiple ways to get scores from the API response
-                            if (match.score?.home !== undefined && match.score?.away !== undefined) {
-                              homeScore = match.score.home;
-                              awayScore = match.score.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in match.score:`, { homeScore, awayScore });
-                            } else if (match.score?.fulltime?.home !== undefined && match.score?.fulltime?.away !== undefined) {
-                              homeScore = match.score.fulltime.home;
-                              awayScore = match.score.fulltime.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in match.score.fulltime:`, { homeScore, awayScore });
-                            } else if (match.score?.final?.home !== undefined && match.score?.final?.away !== undefined) {
-                              homeScore = match.score.final.home;
-                              awayScore = match.score.final.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in match.score.final:`, { homeScore, awayScore });
-                            } else if (match.goals?.home !== undefined && match.goals?.away !== undefined) {
-                              homeScore = match.goals.home;
-                              awayScore = match.goals.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in match.goals:`, { homeScore, awayScore });
-                            } else if (match.fixture?.score?.fulltime?.home !== undefined && match.fixture?.score?.fulltime?.away !== undefined) {
-                              homeScore = match.fixture.score.fulltime.home;
-                              awayScore = match.fixture.score.fulltime.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in fixture.score.fulltime:`, { homeScore, awayScore });
-                            } else if (match.fixture?.score?.final?.home !== undefined && match.fixture?.score?.final?.away !== undefined) {
-                              homeScore = match.fixture.score.final.home;
-                              awayScore = match.fixture.score.final.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in fixture.score.final:`, { homeScore, awayScore });
-                            }
-
-                            const hasScore = homeScore !== undefined && awayScore !== undefined;
-
-                            return (
-                              <div 
-                                key={match.id} 
-                                className="p-4 hover:bg-[#222222] transition-colors cursor-pointer"
-                                onClick={() => handleMatchClick(match)}
-                                title="Click to view match details"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-4 flex-1">
-                                    {/* Home Team */}
-                                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                                      {match.homeTeam.logo && (
-                                        <img 
-                                          src={match.homeTeam.logo} 
-                                          alt={match.homeTeam.name}
-                                          className="w-6 h-6 object-contain flex-shrink-0"
-                                          onError={(e) => e.currentTarget.style.display = 'none'}
-                                        />
-                                      )}
-                                      <span className="text-white text-sm font-medium truncate">{match.homeTeam.name}</span>
-                                    </div>
-                                    
-                                    {/* Score */}
-                                    <div className="flex items-center gap-2 px-4 flex-shrink-0">
-                                      {hasScore ? (
-                                        <span className="text-white font-bold text-lg bg-[#2a2a2a] px-3 py-1 rounded">
-                                          {homeScore} - {awayScore}
-                                        </span>
-                                      ) : (
-                                        <span className="text-gray-400 text-sm bg-[#2a2a2a] px-3 py-1 rounded">
-                                          {formatDate(match.date)}
-                                        </span>
-                                      )}
-                                    </div>
-                                    
-                                    {/* Away Team */}
-                                    <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
-                                      <span className="text-white text-sm font-medium truncate">{match.awayTeam.name}</span>
-                                      {match.awayTeam.logo && (
-                                        <img 
-                                          src={match.awayTeam.logo} 
-                                          alt={match.awayTeam.name}
-                                          className="w-6 h-6 object-contain flex-shrink-0"
-                                          onError={(e) => e.currentTarget.style.display = 'none'}
-                                        />
-                                      )}
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Status and Date */}
-                                  <div className="ml-4 text-right flex-shrink-0 flex items-center gap-2">
-                                    <div>
-                                      <div className={`text-xs px-2 py-1 rounded mb-1 ${
-                                        hasScore ? 'bg-green-600 text-white' :
-                                        new Date(match.date) > new Date() ? 'bg-blue-600 text-white' :
-                                        'bg-gray-600 text-white'
-                                      }`}>
-                                        {hasScore ? 'FT' : 
-                                         new Date(match.date) > new Date() ? 'SCH' : 'N/A'}
-                                      </div>
-                                      <div className="text-xs text-gray-400">
-                                        {new Date(match.date).toLocaleDateString()}
-                                      </div>
-                                    </div>
-                                    {/* Click indicator */}
-                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <MatchesList matches={recentMatches} title="Recent Matches" />
-                    <MatchesList matches={upcomingMatches} title="Upcoming Matches" />
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        )}
-        
-        {activeTab === 'teams' && (
-          <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-700/30">
-              <h3 className="text-lg font-semibold text-white">Teams</h3>
-            </div>
-            
-            {teamsLoading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-                <p className="text-gray-400">Loading teams...</p>
-              </div>
-            ) : teamsError ? (
-              <div className="p-8 text-center">
-                <p className="text-red-400">{teamsError}</p>
-              </div>
-            ) : teams.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-gray-400">No teams available</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                {teams.map((team) => (
-                  <div key={team.id} className="bg-[#121212] rounded-lg p-4 hover:bg-[#222222] transition-colors">
-                    <div className="flex items-center gap-3">
-                      {team.logo && (
-                        <img 
-                          src={team.logo} 
-                          alt={team.name}
-                          className="w-10 h-10 object-contain"
-                          onError={(e) => e.currentTarget.style.display = 'none'}
-                        />
-                      )}
-                      <div>
-                        <h4 className="text-white font-medium">{team.name}</h4>
-                        {team.founded && (
-                          <p className="text-gray-400 text-sm">Founded: {team.founded}</p>
-                        )}
-                        {team.venue && (
-                          <p className="text-gray-400 text-sm">{team.venue.name}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        
-        {activeTab === 'highlights' && (
-          <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-700/30">
-              <h3 className="text-lg font-semibold text-white">League Highlights</h3>
-            </div>
-            
-            {highlightsLoading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-                <p className="text-gray-400">Loading highlights...</p>
-              </div>
-            ) : highlightsError ? (
-              <div className="p-8 text-center">
-                <p className="text-red-400">{highlightsError}</p>
-              </div>
-            ) : highlights.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-gray-400">No highlights available</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                {highlights.map((highlight, index) => (
-                  <div key={highlight.id || index} className="bg-[#121212] rounded-lg overflow-hidden hover:bg-[#222222] transition-colors">
-                    {highlight.thumbnail && (
-                      <img 
-                        src={highlight.thumbnail} 
-                        alt={highlight.title}
-                        className="w-full h-32 object-cover"
-                        onError={(e) => e.currentTarget.style.display = 'none'}
-                      />
-                    )}
-                    <div className="p-3">
-                      <h4 className="text-white font-medium text-sm line-clamp-2">{highlight.title}</h4>
-                      {highlight.date && (
-                        <p className="text-gray-400 text-xs mt-1">{formatDate(highlight.date)}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 };

@@ -1,4 +1,8 @@
-import { MatchHighlight, League, Team, TableRow, Fixture, TeamDetails } from '@/types';
+import { MatchHighlight, League, Team, TableRow, Fixture, TeamDetails, LeagueWithMatches } from '@/types';
+import { Match } from '@/types';
+
+// Placeholder for MOCK_HIGHLIGHTS. Populate with actual mock highlight data as needed.
+const MOCK_HIGHLIGHTS: MatchHighlight[] = [];
 
 // In a real application, this would be fetched from an actual API
 // For now, we'll use mock data to simulate the API response
@@ -982,31 +986,90 @@ const generateFixtures = (teamId: string, league: string, europeanCompetition: s
 
 // Add a search functionality to the service
 export const searchHighlights = async (query: string): Promise<MatchHighlight[]> => {
+  console.log('[MockService] Searching highlights for:', query);
   // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 400));
-  
-  if (!query.trim()) return [];
-  
-  const normalizedQuery = query.toLowerCase().trim();
-  
-  const highlights: MatchHighlight[] = [];
-  
-  // Get all highlights from all leagues
-  const leagues = await getLeagueHighlights();
-  for (const league of leagues) {
-    for (const highlight of league.highlights) {
-      // Search in team names, match title, competition name
-      if (
-        highlight.homeTeam.name.toLowerCase().includes(normalizedQuery) ||
-        highlight.awayTeam.name.toLowerCase().includes(normalizedQuery) ||
-        highlight.title.toLowerCase().includes(normalizedQuery) ||
-        highlight.competition.name.toLowerCase().includes(normalizedQuery)
-      ) {
-        highlights.push(highlight);
-      }
-    }
-  }
-  
-  // Sort by date, most recent first
-  return highlights.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const normalizedQuery = query.toLowerCase();
+  return MOCK_HIGHLIGHTS.filter(highlight => 
+    highlight.title.toLowerCase().includes(normalizedQuery) ||
+    highlight.competition.name.toLowerCase().includes(normalizedQuery) ||
+    highlight.homeTeam.name.toLowerCase().includes(normalizedQuery) ||
+    highlight.awayTeam.name.toLowerCase().includes(normalizedQuery)
+  );
+};
+
+// Mock implementation for getStandingsForLeague
+export const getStandingsForLeague = async (leagueId: string, season: string): Promise<any> => {
+  console.log(`[MockService] Fetching standings for leagueId: ${leagueId}, season: ${season}`);
+  await new Promise(resolve => setTimeout(resolve, 300));
+  // Return a basic mock structure, assuming StandingsRow and Team types are imported or available
+  // For a more robust mock, you could return data similar to what the actual API provides.
+  return {
+    groups: [
+      {
+        name: `Mock Standings for League ${leagueId} - Season ${season}`,
+        standings: [
+          {
+            position: 1,
+            team: { id: 'mock-team-1', name: 'Mock Team Alpha', logo: '/icons/default-team.png' },
+            played: 10,
+            won: 7,
+            drawn: 2,
+            lost: 1,
+            goalsFor: 20,
+            goalsAgainst: 5,
+            goalDifference: 15,
+            points: 23,
+          },
+          {
+            position: 2,
+            team: { id: 'mock-team-2', name: 'Mock Team Beta', logo: '/icons/default-team.png' },
+            played: 10,
+            won: 6,
+            drawn: 1,
+            lost: 3,
+            goalsFor: 15,
+            goalsAgainst: 10,
+            goalDifference: 5,
+            points: 19,
+          },
+        ],
+      },
+    ],
+    league: {
+      id: leagueId,
+      name: `Mock League ${leagueId}`,
+      logo: '/icons/default-league.png',
+      season: season,
+    },
+  };
+};
+
+// Mock implementation for getAllMatchesForLeagueSeason
+export const getAllMatchesForLeagueSeason = async (leagueId: string, season: string): Promise<import('@/types').Match[]> => {
+  console.log(`[MockService] Fetching all matches for leagueId: ${leagueId}, season: ${season}`);
+  await new Promise(resolve => setTimeout(resolve, 500));
+  // Return a few mock matches. Ensure the structure matches the MatchType from '@/types'.
+  const mockMatches: import('@/types').Match[] = [
+    {
+      id: `mockmatch-${leagueId}-1`,
+      date: new Date().toISOString(),
+      league: { id: leagueId, name: `Mock League ${leagueId}`, season: season },
+      homeTeam: { id: 'mock-team-1', name: 'Mock Team Alpha', logo: '/icons/default-team.png' },
+      awayTeam: { id: 'mock-team-2', name: 'Mock Team Beta', logo: '/icons/default-team.png' },
+      state: { status: 'Finished', description: 'Finished', score: { current: '2 - 1' } },
+      score: { fulltime: '2 - 1' },
+      highlights: [], // Add if needed
+    },
+    {
+      id: `mockmatch-${leagueId}-2`,
+      date: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+      league: { id: leagueId, name: `Mock League ${leagueId}`, season: season },
+      homeTeam: { id: 'mock-team-3', name: 'Mock Team Gamma', logo: '/icons/default-team.png' },
+      awayTeam: { id: 'mock-team-4', name: 'Mock Team Delta', logo: '/icons/default-team.png' },
+      state: { status: 'Scheduled', description: 'Not Started' },
+      highlights: [],
+    },
+  ];
+  return mockMatches;
 };
