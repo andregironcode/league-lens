@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from '@/pages/Index';
-import IndexNew from '@/pages/IndexNew';
 import MatchDetails from '@/pages/MatchDetails';
 import FullTimeSummary from '@/pages/FullTimeSummary';
 import TeamPage from '@/pages/TeamPage';
@@ -13,7 +12,6 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/new" element={<IndexNew />} />
         <Route path="/match/:id" element={<MatchDetails />} />
         <Route path="/fulltime/:id" element={<FullTimeSummary />} />
         <Route path="/team/:teamId" element={<TeamPage />} />

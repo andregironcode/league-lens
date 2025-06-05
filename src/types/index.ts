@@ -29,7 +29,11 @@ export interface Match {
   time?: string;
   timestamp?: number;
   timezone?: string;
-  status?: { short?: string; long?: string; elapsed?: number };
+  status?: string | { short?: string; long?: string; elapsed?: number }; // Support both string and object format
+  fixture?: {
+    status?: { short?: string; long?: string; elapsed?: number };
+    date?: string;
+  };
   league: {
     id: string | number;
     name: string;

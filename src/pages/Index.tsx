@@ -15,7 +15,7 @@ const Index: React.FC = () => {
   const [matchesLoading, setMatchesLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load initial data on mount
+  // Load initial data with optimized loading strategy
   useEffect(() => {
     let isMounted = true;
     
@@ -24,33 +24,39 @@ const Index: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        console.log('[Index] Loading initial data...');
+        console.log('[Index] Loading initial data with optimized strategy...');
 
-        // Load data in parallel
-        const [highlightsData, matchesData] = await Promise.all([
-          serviceAdapter.getRecommendedHighlights().catch(err => {
-            console.error('[Index] Error loading highlights:', err);
-            return [];
-          }),
-          serviceAdapter.getRecentMatchesForTopLeagues().catch(err => {
-            console.error('[Index] Error loading recent matches:', err);
-            return [];
-          })
-        ]);
+        // Load highlights first (lighter operation)
+        const highlightsData = await serviceAdapter.getRecommendedHighlights().catch(err => {
+          console.error('[Index] Error loading highlights:', err);
+          return [];
+        });
 
         if (isMounted) {
-          console.log('[Index] Data loaded:', {
+          setFeaturedHighlights(highlightsData);
+          setLoading(false); // Set loading to false early to show UI
+        }
+
+        // Load matches data in background (heavier operation)
+        setMatchesLoading(true);
+        const matchesData = await serviceAdapter.getRecentMatchesForTopLeagues().catch(err => {
+          console.error('[Index] Error loading recent matches:', err);
+          return [];
+        });
+
+        if (isMounted) {
+          console.log('[Index] Background data loaded:', {
             highlights: highlightsData.length,
             leagues: matchesData.length
           });
-          setFeaturedHighlights(highlightsData);
           setRecentMatches(matchesData);
         }
 
       } catch (error) {
         console.error('[Index] Error loading data:', error);
+        setError('Failed to load data');
       } finally {
-        setLoading(false);
+        setMatchesLoading(false);
       }
     };
 

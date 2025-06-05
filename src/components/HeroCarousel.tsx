@@ -117,7 +117,8 @@ const HeroCarousel = ({
   const [showComments, setShowComments] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const navigate = useNavigate();
-  const highlights = exampleGames;
+  // Use props highlights if available, otherwise fallback to example games
+  const highlights = propHighlights.length > 0 ? propHighlights.slice(0, 3) : exampleGames.slice(0, 3);
   const currentHighlight = highlights[currentIndex];
   useEffect(() => {
     setIsScrolling(false);
@@ -170,7 +171,12 @@ const HeroCarousel = ({
         <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/70 to-transparent z-10"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/80 to-transparent z-10"></div>
         
-        <img src={currentHighlight.thumbnailUrl} alt="" className="w-full h-full object-cover opacity-40" />
+        <img 
+          src={currentHighlight.thumbnailUrl} 
+          alt="" 
+          className="w-full h-full object-cover opacity-40" 
+          loading="lazy"
+        />
       </div>
 
       <div className="relative z-20 w-full h-full flex items-center justify-center py-6 px-6 md:px-12">

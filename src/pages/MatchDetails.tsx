@@ -418,35 +418,6 @@ const MatchDetails = () => {
       } catch (err) {
         console.error("Failed to fetch match details:", err);
         setError("Could not load match details. Please try again later.");
-        
-        // TEMPORARY: Test Last Five Games functionality with hardcoded team IDs
-        // when main match loading fails to demonstrate our fix is working
-        console.log("🧪 Testing Last Five Games with hardcoded team IDs...");
-        setFormAndH2hLoading(true);
-        try {
-          const [belgiumForm, franceForm, h2hTest] = await Promise.all([
-            getLastFiveGames("1635"), // Belgium 
-            getLastFiveGames("2486"), // France
-            getHeadToHead("1635", "2486"), // Belgium vs France
-          ]);
-          console.log("🎉 Last Five Games test results:", { belgiumForm, franceForm, h2hTest });
-          setHomeTeamForm(belgiumForm);
-          setAwayTeamForm(franceForm);
-          setH2hData(h2hTest);
-          
-          toast({
-            title: "Test Data Loaded",
-            description: "Showing Last Five Games test data (Belgium vs France)",
-          });
-        } catch (testError) {
-          console.error("❌ Last Five Games test failed:", testError);
-          setHomeTeamForm([]);
-          setAwayTeamForm([]);
-          setH2hData([]);
-        } finally {
-          setFormAndH2hLoading(false);
-        }
-        
         toast({
           title: "Error Loading Match",
           description: "There was a problem retrieving the details for this match.",
@@ -528,61 +499,6 @@ const MatchDetails = () => {
   }
 
   if (error || !match) {
-    // If we have test data, show it even when match loading failed
-    if (homeTeamForm.length > 0 || awayTeamForm.length > 0 || h2hData.length > 0) {
-      return (
-        <main className="min-h-screen bg-black text-white font-sans">
-          <Header />
-          <div className="container mx-auto px-4 py-8 max-w-4xl">
-            <div className="mb-6">
-              <button onClick={handleGoBack} className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
-                <ArrowLeft size={18} className="mr-2" />
-                Back to Matches
-              </button>
-            </div>
-            
-            <div className="mb-8 w-full space-y-6">
-              <div className="bg-black/30 border border-white/10 rounded-xl p-6">
-                <h2 className="text-2xl font-bold text-yellow-500 mb-4">🧪 Last Five Games - Test Data</h2>
-                <p className="text-gray-300 mb-6">Match details failed to load, but showing Last Five Games functionality test with Belgium vs France data:</p>
-                
-                {/* Last Matches Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  <TeamFormStats 
-                    teamName="Belgium (Test)" 
-                    teamId="1635"
-                    matches={homeTeamForm} 
-                  />
-                  <TeamFormStats 
-                    teamName="France (Test)" 
-                    teamId="2486"
-                    matches={awayTeamForm} 
-                  />
-                </div>
-                
-                {/* Head-to-Head Section */}
-                <HeadToHeadStats 
-                  homeTeamName="Belgium" 
-                  awayTeamName="France"
-                  homeTeamId="1635"
-                  awayTeamId="2486"
-                  matches={h2hData} 
-                />
-                
-                <button
-                  onClick={handleGoBack}
-                  className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                >
-                  <ArrowLeft className="mr-2 -ml-1 h-5 w-5" />
-                  Go Back
-                </button>
-              </div>
-            </div>
-          </div>
-        </main>
-      );
-    }
-    
     return (
       <div className="flex items-center justify-center h-screen bg-black text-white">
         <div className="text-center">
