@@ -1,4 +1,4 @@
-import { MatchHighlight, LeagueWithMatches, TeamDetails, League, Match } from '@/types';
+import { MatchHighlight, LeagueWithMatches, TeamDetails, League, Match, EnhancedMatchHighlight, Player, Lineups } from '@/types';
 import * as mockService from './highlightService';
 
 // Highlightly API client instance
@@ -127,7 +127,221 @@ const highlightlyClient = {
       return null; // Or throw an error
     }
     return response.json();
+  },
+
+  // Method to get lineups by match ID
+  async getLineups(matchId: string) {
+    const url = `http://localhost:3001/api/highlightly/lineups/${matchId}`;
+    console.log(`[Highlightly Client] Calling lineups endpoint: ${url}`);
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Error fetching lineups for match ${matchId}: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`Error response body:`, errorText);
+      return null; // Or throw an error
+    }
+    const data = await response.json();
+    console.log(`[Highlightly Client] Lineups response:`, data);
+    return data;
+  },
+};
+
+// Helper function to transform API player to our Player type
+const transformApiPlayerToPlayer = (apiPlayer: any): Player => ({
+  name: apiPlayer.name || apiPlayer.player?.name || apiPlayer.player_name || 'Unknown Player',
+  number: apiPlayer.number || apiPlayer.player?.number || 0,
+  position: apiPlayer.position || apiPlayer.player?.pos || apiPlayer.pos || '?',
+});
+
+// Helper function to transform API team lineup data
+const transformApiLineupTeam = (
+  apiTeamLineupData: any,
+  fallbackTeamId: string,
+  fallbackTeamName: string,
+  fallbackTeamLogo: string
+): { id: string; name: string; logo: string; formation: string; initialLineup: Player[][]; substitutes: Player[]; } => {
+  if (!apiTeamLineupData) {
+    return {
+      id: fallbackTeamId, name: fallbackTeamName, logo: fallbackTeamLogo,
+      formation: 'N/A', initialLineup: [], substitutes: [],
+    };
   }
+
+  // Extract team info - handle different API response formats
+  const teamInfo = apiTeamLineupData.team || apiTeamLineupData;
+  const teamId = (teamInfo.id || fallbackTeamId).toString();
+  const teamName = teamInfo.name || fallbackTeamName;
+  const teamLogo = teamInfo.logo || fallbackTeamLogo;
+  const formation = apiTeamLineupData.formation || 'N/A';
+
+  // Handle substitutes
+  const apiSubstitutes = apiTeamLineupData.substitutes || [];
+  const substitutes: Player[] = apiSubstitutes.map(transformApiPlayerToPlayer);
+
+  // Handle initial lineup - check for the format from Highlightly API documentation
+  const initialLineupData = apiTeamLineupData.initialLineup || apiTeamLineupData.startXI || [];
+  
+  let initialLineup: Player[][] = [];
+  
+  // If initialLineup is already an array of arrays (formation rows), use it directly
+  if (Array.isArray(initialLineupData) && initialLineupData.length > 0 && Array.isArray(initialLineupData[0])) {
+    initialLineup = initialLineupData.map((row: any[]) => 
+      row.map(transformApiPlayerToPlayer)
+    );
+  } 
+  // If it's a flat array, try to organize by grid positions
+  else if (Array.isArray(initialLineupData) && initialLineupData.length > 0) {
+    const startingXIWithGrid = initialLineupData.map((p: any) => ({
+      ...transformApiPlayerToPlayer(p),
+      gridRow: p.player?.grid ? parseInt(p.player.grid.split(':')[0], 10) : (p.grid ? parseInt(p.grid.split(':')[0], 10) : Infinity),
+      gridCol: p.player?.grid ? parseInt(p.player.grid.split(':')[1], 10) : (p.grid ? parseInt(p.grid.split(':')[1], 10) : Infinity),
+    })).filter((p: any) => isFinite(p.gridRow) && isFinite(p.gridCol));
+
+    // Group by rows and sort
+    const groupedByRow: { [key: number]: any[] } = {};
+    startingXIWithGrid.forEach((p: any) => {
+      if (!groupedByRow[p.gridRow]) {
+        groupedByRow[p.gridRow] = [];
+      }
+      groupedByRow[p.gridRow].push(p);
+    });
+
+    initialLineup = Object.keys(groupedByRow)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map(rowNum => groupedByRow[rowNum].sort((a: any, b: any) => a.gridCol - b.gridCol));
+  }
+
+  console.log(`[Highlightly] Processed lineup for ${teamName}: ${formation} formation, ${initialLineup.length} rows, ${substitutes.length} substitutes`);
+
+  return {
+    id: teamId,
+    name: teamName,
+    logo: teamLogo,
+    formation,
+    initialLineup,
+    substitutes,
+  };
+};
+
+// Main transformer for a single fixture from the API to our EnhancedMatchHighlight type
+const apiFixtureToEnhancedMatch = (rawMatchData: any, id: string): EnhancedMatchHighlight => {
+  let homeScore = 0;
+  let awayScore = 0;
+
+  if (rawMatchData.state?.score?.current) {
+    const scoreMatch = rawMatchData.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+    if (scoreMatch) {
+      homeScore = parseInt(scoreMatch[1], 10);
+      awayScore = parseInt(scoreMatch[2], 10);
+    }
+  } else if (rawMatchData.score) {
+    homeScore = rawMatchData.score.home ?? 0;
+    awayScore = rawMatchData.score.away ?? 0;
+  } else if (rawMatchData.goals) {
+    homeScore = rawMatchData.goals.home ?? 0;
+    awayScore = rawMatchData.goals.away ?? 0;
+  }
+
+  const homeTeamDetails = rawMatchData.homeTeam || rawMatchData.teams?.home || {};
+  const awayTeamDetails = rawMatchData.awayTeam || rawMatchData.teams?.away || {};
+  const leagueDetails = rawMatchData.league || rawMatchData.competition || {};
+
+  const enhancedMatch: EnhancedMatchHighlight = {
+    id: rawMatchData.id?.toString() || id,
+    title: `${homeTeamDetails.name || 'Home'} vs ${awayTeamDetails.name || 'Away'}`,
+    date: rawMatchData.date || new Date().toISOString(),
+    thumbnailUrl: rawMatchData.thumbnailUrl || '',
+    videoUrl: rawMatchData.videoUrl || rawMatchData.highlights?.url || '',
+    duration: rawMatchData.duration || '00:00',
+    views: rawMatchData.views || 0,
+    homeTeam: {
+      id: (homeTeamDetails.id || 'home').toString(),
+      name: homeTeamDetails.name || 'Home Team',
+      logo: homeTeamDetails.logo || '/teams/default.png'
+    },
+    awayTeam: {
+      id: (awayTeamDetails.id || 'away').toString(),
+      name: awayTeamDetails.name || 'Away Team',
+      logo: awayTeamDetails.logo || '/teams/default.png'
+    },
+    score: {
+      home: homeScore,
+      away: awayScore
+    },
+    competition: {
+      id: (leagueDetails.id || 'unknown').toString(),
+      name: leagueDetails.name || 'Unknown Competition',
+      logo: leagueDetails.logo || '/leagues/default.png'
+    },
+    events: rawMatchData.events || [],
+    statistics: rawMatchData.statistics || [],
+    lineups: undefined,
+  };
+
+  if (rawMatchData.lineups && Array.isArray(rawMatchData.lineups) && rawMatchData.lineups.length >= 2) {
+    const apiHomeTeamLineup = rawMatchData.lineups.find((l: any) => l.team?.id?.toString() === enhancedMatch.homeTeam.id);
+    const apiAwayTeamLineup = rawMatchData.lineups.find((l: any) => l.team?.id?.toString() === enhancedMatch.awayTeam.id);
+
+    if (apiHomeTeamLineup && apiAwayTeamLineup) {
+      enhancedMatch.lineups = {
+        homeTeam: transformApiLineupTeam(apiHomeTeamLineup, enhancedMatch.homeTeam.id, enhancedMatch.homeTeam.name, enhancedMatch.homeTeam.logo),
+        awayTeam: transformApiLineupTeam(apiAwayTeamLineup, enhancedMatch.awayTeam.id, enhancedMatch.awayTeam.name, enhancedMatch.awayTeam.logo),
+      };
+      console.log('[Highlightly] Successfully processed lineups by ID.');
+    } else {
+      console.warn('[Highlightly] Could not map API lineups by team ID, attempting by order.');
+      enhancedMatch.lineups = {
+        homeTeam: transformApiLineupTeam(rawMatchData.lineups[0], enhancedMatch.homeTeam.id, enhancedMatch.homeTeam.name, enhancedMatch.homeTeam.logo),
+        awayTeam: transformApiLineupTeam(rawMatchData.lineups[1], enhancedMatch.awayTeam.id, enhancedMatch.awayTeam.name, enhancedMatch.awayTeam.logo),
+      };
+    }
+  } else {
+    console.log(`[Highlightly] No lineups field or incomplete lineup data in API response for match ${id}`);
+  }
+
+  return enhancedMatch;
+};
+
+// Helper function to transform API highlight to our MatchHighlight type
+const transformApiHighlightToMatchHighlight = (apiHighlight: any): MatchHighlight => {
+  const matchDetails = apiHighlight.match || {};
+  const homeTeamDetails = matchDetails.homeTeam || {};
+  const awayTeamDetails = matchDetails.awayTeam || {};
+  const leagueDetails = matchDetails.league || {};
+  
+  return {
+    id: apiHighlight.id?.toString(),
+    title: apiHighlight.title || 'Match Highlight',
+    date: matchDetails.date || new Date().toISOString(),
+    thumbnailUrl: apiHighlight.imgUrl || '', // Map imgUrl to thumbnailUrl
+    videoUrl: apiHighlight.url || '',       // Map url to videoUrl
+    duration: 'N/A', // Not provided in this API response
+    views: 0,        // Not provided in this API response
+    homeTeam: {
+      id: homeTeamDetails.id?.toString(),
+      name: homeTeamDetails.name || 'Home',
+      logo: homeTeamDetails.logo || ''
+    },
+    awayTeam: {
+      id: awayTeamDetails.id?.toString(),
+      name: awayTeamDetails.name || 'Away',
+      logo: awayTeamDetails.logo || ''
+    },
+    score: { // Score is not in the highlight item, so we default it
+      home: 0,
+      away: 0,
+    },
+    competition: {
+      id: leagueDetails.id?.toString(),
+      name: leagueDetails.name || 'Competition',
+      logo: leagueDetails.logo || ''
+    },
+    status: {
+      long: 'Finished',
+      short: 'FT'
+    }
+  };
 };
 
 export const highlightlyService = {
@@ -231,149 +445,108 @@ export const highlightlyService = {
       
       for (const league of priorityLeaguesData.slice(0, 8)) {
         try {
-          // Collect all matches from the date range
-          let allRecentMatches: any[] = [];
-          
-          // For each day in the range, fetch matches
+          let allRecentRawMatches: any[] = [];
           for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
             const dateStr = d.toISOString().split('T')[0];
-            
             try {
               const matchesResponse = await highlightlyClient.getMatches({
                 leagueId: league.id.toString(),
                 date: dateStr,
-                limit: '25'
+                limit: '25' 
               });
-              
               if (matchesResponse.data && Array.isArray(matchesResponse.data)) {
-                allRecentMatches.push(...matchesResponse.data);
+                allRecentRawMatches.push(...matchesResponse.data);
               }
-            } catch (dayError) {
-              // Continue with other dates
+            } catch (err) {
+              console.error(`[Highlightly] Error fetching matches for ${league.name} on ${dateStr}:`, err);
             }
           }
-          
-          if (allRecentMatches.length === 0) {
-            continue;
-          }
-          
-          // Filter for relevant matches:
-          // 1. Finished matches (last 7 days)
-          // 2. Today's matches (any status)
-          const todayStr = today.toISOString().split('T')[0];
-          
-          const relevantMatches = allRecentMatches.filter((match: any) => {
-            const matchDate = match.date ? new Date(match.date).toISOString().split('T')[0] : '';
-            const isToday = matchDate === todayStr;
-            
-            const isFinished = 
-              match.state?.description === 'Finished' ||
-              match.state?.description === 'Finished after penalties' ||
-              match.state?.description === 'Finished after extra time';
-            
-            const hasScore = 
-              (match.state?.score?.current && match.state.score.current.includes(' - '));
-            
-            // Include: finished matches from any day, OR any matches from today
-            return (isFinished && hasScore) || isToday;
-          });
-          
-          if (relevantMatches.length === 0) {
-            continue;
-          }
-          
-          // Sort by date (most recent first) and take top 10
-          const sortedMatches = relevantMatches
-            .sort((a: any, b: any) => {
-              const dateA = new Date(a.date || 0).getTime();
-              const dateB = new Date(b.date || 0).getTime();
-              return dateB - dateA; // Most recent first
-            })
-            .slice(0, 10);
-          
-          // Transform matches to our format
-          const transformedMatches = sortedMatches.map((match: any) => {
-            const matchDate = new Date(match.date || new Date());
-            
-            // Extract score
+
+          // Transform raw API matches to our Domain Match[] type
+          const transformedDomainMatches: Match[] = allRecentRawMatches.map((apiMatch: any) => {
             let homeScore = 0;
             let awayScore = 0;
-            
-            if (match.state?.score?.current) {
-              const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
+            if (apiMatch.state?.score?.current) {
+              const scoreMatch = apiMatch.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
               if (scoreMatch) {
                 homeScore = parseInt(scoreMatch[1], 10);
                 awayScore = parseInt(scoreMatch[2], 10);
               }
+            } else if (apiMatch.score) {
+              homeScore = apiMatch.score.home || 0;
+              awayScore = apiMatch.score.away || 0;
+            } else if (apiMatch.goals) {
+              homeScore = apiMatch.goals.home || 0;
+              awayScore = apiMatch.goals.away || 0;
             }
+
+            const homeTeamDetails = apiMatch.homeTeam || apiMatch.teams?.home || {};
+            const awayTeamDetails = apiMatch.awayTeam || apiMatch.teams?.away || {};
             
-            const homeTeam = {
-              id: (match.homeTeam?.id || `home-${Date.now()}`).toString(),
-              name: match.homeTeam?.name || 'Home Team',
-              logo: match.homeTeam?.logo || '/teams/default.png'
+            // Prepare the 'league' field for the Match object
+            // It uses the 'league' from the outer loop of getRecentMatchesForTopLeagues
+            const matchLeagueObject = {
+              id: league.id?.toString() || 'unknown-league',
+              name: league.name || 'Unknown League',
+              logo: league.logo || '/leagues/default.png',
+              season: apiMatch.league?.season || league.season || undefined, // Use API season if available, else outer league's season
+              round: apiMatch.round || apiMatch.league?.round || undefined, // Use API round if available
             };
-            
-            const awayTeam = {
-              id: (match.awayTeam?.id || `away-${Date.now()}`).toString(),
-              name: match.awayTeam?.name || 'Away Team',
-              logo: match.awayTeam?.logo || '/teams/default.png'
-            };
-            
-            const matchId = (match.id || `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`).toString();
-            
-            // Determine match status
-            let status = 'scheduled';
-            if (match.state?.description) {
-              const desc = match.state.description.toLowerCase();
-              if (desc.includes('finished')) {
-                status = 'finished';
-              } else if (desc.includes('live') || desc.includes('playing') || desc.includes('in progress')) {
-                status = 'live';
-              }
-            }
-            
+
             return {
-              id: matchId,
-              homeTeam,
-              awayTeam,
-              date: matchDate.toISOString(),
-              time: matchDate.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false 
-              }),
-              status,
-              score: {
-                home: homeScore,
-                away: awayScore
+              id: apiMatch.id?.toString() || `match-${Date.now()}-${Math.random()}`,
+              date: apiMatch.date || new Date().toISOString(),
+              time: apiMatch.time,
+              timestamp: apiMatch.timestamp,
+              timezone: apiMatch.timezone,
+              status: apiMatch.status || apiMatch.state,
+              league: matchLeagueObject, // Assign the composed league object
+              homeTeam: {
+                id: (homeTeamDetails.id || 'home').toString(),
+                name: homeTeamDetails.name || 'Home Team',
+                logo: homeTeamDetails.logo || '/teams/default.png',
               },
-              competition: {
-                id: league.id.toString(),
-                name: league.name,
-                logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`
-              }
+              awayTeam: {
+                id: (awayTeamDetails.id || 'away').toString(),
+                name: awayTeamDetails.name || 'Away Team',
+                logo: awayTeamDetails.logo || '/teams/default.png',
+              },
+              score: {
+                halftime: apiMatch.score?.halftime,
+                fulltime: apiMatch.score?.fulltime || (typeof homeScore === 'number' && typeof awayScore === 'number' ? `${homeScore}-${awayScore}` : undefined),
+                extratime: apiMatch.score?.extratime,
+                penalty: apiMatch.score?.penalty,
+              },
+              goals: {
+                  home: homeScore,
+                  away: awayScore,
+              },
+              events: apiMatch.events || [],
+              // highlights: apiMatch.highlights ? [transformToMatchHighlight(apiMatch.highlights)] : [], // If needed
+              state: apiMatch.state, 
+              round: apiMatch.round || matchLeagueObject.round, // Ensure round is consistent
+              country: apiMatch.country, 
             };
           });
           
-          if (transformedMatches.length > 0) {
+          if (transformedDomainMatches.length > 0) {
             leaguesWithMatches.push({
               id: league.id.toString(),
               name: league.name,
               logo: league.logo || `/leagues/${league.name.toLowerCase().replace(/\s+/g, '-')}.png`,
-              matches: transformedMatches
+              matches: transformedDomainMatches, // This is now Match[]
             });
             
-            console.log(`[Highlightly] ✅ Added ${transformedMatches.length} matches for ${league.name}`);
+            console.log(`[Highlightly] ✅ Added ${transformedDomainMatches.length} matches for ${league.name}`);
           }
           
         } catch (error) {
-          console.error(`[Highlightly] Error fetching matches for ${league.name}:`, error);
+          console.error(`[Highlightly] Error processing league ${league.name}:`, error);
           continue;
         }
       }
       
       console.log(`[Highlightly] Final result: ${leaguesWithMatches.length} leagues with matches`);
-      
       return leaguesWithMatches;
       
     } catch (error) {
@@ -385,213 +558,111 @@ export const highlightlyService = {
   /**
    * Get match by ID - fetch from Highlightly API
    */
-  async getMatchById(id: string): Promise<MatchHighlight | null> {
-    console.log(`[Highlightly] Fetching match by ID: ${id}`);
+  async getMatchById(id: string): Promise<EnhancedMatchHighlight | null> {
+    console.log(`[Highlightly] Fetching match details for ID: ${id}`);
     
     try {
-      // Try to get the match by ID directly
-      console.log(`[Highlightly] 🔍 Making API call to: http://localhost:3001/api/highlightly/matches/${id}`);
-      const matchResponse = await highlightlyClient.getMatchById(id);
+      // First, get the main match data
+      const response = await highlightlyClient.getMatchById(id);
       
-      console.log(`[Highlightly] 📡 API Response:`, {
-        isArray: Array.isArray(matchResponse),
-        hasData: !!matchResponse,
-        length: Array.isArray(matchResponse) ? matchResponse.length : 'not array',
-        firstItemKeys: Array.isArray(matchResponse) && matchResponse.length > 0 ? Object.keys(matchResponse[0]) : 'no items'
-      });
+      let rawMatchData = null;
+      if (response?.data && Array.isArray(response.data) && response.data.length > 0) {
+        rawMatchData = response.data[0];
+      } else if (response?.data && !Array.isArray(response.data)) {
+        rawMatchData = response.data;
+      } else if (Array.isArray(response) && response.length > 0) {
+        rawMatchData = response[0];
+      } else if (response && typeof response === 'object' && Object.keys(response).length > 0 && !response.data) {
+        rawMatchData = response;
+      }
+
+      if (!rawMatchData) {
+        console.error(`[Highlightly] No match data found for ID: ${id}`);
+        return null;
+      }
+
+      console.log(`[Highlightly] Successfully fetched match data for ID: ${id}`);
       
-      // The API returns an array with the match data directly
-      let match = null;
-      if (Array.isArray(matchResponse) && matchResponse.length > 0) {
-        match = matchResponse[0]; // Take the first item from the array
-      } else if (matchResponse && !Array.isArray(matchResponse)) {
-        match = matchResponse; // Direct object response
+      // Transform the main match data
+      const enhancedMatch = apiFixtureToEnhancedMatch(rawMatchData, id);
+      
+      // Now fetch lineups separately from the dedicated endpoint
+      try {
+        console.log(`[Highlightly] Fetching lineups for match ID: ${id}`);
+        const lineupsResponse = await highlightlyClient.getLineups(id);
+        
+        // Handle different response formats for lineups
+        let lineupsData = null;
+        if (lineupsResponse?.data) {
+          lineupsData = lineupsResponse.data;
+        } else if (lineupsResponse && (lineupsResponse.homeTeam || lineupsResponse.awayTeam)) {
+          lineupsData = lineupsResponse;
+        }
+        
+        if (lineupsData && (lineupsData.homeTeam || lineupsData.awayTeam)) {
+          console.log(`[Highlightly] Successfully fetched lineups for match ID: ${id}`);
+          
+          // Process home team lineup if available
+          const homeTeamLineup = lineupsData.homeTeam ? 
+            transformApiLineupTeam(
+              lineupsData.homeTeam, 
+              enhancedMatch.homeTeam.id, 
+              enhancedMatch.homeTeam.name, 
+              enhancedMatch.homeTeam.logo
+            ) : null;
+          
+          // Process away team lineup if available  
+          const awayTeamLineup = lineupsData.awayTeam ?
+            transformApiLineupTeam(
+              lineupsData.awayTeam,
+              enhancedMatch.awayTeam.id,
+              enhancedMatch.awayTeam.name, 
+              enhancedMatch.awayTeam.logo
+            ) : null;
+          
+          // Only set lineups if we have data for both teams
+          if (homeTeamLineup && awayTeamLineup) {
+            enhancedMatch.lineups = {
+              homeTeam: homeTeamLineup,
+              awayTeam: awayTeamLineup
+            };
+            console.log(`[Highlightly] Successfully processed lineups for both teams`);
+          } else if (homeTeamLineup || awayTeamLineup) {
+            // Set partial lineup data if we have at least one team's data
+            enhancedMatch.lineups = {
+              homeTeam: homeTeamLineup || { 
+                id: enhancedMatch.homeTeam.id, 
+                name: enhancedMatch.homeTeam.name, 
+                logo: enhancedMatch.homeTeam.logo,
+                formation: 'N/A', 
+                initialLineup: [], 
+                substitutes: [] 
+              },
+              awayTeam: awayTeamLineup || { 
+                id: enhancedMatch.awayTeam.id, 
+                name: enhancedMatch.awayTeam.name, 
+                logo: enhancedMatch.awayTeam.logo,
+                formation: 'N/A', 
+                initialLineup: [], 
+                substitutes: [] 
+              }
+            };
+            console.log(`[Highlightly] Processed partial lineup data`);
+          } else {
+            console.log(`[Highlightly] No valid lineup data found for either team`);
+          }
+        } else {
+          console.log(`[Highlightly] No lineup data available for match ID: ${id}`);
+        }
+      } catch (lineupError) {
+        console.error(`[Highlightly] Error fetching lineups for match ID ${id}:`, lineupError);
+        // Don't fail the entire request if lineups fail - just continue without them
       }
       
-      if (match) {
-        console.log(`[Highlightly] 📋 Match data found:`, {
-          id: match.id,
-          homeTeam: match.homeTeam?.name,
-          awayTeam: match.awayTeam?.name,
-          date: match.date,
-          hasScore: !!match.state?.score || !!match.score || !!match.goals,
-          state: match.state?.description,
-          // DEBUG: Check for highlights and lineups data
-          videoUrl: match.videoUrl,
-          highlights: match.highlights,
-          videoHighlights: match.videoHighlights,
-          lineups: match.lineups,
-          hasLineups: !!match.lineups,
-          lineupsKeys: match.lineups ? Object.keys(match.lineups) : 'no lineups',
-          // Check all top-level keys to see what data is available
-          allKeys: Object.keys(match).slice(0, 20) // First 20 keys for debugging
-        });
-        
-        // Extract score from various possible formats
-        let homeScore = 0;
-        let awayScore = 0;
-        
-        if (match.state?.score?.current) {
-          const scoreMatch = match.state.score.current.match(/(\d+)\s*-\s*(\d+)/);
-          if (scoreMatch) {
-            homeScore = parseInt(scoreMatch[1], 10);
-            awayScore = parseInt(scoreMatch[2], 10);
-          }
-        } else if (match.score) {
-          homeScore = match.score.home || 0;
-          awayScore = match.score.away || 0;
-        } else if (match.goals) {
-          homeScore = match.goals.home || 0;
-          awayScore = match.goals.away || 0;
-        }
-        
-        // Transform the API response to our MatchHighlight format
-        const transformedMatch: MatchHighlight = {
-          id: match.id?.toString() || id,
-          title: `${match.homeTeam?.name || 'Home'} vs ${match.awayTeam?.name || 'Away'}`,
-          date: match.date || new Date().toISOString(),
-          thumbnailUrl: '',
-          videoUrl: match.videoUrl || match.highlights?.url || '', // Try multiple possible video fields
-          duration: '00:00',
-          views: 0,
-          homeTeam: {
-            id: (match.homeTeam?.id || 'home').toString(),
-            name: match.homeTeam?.name || 'Home Team',
-            logo: match.homeTeam?.logo || '/teams/default.png'
-          },
-          awayTeam: {
-            id: (match.awayTeam?.id || 'away').toString(),
-            name: match.awayTeam?.name || 'Away Team', 
-            logo: match.awayTeam?.logo || '/teams/default.png'
-          },
-          score: {
-            home: homeScore,
-            away: awayScore
-          },
-          competition: {
-            id: (match.league?.id || match.competition?.id || 'unknown').toString(),
-            name: match.league?.name || match.competition?.name || 'Unknown Competition',
-            logo: match.league?.logo || match.competition?.logo || '/leagues/default.png'
-          }
-        };
-
-        // If it's an EnhancedMatchHighlight, add additional properties
-        const enhancedMatch = transformedMatch as any;
-        enhancedMatch.events = match.events || [];
-        enhancedMatch.statistics = match.statistics || [];
-        
-        // Create lineups from available data (many matches don't have full lineups available)
-        enhancedMatch.lineups = null; // Most matches don't have detailed lineups in the API
-        
-        // Add rich match data from Highlightly API
-        enhancedMatch.news = match.news || [];
-        enhancedMatch.predictions = match.predictions || null;
-        
-        // Enhanced team data - topPlayers and shots are available
-        if (match.homeTeam) {
-          enhancedMatch.homeTeam.topPlayers = match.homeTeam.topPlayers || [];
-          enhancedMatch.homeTeam.shots = match.homeTeam.shots || [];
-        }
-        if (match.awayTeam) {
-          enhancedMatch.awayTeam.topPlayers = match.awayTeam.topPlayers || [];
-          enhancedMatch.awayTeam.shots = match.awayTeam.shots || [];
-        }
-        
-        // Additional match metadata
-        enhancedMatch.round = match.round || null;
-        enhancedMatch.country = match.country || null;
-        enhancedMatch.state = match.state || null;
-        enhancedMatch.venue = match.venue || null;
-        enhancedMatch.referee = match.referee || null;
-        
-        // Video highlights - check multiple possible sources
-        const possibleVideoSources = [
-          match.videoUrl,
-          match.highlights?.url,
-          match.highlights?.video,
-          match.video?.url,
-          match.streams?.url
-        ].filter(Boolean);
-        
-        if (possibleVideoSources.length > 0) {
-          enhancedMatch.videoUrl = possibleVideoSources[0];
-        }
-
-        console.log(`[Highlightly] ✅ Enhanced match data:`, {
-          hasEvents: enhancedMatch.events.length > 0,
-          hasStatistics: enhancedMatch.statistics.length > 0,
-          hasNews: enhancedMatch.news.length > 0,
-          hasPredictions: !!enhancedMatch.predictions,
-          hasTopPlayers: (enhancedMatch.homeTeam.topPlayers?.length || 0) + (enhancedMatch.awayTeam.topPlayers?.length || 0),
-          hasShots: (enhancedMatch.homeTeam.shots?.length || 0) + (enhancedMatch.awayTeam.shots?.length || 0),
-          hasVideoUrl: !!enhancedMatch.videoUrl,
-          hasVenue: !!enhancedMatch.venue,
-          round: enhancedMatch.round
-        });
-
-        console.log(`[Highlightly] ✅ Successfully fetched match: ${transformedMatch.homeTeam.name} vs ${transformedMatch.awayTeam.name} (${homeScore}-${awayScore})`);
-        return transformedMatch;
-      }
-      
-      console.log(`[Highlightly] ❌ No match data found for ID: ${id} - response was empty or missing data`);
+      return enhancedMatch;
       
     } catch (error) {
-      console.error(`[Highlightly] 🚨 API Error fetching match ${id}:`, error);
-      
-      // If the error is a 404 or similar, it means the match doesn't exist in the API
-      if (error && typeof error === 'object' && 'status' in error) {
-        console.log(`[Highlightly] 📊 Error status: ${(error as any).status}`);
-      }
-    }
-    
-    // If direct match fetch fails, try searching through recent matches
-    console.log(`[Highlightly] 🔄 Trying to find match ${id} in recent matches...`);
-    try {
-      const recentMatches = await this.getRecentMatchesForTopLeagues();
-      
-      // Search through all recent matches to find the one with matching ID
-      for (const league of recentMatches) {
-        for (const match of league.matches) {
-          if (match.id === id) {
-            console.log(`[Highlightly] ✅ Found match ${id} in recent matches for ${league.name}`);
-            
-            // Transform to MatchHighlight format
-            const foundMatch: MatchHighlight = {
-              id: match.id,
-              title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
-              date: match.date,
-              thumbnailUrl: '',
-              videoUrl: '', // Recent matches might not have video URLs
-              duration: '00:00',
-              views: 0,
-              homeTeam: match.homeTeam,
-              awayTeam: match.awayTeam,
-              score: match.score,
-              competition: match.competition
-            };
-            
-            // Add enhanced properties
-            const enhancedFoundMatch = foundMatch as any;
-            enhancedFoundMatch.events = [];
-            enhancedFoundMatch.statistics = [];
-            enhancedFoundMatch.lineups = null;
-            
-            return foundMatch;
-          }
-        }
-      }
-      
-      console.log(`[Highlightly] ❌ Match ${id} not found in recent matches either`);
-      console.log(`[Highlightly] 📊 Recent matches summary:`, {
-        totalLeagues: recentMatches.length,
-        totalMatches: recentMatches.reduce((sum, league) => sum + league.matches.length, 0),
-        matchIds: recentMatches.flatMap(league => league.matches.map(m => m.id)).slice(0, 10) // First 10 IDs
-      });
-      
-      return null;
-      
-    } catch (searchError) {
-      console.error(`[Highlightly] Error searching for match ${id}:`, searchError);
+      console.error(`[Highlightly] Error fetching match with ID ${id}:`, error);
       return null;
     }
   },
@@ -678,7 +749,12 @@ export const highlightlyService = {
   async getHighlightsForMatch(matchId: string, limit: number = 5): Promise<MatchHighlight[]> {
     try {
       const response = await highlightlyClient.getHighlights({ matchId, limit: String(limit) });
-      return response.data || [];
+      
+      if (response && response.data && Array.isArray(response.data)) {
+        return response.data.map(transformApiHighlightToMatchHighlight);
+      }
+      
+      return [];
     } catch (error) {
       console.error('Error fetching highlights for match from Highlightly:', error);
       return [];

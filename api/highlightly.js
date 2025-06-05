@@ -12,11 +12,22 @@ export default async function handler(req, res) {
   }
   
   try {
+    // --- DEBUG LOGGING START ---
+    console.log('[PROXY DEBUG] Request URL:', req.url);
+    console.log('[PROXY DEBUG] Request Query:', JSON.stringify(req.query, null, 2));
+    // --- DEBUG LOGGING END ---
+
     // Get the path from the request
     const { path, ...queryParams } = req.query;
     
     // Construct the API path - path comes as an array from Vercel
-    const apiPath = Array.isArray(path) ? path.join('/') : (path || '');
+    let apiPath = Array.isArray(path) ? path.join('/') : (path || '');
+    
+    // Explicitly handle the fixtures route to be safe
+    if (apiPath.startsWith('fixtures/')) {
+        // This ensures the path is correctly interpreted, e.g., "fixtures/12345"
+        console.log("Handling as a fixture request.");
+    }
     
     // Build query string from remaining parameters
     const queryString = new URLSearchParams(queryParams).toString();
@@ -30,21 +41,20 @@ export default async function handler(req, res) {
     
     console.log(`Proxying request to: ${url}`);
     
-    // Prepare headers for Highlightly API
-    const headers = {
-      'Content-Type': 'application/json',
-      'x-api-key': HIGHLIGHTLY_API_KEY,
-      'x-rapidapi-key': HIGHLIGHTLY_API_KEY
-    };
-    
     // Make request to Highlightly API
     const response = await fetch(url, {
       method: req.method,
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': HIGHLIGHTLY_API_KEY,
+        'x-rapidapi-key': HIGHLIGHTLY_API_KEY
+      },
       body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
     });
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API responded with status ${response.status}: ${errorText}`);
       throw new Error(`API responded with status ${response.status}`);
     }
     

@@ -75,6 +75,7 @@ export interface MatchHighlight {
     name: string;
     logo: string;
   };
+  status?: { short?: string; long?: string; elapsed?: number };
 }
 
 export interface League {
@@ -125,6 +126,7 @@ export interface EnhancedMatchHighlight extends MatchHighlight {
   lineups?: Lineups;
   statistics?: TeamStatistics[];
   events?: MatchEvent[];
+  status?: { short?: string; long?: string; elapsed?: number };
 }
 
 export interface LeagueWithMatches {
