@@ -1,23 +1,28 @@
 import fs from 'fs/promises';
 import path from 'path';
-import lockfile from 'proper-lockfile';
 
 const cacheDir = path.join(process.cwd(), 'server', 'cache');
 const cacheFile = path.join(cacheDir, 'api-cache.json');
+
+// In-memory cache as fallback
+let memoryCache = {};
 
 // Ensure cache directory exists
 const initializeCache = async () => {
   try {
     await fs.mkdir(cacheDir, { recursive: true });
     // Try to read the file, if it doesn't exist, create it
-    await fs.readFile(cacheFile, 'utf-8');
+    const data = await fs.readFile(cacheFile, 'utf-8');
+    memoryCache = JSON.parse(data);
   } catch (error) {
     if (error.code === 'ENOENT') {
       // File doesn't exist, create it with an empty object
+      memoryCache = {};
       await fs.writeFile(cacheFile, JSON.stringify({}), 'utf-8');
     } else {
-      // Other error
-      console.error('Error initializing cache:', error);
+      // Other error, use memory cache
+      console.error('Error initializing cache, using memory cache:', error);
+      memoryCache = {};
     }
   }
 };
@@ -25,21 +30,15 @@ const initializeCache = async () => {
 initializeCache();
 
 const readCache = async () => {
-  try {
-    await lockfile.lock(cacheFile);
-    const data = await fs.readFile(cacheFile, 'utf-8');
-    return JSON.parse(data);
-  } finally {
-    await lockfile.unlock(cacheFile);
-  }
+  return memoryCache;
 };
 
 const writeCache = async (data) => {
+  memoryCache = data;
   try {
-    await lockfile.lock(cacheFile);
     await fs.writeFile(cacheFile, JSON.stringify(data, null, 2), 'utf-8');
-  } finally {
-    await lockfile.unlock(cacheFile);
+  } catch (error) {
+    console.error('Error writing cache to file, using memory cache only:', error);
   }
 };
 
