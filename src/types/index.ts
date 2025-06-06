@@ -261,6 +261,7 @@ export interface LeagueStatistics {
   awayWins: number;
   draws: number;
   biggestWin: Match | null;
+  mostFrequentScorelines: { scoreline: string; count: number }[];
 }
 
 export interface MatchStatistic {

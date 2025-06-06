@@ -326,6 +326,20 @@ const LeaguePage: React.FC = () => {
                 const score = getMatchScore(match);
                 return sum + score.home + score.away;
               }, 0);
+
+              // Calculate most frequent scorelines
+              const scorelineMap = new Map<string, number>();
+              past.forEach(match => {
+                const score = getMatchScore(match);
+                const scoreline = `${score.home}-${score.away}`;
+                scorelineMap.set(scoreline, (scorelineMap.get(scoreline) || 0) + 1);
+              });
+
+              // Get top 3 most frequent scorelines
+              const mostFrequentScorelines = Array.from(scorelineMap.entries())
+                .map(([scoreline, count]) => ({ scoreline, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 3);
               
               const stats: LeagueStatistics = {
                 totalMatches: past.length,
@@ -336,7 +350,8 @@ const LeaguePage: React.FC = () => {
                 homeWins,
                 awayWins,
                 draws,
-                biggestWin
+                biggestWin,
+                mostFrequentScorelines
               };
 
               setLeagueStats(stats);
@@ -661,39 +676,19 @@ const LeaguePage: React.FC = () => {
                     {standingsLoading ? (
                       <div className="text-center py-4">
                         <div className="w-6 h-6 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
-                      </div>
+                              </div>
                     ) : standings.length > 0 ? (
                       <StandingsTable standings={standings.slice(0, 5)} />
                     ) : (
                       <p className="text-gray-400 text-center py-4">No standings available</p>
-                    )}
-                  </div>
-
-                  {/* League Stats integrated inside the same container */}
-                  {leagueStats && (
-                    <div className="mt-6">
-                      <div className="flex justify-center items-center space-x-12">
-                        {/* Total Matches */}
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-white">{leagueStats.totalMatches}</div>
-                          <div className="text-sm text-gray-400 mt-1">Total Matches</div>
-                        </div>
-                        
-                        {/* Total Goals */}
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-white">{leagueStats.totalGoals}</div>
-                          <div className="text-sm text-gray-400 mt-1">Total Goals</div>
-                        </div>
-                        
-                        {/* Total Clean Sheets */}
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-white">{leagueStats.totalCleanSheets}</div>
-                          <div className="text-sm text-gray-400 mt-1">Total Clean Sheets</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                {/* League Statistics */}
+                {leagueStats && (
+                  <LeagueStats stats={leagueStats} />
+                )}
                                 </div>
                               )}
 
