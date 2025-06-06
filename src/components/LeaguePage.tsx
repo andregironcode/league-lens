@@ -364,7 +364,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
 
   const StandingsTable = () => (
     <div className="bg-[#1a1a1a] rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-700/30">
+      <div className="px-4 py-3">
         <h3 className="text-lg font-semibold text-white">League Table</h3>
       </div>
       
@@ -698,7 +698,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
                     )}
 
                     <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-                      <div className="px-4 py-3 border-b border-gray-700/30">
+                      <div className="px-4 py-3">
                         <h3 className="text-lg font-semibold text-white">Complete Match History</h3>
                         <p className="text-sm text-gray-400">All matches sorted by date (most recent first)</p>
                       </div>
@@ -833,7 +833,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
         
         {activeTab === 'teams' && (
           <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-700/30">
+            <div className="px-4 py-3">
               <h3 className="text-lg font-semibold text-white">Teams</h3>
             </div>
             
@@ -882,7 +882,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
         
         {activeTab === 'highlights' && (
           <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-700/30">
+            <div className="px-4 py-3">
               <h3 className="text-lg font-semibold text-white">League Highlights</h3>
             </div>
             

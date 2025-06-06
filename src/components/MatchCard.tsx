@@ -45,7 +45,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
   return (
     <Link 
       to={`/match/${match.id}`} 
-      className="block bg-gray-900/50 rounded-md p-4 border border-gray-700/50 hover:bg-gray-800/50 transition-colors"
+      className="block bg-gray-900/50 rounded-md p-4 hover:bg-gray-800/50 transition-colors"
     >
       {showDate && datePosition === 'top' && (
         <div className="text-xs text-gray-400 mb-2">

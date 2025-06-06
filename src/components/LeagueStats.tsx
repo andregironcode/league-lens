@@ -58,7 +58,7 @@ const LeagueStats: React.FC<LeagueStatsProps> = ({ stats }) => {
       const data = payload[0];
       const percentage = ((data.value / totalMatches) * 100).toFixed(1);
       return (
-        <div className="bg-gray-800 border border-gray-600 rounded-md p-3 shadow-lg">
+        <div className="bg-gray-800 rounded-md p-3 shadow-lg">
           <p className="text-white text-sm">
             <span className="font-semibold">{data.name}:</span> {data.value} ({percentage}%)
           </p>
@@ -73,7 +73,7 @@ const LeagueStats: React.FC<LeagueStatsProps> = ({ stats }) => {
     <div className="rounded-3xl p-6 border bg-black border-solid border-[#1B1B1B]">
       <div className="space-y-6">
         {/* Total Stats Container */}
-        <div className="rounded-xl p-6 border border-solid border-[#333333]" style={{ backgroundColor: '#191919' }}>
+        <div className="rounded-xl p-6" style={{ backgroundColor: '#191919' }}>
           <div className="flex justify-center items-center space-x-12">
             <div className="text-center">
               <div className="text-[30px] font-bold text-white">{stats.totalMatches}</div>
@@ -93,7 +93,7 @@ const LeagueStats: React.FC<LeagueStatsProps> = ({ stats }) => {
         {/* Main Stats Layout - Match Outcomes + Right Side Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Side - Match Outcomes (No Title) */}
-          <div className="rounded-xl p-6 border border-solid border-[#333333]" style={{ backgroundColor: '#191919' }}>
+          <div className="rounded-xl p-6" style={{ backgroundColor: '#191919' }}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
               {/* Left: Numerical Stats with Color Indicators */}
               <div className="flex flex-col justify-center space-y-4">
@@ -200,7 +200,7 @@ const LeagueStats: React.FC<LeagueStatsProps> = ({ stats }) => {
             </div>
 
             {/* Frequent Scorelines Container - Horizontal Layout */}
-            <div className="rounded-xl p-6 border border-solid border-[#333333] flex-1 flex flex-col justify-center" style={{ backgroundColor: '#191919' }}>
+            <div className="rounded-xl p-6 flex-1 flex flex-col justify-center" style={{ backgroundColor: '#191919' }}>
               <h3 className="text-[19px] font-thin text-white mb-4 text-center">FREQUENT SCORELINES</h3>
               <div className="flex justify-center items-center space-x-8">
                 {stats.mostFrequentScorelines.slice(0, 3).map((scoreline, index) => (
@@ -221,7 +221,7 @@ const LeagueStats: React.FC<LeagueStatsProps> = ({ stats }) => {
 
         {/* Biggest Win Container */}
         {stats.biggestWin && (
-          <div className="rounded-xl p-6 border border-solid border-[#333333]" style={{ backgroundColor: '#191919' }}>
+          <div className="rounded-xl p-6" style={{ backgroundColor: '#191919' }}>
             <h3 className="text-xl font-bold text-white mb-4 text-center">Biggest Win</h3>
             <MatchCard 
               match={stats.biggestWin} 
