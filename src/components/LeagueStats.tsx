@@ -30,7 +30,29 @@ const LeagueStats: React.FC<LeagueStatsProps> = ({ stats }) => {
 
   return (
     <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
-      <h3 className="text-lg font-bold text-white text-center mb-6">Season Statistics</h3>
+      {/* Horizontal Stats Section */}
+      <div className="mb-8">
+        <div className="flex justify-center items-center space-x-12">
+          {/* Total Matches */}
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">{stats.totalMatches}</div>
+            <div className="text-sm text-gray-400 mt-1">Total Matches</div>
+          </div>
+          
+          {/* Total Goals */}
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">{stats.totalGoals}</div>
+            <div className="text-sm text-gray-400 mt-1">Total Goals</div>
+          </div>
+          
+          {/* Total Clean Sheets */}
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">{stats.totalCleanSheets}</div>
+            <div className="text-sm text-gray-400 mt-1">Total Clean Sheets</div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left column for chart */}
         <div className="flex flex-col items-center justify-center">
@@ -57,18 +79,8 @@ const LeagueStats: React.FC<LeagueStatsProps> = ({ stats }) => {
           </div>
         </div>
 
-        {/* Right column for stats */}
+        {/* Right column for detailed stats */}
         <div className="space-y-4">
-           <div className="flex items-center text-sm">
-            <BarChart2 className="w-5 h-5 mr-3 text-yellow-400" />
-            <span className="text-gray-400">Total Matches:</span>
-            <span className="text-white font-medium ml-auto">{stats.totalMatches}</span>
-          </div>
-          <div className="flex items-center text-sm">
-            <Target className="w-5 h-5 mr-3 text-yellow-400" />
-            <span className="text-gray-400">Total Goals:</span>
-            <span className="text-white font-medium ml-auto">{stats.totalGoals}</span>
-          </div>
           <div className="flex items-center text-sm">
             <Home className="w-5 h-5 mr-3 text-yellow-400" />
             <span className="text-gray-400">Goals per Match:</span>

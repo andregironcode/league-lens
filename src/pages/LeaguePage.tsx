@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Trophy, Calendar, Clock, MapPin, Target, Users, BarChart2, Share2, Plus, Minus } from 'lucide-react';
 import Header from '@/components/Header';
@@ -120,6 +121,13 @@ const LeaguePage: React.FC = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>(season || '');
   const [isSeasonDropdownOpen, setIsSeasonDropdownOpen] = useState(false);
   const seasonDropdownRef = useRef<HTMLDivElement>(null);
+  const seasonButtonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+
+  // Memoized sorted seasons (newest first)
+  const sortedSeasons = useMemo(() => {
+    return league?.seasons ? [...league.seasons].sort((a, b) => b.season - a.season) : [];
+  }, [league?.seasons]);
 
   useEffect(() => {
     if (!leagueId) {
@@ -161,7 +169,7 @@ const LeaguePage: React.FC = () => {
             highlights: [] // Initialize empty highlights array
           };
 
-          setLeague(leagueData);
+            setLeague(leagueData);
 
           // Set selected season if not already set
           if (!selectedSeason && leagueData.seasons && leagueData.seasons.length > 0) {
@@ -200,9 +208,43 @@ const LeaguePage: React.FC = () => {
           });
           
           if (standingsResponse?.groups && standingsResponse.groups.length > 0 && standingsResponse.groups[0].standings) {
-            setStandings(standingsResponse.groups[0].standings);
+            // Transform Highlightly API response to match our StandingsRow interface
+            const transformedStandings: StandingsRow[] = standingsResponse.groups[0].standings.map((item: any) => ({
+              position: item.position,
+              team: {
+                id: item.team.id.toString(),
+                name: item.team.name,
+                logo: item.team.logo || ''
+              },
+              played: item.total?.games || 0,
+              won: item.total?.wins || 0,
+              drawn: item.total?.draws || 0,
+              lost: item.total?.loses || 0,
+              goalsFor: item.total?.scoredGoals || 0,
+              goalsAgainst: item.total?.receivedGoals || 0,
+              goalDifference: (item.total?.scoredGoals || 0) - (item.total?.receivedGoals || 0),
+              points: item.points || 0
+            }));
+            setStandings(transformedStandings);
           } else if (standingsResponse?.data && Array.isArray(standingsResponse.data)) {
-            setStandings(standingsResponse.data);
+            // Transform alternative response format
+            const transformedStandings: StandingsRow[] = standingsResponse.data.map((item: any) => ({
+              position: item.position,
+              team: {
+                id: item.team?.id?.toString() || item.teamId?.toString() || '',
+                name: item.team?.name || item.teamName || '',
+                logo: item.team?.logo || ''
+              },
+              played: item.total?.games || item.played || 0,
+              won: item.total?.wins || item.won || 0,
+              drawn: item.total?.draws || item.drawn || 0,
+              lost: item.total?.loses || item.lost || 0,
+              goalsFor: item.total?.scoredGoals || item.goalsFor || 0,
+              goalsAgainst: item.total?.receivedGoals || item.goalsAgainst || 0,
+              goalDifference: (item.total?.scoredGoals || item.goalsFor || 0) - (item.total?.receivedGoals || item.goalsAgainst || 0),
+              points: item.points || 0
+            }));
+            setStandings(transformedStandings);
           }
         } catch (standingsErr) {
           console.error('[LeaguePage] Error fetching standings:', standingsErr);
@@ -290,6 +332,7 @@ const LeaguePage: React.FC = () => {
                 totalGoals,
                 averageGoalsPerMatch: totalGoals / past.length,
                 cleanSheetRate: (cleanSheets / (past.length * 2)) * 100,
+                totalCleanSheets: cleanSheets,
                 homeWins,
                 awayWins,
                 draws,
@@ -303,8 +346,8 @@ const LeaguePage: React.FC = () => {
           console.error('[LeaguePage] Error fetching matches:', matchesErr);
         } finally {
           setMatchesLoading(false);
-        }
-      } catch (err) {
+      }
+    } catch (err) {
         console.error('[LeaguePage] Error fetching league content:', err);
       }
     };
@@ -336,41 +379,86 @@ const LeaguePage: React.FC = () => {
   // Handle clicking outside the season dropdown to close it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (seasonDropdownRef.current && !seasonDropdownRef.current.contains(event.target as Node)) {
+      if (seasonDropdownRef.current && !seasonDropdownRef.current.contains(event.target as Node) &&
+          seasonButtonRef.current && !seasonButtonRef.current.contains(event.target as Node)) {
         setIsSeasonDropdownOpen(false);
       }
     };
 
+    const handleScroll = () => {
+      if (isSeasonDropdownOpen) {
+        updateDropdownPosition();
+      }
+    };
+
+    const handleResize = () => {
+      if (isSeasonDropdownOpen) {
+        updateDropdownPosition();
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [isSeasonDropdownOpen]);
 
   const handleSeasonSelect = (formattedSeason: string) => {
     handleSeasonChange(formattedSeason);
     setIsSeasonDropdownOpen(false);
   };
 
+  const updateDropdownPosition = () => {
+    if (seasonButtonRef.current) {
+      const rect = seasonButtonRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const dropdownHeight = sortedSeasons.length * 40 + 16; // Estimated height based on sorted seasons
+      
+      // Check if there's enough space below, otherwise position above
+      const spaceBelow = viewportHeight - rect.bottom;
+      const shouldPositionAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+      
+      setDropdownPosition({
+        top: shouldPositionAbove 
+          ? rect.top + window.scrollY - dropdownHeight - 8 
+          : rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  };
+
+  const toggleDropdown = () => {
+    if (!isSeasonDropdownOpen) {
+      updateDropdownPosition();
+    }
+    setIsSeasonDropdownOpen(!isSeasonDropdownOpen);
+  };
+
   // Handle keyboard navigation for season dropdown
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (!league?.seasons) return;
+    if (sortedSeasons.length === 0) return;
 
     if (event.key === 'Escape') {
       setIsSeasonDropdownOpen(false);
     } else if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      setIsSeasonDropdownOpen(!isSeasonDropdownOpen);
+      toggleDropdown();
     } else if (event.key === 'ArrowDown' && !isSeasonDropdownOpen) {
       event.preventDefault();
-      setIsSeasonDropdownOpen(true);
+      toggleDropdown();
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-black text-white">
-        <div className="text-center">
+          <div className="text-center">
           <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto mb-4"></div>
           <p>Loading league details...</p>
         </div>
@@ -381,16 +469,16 @@ const LeaguePage: React.FC = () => {
   if (error || !league) {
     return (
       <div className="flex items-center justify-center h-screen bg-black text-white">
-        <div className="text-center">
+          <div className="text-center">
           <h2 className="text-2xl font-bold text-red-500 mb-4">Error</h2>
           <p>{error || "Could not find league data."}</p>
-          <button
+            <button 
             onClick={handleGoBack}
             className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
           >
             <ArrowLeft className="mr-2 -ml-1 h-5 w-5" />
             Back to Leagues
-          </button>
+            </button>
         </div>
       </div>
     );
@@ -400,12 +488,12 @@ const LeaguePage: React.FC = () => {
     <main className="min-h-screen bg-black text-white font-sans">
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-6">
+          <div className="mb-6">
           <button onClick={handleGoBack} className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
             <ArrowLeft size={18} className="mr-2" />
             Back to Leagues
           </button>
-        </div>
+          </div>
 
         {/* League Header - Similar to Match Header */}
         <div className="mb-8 w-full space-y-6">
@@ -416,22 +504,6 @@ const LeaguePage: React.FC = () => {
               border: '1px solid #1B1B1B',
             }}
           >
-            {/* Country info in top left */}
-            <div className="absolute top-3 left-4 flex items-center gap-2">
-              {league.country?.logo && (
-                <img 
-                  src={league.country.logo} 
-                  alt={league.country.name} 
-                  className="w-4 h-4 object-contain rounded-full bg-white p-0.5 shadow-sm" 
-                />
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-gray-300 truncate">
-                  {league.country?.name || 'International'}
-                </div>
-              </div>
-            </div>
-
             {/* Share button in top right */}
             <div className="absolute top-3 right-4">
               <button 
@@ -442,103 +514,129 @@ const LeaguePage: React.FC = () => {
               </button>
             </div>
 
-            {/* League info and season selector - Centered design with golden ratio */}
-            <div className="flex flex-col items-center justify-center py-6">
-              {/* League logo and title - Centered */}
-              <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3">
-                <div className="relative">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/10">
-                    <img 
-                      src={league.logo || '/placeholder-league.png'} 
-                      alt={league.name} 
-                      className="w-6 h-6 sm:w-8 sm:h-8 object-contain filter drop-shadow-sm" 
-                    />
-                  </div>
-                  {/* Subtle glow effect */}
-                  <div className="absolute inset-0 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full blur-md -z-10"></div>
-                </div>
-                <div className="text-center">
-                  <div className="text-white font-bold text-xl sm:text-2xl leading-tight tracking-tight">{league.name}</div>
+            {/* League info and season selector - Left-aligned design */}
+            <div className="flex flex-col justify-center py-6 pl-2">
+              {/* Country info integrated with league header */}
+              <div className="mb-1">
+                <div className="text-lg font-semibold tracking-wide ml-[4.5rem] sm:ml-20 uppercase" style={{ color: '#A1A1A1' }}>
+                  {league.country?.name || 'International'}
                 </div>
               </div>
               
-              {/* Custom Season Selector - Ergonomic design with +/- icons */}
-              {league.seasons && league.seasons.length > 1 && (
-                <div className="flex justify-center">
-                  <div className="relative" ref={seasonDropdownRef}>
-                    <button
-                      onClick={() => setIsSeasonDropdownOpen(!isSeasonDropdownOpen)}
-                      onKeyDown={handleKeyDown}
-                      className="bg-black text-white border border-gray-600/50 rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:border-gray-400 hover:shadow-lg transition-all duration-200 flex items-center gap-3 min-w-[130px] justify-between group"
-                      style={{ backgroundColor: '#000000' }}
-                      aria-expanded={isSeasonDropdownOpen}
-                      aria-haspopup="listbox"
-                      aria-label={`Season selector, currently ${formatSeason(selectedSeason)} selected`}
-                    >
-                      <span className="tracking-wide">{formatSeason(selectedSeason)}</span>
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        {isSeasonDropdownOpen ? (
-                          <Minus className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" />
-                        ) : (
-                          <Plus className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" />
-                        )}
-                      </div>
-                    </button>
-                    
-                    {isSeasonDropdownOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-black border border-gray-600/50 rounded-lg shadow-xl z-50 overflow-hidden backdrop-blur-sm">
-                        {league.seasons.map((s, index) => (
-                          <button
-                            key={s.season}
-                            onClick={() => handleSeasonSelect(formatSeason(s.season))}
-                            className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-900 transition-all duration-150 ${
-                              formatSeason(s.season) === formatSeason(selectedSeason)
-                                ? 'bg-gray-800 text-yellow-400 border-l-2 border-yellow-400'
-                                : 'text-white hover:text-yellow-100'
-                            } ${index === 0 ? 'rounded-t-lg' : ''} ${index === league.seasons.length - 1 ? 'rounded-b-lg' : ''}`}
-                            style={{ backgroundColor: formatSeason(s.season) === formatSeason(selectedSeason) ? '#1f2937' : '#000000' }}
-                          >
-                            <span className="tracking-wide">{formatSeason(s.season)} Season</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+              {/* League logo, title, and season selector - Horizontal layout */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+                {/* League logo and title */}
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/10">
+                      <img 
+                        src={league.logo || '/placeholder-league.png'} 
+                        alt={league.name} 
+                        className="w-9 h-9 sm:w-11 sm:h-11 object-contain filter drop-shadow-sm" 
+                      />
+                    </div>
+                    {/* Subtle glow effect */}
+                    <div className="absolute inset-0 w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-full blur-md -z-10"></div>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-white font-bold text-2xl sm:text-3xl leading-tight tracking-tight">{league.name}</div>
                   </div>
                 </div>
+
+                {/* Custom Season Selector - Aligned to the right */}
+                {sortedSeasons.length > 1 && (
+                  <div className="flex justify-start sm:justify-end">
+                    <div className="relative" ref={seasonDropdownRef}>
+                      <button
+                        ref={seasonButtonRef}
+                        onClick={toggleDropdown}
+                        onKeyDown={handleKeyDown}
+                        className="bg-black text-white border border-gray-600/50 rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:border-gray-400 hover:shadow-lg transition-all duration-200 flex items-center gap-3 min-w-[130px] justify-between group"
+                        style={{ backgroundColor: '#000000' }}
+                        aria-expanded={isSeasonDropdownOpen}
+                        aria-haspopup="listbox"
+                        aria-label={`Season selector, currently ${formatSeason(selectedSeason)} selected`}
+                      >
+                        <span className="tracking-wide">{formatSeason(selectedSeason)}</span>
+                        <div className="w-4 h-4 flex items-center justify-center">
+                          {isSeasonDropdownOpen ? (
+                            <Minus className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" />
+                          ) : (
+                            <Plus className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" />
+                          )}
+                    </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Portal-rendered dropdown to avoid clipping issues */}
+              {isSeasonDropdownOpen && sortedSeasons.length > 1 && createPortal(
+                <div 
+                  className="fixed bg-black border border-gray-600/50 rounded-lg shadow-xl z-[9999] overflow-hidden backdrop-blur-sm"
+                  style={{
+                    top: `${dropdownPosition.top}px`,
+                    left: `${dropdownPosition.left}px`,
+                    width: `${dropdownPosition.width}px`
+                  }}
+                  ref={seasonDropdownRef}
+                >
+                  {sortedSeasons.map((s, index) => (
+                    <button 
+                      key={s.season}
+                      onClick={() => handleSeasonSelect(formatSeason(s.season))}
+                      className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-900 transition-all duration-150 ${
+                        formatSeason(s.season) === formatSeason(selectedSeason)
+                          ? 'bg-gray-800 text-yellow-400 border-l-2 border-yellow-400'
+                          : 'text-white hover:text-yellow-100'
+                      } ${index === 0 ? 'rounded-t-lg' : ''} ${index === sortedSeasons.length - 1 ? 'rounded-b-lg' : ''}`}
+                      style={{ backgroundColor: formatSeason(s.season) === formatSeason(selectedSeason) ? '#1f2937' : '#000000' }}
+                    >
+                      <span className="tracking-wide">{formatSeason(s.season)} Season</span>
+                    </button>
+                  ))}
+                </div>,
+                document.body
               )}
             </div>
           </div>
 
-          {/* Tab Navigation - Similar to Match Page */}
-          <div className="bg-black/30 border border-white/10 rounded-xl p-2 flex justify-around sm:justify-center space-x-1 sm:space-x-2">
+          {/* Plain Tab Navigation */}
+          <div className="flex justify-center gap-6" style={{ backgroundColor: '#000000' }}>
             {[
-              { key: 'home', label: 'Home', icon: Home },
-              { key: 'standings', label: 'Standings', icon: Trophy },
-              { key: 'results', label: 'Results', icon: BarChart2 },
-              { key: 'fixtures', label: 'Fixtures', icon: Calendar },
+              { key: 'home', label: 'Home' },
+              { key: 'standings', label: 'Standings' },
+              { key: 'results', label: 'Results' },
+              { key: 'fixtures', label: 'Fixtures' },
             ].map(tab => (
-              <button
+                      <button 
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 sm:flex-initial sm:px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-black ${
+                className={`relative px-4 py-3 text-sm font-medium text-white transition-all duration-200 focus:outline-none ${
                   activeTab === tab.key
-                    ? 'bg-yellow-500 text-black shadow-lg scale-105'
-                    : 'text-white bg-gray-800/50 hover:bg-gray-700/70'
+                    ? ''
+                    : 'hover:opacity-70'
                 }`}
+                style={{ backgroundColor: '#000000' }}
               >
-                <tab.icon size={16} />
-                <span>{tab.label}</span>
-              </button>
+                <span className="tracking-wide">{tab.label}</span>
+                {activeTab === tab.key && (
+                  <div 
+                    className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full"
+                    style={{ backgroundColor: '#F7CC45' }}
+                  />
+                )}
+                    </button>
             ))}
-          </div>
-
-          {/* Tab Content */}
+              </div>
+              
+              {/* Tab Content */}
           <div className="pt-2">
             {activeTab === 'home' && (
-              <div className="space-y-6">
+                    <div className="space-y-6">
                 {/* Today's Matches */}
                 <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
-                  <h4 className="text-lg font-semibold mb-6 text-center text-white">TODAY'S MATCHES</h4>
                   {matchesLoading ? (
                     <div className="text-center py-8">
                       <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
@@ -546,50 +644,58 @@ const LeaguePage: React.FC = () => {
                   ) : (
                     <TodaysMatches matches={todaysMatches} />
                   )}
-                </div>
+                                    </div>
 
-                {/* League Preview Section */}
+                                {/* League Preview Section */}
                 <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
-                  <h3 className="text-lg font-bold text-white text-center mb-6">League Overview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Standings Preview */}
-                    <div>
-                      <h4 className="text-md font-semibold text-white mb-4">Current Standings (Top 5)</h4>
-                      {standingsLoading ? (
-                        <div className="text-center py-4">
-                          <div className="w-6 h-6 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
-                        </div>
-                      ) : standings.length > 0 ? (
-                        <StandingsTable standings={standings.slice(0, 5)} />
-                      ) : (
-                        <p className="text-gray-400 text-center py-4">No standings available</p>
-                      )}
+                  {/* Standings Preview */}
+                  <div>
+                    <div className="flex justify-end items-center mb-4">
+                      <button
+                        onClick={() => setActiveTab('standings')}
+                        className="bg-transparent text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10 border border-yellow-400/30 hover:border-yellow-400/50 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400/50"
+                      >
+                        View Details
+                      </button>
                     </div>
-
-                    {/* Upcoming Matches Preview */}
-                    <div>
-                      <h4 className="text-md font-semibold text-white mb-4">Next Fixtures</h4>
-                      {matchesLoading ? (
-                        <div className="text-center py-4">
-                          <div className="w-6 h-6 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
-                        </div>
-                      ) : upcomingMatches.length > 0 ? (
-                        <div className="space-y-3">
-                          {upcomingMatches.slice(0, 3).map((match) => (
-                            <MatchCard key={match.id} match={match} />
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-400 text-center py-4">No upcoming fixtures</p>
-                      )}
-                    </div>
+                    {standingsLoading ? (
+                      <div className="text-center py-4">
+                        <div className="w-6 h-6 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
+                      </div>
+                    ) : standings.length > 0 ? (
+                      <StandingsTable standings={standings.slice(0, 5)} />
+                    ) : (
+                      <p className="text-gray-400 text-center py-4">No standings available</p>
+                    )}
                   </div>
-                </div>
 
-                {/* League Stats */}
-                {leagueStats && <LeagueStats stats={leagueStats} />}
-              </div>
-            )}
+                  {/* League Stats integrated inside the same container */}
+                  {leagueStats && (
+                    <div className="mt-6">
+                      <div className="flex justify-center items-center space-x-12">
+                        {/* Total Matches */}
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-white">{leagueStats.totalMatches}</div>
+                          <div className="text-sm text-gray-400 mt-1">Total Matches</div>
+                        </div>
+                        
+                        {/* Total Goals */}
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-white">{leagueStats.totalGoals}</div>
+                          <div className="text-sm text-gray-400 mt-1">Total Goals</div>
+                        </div>
+                        
+                        {/* Total Clean Sheets */}
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-white">{leagueStats.totalCleanSheets}</div>
+                          <div className="text-sm text-gray-400 mt-1">Total Clean Sheets</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                                </div>
+                              )}
 
             {activeTab === 'standings' && (
               <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
@@ -597,7 +703,7 @@ const LeaguePage: React.FC = () => {
                 {standingsLoading ? (
                   <div className="text-center py-8">
                     <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
-                  </div>
+                            </div>
                 ) : standings.length > 0 ? (
                   <StandingsTable standings={standings} />
                 ) : (
@@ -605,23 +711,23 @@ const LeaguePage: React.FC = () => {
                     <Trophy size={32} className="mx-auto mb-2" />
                     <p className="text-white font-medium">No Standings Available</p>
                     <p className="text-sm">Standings data is not available for this season.</p>
-                  </div>
-                )}
-              </div>
-            )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
             {activeTab === 'results' && (
               <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
                 <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH RESULTS</h4>
                 {matchesLoading ? (
-                  <div className="text-center py-8">
+                      <div className="text-center py-8">
                     <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
-                  </div>
+                      </div>
                 ) : (
                   <MatchesByDate matches={pastMatches} title="Results" />
                 )}
-              </div>
-            )}
+                    </div>
+                  )}
 
             {activeTab === 'fixtures' && (
               <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
@@ -633,12 +739,12 @@ const LeaguePage: React.FC = () => {
                 ) : (
                   <MatchesByDate matches={upcomingMatches} title="Fixtures" />
                 )}
-              </div>
-            )}
+            </div>
+          )}
           </div>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
   );
 };
 

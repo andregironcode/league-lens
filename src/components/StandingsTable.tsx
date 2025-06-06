@@ -29,6 +29,8 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ standings, homeTeamId, 
             <th scope="col" className="px-2 py-3 text-center">W</th>
             <th scope="col" className="px-2 py-3 text-center">D</th>
             <th scope="col" className="px-2 py-3 text-center">L</th>
+            <th scope="col" className="px-2 py-3 text-center">GF</th>
+            <th scope="col" className="px-2 py-3 text-center">GA</th>
             <th scope="col" className="px-2 py-3 text-center">GD</th>
             <th scope="col" className="px-4 py-3 text-center">Pts</th>
           </tr>
@@ -52,6 +54,8 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ standings, homeTeamId, 
                 <td className="px-2 py-3 text-center">{row.won}</td>
                 <td className="px-2 py-3 text-center">{row.drawn}</td>
                 <td className="px-2 py-3 text-center">{row.lost}</td>
+                <td className="px-2 py-3 text-center">{row.goalsFor}</td>
+                <td className="px-2 py-3 text-center">{row.goalsAgainst}</td>
                 <td className="px-2 py-3 text-center">{row.goalDifference}</td>
                 <td className="px-4 py-3 font-bold text-center text-white">{row.points}</td>
               </tr>

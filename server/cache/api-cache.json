@@ -1,0 +1,116 @@
+{
+  "/api/highlightly/leagues/39": {
+    "data": [],
+    "expiry": 1749326159451
+  },
+  "/api/highlightly/matches?leagueId=39&date=2025-06-06&season=2025": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 100
+      }
+    },
+    "expiry": 1749326159576
+  },
+  "/api/highlightly/leagues/140": {
+    "data": [],
+    "expiry": 1749326159700
+  },
+  "/api/highlightly/matches?leagueId=140&date=2025-06-06&season=2025": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 100
+      }
+    },
+    "expiry": 1749326159826
+  },
+  "/api/highlightly/leagues/135": {
+    "data": [],
+    "expiry": 1749326159916
+  },
+  "/api/highlightly/matches?leagueId=135&date=2025-06-06&season=2025": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 100
+      }
+    },
+    "expiry": 1749326160004
+  },
+  "/api/highlightly/leagues/78": {
+    "data": [],
+    "expiry": 1749326160109
+  },
+  "/api/highlightly/matches?leagueId=78&date=2025-06-06&season=2025": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 100
+      }
+    },
+    "expiry": 1749326160210
+  },
+  "/api/highlightly/leagues/61": {
+    "data": [],
+    "expiry": 1749326160298
+  },
+  "/api/highlightly/matches?leagueId=61&date=2025-06-06&season=2025": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 100
+      }
+    },
+    "expiry": 1749326160414
+  },
+  "/api/highlightly/leagues/2": {
+    "data": [],
+    "expiry": 1749326160614
+  },
+  "/api/highlightly/matches?leagueId=2&date=2025-06-06&season=2025": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 100
+      }
+    },
+    "expiry": 1749326160709
+  }
+}

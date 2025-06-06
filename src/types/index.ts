@@ -256,6 +256,7 @@ export interface LeagueStatistics {
   totalGoals: number;
   averageGoalsPerMatch: number;
   cleanSheetRate: number;
+  totalCleanSheets: number;
   homeWins: number;
   awayWins: number;
   draws: number;
