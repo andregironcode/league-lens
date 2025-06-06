@@ -1,24 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home, Trophy, Calendar, Clock, MapPin, Target, Users, BarChart2, Share2 } from 'lucide-react';
+import { ArrowLeft, Home, Trophy, Calendar, Clock, MapPin, Target, Users, BarChart2, Share2, Plus, Minus } from 'lucide-react';
 import Header from '@/components/Header';
 import { highlightlyClient } from '@/integrations/highlightly/client';
-import { League, Match, StandingsRow, TeamStatistics } from '@/types';
+import { League, Match, StandingsRow, TeamStatistics, LeagueStatistics } from '@/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { formatSeason, parseSeasonFromFormat } from '../utils/seasonFormatting';
 import StandingsTable from '@/components/StandingsTable';
+import MatchCard from '@/components/MatchCard';
+import LeagueStats from '@/components/LeagueStats';
 
-interface LeagueStatistics {
-  totalMatches: number;
-  totalGoals: number;
-  averageGoalsPerMatch: number;
-  cleanSheetRate: number;
-  frequentScorelines: { score: string; count: number }[];
-  biggestMatch: Match | null;
-}
+// The LeagueStatistics interface is now defined in @/types
 
 // Helper function to safely get score from match
-const getMatchScore = (match: any) => {
+export const getMatchScore = (match: any) => {
   // Handle the API's actual response format: match.state.score.current = "X - Y"
   if (match.state?.score?.current) {
     const [home, away] = match.state.score.current.split('-').map((s: string) => parseInt(s.trim(), 10));
@@ -37,119 +33,6 @@ const getMatchScore = (match: any) => {
     }
   }
   return { home: 0, away: 0 };
-};
-
-interface MatchCardProps {
-  match: Match;
-  showDate?: boolean;
-}
-
-const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true }) => {
-  // Helper function to safely get status string
-  const getStatusString = (status: any): string => {
-    if (typeof status === 'string') {
-      return status.toLowerCase();
-    }
-    if (typeof status === 'object' && status !== null) {
-      return status.long?.toLowerCase() || status.short?.toLowerCase() || '';
-    }
-    return '';
-  };
-
-  const statusString = getStatusString(match.status);
-  const stateDescription = match.state?.description?.toLowerCase() || '';
-  const isFinished = statusString.includes('finished') || 
-                   statusString.includes('ft') ||
-                   stateDescription.includes('finished');
-  
-  const formatMatchTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, 'HH:mm');
-  };
-
-  const formatMatchDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, 'MMM dd');
-  };
-
-  // Helper function to safely get score
-  const getScore = (scoreData: any) => {
-    // Handle the API's actual response format: match.state.score.current = "X - Y"
-    if (match.state?.score?.current) {
-      const [home, away] = match.state.score.current.split('-').map((s: string) => parseInt(s.trim(), 10));
-      return { home: isNaN(home) ? 0 : home, away: isNaN(away) ? 0 : away };
-    }
-    
-    // Fallback to other possible formats
-    if (scoreData && typeof scoreData === 'object') {
-      if (scoreData.fulltime) {
-        const [home, away] = scoreData.fulltime.split('-').map((s: string) => parseInt(s.trim(), 10));
-        return { home: isNaN(home) ? 0 : home, away: isNaN(away) ? 0 : away };
-      }
-      if (scoreData.home !== undefined && scoreData.away !== undefined) {
-        return { home: scoreData.home || 0, away: scoreData.away || 0 };
-      }
-    }
-    return { home: 0, away: 0 };
-  };
-
-  const scoreData = getScore(match.score);
-
-  return (
-    <Link 
-      to={`/match/${match.id}`} 
-      className="block bg-gray-900/50 rounded-lg p-4 border border-gray-700/50 hover:bg-gray-800/50 transition-colors"
-    >
-      {showDate && (
-        <div className="text-xs text-gray-400 mb-2">
-          {formatMatchDate(match.date)} • {formatMatchTime(match.date)}
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3 flex-1">
-          <img 
-            src={match.homeTeam?.logo || '/placeholder-team.png'} 
-            alt={match.homeTeam?.name} 
-            className="w-8 h-8 object-contain"
-          />
-          <span className="text-white text-sm font-medium truncate">
-            {match.homeTeam?.name}
-          </span>
-        </div>
-        
-        <div className="text-center px-4">
-          {isFinished ? (
-            <div className="text-yellow-400 font-bold text-lg">
-              {scoreData.home} - {scoreData.away}
-            </div>
-          ) : (
-            <div className="text-gray-400 text-sm">
-              {formatMatchTime(match.date)}
-            </div>
-          )}
-        </div>
-        
-        <div className="flex items-center space-x-3 flex-1 justify-end">
-          <span className="text-white text-sm font-medium truncate text-right">
-            {match.awayTeam?.name}
-          </span>
-          <img 
-            src={match.awayTeam?.logo || '/placeholder-team.png'} 
-            alt={match.awayTeam?.name} 
-            className="w-8 h-8 object-contain"
-          />
-        </div>
-      </div>
-      
-      {!isFinished && (
-        <div className="mt-2 text-center">
-          <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-full">
-            Upcoming
-          </span>
-        </div>
-      )}
-    </Link>
-  );
 };
 
 const TodaysMatches: React.FC<{ matches: Match[] }> = ({ matches }) => {
@@ -235,6 +118,8 @@ const LeaguePage: React.FC = () => {
   const [matchesLoading, setMatchesLoading] = useState(true);
 
   const [selectedSeason, setSelectedSeason] = useState<string>(season || '');
+  const [isSeasonDropdownOpen, setIsSeasonDropdownOpen] = useState(false);
+  const seasonDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!leagueId) {
@@ -371,19 +256,46 @@ const LeaguePage: React.FC = () => {
 
             // Calculate league statistics from match data
             if (past.length > 0) {
+              let homeWins = 0;
+              let awayWins = 0;
+              let draws = 0;
+              let cleanSheets = 0;
+              let biggestWin: Match | null = null;
+              let maxGoalDifference = -1;
+
+              past.forEach(match => {
+                const score = getMatchScore(match);
+                if (score.home > score.away) homeWins++;
+                else if (score.away > score.home) awayWins++;
+                else draws++;
+
+                if (score.home === 0 || score.away === 0) {
+                  cleanSheets++;
+                }
+
+                const goalDifference = Math.abs(score.home - score.away);
+                if (goalDifference > maxGoalDifference) {
+                  maxGoalDifference = goalDifference;
+                  biggestWin = match;
+                }
+              });
+
+              const totalGoals = past.reduce((sum, match) => {
+                const score = getMatchScore(match);
+                return sum + score.home + score.away;
+              }, 0);
+              
               const stats: LeagueStatistics = {
                 totalMatches: past.length,
-                totalGoals: past.reduce((sum, match) => {
-                  const score = getMatchScore(match);
-                  return sum + score.home + score.away;
-                }, 0),
-                averageGoalsPerMatch: 0,
-                cleanSheetRate: 0,
-                frequentScorelines: [],
-                biggestMatch: null
+                totalGoals,
+                averageGoalsPerMatch: totalGoals / past.length,
+                cleanSheetRate: (cleanSheets / (past.length * 2)) * 100,
+                homeWins,
+                awayWins,
+                draws,
+                biggestWin
               };
 
-              stats.averageGoalsPerMatch = stats.totalGoals / stats.totalMatches;
               setLeagueStats(stats);
             }
           }
@@ -400,9 +312,11 @@ const LeaguePage: React.FC = () => {
     fetchLeagueContent();
   }, [league, selectedSeason]);
 
-  const handleSeasonChange = (newSeason: string) => {
-    setSelectedSeason(newSeason);
-    navigate(`/league/${leagueId}/${newSeason}`, { replace: true });
+  const handleSeasonChange = (formattedSeason: string) => {
+    // Parse the formatted season back to the numeric season for API calls
+    const numericSeason = parseSeasonFromFormat(formattedSeason);
+    setSelectedSeason(numericSeason.toString());
+    navigate(`/league/${leagueId}/${numericSeason}`, { replace: true });
   };
 
   const handleGoBack = () => navigate('/leagues');
@@ -411,11 +325,45 @@ const LeaguePage: React.FC = () => {
     const url = window.location.href;
     try {
       await navigator.share({
-        title: `${league?.name} - ${selectedSeason} Season`,
+        title: `${league?.name} - ${formatSeason(selectedSeason)} Season`,
         url: url,
       });
     } catch (err) {
       await navigator.clipboard.writeText(url);
+    }
+  };
+
+  // Handle clicking outside the season dropdown to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (seasonDropdownRef.current && !seasonDropdownRef.current.contains(event.target as Node)) {
+        setIsSeasonDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSeasonSelect = (formattedSeason: string) => {
+    handleSeasonChange(formattedSeason);
+    setIsSeasonDropdownOpen(false);
+  };
+
+  // Handle keyboard navigation for season dropdown
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (!league?.seasons) return;
+
+    if (event.key === 'Escape') {
+      setIsSeasonDropdownOpen(false);
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      setIsSeasonDropdownOpen(!isSeasonDropdownOpen);
+    } else if (event.key === 'ArrowDown' && !isSeasonDropdownOpen) {
+      event.preventDefault();
+      setIsSeasonDropdownOpen(true);
     }
   };
 
@@ -462,68 +410,102 @@ const LeaguePage: React.FC = () => {
         {/* League Header - Similar to Match Header */}
         <div className="mb-8 w-full space-y-6">
           <div 
-            className="rounded-xl overflow-hidden p-6 relative"
+            className="rounded-xl overflow-hidden px-4 sm:px-6 py-3 sm:py-4 relative min-h-[100px] sm:min-h-[120px]"
             style={{
               background: 'linear-gradient(15deg, #000000 0%, #000000 60%, #1F1F1F 100%)',
               border: '1px solid #1B1B1B',
             }}
           >
             {/* Country info in top left */}
-            <div className="absolute top-4 left-4 flex items-center gap-3">
+            <div className="absolute top-3 left-4 flex items-center gap-2">
               {league.country?.logo && (
                 <img 
                   src={league.country.logo} 
                   alt={league.country.name} 
-                  className="w-5 h-5 object-contain rounded-full bg-white p-0.5" 
+                  className="w-4 h-4 object-contain rounded-full bg-white p-0.5 shadow-sm" 
                 />
               )}
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white truncate">
+                <div className="text-xs font-medium text-gray-300 truncate">
                   {league.country?.name || 'International'}
                 </div>
               </div>
             </div>
 
             {/* Share button in top right */}
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-3 right-4">
               <button 
                 onClick={handleShare} 
-                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-white/10"
+                className="relative inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-white/10 transition-colors"
               >
-                <Share2 className="h-4 w-4 text-white" />
+                <Share2 className="h-3.5 w-3.5 text-white" />
               </button>
             </div>
 
-            {/* League info and season selector */}
-            <div className="flex flex-col items-center justify-center mt-12 mb-6">
-              <div className="flex items-center justify-center mb-6 w-full">
+            {/* League info and season selector - Centered design with golden ratio */}
+            <div className="flex flex-col items-center justify-center py-6">
+              {/* League logo and title - Centered */}
+              <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3">
+                <div className="relative">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/10">
+                    <img 
+                      src={league.logo || '/placeholder-league.png'} 
+                      alt={league.name} 
+                      className="w-6 h-6 sm:w-8 sm:h-8 object-contain filter drop-shadow-sm" 
+                    />
+                  </div>
+                  {/* Subtle glow effect */}
+                  <div className="absolute inset-0 w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full blur-md -z-10"></div>
+                </div>
                 <div className="text-center">
-                  <img 
-                    src={league.logo || '/placeholder-league.png'} 
-                    alt={league.name} 
-                    className="w-20 h-20 object-contain mx-auto mb-3" 
-                  />
-                  <div className="text-white font-bold text-3xl mb-2">{league.name}</div>
-                  <div className="text-gray-400 text-lg mb-4">{selectedSeason} Season</div>
-                  
-                  {/* Season Selector */}
-                  {league.seasons && league.seasons.length > 1 && (
-                    <div className="flex justify-center">
-                      <select
-                        value={selectedSeason}
-                        onChange={(e) => handleSeasonChange(e.target.value)}
-                        className="bg-gray-800 text-white border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                      >
-                                               {league.seasons.map((s) => (
-                         <option key={s.season} value={s.season.toString()}>
-                           {s.season} Season
-                         </option>
-                       ))}
-                      </select>
-                    </div>
-                  )}
+                  <div className="text-white font-bold text-xl sm:text-2xl leading-tight tracking-tight">{league.name}</div>
                 </div>
               </div>
+              
+              {/* Custom Season Selector - Ergonomic design with +/- icons */}
+              {league.seasons && league.seasons.length > 1 && (
+                <div className="flex justify-center">
+                  <div className="relative" ref={seasonDropdownRef}>
+                    <button
+                      onClick={() => setIsSeasonDropdownOpen(!isSeasonDropdownOpen)}
+                      onKeyDown={handleKeyDown}
+                      className="bg-black text-white border border-gray-600/50 rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:border-gray-400 hover:shadow-lg transition-all duration-200 flex items-center gap-3 min-w-[130px] justify-between group"
+                      style={{ backgroundColor: '#000000' }}
+                      aria-expanded={isSeasonDropdownOpen}
+                      aria-haspopup="listbox"
+                      aria-label={`Season selector, currently ${formatSeason(selectedSeason)} selected`}
+                    >
+                      <span className="tracking-wide">{formatSeason(selectedSeason)}</span>
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        {isSeasonDropdownOpen ? (
+                          <Minus className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" />
+                        ) : (
+                          <Plus className="w-3 h-3 text-gray-300 group-hover:text-white transition-colors" />
+                        )}
+                      </div>
+                    </button>
+                    
+                    {isSeasonDropdownOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-black border border-gray-600/50 rounded-lg shadow-xl z-50 overflow-hidden backdrop-blur-sm">
+                        {league.seasons.map((s, index) => (
+                          <button
+                            key={s.season}
+                            onClick={() => handleSeasonSelect(formatSeason(s.season))}
+                            className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-900 transition-all duration-150 ${
+                              formatSeason(s.season) === formatSeason(selectedSeason)
+                                ? 'bg-gray-800 text-yellow-400 border-l-2 border-yellow-400'
+                                : 'text-white hover:text-yellow-100'
+                            } ${index === 0 ? 'rounded-t-lg' : ''} ${index === league.seasons.length - 1 ? 'rounded-b-lg' : ''}`}
+                            style={{ backgroundColor: formatSeason(s.season) === formatSeason(selectedSeason) ? '#1f2937' : '#000000' }}
+                          >
+                            <span className="tracking-wide">{formatSeason(s.season)} Season</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -584,50 +566,28 @@ const LeaguePage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* League Stats */}
+                    {/* Upcoming Matches Preview */}
                     <div>
-                      <h4 className="text-md font-semibold text-white mb-4">Season Statistics</h4>
-                      {leagueStats ? (
+                      <h4 className="text-md font-semibold text-white mb-4">Next Fixtures</h4>
+                      {matchesLoading ? (
+                        <div className="text-center py-4">
+                          <div className="w-6 h-6 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
+                        </div>
+                      ) : upcomingMatches.length > 0 ? (
                         <div className="space-y-3">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-400">Total Matches:</span>
-                            <span className="text-white font-medium">{leagueStats.totalMatches}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-400">Total Goals:</span>
-                            <span className="text-white font-medium">{leagueStats.totalGoals}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-400">Goals per Match:</span>
-                            <span className="text-white font-medium">
-                              {leagueStats.averageGoalsPerMatch.toFixed(2)}
-                            </span>
-                          </div>
+                          {upcomingMatches.slice(0, 3).map((match) => (
+                            <MatchCard key={match.id} match={match} />
+                          ))}
                         </div>
                       ) : (
-                        <p className="text-gray-400 text-center py-4">No statistics available</p>
+                        <p className="text-gray-400 text-center py-4">No upcoming fixtures</p>
                       )}
                     </div>
                   </div>
-
-                  {/* Upcoming Matches Preview */}
-                  <div className="mt-8">
-                    <h4 className="text-md font-semibold text-white mb-4">Next Fixtures</h4>
-                    {matchesLoading ? (
-                      <div className="text-center py-4">
-                        <div className="w-6 h-6 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
-                      </div>
-                    ) : upcomingMatches.length > 0 ? (
-                      <div className="space-y-3">
-                        {upcomingMatches.slice(0, 3).map((match) => (
-                          <MatchCard key={match.id} match={match} />
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-400 text-center py-4">No upcoming fixtures</p>
-                    )}
-                  </div>
                 </div>
+
+                {/* League Stats */}
+                {leagueStats && <LeagueStats stats={leagueStats} />}
               </div>
             )}
 

@@ -250,3 +250,18 @@ export interface LeagueResponseItem {
   country: Country;
   seasons: Season[];
 }
+
+export interface LeagueStatistics {
+  totalMatches: number;
+  totalGoals: number;
+  averageGoalsPerMatch: number;
+  cleanSheetRate: number;
+  homeWins: number;
+  awayWins: number;
+  draws: number;
+  biggestWin: Match | null;
+}
+
+export interface MatchStatistic {
+  type: string;
+}

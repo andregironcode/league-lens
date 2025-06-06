@@ -8,6 +8,7 @@ import { MatchHighlight, EnhancedMatchHighlight, Player, Match } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { notificationService } from '@/services/notificationService';
+import { formatSeason } from '../utils/seasonFormatting';
 
 // Add match actions type and mock data
 interface MatchAction {
@@ -1761,7 +1762,7 @@ const FullTimeSummary: React.FC = () => {
   const matchSeason = seasonYear.toString();
   
   // Create formatted season display (e.g., "2024-25 Season")
-  const formattedSeason = `${seasonYear}-${(seasonYear + 1).toString().slice(-2)}`;
+  const formattedSeason = formatSeason(seasonYear);
 
   return (
     <div className="min-h-screen bg-black text-white">

@@ -7,6 +7,7 @@ import { highlightlyService } from '@/services/highlightlyService';
 import { MatchHighlight, EnhancedMatchHighlight, Player, Match, MatchEvent, StandingsRow } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
+import { formatSeason } from '../utils/seasonFormatting';
 import StandingsTable from '@/components/StandingsTable';
 import TeamFormStats from '@/components/TeamFormStats';
 import HeadToHeadStats from '@/components/HeadToHeadStats';
@@ -232,10 +233,10 @@ const MatchDetails = () => {
         console.log(`[MatchDetails] - Season year (start): ${seasonYear} (month <= 5: ${matchMonth <= 5})`);
         
         // Create formatted season display (e.g., "2024-25")
-        const formattedSeason = `${seasonYear}-${(seasonYear + 1).toString().slice(-2)}`;
+        const formattedSeason = formatSeason(seasonYear);
         
         // Extract API season from formatted season (e.g., "2024-25" -> "2024")
-        const apiSeason = formattedSeason.split('-')[0];
+        const apiSeason = seasonYear.toString();
         
         console.log(`[MatchDetails] - Formatted season: ${formattedSeason}`);
         console.log(`[MatchDetails] - API season: ${apiSeason}`);
