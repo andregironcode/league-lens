@@ -513,7 +513,7 @@ const LeaguePage: React.FC = () => {
         {/* League Header - Similar to Match Header */}
         <div className="mb-8 w-full space-y-6">
           <div 
-            className="rounded-xl overflow-hidden px-4 sm:px-6 py-3 sm:py-4 relative min-h-[100px] sm:min-h-[120px]"
+            className="rounded-3xl overflow-hidden px-4 sm:px-6 py-3 sm:py-4 relative min-h-[100px] sm:min-h-[120px]"
             style={{
               background: 'linear-gradient(15deg, #000000 0%, #000000 60%, #1F1F1F 100%)',
               border: '1px solid #1B1B1B',
@@ -650,19 +650,21 @@ const LeaguePage: React.FC = () => {
           <div className="pt-2">
             {activeTab === 'home' && (
                     <div className="space-y-6">
-                {/* Today's Matches */}
-                <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
-                  {matchesLoading ? (
-                    <div className="text-center py-8">
-                      <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
-                    </div>
-                  ) : (
-                    <TodaysMatches matches={todaysMatches} />
-                  )}
-                                    </div>
+                                {/* Today's Matches */}
+                <div className="rounded-3xl p-6 border bg-black border-solid border-[#1B1B1B]">
+                  <div className="rounded-xl p-4" style={{ backgroundColor: '#191919' }}>
+                    {matchesLoading ? (
+                      <div className="text-center py-8">
+                        <div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div>
+                      </div>
+                    ) : (
+                      <TodaysMatches matches={todaysMatches} />
+                    )}
+                  </div>
+                </div>
 
                                 {/* League Preview Section */}
-                <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+                <div className="rounded-3xl p-6 border bg-black border-solid border-[#1B1B1B]">
                   {/* Standings Preview */}
                   <div>
                     <div className="flex justify-end items-center mb-4">
@@ -693,7 +695,7 @@ const LeaguePage: React.FC = () => {
                               )}
 
             {activeTab === 'standings' && (
-              <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+              <div className="rounded-3xl p-6 border bg-black border-solid border-[#1B1B1B]">
                 <h4 className="text-lg font-semibold mb-6 text-center text-white">LEAGUE STANDINGS</h4>
                 {standingsLoading ? (
                   <div className="text-center py-8">
@@ -712,7 +714,7 @@ const LeaguePage: React.FC = () => {
                   )}
 
             {activeTab === 'results' && (
-              <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+              <div className="rounded-3xl p-6 border bg-black border-solid border-[#1B1B1B]">
                 <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH RESULTS</h4>
                 {matchesLoading ? (
                       <div className="text-center py-8">
@@ -725,7 +727,7 @@ const LeaguePage: React.FC = () => {
                   )}
 
             {activeTab === 'fixtures' && (
-              <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+              <div className="rounded-3xl p-6 border bg-black border-solid border-[#1B1B1B]">
                 <h4 className="text-lg font-semibold mb-6 text-center text-white">UPCOMING FIXTURES</h4>
                 {matchesLoading ? (
                   <div className="text-center py-8">

@@ -363,7 +363,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
   };
 
   const StandingsTable = () => (
-    <div className="bg-[#1a1a1a] rounded-lg overflow-hidden">
+    <div className="bg-[#1a1a1a] rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-700/30">
         <h3 className="text-lg font-semibold text-white">League Table</h3>
       </div>
@@ -626,11 +626,17 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <StandingsTable />
-            <div className="space-y-6">
-              <MatchesList matches={recentMatches} title="Recent Matches" />
-              <MatchesList matches={upcomingMatches} title="Upcoming Matches" />
+          <div className="rounded-3xl p-6 border bg-black border-solid border-[#1B1B1B]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <StandingsTable />
+              <div className="space-y-6">
+                <div className="bg-[#1a1a1a] rounded-xl p-4">
+                  <MatchesList matches={recentMatches} title="Recent Matches" />
+                </div>
+                <div className="bg-[#1a1a1a] rounded-xl p-4">
+                  <MatchesList matches={upcomingMatches} title="Upcoming Matches" />
+                </div>
+              </div>
             </div>
           </div>
         )}

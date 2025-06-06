@@ -24,9 +24,10 @@ const getMatchScore = (match: any) => {
 interface MatchCardProps {
   match: Match;
   showDate?: boolean;
+  datePosition?: 'top' | 'bottom';
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true }) => {
+const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosition = 'top' }) => {
   const getStatusString = (status: any): string => {
     if (typeof status === 'string') return status.toLowerCase();
     if (typeof status === 'object' && status !== null) return status.long?.toLowerCase() || status.short?.toLowerCase() || '';
@@ -44,9 +45,9 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true }) => {
   return (
     <Link 
       to={`/match/${match.id}`} 
-      className="block bg-gray-900/50 rounded-lg p-4 border border-gray-700/50 hover:bg-gray-800/50 transition-colors"
+      className="block bg-gray-900/50 rounded-md p-4 border border-gray-700/50 hover:bg-gray-800/50 transition-colors"
     >
-      {showDate && (
+      {showDate && datePosition === 'top' && (
         <div className="text-xs text-gray-400 mb-2">
           {formatMatchDate(match.date)} • {formatMatchTime(match.date)}
         </div>
@@ -86,6 +87,12 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true }) => {
           />
         </div>
       </div>
+      
+      {showDate && datePosition === 'bottom' && (
+        <div className="text-xs text-gray-400 mt-2 text-center">
+          {formatMatchDate(match.date)} • {formatMatchTime(match.date)}
+        </div>
+      )}
       
       {!isFinished && (
         <div className="mt-2 text-center">
