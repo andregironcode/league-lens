@@ -89,7 +89,7 @@ const Header = () => {
     >
       <div className="max-w-7xl mx-auto flex items-center">
         {/* Logo - Left Side */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 flex items-center space-x-8">
           <Link to="/" className="flex items-center transition-transform duration-200 hover:scale-110">
             <img 
               src="/lovable-uploads/3f69b4d3-7c25-4f74-a779-c3f73cd73d08.png" 
@@ -97,6 +97,15 @@ const Header = () => {
               className="h-8 md:h-9" 
             />
           </Link>
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link to="/leagues" className="text-gray-300 hover:text-white font-medium transition-colors">
+              Leagues
+            </Link>
+            {/* Add teams link later if needed */}
+            {/* <Link to="/teams" className="text-gray-300 hover:text-white font-medium transition-colors">
+              Teams
+            </Link> */}
+          </nav>
         </div>
 
         {/* Search Bar - Center */}

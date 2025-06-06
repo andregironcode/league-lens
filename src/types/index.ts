@@ -237,3 +237,16 @@ export interface StandingsRow {
   goalDifference: number;
   points: number;
 }
+
+export interface LeagueInfo {
+  id: string;
+  name: string;
+  type: string;
+  logo: string;
+}
+
+export interface LeagueResponseItem {
+  league: LeagueInfo;
+  country: Country;
+  seasons: Season[];
+}

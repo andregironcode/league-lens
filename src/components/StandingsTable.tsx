@@ -4,8 +4,8 @@ import { ShieldCheck } from 'lucide-react';
 
 interface StandingsTableProps {
   standings: StandingsRow[];
-  homeTeamId: string;
-  awayTeamId: string;
+  homeTeamId?: string;
+  awayTeamId?: string;
 }
 
 const StandingsTable: React.FC<StandingsTableProps> = ({ standings, homeTeamId, awayTeamId }) => {

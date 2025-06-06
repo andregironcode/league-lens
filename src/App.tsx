@@ -4,6 +4,7 @@ import MatchDetails from '@/pages/MatchDetails';
 import FullTimeSummary from '@/pages/FullTimeSummary';
 import TeamPage from '@/pages/TeamPage';
 import LeaguePage from '@/pages/LeaguePage';
+import LeaguesPage from '@/pages/LeaguesPage';
 import NotFound from '@/pages/NotFound';
 import './App.css';
 
@@ -15,7 +16,8 @@ function App() {
         <Route path="/match/:id" element={<MatchDetails />} />
         <Route path="/fulltime/:id" element={<FullTimeSummary />} />
         <Route path="/team/:teamId" element={<TeamPage />} />
-        <Route path="/league/:leagueId" element={<LeaguePage />} />
+        <Route path="/league/:leagueId/:season?" element={<LeaguePage />} />
+        <Route path="/leagues" element={<LeaguesPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

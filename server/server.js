@@ -4,6 +4,8 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import cron from 'node-cron';
+import { getFromCache, setInCache, clearCache } from './cache.js';
 
 // Initialize environment variables
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
@@ -17,6 +19,60 @@ const PORT = process.env.SERVER_PORT || 3001;
 const HIGHLIGHTLY_API_URL = 'https://soccer.highlightly.net';
 // Use the direct Highlightly API key from the environment variables
 const HIGHLIGHTLY_API_KEY = process.env.HIGHLIGHTLY_API_KEY;
+
+const callHighlightlyApi = async (path) => {
+    const requestUrl = `${HIGHLIGHTLY_API_URL}/${path}`;
+    try {
+        console.log(`[Cache Warmer] Calling: ${requestUrl}`);
+        const response = await axios.get(requestUrl, {
+            headers: {
+                'x-api-key': HIGHLIGHTLY_API_KEY,
+                'x-rapidapi-key': HIGHLIGHTLY_API_KEY,
+            },
+            timeout: 30000,
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`[Cache Warmer] Error fetching ${requestUrl}:`, error.message);
+        return null;
+    }
+};
+
+const warmUpCache = async () => {
+    console.log('[Cache Warmer] Starting cache warming process...');
+    await clearCache();
+
+    // 1. Fetch top leagues
+    const topLeaguesConfig = [
+      { id: '39', name: 'Premier League' },
+      { id: '140', name: 'La Liga' },
+      { id: '135', name: 'Serie A' },
+      { id: '78', name: 'Bundesliga' },
+      { id: '61', name: 'Ligue 1' },
+      { id: '2', name: 'Champions League' },
+    ];
+    
+    const season = new Date().getFullYear().toString();
+    const date = new Date().toISOString().split('T')[0];
+
+    for (const league of topLeaguesConfig) {
+        // Fetch and cache league details
+        const leagueDetailPath = `leagues/${league.id}`;
+        const leagueDetailData = await callHighlightlyApi(leagueDetailPath);
+        if (leagueDetailData) {
+            await setInCache(`/api/highlightly/${leagueDetailPath}`, leagueDetailData);
+        }
+
+        // Fetch and cache matches for today
+        const matchesPath = `matches?leagueId=${league.id}&date=${date}&season=${season}`;
+        const matchesData = await callHighlightlyApi(matchesPath);
+        if (matchesData) {
+            await setInCache(`/api/highlightly/${matchesPath}`, matchesData);
+        }
+    }
+
+    console.log('[Cache Warmer] Cache warming process finished.');
+};
 
 // Middleware
 app.use(cors());
@@ -35,6 +91,13 @@ app.get('/api/health', (req, res) => {
 
 // Proxy middleware for Highlightly API
 app.use('/api/highlightly', async (req, res) => {
+  const cacheKey = req.originalUrl;
+  const cachedData = await getFromCache(cacheKey);
+
+  if (cachedData) {
+    return res.json(cachedData);
+  }
+
   // Parse the URL to separate path from query string - declare at top of function scope
   const urlParts = req.url.split('?');
   const pathPart = urlParts[0].replace(/^\/?/, '');
@@ -70,6 +133,9 @@ app.use('/api/highlightly', async (req, res) => {
         timeout: 30000, // Increased to 30 seconds timeout to handle slow API responses
       });
       
+      // Store the API response in the cache
+      await setInCache(cacheKey, response.data);
+
       // Return the API response to the client
       res.status(response.status).json(response.data);
     } catch (axiosError) {
@@ -159,11 +225,21 @@ app.use('/api/highlightly', async (req, res) => {
   }
 });
 
+// Schedule a cron job to clear the cache at midnight CET
+cron.schedule('0 0 * * *', () => {
+    console.log('Running cron job to clear and warm up cache at midnight CET');
+    warmUpCache();
+}, {
+    timezone: "Europe/Paris" // CET is equivalent to Europe/Paris timezone
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Highlightly API Proxy Server running on port ${PORT}`);
   console.log(`API URL: ${HIGHLIGHTLY_API_URL}`);
   console.log(`API Key: ${HIGHLIGHTLY_API_KEY ? '✓ Configured' : '✗ Missing'}`);
+  // Warm up cache on server start
+  warmUpCache();
 });
 
 export default app;

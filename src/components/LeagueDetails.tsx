@@ -13,9 +13,12 @@ import TopContributorsDisplay from './TopContributorsDisplay';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LEAGUE_COUNTRY_MAPPING, getCountryFlag } from '@/utils/leagueCountryMapping';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface LeagueDetailsProps {
   league: League;
+  initialSeason?: string;
+  onSeasonChange: (season: string) => void;
   onBack: () => void;
 }
 
@@ -30,7 +33,7 @@ const parseScore = (scoreString?: string): { home: number | null; away: number |
   return { home: isNaN(home) ? null : home, away: isNaN(away) ? null : away };
 };
 
-const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
+const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, initialSeason, onSeasonChange, onBack }) => {
   const navigate = useNavigate();
   const service = serviceAdapter;
 
@@ -51,19 +54,19 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
 
 
   useEffect(() => {
-    if (league?.seasons && league.seasons.length > 0) {
-      // Prioritize season with is_current_season flag if available, else latest, else current year
-      const currentApiSeason = league.seasons.find(s => (s as any).is_current_season === true || s.season?.toString() === new Date().getFullYear().toString());
+    if (initialSeason) {
+      setSelectedSeason(initialSeason);
+    } else if (league?.seasons && league.seasons.length > 0) {
+      const currentApiSeason = league.seasons.find((s: any) => s.current === true);
       if (currentApiSeason) {
         setSelectedSeason(currentApiSeason.season.toString());
       } else {
-        // Fallback to the first season in the list (assuming it's sorted desc by API)
         setSelectedSeason(league.seasons[0].season.toString());
       }
-    } else if (league?.id) { // If no seasons, but we have a league, maybe try current year
+    } else {
       setSelectedSeason(new Date().getFullYear().toString());
     }
-  }, [league]);
+  }, [league, initialSeason]);
 
   const fetchLeagueData = useCallback(async () => {
     if (!league?.id || !selectedSeason) return;
@@ -110,10 +113,19 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
       let matchesWithCleanSheet = 0;
       const scorelineCounts: Record<string, number> = {};
 
+      const getStatusString = (status: any): string => {
+        if (typeof status === 'object' && status !== null && status.long) {
+          return status.long.toLowerCase();
+        }
+        if (typeof status === 'string') {
+          return status.toLowerCase();
+        }
+        return '';
+      };
 
       allMatches.forEach(match => {
         const matchDate = match.date.split('T')[0];
-        const status = match.state?.description?.toLowerCase() || match.status?.long?.toLowerCase() || '';
+        const status = getStatusString(match.status) || match.state?.description?.toLowerCase() || '';
         const isFinished = status.includes('finished') || status.includes('ft') || status.includes('aet') || status.includes('pen');
         
         if (matchDate === today && !isFinished) { // Consider live matches for today if not strictly finished
@@ -206,7 +218,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
 
   const handleSeasonChange = (season: string) => {
     setSelectedSeason(season);
-    // Data will re-fetch due to selectedSeason dependency in fetchLeagueData's useCallback deps
+    onSeasonChange(season);
   };
   
   const renderCountryFlag = (leagueId: string | number) => {
@@ -249,17 +261,18 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
           </div>
           {league.seasons && league.seasons.length > 0 && (
             <div className="ml-auto">
-              <select 
-                value={selectedSeason || ''} 
-                onChange={(e) => handleSeasonChange(e.target.value)}
-                className="p-2 border rounded-md bg-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {league.seasons.map(s => (
-                  <option key={s.season} value={s.season.toString()}>
-                    {s.season}{s.startDate && s.endDate ? ` (${s.startDate} - ${s.endDate})` : ''}
-                  </option>
-                ))}
-              </select>
+              <Select value={selectedSeason || ''} onValueChange={handleSeasonChange}>
+                <SelectTrigger className="w-[180px] bg-white">
+                  <SelectValue placeholder="Select season" />
+                </SelectTrigger>
+                <SelectContent>
+                  {league.seasons.map((s) => (
+                    <SelectItem key={s.season} value={s.season.toString()}>
+                      {s.season.toString()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
         </CardHeader>

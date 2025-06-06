@@ -170,14 +170,11 @@ export const serviceAdapter = {
   async getMatchesForDate(dateString: string): Promise<LeagueWithMatches[]> {
     switch (activeService) {
       case 'highlightly':
-        // This function doesn't exist in highlightlyService, so return empty array
-        console.log('[ServiceAdapter] getMatchesForDate not implemented for highlightly service');
-        return [];
+        return highlightlyService.getMatchesForDate(dateString);
       case 'mock':
       case 'supabase':
       default:
-        // For now, only supported in highlightly service
-        // Could implement fallbacks for other services later
+        console.log(`[ServiceAdapter] getMatchesForDate not implemented for ${activeService}, returning empty.`);
         return [];
     }
   },

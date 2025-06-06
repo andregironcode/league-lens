@@ -5,90 +5,61 @@ import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
 import TopLeaguesFilter from '@/components/TopLeaguesFilter';
+import DateSlider from '@/components/DateSlider';
+import { formatDateForAPI, getCurrentDateCET } from '@/utils/dateUtils';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
   const [recentMatches, setRecentMatches] = useState<LeagueWithMatches[]>([]);
   const [selectedLeagueIds, setSelectedLeagueIds] = useState<string[]>([]);
   const [selectedTopLeagueId, setSelectedTopLeagueId] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [matchesLoading, setMatchesLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [matchesLoading, setMatchesLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load initial data with optimized loading strategy
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log('[Index] Loading initial data with optimized strategy...');
-
-        // Load highlights first (lighter operation)
-        const highlightsData = await serviceAdapter.getRecommendedHighlights().catch(err => {
-          console.error('[Index] Error loading highlights:', err);
-          return [];
-        });
-
-        if (isMounted) {
-          setFeaturedHighlights(highlightsData);
-          setLoading(false); // Set loading to false early to show UI
-        }
-
-        // Load matches data in background (heavier operation)
-        setMatchesLoading(true);
-        const matchesData = await serviceAdapter.getRecentMatchesForTopLeagues().catch(err => {
-          console.error('[Index] Error loading recent matches:', err);
-          return [];
-        });
-
-        if (isMounted) {
-          console.log('[Index] Background data loaded:', {
-            highlights: highlightsData.length,
-            leagues: matchesData.length
-          });
-          setRecentMatches(matchesData);
-        }
-
-      } catch (error) {
-        console.error('[Index] Error loading data:', error);
-        setError('Failed to load data');
-      } finally {
-        setMatchesLoading(false);
-      }
-    };
-
-    loadData();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Handle league filter selection
-  const handleLeagueSelect = useCallback((leagueIds: string[]) => {
-    console.log(`[Index] League filter selected: ${leagueIds.join(', ')}`);
-    setSelectedLeagueIds(leagueIds);
-  }, []);
-
-  // Handle top league selection
-  const handleTopLeagueSelect = useCallback((leagueId: string | null) => {
-    console.log(`[Index] Top league selected: ${leagueId}`);
-    setSelectedTopLeagueId(leagueId);
-    // When a top league is selected, also filter the match feed to show only that league
-    if (leagueId) {
-      setSelectedLeagueIds([leagueId]);
-    } else {
-      setSelectedLeagueIds([]);
+  const fetchMatchesForDate = useCallback(async (date: string) => {
+    try {
+      setMatchesLoading(true);
+      setError(null);
+      console.log(`[Index] Fetching matches for date: ${date}`);
+      const matchesData = await serviceAdapter.getMatchesForDate(date);
+      setRecentMatches(matchesData);
+    } catch (err) {
+      console.error(`[Index] Error loading matches for date ${date}:`, err);
+      setError('Failed to load matches for the selected date.');
+    } finally {
+      setMatchesLoading(false);
     }
   }, []);
 
-  if (error) {
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        setLoading(true);
+        const highlightsData = await serviceAdapter.getRecommendedHighlights();
+        setFeaturedHighlights(highlightsData);
+      } catch (err) {
+        console.error('[Index] Error loading highlights:', err);
+        setError('Failed to load featured highlights.');
+      } finally {
+        setLoading(false);
+      }
+      
+      const today = formatDateForAPI(getCurrentDateCET());
+      fetchMatchesForDate(today);
+    };
+
+    loadInitialData();
+  }, [fetchMatchesForDate]);
+
+  const handleDateChange = (date: string) => {
+    fetchMatchesForDate(date);
+  };
+  
+  if (error && !matchesLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-center">
+        <div>
           <h1 className="text-2xl font-bold text-white mb-4">Something went wrong</h1>
           <p className="text-gray-400 mb-6">{error}</p>
           <button 
@@ -106,45 +77,41 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-[#111111] text-white">
       <Header />
       
-      {/* Main content */}
       <main className="flex-1 pb-10 pt-16">
-        {/* Hero Carousel */}
         <section className="mb-12">
-          <div className="w-full mx-auto px-0 sm:px-0">
-            {loading ? (
-              <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
-            ) : (
-              <HeroCarousel highlights={featuredHighlights} />
-            )}
-          </div>
+          {loading ? (
+            <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
+          ) : (
+            <HeroCarousel highlights={featuredHighlights} />
+          )}
         </section>
 
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
-          {/* Page Title */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">Recent Matches</h1>
-            <p className="text-gray-400">Recent finished matches from top leagues</p>
+            <p className="text-gray-400">Select a date to view matches</p>
+          </div>
+          
+          <div className="mb-8">
+            <DateSlider onDateChange={handleDateChange} />
           </div>
 
-          {/* Main Content Area */}
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Matches Content - Middle */}
             <div className="flex-1 min-w-0">
               <MatchFeedByLeague 
                 leaguesWithMatches={recentMatches}
                 loading={matchesLoading}
-                selectedLeagueIds={selectedLeagueIds}
-                onLeagueSelect={handleLeagueSelect}
+                selectedLeagueIds={[]}
+                onLeagueSelect={() => {}}
                 selectedCountryCode={null}
               />
             </div>
 
-            {/* Top Leagues Filter - Right */}
             <div className="lg:w-80 flex-shrink-0">
               <div className="lg:sticky lg:top-24">
                 <TopLeaguesFilter
-                  selectedLeagueId={selectedTopLeagueId}
-                  onLeagueSelect={handleTopLeagueSelect}
+                  selectedLeagueId={null}
+                  onLeagueSelect={() => {}}
                 />
               </div>
             </div>
