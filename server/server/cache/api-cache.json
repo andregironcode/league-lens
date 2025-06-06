@@ -1,7 +1,7 @@
 {
   "/api/highlightly/leagues/39": {
     "data": [],
-    "expiry": 1749326467938
+    "expiry": 1749326606048
   },
   "/api/highlightly/matches?leagueId=39&date=2025-06-06&season=2025": {
     "data": {
@@ -16,11 +16,11 @@
         "limit": 100
       }
     },
-    "expiry": 1749326468288
+    "expiry": 1749326606212
   },
   "/api/highlightly/leagues/140": {
     "data": [],
-    "expiry": 1749326468626
+    "expiry": 1749326606331
   },
   "/api/highlightly/matches?leagueId=140&date=2025-06-06&season=2025": {
     "data": {
@@ -35,11 +35,11 @@
         "limit": 100
       }
     },
-    "expiry": 1749326468942
+    "expiry": 1749326606418
   },
   "/api/highlightly/leagues/135": {
     "data": [],
-    "expiry": 1749326469273
+    "expiry": 1749326606533
   },
   "/api/highlightly/matches?leagueId=135&date=2025-06-06&season=2025": {
     "data": {
@@ -54,11 +54,11 @@
         "limit": 100
       }
     },
-    "expiry": 1749326469591
+    "expiry": 1749326606615
   },
   "/api/highlightly/leagues/78": {
     "data": [],
-    "expiry": 1749326469903
+    "expiry": 1749326606698
   },
   "/api/highlightly/matches?leagueId=78&date=2025-06-06&season=2025": {
     "data": {
@@ -73,11 +73,11 @@
         "limit": 100
       }
     },
-    "expiry": 1749326470216
+    "expiry": 1749326606775
   },
   "/api/highlightly/leagues/61": {
     "data": [],
-    "expiry": 1749326470558
+    "expiry": 1749326606861
   },
   "/api/highlightly/matches?leagueId=61&date=2025-06-06&season=2025": {
     "data": {
@@ -92,11 +92,11 @@
         "limit": 100
       }
     },
-    "expiry": 1749326470877
+    "expiry": 1749326606948
   },
   "/api/highlightly/leagues/2": {
     "data": [],
-    "expiry": 1749326471293
+    "expiry": 1749326607033
   },
   "/api/highlightly/matches?leagueId=2&date=2025-06-06&season=2025": {
     "data": {
@@ -111,6 +111,6 @@
         "limit": 100
       }
     },
-    "expiry": 1749326471609
+    "expiry": 1749326607155
   }
 }
