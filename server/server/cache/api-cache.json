@@ -324,7 +324,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749291900394,
+    "expiry": 1749293100660,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-07&season=2025": {
@@ -340,7 +340,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749291900406,
+    "expiry": 1749293100755,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-07&season=2025": {
@@ -356,7 +356,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749291900758,
+    "expiry": 1749293101122,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-07&season=2025": {
@@ -372,7 +372,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749291901069,
+    "expiry": 1749293101415,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-07&season=2025": {
@@ -388,7 +388,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749291900736,
+    "expiry": 1749293101079,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-07&season=2025": {
@@ -404,7 +404,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749291901064,
+    "expiry": 1749293101441,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-08&season=2025": {
@@ -1746,7 +1746,7 @@
         "name": "Inter"
       }
     },
-    "expiry": 1749292500126,
+    "expiry": 1749299745348,
     "ttl": 7200
   },
   "/api/highlightly/statistics/1169965796?": {
@@ -1938,7 +1938,7 @@
         ]
       }
     ],
-    "expiry": 1749291688648,
+    "expiry": 1749293050563,
     "ttl": 600
   },
   "/api/highlightly/matches/1169965796?": {
@@ -4250,7 +4250,7 @@
         "season": 2024
       }
     },
-    "expiry": 1749291294265,
+    "expiry": 1749294250779,
     "ttl": 1800
   },
   "/api/highlightly/highlights?matchId=1169965796&limit=20": {

@@ -170,7 +170,19 @@ const MatchStatistics: React.FC<MatchStatisticsProps> = ({ statistics, homeTeam,
         {orderedStatsPairs.map(({ homeStat, awayStat }, index) => {
           const homeValue = homeStat.value;
           const awayValue = awayStat.value;
-          const { homePercent, awayPercent } = getOptimizedPercentage(homeValue, awayValue);
+          const isPossession = homeStat.displayName === 'Possession';
+
+          let homePercent, awayPercent;
+
+          if (isPossession) {
+            const total = homeValue + awayValue;
+            homePercent = total > 0 ? (homeValue / total) * 100 : 50;
+            awayPercent = total > 0 ? (awayValue / total) * 100 : 50;
+          } else {
+            const percentages = getOptimizedPercentage(homeValue, awayValue);
+            homePercent = percentages.homePercent;
+            awayPercent = percentages.awayPercent;
+          }
           
           const homeIsHigher = isHigher(homeValue, awayValue);
           const awayIsHigher = isHigher(awayValue, homeValue);
@@ -187,74 +199,104 @@ const MatchStatistics: React.FC<MatchStatisticsProps> = ({ statistics, homeTeam,
                 </span>
               </div>
 
-              {/* Center-Gapped Pill-Shaped Progress Bars Container */}
-              <div className="relative" style={{ height: '36px' }}>
-                {/* Background pill for home team (full width) */}
-                <div 
-                  className="absolute top-0 h-full rounded-full"
-                  style={{
-                    backgroundColor: '#1C1C1C',
-                    left: '0',
-                    width: 'calc(50% - 2.5px)',
-                    height: '36px'
-                  }}
-                />
-                
-                {/* Background pill for away team (full width) */}
-                <div 
-                  className="absolute top-0 h-full rounded-full"
-                  style={{
-                    backgroundColor: '#1C1C1C',
-                    left: 'calc(50% + 2.5px)',
-                    width: 'calc(50% - 2.5px)',
-                    height: '36px'
-                  }}
-                />
-
-                {/* Home team progress bar (extends from center leftward) */}
-                <div 
-                  className="absolute top-0 h-full transition-all duration-300 ease-out rounded-full"
-                  style={{
-                    backgroundColor: homeIsHigher ? '#F7CC45' : '#585858',
-                    right: '50%',
-                    marginRight: '2.5px',
-                    width: `${homePercent * 0.5}%`,
-                    height: '36px'
-                  }}
-                >
-                  {/* Home team value (positioned on right side) */}
-                  <div className="absolute inset-0 flex items-center justify-end pr-4">
-                    <span 
-                      className="font-bold"
-                      style={{ fontSize: '14px', color: '#FFFFFF' }}
-                    >
+              {isPossession ? (
+                // Single continuous progress bar for Possession
+                <div className="relative flex w-full h-[36px] rounded-full overflow-hidden">
+                  {/* Home Team Possession */}
+                  <div
+                    className="h-full flex items-center justify-between px-3 transition-all duration-300 ease-out"
+                    style={{
+                      width: `${homePercent}%`,
+                      backgroundColor: homeIsHigher ? '#F7CC45' : '#585858',
+                    }}
+                  >
+                    <img src={homeTeam.logo} alt={homeTeam.name} className="w-6 h-6" />
+                    <span className="font-bold text-white" style={{ fontSize: '14px' }}>
                       {formatStatValue(homeValue)}
                     </span>
                   </div>
-                </div>
-                
-                {/* Away team progress bar (extends from center rightward) */}
-                <div 
-                  className="absolute top-0 h-full transition-all duration-300 ease-out rounded-full"
-                  style={{
-                    backgroundColor: awayIsHigher ? '#F7CC45' : '#585858',
-                    left: '50%',
-                    marginLeft: '2.5px',
-                    width: `${awayPercent * 0.5}%`,
-                    height: '36px'
-                  }}
-                >
-                  {/* Away team value (positioned on left side) */}
-                  <div className="absolute inset-0 flex items-center justify-start pl-4">
-                    <span 
-                      className="font-bold"
-                      style={{ fontSize: '14px', color: '#FFFFFF' }}
-                    >
+                  {/* Away Team Possession */}
+                  <div
+                    className="h-full flex items-center justify-between px-3 transition-all duration-300 ease-out"
+                    style={{
+                      width: `${awayPercent}%`,
+                      backgroundColor: awayIsHigher ? '#F7CC45' : '#585858',
+                    }}
+                  >
+                    <span className="font-bold text-white" style={{ fontSize: '14px' }}>
                       {formatStatValue(awayValue)}
                     </span>
+                    <img src={awayTeam.logo} alt={awayTeam.name} className="w-6 h-6" />
                   </div>
                 </div>
-              </div>
+              ) : (
+                // Tug-of-war progress bars for other stats
+                <div className="relative" style={{ height: '36px' }}>
+                  {/* Background pill for home team */}
+                  <div 
+                    className="absolute top-0 h-full rounded-full"
+                    style={{
+                      backgroundColor: '#1C1C1C',
+                      left: '0',
+                      width: 'calc(50% - 2.5px)',
+                      height: '36px'
+                    }}
+                  />
+                  
+                  {/* Background pill for away team */}
+                  <div 
+                    className="absolute top-0 h-full rounded-full"
+                    style={{
+                      backgroundColor: '#1C1C1C',
+                      left: 'calc(50% + 2.5px)',
+                      width: 'calc(50% - 2.5px)',
+                      height: '36px'
+                    }}
+                  />
+
+                  {/* Home team progress bar */}
+                  <div 
+                    className="absolute top-0 h-full transition-all duration-300 ease-out rounded-full"
+                    style={{
+                      backgroundColor: homeIsHigher ? '#F7CC45' : '#585858',
+                      right: '50%',
+                      marginRight: '2.5px',
+                      width: `${homePercent * 0.5}%`,
+                      height: '36px'
+                    }}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-end pr-4">
+                      <span 
+                        className="font-bold"
+                        style={{ fontSize: '14px', color: '#FFFFFF' }}
+                      >
+                        {formatStatValue(homeValue)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Away team progress bar */}
+                  <div 
+                    className="absolute top-0 h-full transition-all duration-300 ease-out rounded-full"
+                    style={{
+                      backgroundColor: awayIsHigher ? '#F7CC45' : '#585858',
+                      left: '50%',
+                      marginLeft: '2.5px',
+                      width: `${awayPercent * 0.5}%`,
+                      height: '36px'
+                    }}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-start pl-4">
+                      <span 
+                        className="font-bold"
+                        style={{ fontSize: '14px', color: '#FFFFFF' }}
+                      >
+                        {formatStatValue(awayValue)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
