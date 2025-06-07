@@ -485,29 +485,40 @@ const MatchDetails = () => {
                   </div>
                 </div>
                 
-                <ScorelineTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchEvents={match.events || []} />
+                <ScorelineTimeline 
+                  homeTeam={match.homeTeam} 
+                  awayTeam={match.awayTeam} 
+                  matchEvents={match.events || []} 
+                  matchDate={match.date}
+                />
               </div>
             </div>
 
             {/* TAB NAVIGATION */}
-            <div className="rounded-3xl p-2 flex justify-around sm:justify-center space-x-1 sm:space-x-2" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+            <div className="flex justify-center gap-6" style={{ backgroundColor: '#000000' }}>
               {[
-                { key: 'home', label: 'Home', icon: Home },
-                { key: 'lineups', label: 'Lineups', icon: Users },
-                { key: 'stats', label: 'Stats', icon: BarChart2 },
-                { key: 'standings', label: 'Standings', icon: Trophy },
+                { key: 'home', label: 'Home' },
+                { key: 'lineups', label: 'Lineups' },
+                { key: 'stats', label: 'Stats' },
+                { key: 'standings', label: 'Standings' },
               ].map(tab => (
-                <button
+                <button 
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex-1 sm:flex-initial sm:px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-black ${
+                  className={`relative px-4 py-3 text-sm font-medium text-white transition-all duration-200 focus:outline-none ${
                     activeTab === tab.key
-                      ? 'bg-yellow-500 text-black shadow-lg scale-105'
-                      : 'text-white bg-gray-800/50 hover:bg-gray-700/70'
+                      ? ''
+                      : 'hover:opacity-70'
                   }`}
+                  style={{ backgroundColor: '#000000' }}
                 >
-                  <tab.icon size={16} />
-                  <span>{tab.label}</span>
+                  <span className="tracking-wide">{tab.label}</span>
+                  {activeTab === tab.key && (
+                    <div 
+                      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full"
+                      style={{ backgroundColor: '#F7CC45' }}
+                    />
+                  )}
                 </button>
               ))}
             </div>

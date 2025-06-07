@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, UserMinus, UserPlus, Square } from 'lucide-react';
+import { Target, UserMinus, UserPlus, Square, Clock } from 'lucide-react';
 
 interface ScorelineEvent {
   id: string;
@@ -131,15 +131,57 @@ const getScorelineEventsFromAPI = (matchEvents: any[], homeTeam: any, awayTeam: 
       }
     })
     .filter((action): action is ScorelineEvent => action !== null)
-    .sort((a, b) => a.minute - b.minute);
+    .sort((a, b) => b.minute - a.minute);
 };
 
-const ScorelineTimeline: React.FC<{ homeTeam: any; awayTeam: any; matchEvents?: any[] }> = ({ 
+const ScorelineTimeline: React.FC<{ 
+  homeTeam: any; 
+  awayTeam: any; 
+  matchEvents?: any[];
+  matchDate?: string;
+  matchTime?: string;
+}> = ({ 
   homeTeam, 
   awayTeam, 
-  matchEvents 
+  matchEvents,
+  matchDate,
+  matchTime
 }) => {
   const events = getScorelineEventsFromAPI(matchEvents || [], homeTeam, awayTeam);
+
+  const formatMatchDateTime = (date?: string, time?: string): string => {
+    if (!date) return '';
+    
+    try {
+      const matchDate = new Date(date);
+      const dayName = matchDate.toLocaleDateString('en-US', { weekday: 'long' });
+      const monthName = matchDate.toLocaleDateString('en-US', { month: 'long' });
+      const day = matchDate.getDate();
+      
+      // Extract time from date string or use provided time
+      let timeString = '';
+      if (time) {
+        timeString = time;
+      } else {
+        // Try to extract time from the date string
+        const timeMatch = date.match(/(\d{2}):(\d{2})/);
+        if (timeMatch) {
+          timeString = `${timeMatch[1]}:${timeMatch[2]}`;
+        } else {
+          timeString = matchDate.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+          });
+        }
+      }
+      
+      return `${timeString}, ${dayName}, ${monthName} ${day}`;
+    } catch (error) {
+      console.error('Error formatting match date:', error);
+      return '';
+    }
+  };
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -190,9 +232,14 @@ const ScorelineTimeline: React.FC<{ homeTeam: any; awayTeam: any; matchEvents?: 
   return (
     <div className="space-y-4">
       {/* Scoreline Events with Key Events Design */}
-      <div className="relative max-h-96 overflow-visible px-2 min-w-[600px]">
-        {/* Extended center line that goes all the way through */}
-        <div className="absolute left-1/2 -top-32 -bottom-32 w-px transform -translate-x-1/2 bg-gradient-to-b from-transparent from-0% via-gray-600/30 via-20% via-gray-600 via-50% via-gray-600 via-80% via-gray-600/30 to-transparent to-100% z-0"></div>
+      <div className="relative max-h-96 overflow-hidden px-2 min-w-[600px]">
+        {/* Center line with subtle faded edges */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-[3px] transform -translate-x-1/2 z-0" style={{
+          background: 'linear-gradient(to bottom, transparent 0%, #4B4B4B 10%, #4B4B4B 90%, transparent 100%)'
+        }}></div>
+        
+        {/* Bottom fade overlay only */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none"></div>
         
         <div className="space-y-3 pb-4 relative z-10 overflow-y-auto max-h-96">
           {events.map((event, index) => {
@@ -281,6 +328,16 @@ const ScorelineTimeline: React.FC<{ homeTeam: any; awayTeam: any; matchEvents?: 
           })}
         </div>
       </div>
+      
+      {/* Match Date and Time */}
+      {matchDate && (
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <Clock size={14} style={{ color: '#727272' }} />
+          <span className="text-sm" style={{ color: '#727272' }}>
+            {formatMatchDateTime(matchDate, matchTime)}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

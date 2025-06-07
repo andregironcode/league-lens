@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Play, ExternalLink, Video, Clock, Eye } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 
@@ -9,6 +9,37 @@ interface HighlightsCarouselProps {
 
 const HighlightsCarousel: React.FC<HighlightsCarouselProps> = ({ highlights, loading = false }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-rotation every 10 seconds
+  useEffect(() => {
+    if (highlights.length > 1) {
+      intervalRef.current = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % highlights.length);
+      }, 10000);
+
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    }
+  }, [highlights.length]);
+
+  // Clear interval and restart when user manually changes slide
+  const handleManualChange = (index: number) => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    setCurrentIndex(index);
+    
+    // Restart auto-rotation after manual change
+    if (highlights.length > 1) {
+      intervalRef.current = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % highlights.length);
+      }, 10000);
+    }
+  };
 
   if (loading) {
     return (
@@ -29,11 +60,11 @@ const HighlightsCarousel: React.FC<HighlightsCarouselProps> = ({ highlights, loa
   }
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % highlights.length);
+    handleManualChange((currentIndex + 1) % highlights.length);
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + highlights.length) % highlights.length);
+    handleManualChange((currentIndex - 1 + highlights.length) % highlights.length);
   };
 
   const getVideoEmbedUrl = (url: string): string | null => {
@@ -160,54 +191,30 @@ const HighlightsCarousel: React.FC<HighlightsCarouselProps> = ({ highlights, loa
         </div>
       </div>
 
-      {/* Thumbnail Navigation */}
+      {/* Pill-shaped Selectors */}
       {highlights.length > 1 && (
-        <div className="relative">
-          <div className="flex space-x-3 overflow-x-auto pb-2">
-            {highlights.map((highlight, index) => (
-              <button
-                key={highlight.id || index}
-                onClick={() => setCurrentIndex(index)}
-                className={`flex-shrink-0 relative rounded-lg overflow-hidden transition-all duration-200 ${
-                  index === currentIndex 
-                    ? 'ring-2 ring-yellow-500 scale-105' 
-                    : 'hover:scale-102 opacity-70 hover:opacity-100'
-                }`}
-              >
-                <div className="w-32 h-18 bg-gray-800">
-                  <img
-                    src={highlight.imgUrl || '/placeholder-thumbnail.jpg'}
-                    alt={highlight.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder-thumbnail.jpg';
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <Play size={16} className="text-white" />
-                  </div>
-                  {index === currentIndex && (
-                    <div className="absolute inset-0 bg-yellow-500/20"></div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-          
-          {/* Progress Indicator */}
-          <div className="flex justify-center mt-4 space-x-1">
-            {highlights.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? 'bg-yellow-500' : 'bg-gray-600 hover:bg-gray-500'
-                }`}
-                aria-label={`Go to highlight ${index + 1}`}
-              />
-            ))}
-          </div>
+        <div className="flex justify-center items-center mt-6 gap-1">
+          {highlights.map((_, index) => (
+            <div
+              key={index}
+              onClick={() => handleManualChange(index)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleManualChange(index);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              className="transition-all duration-300 cursor-pointer"
+              style={{ 
+                width: index === currentIndex ? '40px' : '20px',
+                height: '20px',
+                backgroundColor: index === currentIndex ? '#F7CC45' : '#4B4B4B',
+                borderRadius: '999px',
+              }}
+              aria-label={`Go to highlight ${index + 1}`}
+            />
+          ))}
         </div>
       )}
 
