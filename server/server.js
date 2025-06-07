@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import cron from 'node-cron';
-import { getFromCache, setInCache, clearCache } from './cache.js';
+import { getFromCache, setInCache, clearCache, getCacheStats } from './cache.js';
 
 // Initialize environment variables
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
@@ -20,10 +20,20 @@ const HIGHLIGHTLY_API_URL = 'https://soccer.highlightly.net';
 // Use the direct Highlightly API key from the environment variables
 const HIGHLIGHTLY_API_KEY = process.env.HIGHLIGHTLY_API_KEY;
 
+// Top leagues configuration
+const topLeaguesConfig = [
+  { id: '39', name: 'Premier League' },
+  { id: '140', name: 'La Liga' },
+  { id: '135', name: 'Serie A' },
+  { id: '78', name: 'Bundesliga' },
+  { id: '61', name: 'Ligue 1' },
+  { id: '2', name: 'Champions League' },
+];
+
 const callHighlightlyApi = async (path) => {
     const requestUrl = `${HIGHLIGHTLY_API_URL}/${path}`;
     try {
-        console.log(`[Cache Warmer] Calling: ${requestUrl}`);
+        console.log(`[API] Calling: ${requestUrl}`);
         const response = await axios.get(requestUrl, {
             headers: {
                 'x-api-key': HIGHLIGHTLY_API_KEY,
@@ -33,45 +43,140 @@ const callHighlightlyApi = async (path) => {
         });
         return response.data;
     } catch (error) {
-        console.error(`[Cache Warmer] Error fetching ${requestUrl}:`, error.message);
+        console.error(`[API] Error fetching ${requestUrl}:`, error.message);
         return null;
     }
 };
 
-const warmUpCache = async () => {
-    console.log('[Cache Warmer] Starting cache warming process...');
-    await clearCache();
-
-    // 1. Fetch top leagues
-    const topLeaguesConfig = [
-      { id: '39', name: 'Premier League' },
-      { id: '140', name: 'La Liga' },
-      { id: '135', name: 'Serie A' },
-      { id: '78', name: 'Bundesliga' },
-      { id: '61', name: 'Ligue 1' },
-      { id: '2', name: 'Champions League' },
-    ];
+// Optimized batch processing with rate limiting
+const executeBatchWithRateLimit = async (apiCalls, batchSize = 3) => {
+  console.log(`[Cache Warmer] Processing ${apiCalls.length} API calls in batches of ${batchSize}`);
+  
+  for (let i = 0; i < apiCalls.length; i += batchSize) {
+    const batch = apiCalls.slice(i, i + batchSize);
+    console.log(`[Cache Warmer] Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(apiCalls.length/batchSize)}`);
     
-    const season = new Date().getFullYear().toString();
-    const date = new Date().toISOString().split('T')[0];
-
-    for (const league of topLeaguesConfig) {
-        // Fetch and cache league details
-        const leagueDetailPath = `leagues/${league.id}`;
-        const leagueDetailData = await callHighlightlyApi(leagueDetailPath);
-        if (leagueDetailData) {
-            await setInCache(`/api/highlightly/${leagueDetailPath}`, leagueDetailData);
-        }
-
-        // Fetch and cache matches for today
-        const matchesPath = `matches?leagueId=${league.id}&date=${date}&season=${season}`;
-        const matchesData = await callHighlightlyApi(matchesPath);
-        if (matchesData) {
-            await setInCache(`/api/highlightly/${matchesPath}`, matchesData);
-        }
+    await Promise.all(batch.map(async (call) => {
+      const data = await callHighlightlyApi(call.path);
+      if (data) {
+        await setInCache(call.cacheKey, data, call.ttl);
+      }
+    }));
+    
+    // Delay between batches to be API-friendly
+    if (i + batchSize < apiCalls.length) {
+      console.log('[Cache Warmer] Waiting 200ms before next batch...');
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
+  }
+};
 
-    console.log('[Cache Warmer] Cache warming process finished.');
+// Smart cache warming - different strategies for different data types
+const warmUpLiveData = async () => {
+  console.log('[Cache Warmer] Warming up live data (matches for today)...');
+  
+  const today = new Date().toISOString().split('T')[0];
+  const season = new Date().getFullYear().toString();
+  
+  const apiCalls = topLeaguesConfig.map(league => ({
+    path: `matches?leagueId=${league.id}&date=${today}&season=${season}`,
+    cacheKey: `/api/highlightly/matches?leagueId=${league.id}&date=${today}&season=${season}`,
+    ttl: 300 // 5 minutes for live data
+  }));
+  
+  await executeBatchWithRateLimit(apiCalls, 2); // Smaller batches for live data
+};
+
+const warmUpStandings = async () => {
+  console.log('[Cache Warmer] Warming up standings data...');
+  
+  const season = new Date().getFullYear().toString();
+  
+  const apiCalls = topLeaguesConfig.map(league => ({
+    path: `standings?leagueId=${league.id}&season=${season}`,
+    cacheKey: `/api/highlightly/standings?leagueId=${league.id}&season=${season}`,
+    ttl: 1800 // 30 minutes
+  }));
+  
+  await executeBatchWithRateLimit(apiCalls, 3);
+};
+
+const warmUpHighlights = async () => {
+  console.log('[Cache Warmer] Warming up highlights data...');
+  
+  const season = new Date().getFullYear().toString();
+  
+  const apiCalls = topLeaguesConfig.map(league => ({
+    path: `highlights?leagueId=${league.id}&season=${season}&limit=20`,
+    cacheKey: `/api/highlightly/highlights?leagueId=${league.id}&season=${season}&limit=20`,
+    ttl: 3600 // 1 hour
+  }));
+  
+  await executeBatchWithRateLimit(apiCalls, 3);
+};
+
+const warmUpStaticData = async () => {
+  console.log('[Cache Warmer] Warming up static data (leagues)...');
+  
+  const apiCalls = topLeaguesConfig.map(league => ({
+    path: `leagues/${league.id}`,
+    cacheKey: `/api/highlightly/leagues/${league.id}`,
+    ttl: 86400 // 24 hours
+  }));
+  
+  await executeBatchWithRateLimit(apiCalls, 4);
+};
+
+const warmUpExtendedMatches = async () => {
+  console.log('[Cache Warmer] Warming up extended match data (yesterday, today, tomorrow)...');
+  
+  const today = new Date();
+  const yesterday = new Date(today.getTime() - 24*60*60*1000).toISOString().split('T')[0];
+  const todayStr = today.toISOString().split('T')[0];
+  const tomorrow = new Date(today.getTime() + 24*60*60*1000).toISOString().split('T')[0];
+  const season = today.getFullYear().toString();
+  
+  const apiCalls = [];
+  
+  [yesterday, todayStr, tomorrow].forEach(date => {
+    const ttl = date === todayStr ? 300 : 3600; // 5 min for today, 1 hour for others
+    
+    topLeaguesConfig.forEach(league => {
+      apiCalls.push({
+        path: `matches?leagueId=${league.id}&date=${date}&season=${season}`,
+        cacheKey: `/api/highlightly/matches?leagueId=${league.id}&date=${date}&season=${season}`,
+        ttl
+      });
+    });
+  });
+  
+  await executeBatchWithRateLimit(apiCalls, 3);
+};
+
+// Full cache warming for server startup and daily refresh
+const warmUpCache = async () => {
+  console.log('[Cache Warmer] Starting comprehensive cache warming...');
+  const startTime = Date.now();
+  
+  try {
+    // Clear old cache
+    await clearCache();
+    
+    // Warm up data in priority order
+    await warmUpStaticData();     // League info (rarely changes)
+    await warmUpExtendedMatches(); // Match data for 3 days
+    await warmUpHighlights();     // Recent highlights
+    await warmUpStandings();      // League standings
+    
+    const duration = Date.now() - startTime;
+    const stats = await getCacheStats();
+    
+    console.log(`[Cache Warmer] Completed in ${duration}ms`);
+    console.log(`[Cache Warmer] Cache stats:`, stats);
+    
+  } catch (error) {
+    console.error('[Cache Warmer] Error during cache warming:', error);
+  }
 };
 
 // Middleware
@@ -84,9 +189,30 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Highlightly API Proxy Server is running' });
+// Health check endpoint with cache stats
+app.get('/api/health', async (req, res) => {
+  const stats = await getCacheStats();
+  res.json({ 
+    status: 'ok', 
+    message: 'Highlightly API Proxy Server is running',
+    cache: stats
+  });
+});
+
+// Cache management endpoints
+app.get('/api/cache/stats', async (req, res) => {
+  const stats = await getCacheStats();
+  res.json(stats);
+});
+
+app.post('/api/cache/warm', async (req, res) => {
+  res.json({ message: 'Cache warming started' });
+  warmUpCache(); // Run in background
+});
+
+app.post('/api/cache/clear', async (req, res) => {
+  await clearCache();
+  res.json({ message: 'Cache cleared' });
 });
 
 // Proxy middleware for Highlightly API
@@ -98,7 +224,7 @@ app.use('/api/highlightly', async (req, res) => {
     return res.json(cachedData);
   }
 
-  // Parse the URL to separate path from query string - declare at top of function scope
+  // Parse the URL to separate path from query string
   const urlParts = req.url.split('?');
   const pathPart = urlParts[0].replace(/^\/?/, '');
   const queryPart = urlParts.length > 1 ? `?${urlParts[1]}` : '';
@@ -107,115 +233,43 @@ app.use('/api/highlightly', async (req, res) => {
   const requestUrl = pathPart ? `${HIGHLIGHTLY_API_URL}/${pathPart}${queryPart}` : HIGHLIGHTLY_API_URL;
   
   try {
-    console.log(`Mapped endpoint ${req.url} to ${requestUrl}`);
+    console.log(`[Proxy] ${req.url} -> ${requestUrl}`);
     
     // Prepare headers for Highlightly API
-    // Try both standard API key auth and RapidAPI-style headers
     const headers = {
       'Content-Type': 'application/json',
-      'x-api-key': HIGHLIGHTLY_API_KEY, // Standard API key auth
-      'x-rapidapi-key': HIGHLIGHTLY_API_KEY // RapidAPI style
+      'x-api-key': HIGHLIGHTLY_API_KEY,
+      'x-rapidapi-key': HIGHLIGHTLY_API_KEY
     };
     
-    console.log('Using API key:', HIGHLIGHTLY_API_KEY ? '✓ Configured' : '✗ Missing');
+    const response = await axios({
+      method: req.method,
+      url: requestUrl,
+      headers,
+      data: req.method !== 'GET' ? req.body : undefined,
+      timeout: 30000,
+    });
     
-    console.log(`Proxying request to: ${requestUrl}`);
-    
-    try {
-      // Forward the request to the Highlightly API
-      // Don't use axios's params option as the URL already includes the query parameters
-      // This prevents duplicate parameters like 'limit=25,25'
-      const response = await axios({
-        method: req.method,
-        url: requestUrl,
-        headers,
-        data: req.method !== 'GET' ? req.body : undefined,
-        timeout: 30000, // Increased to 30 seconds timeout to handle slow API responses
-      });
-      
-      // Store the API response in the cache
-      await setInCache(cacheKey, response.data);
+    // Store with smart TTL
+    await setInCache(cacheKey, response.data);
 
-      // Return the API response to the client
-      res.status(response.status).json(response.data);
-    } catch (axiosError) {
-      // Handle axios errors separately to provide better diagnostics
-      console.error('Axios request failed:', axiosError.message);
-      
-      if (axiosError.code === 'ENOTFOUND') {
-        console.error(`DNS resolution failed for ${requestUrl} - API endpoint might not exist`);
-        return res.status(502).json({
-          error: true,
-          message: 'API endpoint not found - DNS resolution failed',
-          details: axiosError.message,
-          code: 'DNS_LOOKUP_FAILED'
-        });
-      }
-      
-      if (axiosError.code === 'ECONNREFUSED') {
-        console.error(`Connection refused for ${requestUrl} - API endpoint might be down`);
-        return res.status(502).json({
-          error: true,
-          message: 'API endpoint refused connection - service might be down',
-          details: axiosError.message,
-          code: 'CONNECTION_REFUSED'
-        });
-      }
-      
-      if (axiosError.code === 'ECONNABORTED' || axiosError.message.includes('timeout')) {
-        console.error(`Request timeout for ${requestUrl} - API is taking too long to respond`);
-        return res.status(504).json({
-          error: true,
-          message: 'API request timeout - the service is taking too long to respond',
-          details: axiosError.message,
-          code: 'TIMEOUT'
-        });
-      }
-      
-      throw axiosError; // Let the outer catch handle other types of errors
-    }
+    res.status(response.status).json(response.data);
   } catch (error) {
-    console.error('Proxy error:', error.message);
+    console.error('[Proxy] Error:', error.message);
     
-    // Handle API errors and provide meaningful responses
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.error('API error response:', error.response.status);
-      console.error('Error details:', JSON.stringify(error.response.data, null, 2));
-      console.error('Request headers:', JSON.stringify(error.config?.headers || {}, null, 2));
-      console.error('Request URL:', error.config?.url);
-      
       res.status(error.response.status).json({
         error: true,
         message: `Highlightly API returned ${error.response.status}: ${error.message}`,
         details: error.response.data
       });
     } else if (error.request) {
-      // The request was made but no response was received
-      console.error('No response received from API');
-      console.error('Request details:', JSON.stringify({
-        method: req.method,
-        url: requestUrl, // Now properly scoped
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': HIGHLIGHTLY_API_KEY ? '***' : 'Missing',
-          'x-rapidapi-key': HIGHLIGHTLY_API_KEY ? '***' : 'Missing'
-        }
-      }, null, 2));
-      
       res.status(502).json({
         error: true,
         message: 'No response received from the Highlightly API',
-        details: error.message,
-        request: {
-          url: requestUrl,
-          method: req.method
-        }
+        details: error.message
       });
     } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error('Request setup error:', error.message);
       res.status(500).json({
         error: true,
         message: 'Error setting up the request',
@@ -225,12 +279,47 @@ app.use('/api/highlightly', async (req, res) => {
   }
 });
 
-// Schedule a cron job to clear the cache at midnight CET
-cron.schedule('0 0 * * *', () => {
-    console.log('Running cron job to clear and warm up cache at midnight CET');
-    warmUpCache();
+// Intelligent cron scheduling
+console.log('[Cron] Setting up intelligent cache refresh schedules...');
+
+// Every 5 minutes: Update live match data only (minimal API calls)
+cron.schedule('*/5 * * * *', () => {
+  console.log('[Cron] Refreshing live match data...');
+  warmUpLiveData();
 }, {
-    timezone: "Europe/Paris" // CET is equivalent to Europe/Paris timezone
+  timezone: "Europe/Paris"
+});
+
+// Every 30 minutes: Update standings
+cron.schedule('*/30 * * * *', () => {
+  console.log('[Cron] Refreshing standings...');
+  warmUpStandings();
+}, {
+  timezone: "Europe/Paris"
+});
+
+// Every hour: Update highlights
+cron.schedule('0 * * * *', () => {
+  console.log('[Cron] Refreshing highlights...');
+  warmUpHighlights();
+}, {
+  timezone: "Europe/Paris"
+});
+
+// Every 6 hours: Extended match data refresh
+cron.schedule('0 */6 * * *', () => {
+  console.log('[Cron] Refreshing extended match data...');
+  warmUpExtendedMatches();
+}, {
+  timezone: "Europe/Paris"
+});
+
+// Daily at midnight: Full cache refresh
+cron.schedule('0 0 * * *', () => {
+  console.log('[Cron] Daily full cache refresh...');
+  warmUpCache();
+}, {
+  timezone: "Europe/Paris"
 });
 
 // Start the server
@@ -238,8 +327,11 @@ app.listen(PORT, () => {
   console.log(`Highlightly API Proxy Server running on port ${PORT}`);
   console.log(`API URL: ${HIGHLIGHTLY_API_URL}`);
   console.log(`API Key: ${HIGHLIGHTLY_API_KEY ? '✓ Configured' : '✗ Missing'}`);
-  // Warm up cache on server start
-  warmUpCache();
+  
+  // Initial cache warming
+  setTimeout(() => {
+    warmUpCache();
+  }, 1000); // Delay to let server fully start
 });
 
 export default app;

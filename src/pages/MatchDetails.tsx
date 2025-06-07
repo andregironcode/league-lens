@@ -142,13 +142,21 @@ const MatchDetails = () => {
         console.log(`[MatchDetails] - Formatted season: ${formattedSeason}`);
         console.log(`[MatchDetails] - API season: ${apiSeason}`);
         
-        if (matchData?.competition?.id) {
+        // Check for competition ID with better logging
+        const competitionId = matchData?.competition?.id;
+        console.log(`[MatchDetails] Competition data:`, {
+          id: competitionId,
+          name: matchData?.competition?.name,
+          fullCompetition: matchData?.competition
+        });
+        
+        if (competitionId) {
           try {
-            console.log(`[MatchDetails] Fetching standings for competition ID: ${matchData.competition.id}`);
+            console.log(`[MatchDetails] Fetching standings for competition ID: ${competitionId}`);
             console.log(`[MatchDetails] Match date: ${matchData.date}`);
             console.log(`[MatchDetails] Calculated season: ${formattedSeason} (API: ${apiSeason})`);
             
-            const standingsResponse = await getStandingsForLeague(matchData.competition.id, apiSeason);
+            const standingsResponse = await getStandingsForLeague(competitionId, apiSeason);
             console.log(`[MatchDetails] Raw standings response:`, standingsResponse);
             
             if (standingsResponse && (standingsResponse.groups || standingsResponse.standings || standingsResponse.data)) {
@@ -218,7 +226,7 @@ const MatchDetails = () => {
               console.log(`[MatchDetails] Season ${apiSeason} not available, trying fallback to ${fallbackSeason}...`);
               
               try {
-                const fallbackResponse = await getStandingsForLeague(matchData.competition.id, fallbackSeason);
+                const fallbackResponse = await getStandingsForLeague(competitionId, fallbackSeason);
                 console.log(`[MatchDetails] Fallback response:`, fallbackResponse);
                 
                 if (fallbackResponse && (fallbackResponse.groups || fallbackResponse.standings || fallbackResponse.data)) {
@@ -297,32 +305,49 @@ const MatchDetails = () => {
         // Fetch form and H2H data in parallel
         setFormAndH2hLoading(true);
         try {
-          console.log(`[MatchDetails] Fetching form data for teams:`, matchData.homeTeam.id, matchData.awayTeam.id);
+          // Check if we have valid team IDs before making API calls
+          const homeTeamId = matchData?.homeTeam?.id;
+          const awayTeamId = matchData?.awayTeam?.id;
           
-          const [homeForm, awayForm, h2h] = await Promise.all([
-            getLastFiveGames(matchData.homeTeam.id).catch(err => {
-              console.log(`[MatchDetails] Home team form not available:`, err.message);
-              return [];
-            }),
-            getLastFiveGames(matchData.awayTeam.id).catch(err => {
-              console.log(`[MatchDetails] Away team form not available:`, err.message);
-              return [];
-            }),
-            getHeadToHead(matchData.homeTeam.id, matchData.awayTeam.id).catch(err => {
-              console.log(`[MatchDetails] Head-to-head data not available:`, err.message);
-              return [];
-            }),
-          ]);
-          
-          console.log(`[MatchDetails] Form data results:`, {
-            homeFormGames: homeForm.length,
-            awayFormGames: awayForm.length,
-            h2hGames: h2h.length
+          console.log(`[MatchDetails] Fetching form data for teams:`, {
+            homeTeamId,
+            awayTeamId,
+            homeTeamName: matchData?.homeTeam?.name,
+            awayTeamName: matchData?.awayTeam?.name
           });
           
-          setHomeTeamForm(homeForm);
-          setAwayTeamForm(awayForm);
-          setH2hData(h2h);
+          if (!homeTeamId || !awayTeamId) {
+            console.warn(`[MatchDetails] Missing team IDs - Home: ${homeTeamId}, Away: ${awayTeamId}`);
+            console.warn(`[MatchDetails] Skipping form and H2H data fetch`);
+            setHomeTeamForm([]);
+            setAwayTeamForm([]);
+            setH2hData([]);
+          } else {
+            const [homeForm, awayForm, h2h] = await Promise.all([
+              getLastFiveGames(homeTeamId).catch(err => {
+                console.log(`[MatchDetails] Home team form not available:`, err.message);
+                return [];
+              }),
+              getLastFiveGames(awayTeamId).catch(err => {
+                console.log(`[MatchDetails] Away team form not available:`, err.message);
+                return [];
+              }),
+              getHeadToHead(homeTeamId, awayTeamId).catch(err => {
+                console.log(`[MatchDetails] Head-to-head data not available:`, err.message);
+                return [];
+              }),
+            ]);
+            
+            console.log(`[MatchDetails] Form data results:`, {
+              homeFormGames: homeForm.length,
+              awayFormGames: awayForm.length,
+              h2hGames: h2h.length
+            });
+            
+            setHomeTeamForm(homeForm);
+            setAwayTeamForm(awayForm);
+            setH2hData(h2h);
+          }
         } catch (error) {
           console.error("Failed to fetch form and H2H data:", error);
           // Set to empty arrays on error to avoid crashing the component
