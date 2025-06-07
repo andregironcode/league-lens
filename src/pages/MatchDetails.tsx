@@ -498,41 +498,35 @@ const MatchDetails = () => {
 
                   {/* Form and H2H Section */}
                   <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    <h3 className="text-lg font-bold text-white text-center mb-6">Match Preview</h3>
-                    {formAndH2hLoading ? (
-                      <div className="text-center py-8"><div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div></div>
-                    ) : (homeTeamForm.length > 0 || awayTeamForm.length > 0 || h2hData.length > 0) ? (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <TeamFormStats matches={homeTeamForm} teamId={match.homeTeam.id} teamName={match.homeTeam.name} />
-                          <TeamFormStats matches={awayTeamForm} teamId={match.awayTeam.id} teamName={match.awayTeam.name} />
-                        </div>
-                        <div className="my-8 border-t border-gray-800"></div>
-                        <HeadToHeadStats
-                          matches={h2hData}
-                          homeTeamId={match.homeTeam.id}
-                          homeTeamName={match.homeTeam.name}
-                          awayTeamId={match.awayTeam.id}
-                          awayTeamName={match.awayTeam.name}
-                        />
-                      </>
-                    ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        <Target size={32} className="mx-auto mb-4" />
-                        <p className="text-white font-medium mb-2">Match Preview Data Unavailable</p>
-                        <p className="text-sm max-w-md mx-auto">
-                          Team form statistics and head-to-head records are not available through the current API endpoints.
-                          This feature will be available once additional endpoints are implemented.
-                        </p>
-                      </div>
-                    )}
+                    <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH PREVIEW</h4>
+                    
+                    {/* Last 5 Matches */}
+                    <TeamFormStats 
+                      homeMatches={homeTeamForm}
+                      awayMatches={awayTeamForm}
+                      homeTeamId={match.homeTeam.id}
+                      homeTeamName={match.homeTeam.name}
+                      awayTeamId={match.awayTeam.id}
+                      awayTeamName={match.awayTeam.name}
+                    />
+
+                    {/* Head to Head */}
+                    <HeadToHeadStats 
+                      matches={h2hData} 
+                      homeTeamId={match.homeTeam.id} 
+                      homeTeamName={match.homeTeam.name}
+                      awayTeamId={match.awayTeam.id}
+                      awayTeamName={match.awayTeam.name}
+                    />
                   </div>
                 </div>
               )}
 
               {activeTab === 'lineups' && (
                 <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                  <TeamLineups lineups={match.lineups} homeTeamName={match.homeTeam.name} awayTeamName={match.awayTeam.name} />
+                  <TeamLineups 
+                    lineups={match.lineups} 
+                  />
                 </div>
               )}
 
