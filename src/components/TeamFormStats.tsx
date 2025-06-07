@@ -1,100 +1,254 @@
 import React from 'react';
 import { Match } from '@/types';
-import { CheckCircle, XCircle, MinusCircle, Shield, ShieldOff, Forward, TrendingUp, TrendingDown } from 'lucide-react';
 
-type FormStats = {
-  wins: number;
-  draws: number;
-  losses: number;
-  over2_5: number;
-  under2_5: number;
-  cleanSheet: number;
-  failedToScore: number;
-  conceded: number;
-  concededTwo: number;
-  outcomes: ('W' | 'D' | 'L')[];
+type MatchAnalysis = {
+  outcome: 'W' | 'D' | 'L';
+  over2_5: boolean;
+  under2_5: boolean;
+  cleanSheet: boolean;
+  failedToScore: boolean;
+  conceded: boolean;
+  concededTwo: boolean;
 };
 
-const calculateTeamFormStats = (matches: Match[], teamId: string): FormStats => {
-  const stats: FormStats = {
-    wins: 0, draws: 0, losses: 0, over2_5: 0, under2_5: 0,
-    cleanSheet: 0, failedToScore: 0, conceded: 0, concededTwo: 0, outcomes: [],
-  };
+const calculateDetailedTeamFormStats = (matches: Match[], teamId: string): MatchAnalysis[] => {
+  const analyses: MatchAnalysis[] = [];
 
   matches.slice(0, 5).forEach(match => {
     const isHome = match.homeTeam.id.toString() === teamId;
-    const goals = match.goals || { home: 0, away: 0 };
-    const homeGoals = goals.home ?? 0;
-    const awayGoals = goals.away ?? 0;
-    const totalGoals = homeGoals + awayGoals;
-
-    let outcome: 'W' | 'D' | 'L';
-    if (homeGoals === awayGoals) {
-      stats.draws++;
-      outcome = 'D';
-    } else if ((isHome && homeGoals > awayGoals) || (!isHome && awayGoals > homeGoals)) {
-      stats.wins++;
-      outcome = 'W';
-    } else {
-      stats.losses++;
-      outcome = 'L';
-    }
-    stats.outcomes.push(outcome);
-
-    if (totalGoals > 2.5) stats.over2_5++;
-    if (totalGoals < 2.5) stats.under2_5++;
     
+    // Correctly parse the score from the "current" string (e.g., "5 - 0")
+    const scoreString = match.state?.score?.current;
+    let homeGoals = 0;
+    let awayGoals = 0;
+
+    if (scoreString && typeof scoreString === 'string' && scoreString.includes(' - ')) {
+      const parts = scoreString.split(' - ');
+      homeGoals = parseInt(parts[0], 10) || 0;
+      awayGoals = parseInt(parts[1], 10) || 0;
+    }
+
+    const totalGoals = homeGoals + awayGoals;
     const goalsScored = isHome ? homeGoals : awayGoals;
     const goalsConceded = isHome ? awayGoals : homeGoals;
 
-    if (goalsScored === 0) stats.failedToScore++;
-    if (goalsConceded === 0) stats.cleanSheet++;
-    if (goalsConceded > 0) stats.conceded++;
-    if (goalsConceded >= 2) stats.concededTwo++;
+    // Determine outcome
+    let outcome: 'W' | 'D' | 'L';
+    if (homeGoals === awayGoals) {
+      outcome = 'D';
+    } else if ((isHome && homeGoals > awayGoals) || (!isHome && awayGoals > homeGoals)) {
+      outcome = 'W';
+    } else {
+      outcome = 'L';
+    }
+
+    analyses.push({
+      outcome,
+      over2_5: totalGoals > 2.5,
+      under2_5: totalGoals < 2.5,
+      cleanSheet: goalsConceded === 0,
+      failedToScore: goalsScored === 0,
+      conceded: goalsConceded > 0,
+      concededTwo: goalsConceded >= 2,
+    });
   });
 
-  return stats;
+  return analyses;
 };
 
-const StatItem = ({ icon, label, value, total = 5 }: { icon: React.ReactNode, label: string, value: number, total?: number }) => (
-  <div className="flex items-center justify-between text-sm">
-    <div className="flex items-center gap-2 text-gray-300">
-      {icon}
-      <span>{label}</span>
-    </div>
-    <span className="font-semibold text-white">{value}/{total}</span>
+const StatCircle = ({ isActive }: { isActive: boolean }) => (
+  <div 
+    className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 flex-shrink-0"
+    style={{ 
+      backgroundColor: '#333333',
+      border: '2px solid #6B6B6B',
+      boxShadow: isActive ? '0 0 8px rgba(255, 255, 255, 0.3)' : 'none',
+      minWidth: '32px',
+      minHeight: '32px'
+    }}
+  >
+    {isActive && (
+      <div 
+        className="rounded-full animate-pulse flex-shrink-0"
+        style={{ 
+          backgroundColor: '#FFFFFF',
+          width: '3px',
+          height: '3px'
+        }}
+      />
+    )}
   </div>
 );
 
-const TeamFormStats: React.FC<{ matches: Match[], teamId: string, teamName: string }> = ({ matches, teamId, teamName }) => {
-  if (!matches || matches.length === 0) {
-    return <div className="text-center text-gray-500 text-sm py-4">No recent match data available for {teamName}.</div>;
-  }
-  const stats = calculateTeamFormStats(matches, teamId);
-
-  const getOutcomeClass = (outcome: 'W' | 'D' | 'L') => {
-    if (outcome === 'W') return 'bg-green-500 border-green-400';
-    if (outcome === 'D') return 'bg-gray-500 border-gray-400';
-    return 'bg-red-500 border-red-400';
+const OutcomeCircle = ({ outcome }: { outcome: 'W' | 'D' | 'L' }) => {
+  const getOutcomeStyle = (outcome: 'W' | 'D' | 'L') => {
+    if (outcome === 'W') return { backgroundColor: '#54A95F' };
+    if (outcome === 'D') return { backgroundColor: '#F9CC44' };
+    return { backgroundColor: '#ED5565' };
   };
 
+  const style = getOutcomeStyle(outcome);
+
   return (
-    <div>
-      <h4 className="font-bold text-white mb-3 text-center">{teamName} - Last 5 Matches</h4>
-      <div className="flex justify-center gap-2 mb-4">
-        {stats.outcomes.map((o, i) => (
-          <div key={i} className={`w-8 h-8 flex items-center justify-center font-bold text-white rounded-full border-2 ${getOutcomeClass(o)}`}>
-            {o}
-          </div>
+    <div 
+      className="w-8 h-8 flex items-center justify-center font-bold text-white rounded-full transition-all duration-200 flex-shrink-0"
+      style={{
+        ...style,
+        minWidth: '32px',
+        minHeight: '32px',
+        fontSize: '14px'
+      }}
+    >
+      {outcome}
+    </div>
+  );
+};
+
+const StatRow = ({ 
+  label, 
+  homeAnalyses, 
+  awayAnalyses,
+  condition 
+}: { 
+  label: string; 
+  homeAnalyses: MatchAnalysis[];
+  awayAnalyses: MatchAnalysis[];
+  condition: (analysis: MatchAnalysis) => boolean;
+}) => (
+  <div className="grid grid-cols-7 items-center gap-2">
+    {/* Home team pill and circles - closer to center */}
+    <div className="col-span-2 flex justify-end">
+      <div 
+        className="flex gap-2 px-3 py-1 rounded-full"
+        style={{ backgroundColor: '#1F1F1F' }}
+      >
+        {homeAnalyses.slice().reverse().map((analysis, index) => (
+          <StatCircle key={index} isActive={condition(analysis)} />
         ))}
       </div>
-      <div className="space-y-2 rounded-lg bg-black/30 p-4">
-        <StatItem icon={<TrendingUp size={16} className="text-cyan-400" />} label="Over 2.5 Goals" value={stats.over2_5} />
-        <StatItem icon={<TrendingDown size={16} className="text-cyan-400" />} label="Under 2.5 Goals" value={stats.under2_5} />
-        <StatItem icon={<Shield size={16} className="text-green-400" />} label="Clean Sheet" value={stats.cleanSheet} />
-        <StatItem icon={<ShieldOff size={16} className="text-red-400" />} label="Conceded" value={stats.conceded} />
-        <StatItem icon={<ShieldOff size={16} className="text-red-600" />} label="Conceded 2+" value={stats.concededTwo} />
-        <StatItem icon={<XCircle size={16} className="text-orange-400" />} label="Failed to Score" value={stats.failedToScore} />
+    </div>
+
+    {/* Central label */}
+    <div className="col-span-3 text-center">
+      <span className="font-sans font-medium" style={{ fontSize: '14px', color: '#727272' }}>{label}</span>
+    </div>
+
+    {/* Away team pill and circles - closer to center */}
+    <div className="col-span-2 flex justify-start">
+      <div 
+        className="flex gap-2 px-3 py-1 rounded-full"
+        style={{ backgroundColor: '#1F1F1F' }}
+      >
+        {awayAnalyses.map((analysis, index) => (
+          <StatCircle key={index} isActive={condition(analysis)} />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// Updated component to handle both teams
+const TeamFormStats: React.FC<{ 
+  homeMatches: Match[], 
+  homeTeamId: string, 
+  homeTeamName: string,
+  awayMatches: Match[], 
+  awayTeamId: string, 
+  awayTeamName: string 
+}> = ({ homeMatches, homeTeamId, homeTeamName, awayMatches, awayTeamId, awayTeamName }) => {
+  
+  if (!homeMatches?.length && !awayMatches?.length) {
+    return <div className="text-center text-gray-500 text-sm py-4">No recent match data available.</div>;
+  }
+
+  const homeAnalyses = calculateDetailedTeamFormStats(homeMatches, homeTeamId);
+  const awayAnalyses = calculateDetailedTeamFormStats(awayMatches, awayTeamId);
+
+  return (
+    <div className="space-y-6">
+      {/* Team names header */}
+      <div className="grid grid-cols-7 items-center gap-2">
+        <div className="col-span-2 text-center">
+          <h4 className="font-bold text-white text-sm">{homeTeamName}</h4>
+        </div>
+        <div className="col-span-3 text-center">
+          <h4 className="font-bold text-white text-sm">Last 5 Matches</h4>
+        </div>
+        <div className="col-span-2 text-center">
+          <h4 className="font-bold text-white text-sm">{awayTeamName}</h4>
+        </div>
+      </div>
+
+      {/* Outcome row - aligned with stat rows */}
+      <div className="grid grid-cols-7 items-center gap-2">
+        {/* Home team outcome pill and circles */}
+        <div className="col-span-2 flex justify-end">
+          <div 
+            className="flex gap-2 px-3 py-1 rounded-full"
+            style={{ backgroundColor: '#1F1F1F' }}
+          >
+            {homeAnalyses.slice().reverse().map((analysis, index) => (
+              <OutcomeCircle key={index} outcome={analysis.outcome} />
+            ))}
+          </div>
+        </div>
+
+        {/* Central outcome label */}
+        <div className="col-span-3 text-center">
+          <span className="font-sans font-medium" style={{ fontSize: '14px', color: '#727272' }}>OUTCOME</span>
+        </div>
+
+        {/* Away team outcome pill and circles */}
+        <div className="col-span-2 flex justify-start">
+          <div 
+            className="flex gap-2 px-3 py-1 rounded-full"
+            style={{ backgroundColor: '#1F1F1F' }}
+          >
+            {awayAnalyses.map((analysis, index) => (
+              <OutcomeCircle key={index} outcome={analysis.outcome} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics with central labels */}
+      <div className="space-y-2">
+        <StatRow 
+          label="OVER 2.5" 
+          homeAnalyses={homeAnalyses} 
+          awayAnalyses={awayAnalyses}
+          condition={(a) => a.over2_5} 
+        />
+        <StatRow 
+          label="UNDER 2.5" 
+          homeAnalyses={homeAnalyses} 
+          awayAnalyses={awayAnalyses}
+          condition={(a) => a.under2_5} 
+        />
+        <StatRow 
+          label="CLEAN SHEET" 
+          homeAnalyses={homeAnalyses} 
+          awayAnalyses={awayAnalyses}
+          condition={(a) => a.cleanSheet} 
+        />
+        <StatRow 
+          label="CONCEDED" 
+          homeAnalyses={homeAnalyses} 
+          awayAnalyses={awayAnalyses}
+          condition={(a) => a.conceded} 
+        />
+        <StatRow 
+          label="CONCEDED TWO" 
+          homeAnalyses={homeAnalyses} 
+          awayAnalyses={awayAnalyses}
+          condition={(a) => a.concededTwo} 
+        />
+        <StatRow 
+          label="FAILED TO SCORE" 
+          homeAnalyses={homeAnalyses} 
+          awayAnalyses={awayAnalyses}
+          condition={(a) => a.failedToScore} 
+        />
       </div>
     </div>
   );

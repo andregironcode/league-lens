@@ -40,47 +40,23 @@ export function formatDateForAPI(date: Date): string {
  * Returns array of date strings in YYYY-MM-DD format
  */
 export function get14DayDateRange(): { dates: string[], startDate: string, endDate: string } {
-  const currentDate = getCurrentDateCET();
-  const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+  console.log(`[DateUtils] Calculating 14-day range: 7 days past + 7 days future centered on today`);
   
-  console.log(`[DateUtils] Current CET date/time: ${currentDate.toISOString()} (${formatDateForAPI(currentDate)})`);
+  const today = getCurrentDateCET();
+  const dates: string[] = [];
   
-  let dates: string[] = [];
-  let startDate: string;
-  let endDate: string;
-  
-  // During off-season (June-July), look at the recent past when leagues were active
-  if (currentMonth >= 6 && currentMonth <= 7) {
-    console.log(`[DateUtils] Off-season period detected (June-July). Looking at recent completed season.`);
-    
-    // Look at the end of the previous season (include full end of May through May 31st)
-    const endOfSeason = new Date(currentDate.getFullYear(), 4, 31); // May 31st (last day of May)
-    
-    for (let i = -13; i <= 0; i++) {
-      const date = new Date(endOfSeason);
-      date.setDate(endOfSeason.getDate() + i);
-      dates.push(formatDateForAPI(date));
-    }
-    
-    startDate = dates[0];
-    endDate = dates[dates.length - 1];
-    
-    console.log(`[DateUtils] Off-season strategy: Using end-of-season dates ${startDate} to ${endDate} (includes May 31st)`);
-  } else {
-    // Normal season: 7 days past + 7 days future
-    for (let i = -7; i <= 7; i++) {
-      const date = new Date(currentDate);
-      date.setDate(currentDate.getDate() + i);
-      dates.push(formatDateForAPI(date));
-    }
-    
-    startDate = dates[0];
-    endDate = dates[dates.length - 1];
-    
-    console.log(`[DateUtils] Regular season: 14-day window ${startDate} to ${endDate}`);
+  // Generate 7 days past + today + 6 days future = 14 days total
+  for (let i = -7; i <= 6; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    dates.push(formatDateForAPI(date));
   }
   
-  console.log(`[DateUtils] Final date range: ${startDate} to ${endDate} (${dates.length} days)`);
+  const startDate = dates[0];
+  const endDate = dates[dates.length - 1];
+  
+  console.log(`[DateUtils] 14-day range: ${startDate} to ${endDate} (${dates.length} dates)`);
+  console.log(`[DateUtils] Today's date: ${formatDateForAPI(today)} (position 7 in array)`);
   
   return { dates, startDate, endDate };
 }

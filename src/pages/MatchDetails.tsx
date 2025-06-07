@@ -242,59 +242,76 @@ const MatchDetails = () => {
 
         // Fetch form and H2H data in parallel
         setFormAndH2hLoading(true);
-        try {
-          // Check if we have valid team IDs before making API calls
-          const homeTeamId = matchData?.homeTeam?.id;
-          const awayTeamId = matchData?.awayTeam?.id;
-          
-          console.log(`[MatchDetails] Fetching form data for teams:`, {
-            homeTeamId,
-            awayTeamId,
-            homeTeamName: matchData?.homeTeam?.name,
-            awayTeamName: matchData?.awayTeam?.name
-          });
-          
-          if (!homeTeamId || !awayTeamId) {
-            console.warn(`[MatchDetails] Missing team IDs - Home: ${homeTeamId}, Away: ${awayTeamId}`);
-            console.warn(`[MatchDetails] Skipping form and H2H data fetch`);
-            setHomeTeamForm([]);
-            setAwayTeamForm([]);
-            setH2hData([]);
-          } else {
+        const fetchFormAndH2h = async () => {
+          try {
+            const homeTeamId = matchData?.homeTeam?.id;
+            const awayTeamId = matchData?.awayTeam?.id;
+
+            console.log(`[MatchDetails] Fetching form data for teams:`, {
+              homeTeamId,
+              awayTeamId,
+              homeTeamName: matchData?.homeTeam?.name,
+              awayTeamName: matchData?.awayTeam?.name
+            });
+
+            if (!homeTeamId || !awayTeamId) {
+              console.warn(`[MatchDetails] Missing team IDs - Home: ${homeTeamId}, Away: ${awayTeamId}`);
+              console.warn(`[MatchDetails] Skipping form and H2H data fetch`);
+              setHomeTeamForm([]);
+              setAwayTeamForm([]);
+              setH2hData([]);
+              return;
+            }
+
+            const homeTeamIdStr = String(homeTeamId);
+            const awayTeamIdStr = String(awayTeamId);
+
+            console.log(`[MatchDetails] Making API calls with team IDs:`, {
+              homeTeamIdStr,
+              awayTeamIdStr
+            });
+
             const [homeForm, awayForm, h2h] = await Promise.all([
-              getLastFiveGames(homeTeamId).catch(err => {
-                console.log(`[MatchDetails] Home team form not available:`, err.message);
+              getLastFiveGames(homeTeamIdStr).catch(err => {
+                console.log(`[MatchDetails] Home team form not available for ${homeTeamIdStr}:`, err.message);
                 return [];
               }),
-              getLastFiveGames(awayTeamId).catch(err => {
-                console.log(`[MatchDetails] Away team form not available:`, err.message);
+              getLastFiveGames(awayTeamIdStr).catch(err => {
+                console.log(`[MatchDetails] Away team form not available for ${awayTeamIdStr}:`, err.message);
                 return [];
               }),
-              getHeadToHead(homeTeamId, awayTeamId).catch(err => {
-                console.log(`[MatchDetails] Head-to-head data not available:`, err.message);
+              getHeadToHead(homeTeamIdStr, awayTeamIdStr).catch(err => {
+                console.log(`[MatchDetails] Head-to-head data not available for ${homeTeamIdStr} vs ${awayTeamIdStr}:`, err.message);
                 return [];
               }),
             ]);
             
-            console.log(`[MatchDetails] Form data results:`, {
-              homeFormGames: homeForm.length,
-              awayFormGames: awayForm.length,
-              h2hGames: h2h.length
+            console.log("[MatchDetails] Form and H2H data fetched:", {
+              homeForm,
+              awayForm,
+              h2h
             });
-            
+
             setHomeTeamForm(homeForm);
             setAwayTeamForm(awayForm);
             setH2hData(h2h);
+
+          } catch (formError) {
+            console.error("[MatchDetails] Failed to fetch form and H2H data:", formError);
+            setHomeTeamForm([]);
+            setAwayTeamForm([]);
+            setH2hData([]);
+          } finally {
+            setFormAndH2hLoading(false);
           }
-        } catch (error) {
-          console.error("Failed to fetch form and H2H data:", error);
-          // Set to empty arrays on error to avoid crashing the component
-          setHomeTeamForm([]);
-          setAwayTeamForm([]);
-          setH2hData([]);
-        } finally {
+        };
+
+        if (matchData) {
+          fetchFormAndH2h();
+        } else {
           setFormAndH2hLoading(false);
         }
+
       } catch (err) {
         console.error("Failed to fetch match details:", err);
         setError("Could not load match details. Please try again later.");
@@ -492,34 +509,35 @@ const MatchDetails = () => {
                 <div className="space-y-6">
                   {/* Highlights Section */}
                   <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH HIGHLIGHTS</h4>
                     <HighlightsCarousel highlights={videoHighlightsList} loading={highlightsLoading} />
                   </div>
 
                   {/* Form and H2H Section */}
                   <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    <h3 className="text-lg font-bold text-white text-center mb-6">Match Preview</h3>
                     {formAndH2hLoading ? (
                       <div className="text-center py-8"><div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div></div>
                     ) : (homeTeamForm.length > 0 || awayTeamForm.length > 0 || h2hData.length > 0) ? (
                       <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <TeamFormStats matches={homeTeamForm} teamId={match.homeTeam.id} teamName={match.homeTeam.name} />
-                          <TeamFormStats matches={awayTeamForm} teamId={match.awayTeam.id} teamName={match.awayTeam.name} />
-                        </div>
-                        <div className="my-8 border-t border-gray-800"></div>
+                        <TeamFormStats 
+                          homeMatches={homeTeamForm} 
+                          homeTeamId={String(match.homeTeam.id)} 
+                          homeTeamName={match.homeTeam.name}
+                          awayMatches={awayTeamForm} 
+                          awayTeamId={String(match.awayTeam.id)} 
+                          awayTeamName={match.awayTeam.name}
+                        />
                         <HeadToHeadStats
                           matches={h2hData}
-                          homeTeamId={match.homeTeam.id}
+                          homeTeamId={String(match.homeTeam.id)}
                           homeTeamName={match.homeTeam.name}
-                          awayTeamId={match.awayTeam.id}
+                          awayTeamId={String(match.awayTeam.id)}
                           awayTeamName={match.awayTeam.name}
                         />
                       </>
                     ) : (
                       <div className="text-center py-8 text-gray-400">
                         <Target size={32} className="mx-auto mb-4" />
-                        <p className="text-white font-medium mb-2">Match Preview Data Unavailable</p>
+                        <p className="text-white font-medium mb-2">Data Unavailable</p>
                         <p className="text-sm max-w-md mx-auto">
                           Team form statistics and head-to-head records are not available through the current API endpoints.
                           This feature will be available once additional endpoints are implemented.
@@ -551,7 +569,7 @@ const MatchDetails = () => {
                     {standingsLoading ? (
                       <div className="text-center py-8"><div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div></div>
                     ) : (
-                      <StandingsTable standings={standings} homeTeamId={match.homeTeam.id} awayTeamId={match.awayTeam.id} />
+                      <StandingsTable standings={standings} homeTeamId={String(match.homeTeam.id)} awayTeamId={String(match.awayTeam.id)} />
                     )}
                   </div>
 

@@ -49,8 +49,7 @@ export const highlightlyService = {
       const leagueIds = TOP_LEAGUES.map(league => league.id);
       const matchesResponses = await highlightlyClient.getMatchesForLeagues(
         leagueIds, 
-        date, 
-        new Date().getFullYear().toString()
+        date
       );
 
       const leaguesWithMatches: LeagueWithMatches[] = [];
@@ -450,6 +449,7 @@ export const highlightlyService = {
       console.log(`[Highlightly] Fetching last 5 games for team: ${teamId}`);
       const response = await highlightlyClient.getLastFiveGames(teamId);
       console.log(`[Highlightly] Last 5 games response:`, response);
+      // API returns Match[] directly (not wrapped in data property)
       return Array.isArray(response) ? response : [];
     } catch (error) {
       console.error(`[Highlightly] Error fetching last 5 games for team ${teamId}:`, error);
@@ -465,6 +465,7 @@ export const highlightlyService = {
       console.log(`[Highlightly] Fetching H2H for teams: ${teamId1} vs ${teamId2}`);
       const response = await highlightlyClient.getHeadToHead(teamId1, teamId2);
       console.log(`[Highlightly] H2H response:`, response);
+      // API returns Match[] directly (not wrapped in data property)
       return Array.isArray(response) ? response : [];
     } catch (error) {
       console.error(`[Highlightly] Error fetching H2H for teams ${teamId1} vs ${teamId2}:`, error);

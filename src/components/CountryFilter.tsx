@@ -46,23 +46,23 @@ const MAJOR_LEAGUES: Record<string, League[]> = {
     { id: '42', name: 'League Two' }
   ],
   'ES': [
-    { id: '140', name: 'La Liga' },
+    { id: '119924', name: 'La Liga' },
     { id: '141', name: 'Segunda División' }
   ],
   'IT': [
-    { id: '135', name: 'Serie A' },
+    { id: '115669', name: 'Serie A' },
     { id: '136', name: 'Serie B' }
   ],
   'DE': [
-    { id: '78', name: 'Bundesliga' },
+    { id: '67162', name: 'Bundesliga' },
     { id: '80', name: '2. Bundesliga' }
   ],
   'FR': [
-    { id: '61', name: 'Ligue 1' },
+    { id: '52695', name: 'Ligue 1' },
     { id: '62', name: 'Ligue 2' }
   ],
   'EU': [
-    { id: '2', name: 'UEFA Champions League' },
+    { id: '2486', name: 'UEFA Champions League' },
     { id: '3', name: 'UEFA Europa League' },
     { id: '848', name: 'UEFA Conference League' }
   ],

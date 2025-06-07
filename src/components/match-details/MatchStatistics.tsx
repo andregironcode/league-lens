@@ -22,18 +22,121 @@ const MatchStatistics: React.FC<MatchStatisticsProps> = ({ statistics, homeTeam,
   const homeStats = statistics[0]?.statistics || [];
   const awayStats = statistics[1]?.statistics || [];
 
-  const getPercentage = (homeValue: any, awayValue: any): { homePercent: number; awayPercent: number } => {
+  // Define the desired order of statistics with Shots Accuracy after Possession
+  const statisticsOrder = [
+    'Possession',
+    'Shots accuracy',
+    'Expected Goals',
+    'Shots on target',
+    'Big Chances Created',
+    'Goal Kicks',
+    'Blocked shots',
+    'Shots within penalty area',
+    'Shots outside penalty area',
+    'Fouls',
+    'Corners',
+    'Throw-Ins',
+    'Goalkeeper saves',
+    'Free Kicks',
+    'Offsides',
+    'Total passes',
+    'Successful passes',
+    'Failed passes',
+    'Yellow cards',
+    'Red cards'
+  ];
+
+  // Create ordered statistics pairs
+  const createOrderedStats = () => {
+    const orderedPairs: Array<{ homeStat: any; awayStat: any }> = [];
+    
+    // For each desired statistic in order, find matching home and away stats
+    statisticsOrder.forEach(desiredStat => {
+      const homeStat = homeStats.find(stat => stat.displayName === desiredStat);
+      const awayStat = awayStats.find(stat => stat.displayName === desiredStat);
+      
+      // Only include if both teams have this statistic
+      if (homeStat && awayStat) {
+        orderedPairs.push({ homeStat, awayStat });
+      }
+    });
+
+    return orderedPairs;
+  };
+
+  const orderedStatsPairs = createOrderedStats();
+
+  const getOptimizedPercentage = (homeValue: any, awayValue: any): { homePercent: number; awayPercent: number } => {
     let homePercent = 50, awayPercent = 50;
     
+    // Handle percentage values that come as decimals (0.59 -> 59%)
     if (typeof homeValue === 'number' && typeof awayValue === 'number') {
+      if (homeValue === 0 && awayValue === 0) {
+        return { homePercent: 50, awayPercent: 50 };
+      }
+      
       const total = homeValue + awayValue;
       if (total > 0) {
-        homePercent = (homeValue / total) * 100;
-        awayPercent = (awayValue / total) * 100;
+        const rawHomePercent = (homeValue / total) * 100;
+        const rawAwayPercent = (awayValue / total) * 100;
+        
+        // Apply optimization for better visual representation
+        const MIN_PERCENT = 15; // Minimum visible bar size
+        const MAX_PERCENT = 85; // Maximum bar size to ensure opponent visibility
+        
+        // If the difference is extreme, apply logarithmic scaling
+        const ratio = Math.max(homeValue, awayValue) / Math.min(homeValue, awayValue);
+        
+        if (ratio > 10) {
+          // Very extreme difference - use logarithmic scaling
+          const logRatio = Math.log10(ratio);
+          const scaleFactor = Math.min(logRatio / 2, 2); // Cap the scaling
+          
+          if (homeValue > awayValue) {
+            homePercent = 50 + (25 * scaleFactor);
+            awayPercent = 50 - (25 * scaleFactor);
+          } else {
+            awayPercent = 50 + (25 * scaleFactor);
+            homePercent = 50 - (25 * scaleFactor);
+          }
+        } else if (ratio > 3) {
+          // Moderate difference - apply gentle scaling
+          const adjustmentFactor = Math.min((ratio - 1) / 4, 0.7);
+          
+          if (homeValue > awayValue) {
+            homePercent = 50 + (35 * adjustmentFactor);
+            awayPercent = 50 - (35 * adjustmentFactor);
+          } else {
+            awayPercent = 50 + (35 * adjustmentFactor);
+            homePercent = 50 - (35 * adjustmentFactor);
+          }
+        } else {
+          // Small difference - use direct proportional but with limits
+          homePercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, rawHomePercent));
+          awayPercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, rawAwayPercent));
+          
+          // Ensure they sum to 100
+          const sum = homePercent + awayPercent;
+          homePercent = (homePercent / sum) * 100;
+          awayPercent = (awayPercent / sum) * 100;
+        }
       }
     } else if (typeof homeValue === 'string' && homeValue.includes('%')) {
+      // Already percentage values
       homePercent = parseFloat(homeValue);
       awayPercent = typeof awayValue === 'string' ? parseFloat(awayValue) : 0;
+      
+      // Apply the same min/max constraints for percentage values
+      const MIN_PERCENT = 15;
+      const MAX_PERCENT = 85;
+      
+      homePercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, homePercent));
+      awayPercent = Math.max(MIN_PERCENT, Math.min(MAX_PERCENT, awayPercent));
+      
+      // Normalize to 100%
+      const sum = homePercent + awayPercent;
+      homePercent = (homePercent / sum) * 100;
+      awayPercent = (awayPercent / sum) * 100;
     }
     
     return { homePercent, awayPercent };
@@ -49,57 +152,84 @@ const MatchStatistics: React.FC<MatchStatisticsProps> = ({ statistics, homeTeam,
     return false;
   };
 
+  const formatStatValue = (value: any): string => {
+    if (typeof value === 'number') {
+      // Handle percentage values (0.59 -> 59%)
+      if (value > 0 && value < 1) {
+        return `${Math.round(value * 100)}%`;
+      }
+      return value.toString();
+    }
+    return value?.toString() || '0';
+  };
+
   return (
     <div className="space-y-4">
-      {/* Team Headers */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-3">
-          <img src={homeTeam.logo} alt={homeTeam.name} className="w-8 h-8 object-contain" />
-          <span className="text-white font-medium text-sm">{homeTeam.name}</span>
-        </div>
-        <div className="flex items-center space-x-3">
-          <span className="text-white font-medium text-sm">{awayTeam.name}</span>
-          <img src={awayTeam.logo} alt={awayTeam.name} className="w-8 h-8 object-contain" />
-        </div>
-      </div>
-
       {/* Statistics Rows */}
       <div className="space-y-4">
-        {homeStats.map((homeStat, index) => {
-          const awayStat = awayStats[index];
-          if (!awayStat) return null;
-
+        {orderedStatsPairs.map(({ homeStat, awayStat }, index) => {
           const homeValue = homeStat.value;
           const awayValue = awayStat.value;
-          const { homePercent, awayPercent } = getPercentage(homeValue, awayValue);
+          const { homePercent, awayPercent } = getOptimizedPercentage(homeValue, awayValue);
           
           const homeIsHigher = isHigher(homeValue, awayValue);
           const awayIsHigher = isHigher(awayValue, homeValue);
           
           return (
-            <div key={index} className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className={`text-sm font-medium ${homeIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>
-                  {homeValue}
-                </span>
-                <span className="text-sm font-medium text-white text-center flex-1 mx-4">
+            <div key={`${homeStat.displayName}-${index}`} className="space-y-2">
+              {/* External Label */}
+              <div className="text-center">
+                <span 
+                  className="font-sans font-normal text-gray-400"
+                  style={{ fontSize: '14px' }}
+                >
                   {homeStat.displayName}
                 </span>
-                <span className={`text-sm font-medium ${awayIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>
-                  {awayValue}
-                </span>
               </div>
-              
-              {/* Progress Bar */}
-              <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden flex">
+
+              {/* Center-Gapped Pill-Shaped Progress Bars Container */}
+              <div className="relative" style={{ height: '36px' }}>
+                {/* Home team pill (extends to center with gap) */}
                 <div 
-                  className={`h-full ${homeIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
-                  style={{ width: `${homePercent}%` }}
-                />
+                  className="absolute top-0 h-full transition-all duration-300 ease-out rounded-full"
+                  style={{
+                    backgroundColor: homeIsHigher ? '#F7CC45' : '#585858',
+                    left: '0',
+                    width: 'calc(50% - 2.5px)',
+                    height: '36px'
+                  }}
+                >
+                  {/* Home team value (positioned on right side) */}
+                  <div className="absolute inset-0 flex items-center justify-end pr-4">
+                    <span 
+                      className="font-bold"
+                      style={{ fontSize: '14px', color: '#FFFFFF' }}
+                    >
+                      {formatStatValue(homeValue)}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Away team pill (extends from center with gap) */}
                 <div 
-                  className={`h-full ${awayIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} 
-                  style={{ width: `${awayPercent}%` }}
-                />
+                  className="absolute top-0 h-full transition-all duration-300 ease-out rounded-full"
+                  style={{
+                    backgroundColor: awayIsHigher ? '#F7CC45' : '#585858',
+                    left: 'calc(50% + 2.5px)',
+                    width: 'calc(50% - 2.5px)',
+                    height: '36px'
+                  }}
+                >
+                  {/* Away team value (positioned on left side) */}
+                  <div className="absolute inset-0 flex items-center justify-start pl-4">
+                    <span 
+                      className="font-bold"
+                      style={{ fontSize: '14px', color: '#FFFFFF' }}
+                    >
+                      {formatStatValue(awayValue)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           );
@@ -109,4 +239,4 @@ const MatchStatistics: React.FC<MatchStatisticsProps> = ({ statistics, homeTeam,
   );
 };
 
-export default MatchStatistics; 
+export default MatchStatistics;

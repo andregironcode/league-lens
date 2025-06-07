@@ -26,13 +26,13 @@ interface TournamentData {
 }
 
 const TopCompetitions: React.FC = () => {
-  // Top 15 global leagues with their actual IDs for CDN logos - aligned with priority filtering
+  // Top 15 global leagues with CORRECT Highlightly API IDs - aligned with priority filtering
   const topLeagues: LeagueData[] = [
     { id: '33973', name: 'Premier League' },
-    { id: '140', name: 'La Liga' },
-    { id: '135', name: 'Serie A' },
-    { id: '78', name: 'Bundesliga' },
-    { id: '61', name: 'Ligue 1' },
+    { id: '119924', name: 'La Liga' },
+    { id: '115669', name: 'Serie A' },
+    { id: '67162', name: 'Bundesliga' },
+    { id: '52695', name: 'Ligue 1' },
     { id: '94', name: 'Liga Portugal' },
     { id: '307', name: 'Saudi Pro League' },
     { id: '88', name: 'Eredivisie' },
@@ -45,9 +45,9 @@ const TopCompetitions: React.FC = () => {
     { id: '218', name: 'Turkish Süper Lig' }
   ];
 
-  // Top 5 most-viewed football tournaments - aligned with priority filtering
+  // Top 5 most-viewed football tournaments - CORRECT Highlightly API IDs
   const topTournaments: TournamentData[] = [
-    { id: '2', name: 'UEFA Champions League' },
+    { id: '2486', name: 'UEFA Champions League' },
     { id: '1', name: 'FIFA World Cup' },
     { id: '4', name: 'UEFA European Championship' },
     { id: '3', name: 'UEFA Europa League' },

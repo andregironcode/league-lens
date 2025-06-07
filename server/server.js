@@ -20,14 +20,14 @@ const HIGHLIGHTLY_API_URL = 'https://soccer.highlightly.net';
 // Use the direct Highlightly API key from the environment variables
 const HIGHLIGHTLY_API_KEY = process.env.HIGHLIGHTLY_API_KEY;
 
-// Top leagues configuration
+// Top leagues configuration - CORRECT Highlightly API IDs
 const topLeaguesConfig = [
-  { id: '39', name: 'Premier League' },
-  { id: '140', name: 'La Liga' },
-  { id: '135', name: 'Serie A' },
-  { id: '78', name: 'Bundesliga' },
-  { id: '61', name: 'Ligue 1' },
-  { id: '2', name: 'Champions League' },
+  { id: '33973', name: 'Premier League' },
+  { id: '119924', name: 'La Liga' },
+  { id: '115669', name: 'Serie A' },
+  { id: '67162', name: 'Bundesliga' },
+  { id: '52695', name: 'Ligue 1' },
+  { id: '2486', name: 'UEFA Champions League' },
 ];
 
 const callHighlightlyApi = async (path) => {

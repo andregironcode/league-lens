@@ -1,6 +1,6 @@
 import React from 'react';
 import { Match } from '@/types';
-import { Swords, Check, Minus, X } from 'lucide-react';
+import { Swords } from 'lucide-react';
 
 const HeadToHeadStats: React.FC<{
   matches: Match[];
@@ -43,75 +43,38 @@ const HeadToHeadStats: React.FC<{
     return { home: 0, away: 0 };
   };
 
-  let homeWins = 0;
-  let awayWins = 0;
-  let draws = 0;
 
-  matches.forEach(match => {
-    const score = parseScore(match);
-    const homeGoals = score.home;
-    const awayGoals = score.away;
-
-    if (homeGoals === awayGoals) {
-      draws++;
-    } else if (match.homeTeam.id.toString() === homeTeamId) {
-      if (homeGoals > awayGoals) homeWins++;
-      else awayWins++;
-    } else { // Current away team was home team in this past match
-      if (homeGoals > awayGoals) awayWins++;
-      else homeWins++;
-    }
-  });
 
   const recentMatches = matches.slice(0, 5);
 
-  const getResultBadge = (match: Match) => {
-    const score = parseScore(match);
-    if (score.home === score.away) {
-      return <Minus size={12} className="text-gray-400" />;
-    }
-    const didHomeWin = score.home > score.away;
-    if (match.homeTeam.id.toString() === homeTeamId) {
-      return didHomeWin ? <Check size={12} className="text-green-400" /> : <X size={12} className="text-red-400" />;
-    } else {
-      return didHomeWin ? <X size={12} className="text-red-400" /> : <Check size={12} className="text-green-400" />;
-    }
-  };
+
 
   return (
     <div className="mt-8">
       <h3 className="text-lg font-bold text-white text-center mb-4">Head-to-Head</h3>
-      <div className="grid grid-cols-3 text-center mb-6">
-        <div>
-          <p className="text-2xl font-bold text-white">{homeWins}</p>
-          <p className="text-sm text-gray-400">{homeTeamName} Wins</p>
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-white">{draws}</p>
-          <p className="text-sm text-gray-400">Draws</p>
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-white">{awayWins}</p>
-          <p className="text-sm text-gray-400">{awayTeamName} Wins</p>
-        </div>
-      </div>
+
       
       <div className="space-y-2">
-        <h4 className="text-md font-semibold text-white text-center mb-2">Recent Encounters</h4>
         {recentMatches.map(match => {
           const score = parseScore(match);
           return (
-            <div key={match.id} className="flex items-center justify-between bg-black/30 p-2 rounded-lg text-sm">
-              <span className="text-gray-400">{new Date(match.date).toLocaleDateString()}</span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-white text-right">{match.homeTeam.name}</span>
-                <span className="font-bold text-yellow-400 bg-gray-800 px-2 py-0.5 rounded">
-                  {score.home} - {score.away}
-                </span>
-                <span className="font-medium text-white text-left">{match.awayTeam.name}</span>
+            <div key={match.id} className="bg-black/30 p-4 rounded-lg text-sm">
+              {/* Date and League - Top Section */}
+              <div className="flex items-center justify-center gap-2 mb-3 text-center">
+                <span className="text-gray-400">{new Date(match.date).toLocaleDateString()}</span>
+                <span className="text-gray-500">•</span>
+                <span className="text-gray-400">{match.league?.name || 'Unknown League'}</span>
               </div>
-              <div className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-700">
-                {getResultBadge(match)}
+              
+              {/* Scoreline - Middle Section (Perfectly Centered) */}
+              <div className="grid grid-cols-3 items-center gap-2">
+                <span className="font-medium text-white text-right truncate">{match.homeTeam.name}</span>
+                <div className="flex justify-center">
+                  <span className="font-bold text-yellow-400 bg-gray-800 px-3 py-1 rounded text-lg">
+                    {score.home} - {score.away}
+                  </span>
+                </div>
+                <span className="font-medium text-white text-left truncate">{match.awayTeam.name}</span>
               </div>
             </div>
           );

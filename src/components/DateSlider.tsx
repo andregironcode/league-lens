@@ -15,8 +15,8 @@ const DateSlider: React.FC<DateSliderProps> = ({ onDateChange }) => {
     return dateStrings.map(dateStr => new Date(dateStr));
   }, []);
 
-  // Start at the last date (most recent) to match Index page behavior
-  const [selectedIndex, setSelectedIndex] = React.useState(dates.length - 1);
+  // Start at position 7 (today's date in the 14-day range: 7 past + today + 6 future)
+  const [selectedIndex, setSelectedIndex] = React.useState(7);
 
   const handleSliderChange = (value: number[]) => {
     const newIndex = value[0];

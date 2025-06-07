@@ -218,10 +218,7 @@ const HighlightsCarousel: React.FC<HighlightsCarouselProps> = ({ highlights, loa
         </div>
       )}
 
-      {/* Stats */}
-      <div className="text-center text-sm text-gray-400">
-        Showing {currentIndex + 1} of {highlights.length} highlights
-      </div>
+
     </div>
   );
 };

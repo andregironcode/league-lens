@@ -51,17 +51,34 @@ const Index: React.FC = () => {
         setLoading(false);
       }
       
-      // Instead of using today's date (which might be off-season), 
-      // use a recent date when matches were actually played
-      const { dates } = get14DayDateRange();
-      const recentActiveDate = dates[dates.length - 1]; // Use the most recent date from the range
+      console.log(`[Index] Fetching matches for today's date`);
       
-      console.log(`[Index] Using recent active date: ${recentActiveDate} instead of today for initial matches`);
-      fetchMatchesForDate(recentActiveDate);
+      const { dates } = get14DayDateRange();
+      const todayDate = dates[7]; // Middle of 14-day range (7 days past + today + 6 days future)
+      console.log(`[Index] Using today's date: ${todayDate} (position 7 in 14-day range)`);
+      
+      serviceAdapter.getMatchesForDate(todayDate)
+        .then(leaguesWithMatches => {
+          console.log(`[Index] Received ${leaguesWithMatches.length} leagues with matches for ${todayDate}`);
+          
+          if (leaguesWithMatches.length === 0) {
+            console.warn(`[Index] No matches found for ${todayDate}. This might be during off-season or a rest day.`);
+            console.warn(`[Index] Try using DateSlider to select different dates from the 14-day range`);
+          }
+          
+          setRecentMatches(leaguesWithMatches);
+        })
+        .catch(error => {
+          console.error('[Index] Error fetching matches:', error);
+          setRecentMatches([]);
+        })
+        .finally(() => {
+          setMatchesLoading(false);
+        });
     };
 
     loadInitialData();
-  }, [fetchMatchesForDate]);
+  }, []);
 
   const handleDateChange = (date: string) => {
     fetchMatchesForDate(date);
