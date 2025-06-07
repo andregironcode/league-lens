@@ -492,13 +492,11 @@ const MatchDetails = () => {
                 <div className="space-y-6">
                   {/* Highlights Section */}
                   <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH HIGHLIGHTS</h4>
                     <HighlightsCarousel highlights={videoHighlightsList} loading={highlightsLoading} />
                   </div>
 
                   {/* Form and H2H Section */}
                   <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH PREVIEW</h4>
                     
                     {/* Last 5 Matches */}
                     <TeamFormStats 
