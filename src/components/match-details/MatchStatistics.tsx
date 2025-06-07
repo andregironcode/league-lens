@@ -189,13 +189,36 @@ const MatchStatistics: React.FC<MatchStatisticsProps> = ({ statistics, homeTeam,
 
               {/* Center-Gapped Pill-Shaped Progress Bars Container */}
               <div className="relative" style={{ height: '36px' }}>
-                {/* Home team pill (extends to center with gap) */}
+                {/* Background pill for home team (full width) */}
+                <div 
+                  className="absolute top-0 h-full rounded-full"
+                  style={{
+                    backgroundColor: '#1C1C1C',
+                    left: '0',
+                    width: 'calc(50% - 2.5px)',
+                    height: '36px'
+                  }}
+                />
+                
+                {/* Background pill for away team (full width) */}
+                <div 
+                  className="absolute top-0 h-full rounded-full"
+                  style={{
+                    backgroundColor: '#1C1C1C',
+                    left: 'calc(50% + 2.5px)',
+                    width: 'calc(50% - 2.5px)',
+                    height: '36px'
+                  }}
+                />
+
+                {/* Home team progress bar (extends from center leftward) */}
                 <div 
                   className="absolute top-0 h-full transition-all duration-300 ease-out rounded-full"
                   style={{
                     backgroundColor: homeIsHigher ? '#F7CC45' : '#585858',
-                    left: '0',
-                    width: 'calc(50% - 2.5px)',
+                    right: '50%',
+                    marginRight: '2.5px',
+                    width: `${homePercent * 0.5}%`,
                     height: '36px'
                   }}
                 >
@@ -210,13 +233,14 @@ const MatchStatistics: React.FC<MatchStatisticsProps> = ({ statistics, homeTeam,
                   </div>
                 </div>
                 
-                {/* Away team pill (extends from center with gap) */}
+                {/* Away team progress bar (extends from center rightward) */}
                 <div 
                   className="absolute top-0 h-full transition-all duration-300 ease-out rounded-full"
                   style={{
                     backgroundColor: awayIsHigher ? '#F7CC45' : '#585858',
-                    left: 'calc(50% + 2.5px)',
-                    width: 'calc(50% - 2.5px)',
+                    left: '50%',
+                    marginLeft: '2.5px',
+                    width: `${awayPercent * 0.5}%`,
                     height: '36px'
                   }}
                 >
