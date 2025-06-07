@@ -84,7 +84,7 @@ export const highlightlyService = {
   },
 
   /**
-   * Get match by ID - simplified version trusting API response
+   * Get match by ID - trusting API response completely
    */
   async getMatchById(id: string): Promise<EnhancedMatchHighlight | null> {
     console.log(`[Highlightly] Fetching match details for ID: ${id}`);
@@ -99,43 +99,49 @@ export const highlightlyService = {
         return null;
       }
 
-             // Create enhanced match object directly from API response
-       const enhancedMatch: EnhancedMatchHighlight = {
-         id: matchData.id || id,
-         title: matchData.title || `${matchData.homeTeam?.name || 'Home'} vs ${matchData.awayTeam?.name || 'Away'}`,
-         thumbnailUrl: matchData.thumbnail || matchData.thumbnailUrl || '',
-         videoUrl: matchData.videoUrl || '',
-         duration: matchData.duration || '00:00',
-         views: matchData.views || 0,
-         competition: matchData.competition || matchData.league || { id: '', name: '', logo: '' },
-         homeTeam: matchData.homeTeam || { id: '', name: 'Home', logo: '' },
-         awayTeam: matchData.awayTeam || { id: '', name: 'Away', logo: '' },
-         date: matchData.date || new Date().toISOString(),
-         status: matchData.status || { long: 'Scheduled', short: 'SCH' },
-         score: matchData.score || { home: null, away: null },
-         events: matchData.events || [],
-         statistics: matchData.statistics || [],
-         lineups: undefined
-       };
+      console.log(`[Highlightly] Raw match data from API:`, matchData);
+
+      // Trust the API response completely - no mapping or transformation
+      const enhancedMatch: EnhancedMatchHighlight = {
+        id: matchData.id || id,
+        title: `${matchData.homeTeam?.name || 'Home'} vs ${matchData.awayTeam?.name || 'Away'}`,
+        thumbnailUrl: matchData.thumbnail || '',
+        videoUrl: matchData.videoUrl || '',
+        duration: matchData.duration || '90:00',
+        views: matchData.views || 0,
+        competition: matchData.league || { id: '', name: 'Unknown', logo: '' },
+        homeTeam: matchData.homeTeam || { id: '', name: 'Home', logo: '' },
+        awayTeam: matchData.awayTeam || { id: '', name: 'Away', logo: '' },
+        date: matchData.date || new Date().toISOString(),
+        status: matchData.state || { description: 'Unknown' },
+        score: matchData.state?.score || { current: '0 - 0' },
+        events: matchData.events || [],
+        statistics: matchData.statistics || [],
+        lineups: undefined
+      };
+
+      console.log(`[Highlightly] Enhanced match created with score:`, enhancedMatch.score);
 
       // Try to fetch lineups if available
       try {
         const lineupsResponse = await highlightlyClient.getLineups(id);
         if (lineupsResponse) {
           enhancedMatch.lineups = lineupsResponse;
+          console.log(`[Highlightly] Lineups fetched successfully`);
         }
       } catch (lineupError) {
-        console.log(`[Highlightly] Lineups not available for match ${id}`);
+        console.log(`[Highlightly] Lineups not available for match ${id}:`, lineupError.message);
       }
 
       // Try to fetch statistics if available
       try {
         const statsResponse = await highlightlyClient.getStatistics(id);
-        if (statsResponse) {
+        if (statsResponse && Array.isArray(statsResponse)) {
           enhancedMatch.statistics = statsResponse;
+          console.log(`[Highlightly] Statistics fetched successfully`);
         }
       } catch (statsError) {
-        console.log(`[Highlightly] Statistics not available for match ${id}`);
+        console.log(`[Highlightly] Statistics not available for match ${id}:`, statsError.message);
       }
 
       return enhancedMatch;
@@ -244,12 +250,14 @@ export const highlightlyService = {
      /**
     * Get highlights for match - trusting API response
     */
-   async getHighlightsForMatch(matchId: string, limit: number = 5): Promise<MatchHighlight[]> {
+   async getHighlightsForMatch(matchId: string, limit: number = 20): Promise<MatchHighlight[]> {
      try {
+       console.log(`[Highlightly] Fetching highlights for match: ${matchId}`);
        const response = await highlightlyClient.getHighlights({ 
-         match: matchId, 
+         matchId: matchId, 
          limit: String(limit) 
        });
+       console.log(`[Highlightly] Highlights response:`, response);
        return response.data || [];
      } catch (error) {
        console.error('Error fetching highlights for match from Highlightly:', error);
@@ -271,33 +279,33 @@ export const highlightlyService = {
    },
 
   /**
-   * Get last five games - trusting API response
+   * Get last five games for a team - trusting API response
    */
   async getLastFiveGames(teamId: string): Promise<Match[]> {
     try {
+      console.log(`[Highlightly] Fetching last 5 games for team: ${teamId}`);
       const response = await highlightlyClient.getLastFiveGames(teamId);
-      console.log(`[Highlightly] Last five games for team ${teamId}:`, response);
+      console.log(`[Highlightly] Last 5 games response:`, response);
       return Array.isArray(response) ? response : [];
     } catch (error) {
-      console.error(`Error fetching last 5 games for team ${teamId}:`, error);
+      console.error(`[Highlightly] Error fetching last 5 games for team ${teamId}:`, error);
       return [];
     }
   },
 
-     /**
-    * Get head-to-head matches - trusting API response
-    */
-   async getHeadToHead(teamId1: string, teamId2: string): Promise<Match[]> {
-     try {
-       const response = await highlightlyClient.getHeadToHead({ 
-         h2h: `${teamId1}-${teamId2}`
-       });
-       console.log(`[Highlightly] Head-to-head for teams ${teamId1} vs ${teamId2}:`, response);
-       return Array.isArray(response) ? response : [];
-     } catch (error) {
-       console.error(`Error fetching H2H for teams ${teamId1} and ${teamId2}:`, error);
-       return [];
-     }
-   },
+  /**
+   * Get head-to-head matches between two teams - trusting API response
+   */
+  async getHeadToHead(teamId1: string, teamId2: string): Promise<Match[]> {
+    try {
+      console.log(`[Highlightly] Fetching H2H for teams: ${teamId1} vs ${teamId2}`);
+      const response = await highlightlyClient.getHeadToHead(teamId1, teamId2);
+      console.log(`[Highlightly] H2H response:`, response);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error(`[Highlightly] Error fetching H2H for teams ${teamId1} vs ${teamId2}:`, error);
+      return [];
+    }
+  }
 };
 

@@ -171,6 +171,7 @@ export const highlightlyClient = {
     leagueId?: string;
     season?: string;
     match?: string;
+    matchId?: string;
     homeTeamId?: string;
     awayTeamId?: string;
     homeTeamName?: string;
@@ -337,16 +338,14 @@ export const highlightlyClient = {
    * Get the last five finished games for a team
    */
   async getLastFiveGames(teamId: string) {
-    return apiRequest<any>(`/teams/${teamId}/last5`);
+    return apiRequest<any>('/last-five-games', { teamId });
   },
   
   /**
    * Get head-to-head stats between two teams
    */
-  async getHeadToHead(params: {
-    h2h: string; // Format: "teamId1-teamId2"
-  }) {
-    return apiRequest<any>('/fixtures/h2h', params);
+  async getHeadToHead(teamIdOne: string, teamIdTwo: string) {
+    return apiRequest<any>('/head-2-head', { teamIdOne, teamIdTwo });
   },
 
   /**
@@ -374,6 +373,6 @@ export const highlightlyClient = {
    * Get geo restrictions for a highlight
    */
   async getHighlightGeoRestrictions(highlightId: string) {
-    return apiRequest<any>(`/highlights/${highlightId}/geo`);
+    return apiRequest<any>(`/highlights/geo-restrictions/${highlightId}`);
   }
 };

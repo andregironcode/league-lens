@@ -18,14 +18,39 @@ const HeadToHeadStats: React.FC<{
     );
   }
 
+  // Helper function to parse score from API format
+  const parseScore = (match: Match): { home: number; away: number } => {
+    // Try API format first: state.score.current = "5 - 0"
+    if (match.state?.score?.current) {
+      const scoreParts = match.state.score.current.split(' - ');
+      if (scoreParts.length === 2) {
+        return {
+          home: parseInt(scoreParts[0]) || 0,
+          away: parseInt(scoreParts[1]) || 0
+        };
+      }
+    }
+    
+    // Fallback to goals format if available
+    if (match.goals) {
+      return {
+        home: match.goals.home ?? 0,
+        away: match.goals.away ?? 0
+      };
+    }
+    
+    // Default fallback
+    return { home: 0, away: 0 };
+  };
+
   let homeWins = 0;
   let awayWins = 0;
   let draws = 0;
 
   matches.forEach(match => {
-    const goals = match.goals || { home: 0, away: 0 };
-    const homeGoals = goals.home ?? 0;
-    const awayGoals = goals.away ?? 0;
+    const score = parseScore(match);
+    const homeGoals = score.home;
+    const awayGoals = score.away;
 
     if (homeGoals === awayGoals) {
       draws++;
@@ -41,18 +66,17 @@ const HeadToHeadStats: React.FC<{
   const recentMatches = matches.slice(0, 5);
 
   const getResultBadge = (match: Match) => {
-    const goals = match.goals || { home: 0, away: 0 };
-    if (goals.home === goals.away) {
+    const score = parseScore(match);
+    if (score.home === score.away) {
       return <Minus size={12} className="text-gray-400" />;
     }
-    const didHomeWin = goals.home > goals.away;
+    const didHomeWin = score.home > score.away;
     if (match.homeTeam.id.toString() === homeTeamId) {
       return didHomeWin ? <Check size={12} className="text-green-400" /> : <X size={12} className="text-red-400" />;
     } else {
       return didHomeWin ? <X size={12} className="text-red-400" /> : <Check size={12} className="text-green-400" />;
     }
   };
-
 
   return (
     <div className="mt-8">
@@ -74,19 +98,24 @@ const HeadToHeadStats: React.FC<{
       
       <div className="space-y-2">
         <h4 className="text-md font-semibold text-white text-center mb-2">Recent Encounters</h4>
-        {recentMatches.map(match => (
-          <div key={match.id} className="flex items-center justify-between bg-black/30 p-2 rounded-lg text-sm">
-            <span className="text-gray-400">{new Date(match.date).toLocaleDateString()}</span>
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-white text-right">{match.homeTeam.name}</span>
-              <span className="font-bold text-yellow-400 bg-gray-800 px-2 py-0.5 rounded">{match.goals?.home} - {match.goals?.away}</span>
-              <span className="font-medium text-white text-left">{match.awayTeam.name}</span>
+        {recentMatches.map(match => {
+          const score = parseScore(match);
+          return (
+            <div key={match.id} className="flex items-center justify-between bg-black/30 p-2 rounded-lg text-sm">
+              <span className="text-gray-400">{new Date(match.date).toLocaleDateString()}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-white text-right">{match.homeTeam.name}</span>
+                <span className="font-bold text-yellow-400 bg-gray-800 px-2 py-0.5 rounded">
+                  {score.home} - {score.away}
+                </span>
+                <span className="font-medium text-white text-left">{match.awayTeam.name}</span>
+              </div>
+              <div className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-700">
+                {getResultBadge(match)}
+              </div>
             </div>
-            <div className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-700">
-              {getResultBadge(match)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

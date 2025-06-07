@@ -660,8 +660,8 @@ const LeaguePage: React.FC = () => {
                     ) : (
                       <TodaysMatches matches={todaysMatches} />
                     )}
-                  </div>
-                </div>
+                                    </div>
+                        </div>
 
                                 {/* League Preview Section */}
                 <div className="rounded-3xl p-6 border bg-black border-solid border-[#1B1B1B]">

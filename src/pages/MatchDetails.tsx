@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Eye, Share2, Shirt, BarChart4, MapPin, Bell, Target, RefreshCw, Square, Users, Video, BarChart2, Goal, Replace, Info, Home, Trophy } from 'lucide-react';
 import Header from '@/components/Header';
-import { getMatchById, getStandingsForLeague, getLastFiveGames, getHeadToHead } from '@/services/serviceAdapter';
-import { highlightlyService } from '@/services/highlightlyService';
+import { getMatchById, getStandingsForLeague, getLastFiveGames, getHeadToHead, getHighlightsForMatch } from '@/services/serviceAdapter';
 import { MatchHighlight, EnhancedMatchHighlight, Player, Match, MatchEvent, StandingsRow } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +10,11 @@ import { formatSeason } from '../utils/seasonFormatting';
 import StandingsTable from '@/components/StandingsTable';
 import TeamFormStats from '@/components/TeamFormStats';
 import HeadToHeadStats from '@/components/HeadToHeadStats';
+import MatchTimeline from '@/components/match-details/MatchTimeline';
+import ScorelineTimeline from '@/components/match-details/ScorelineTimeline';
+import MatchStatistics from '@/components/match-details/MatchStatistics';
+import TeamLineups from '@/components/match-details/TeamLineups';
+import HighlightsCarousel from '@/components/match-details/HighlightsCarousel';
 
 // Helper component for displaying a single player
 const PlayerDisplay = ({ player }: { player: Player }) => (
@@ -72,110 +76,7 @@ const getEventDisplay = (event: MatchEvent) => {
   return { icon, text };
 };
 
-const MatchTimeline: React.FC<{ events: MatchEvent[], homeTeamId: string }> = ({ events, homeTeamId }) => {
-  if (!events || events.length === 0) {
-    return (
-      <div className="text-center text-gray-400 py-8">
-        <Clock size={24} className="mx-auto mb-2" />
-        No timeline events available for this match.
-      </div>
-    );
-  }
-
-  const sortedEvents = [...events].sort((a, b) => parseEventTime(a.time) - parseEventTime(b.time));
-
-  return (
-    <div className="w-full max-h-96 overflow-y-auto relative pt-4 pr-2">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-0.5 bg-gray-700/50" />
-      {sortedEvents.map((event, index) => {
-        const isHomeEvent = event.team.id.toString() === homeTeamId;
-        const { icon, text } = getEventDisplay(event);
-
-        if (!text) return null;
-
-        const EventContent = () => (
-          <div className="flex items-center gap-3">
-            <div className="flex-grow">{text}</div>
-            <div className="w-8 h-8 flex-shrink-0 bg-gray-800 rounded-full flex items-center justify-center border-2 border-gray-700/80">
-              {icon}
-            </div>
-          </div>
-        );
-
-        return (
-          <div key={index} className="flex items-center my-2">
-            {/* Home Event */}
-            <div className="w-1/2 pr-6 text-right">
-              {isHomeEvent && <EventContent />}
-            </div>
-
-            {/* Time Marker */}
-            <div className="w-10 h-6 rounded-full bg-gray-700/80 text-white text-xs font-mono flex items-center justify-center z-10 border-2 border-gray-900">
-              {event.time}
-            </div>
-
-            {/* Away Event */}
-            <div className="w-1/2 pl-6 text-left">
-              {!isHomeEvent && <EventContent />}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-// Helper component for displaying a full team lineup
-const TeamLineupDisplay = ({ lineup, teamName }: { lineup?: { formation: string; initialLineup: Player[][]; substitutes: Player[] }, teamName: string }) => {
-  if (!lineup || !lineup.initialLineup || lineup.initialLineup.length === 0) {
-    return (
-      <div className="text-center py-10 text-gray-400 bg-gray-900/50 rounded-lg">
-        <Users size={32} className="mx-auto mb-3" />
-        <p className="font-semibold text-white">Lineup Unavailable</p>
-        <p className="text-sm">Lineup information is not yet available for {teamName}.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-5">
-      <div>
-        <h4 className="text-lg font-semibold text-white">{teamName}</h4>
-        <p className="text-yellow-400 font-bold text-md">Formation: {lineup.formation || 'N/A'}</p>
-      </div>
-      
-      <div className="p-4 bg-green-900/30 rounded-lg border border-green-500/40" style={{
-          backgroundImage: `url('/football-pitch.svg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}>
-        <div className="space-y-4 min-h-[300px] flex flex-col justify-around">
-          {lineup.initialLineup.map((row: Player[], rowIndex: number) => (
-            <div key={rowIndex} className="flex justify-around items-center">
-              {row.map((player: Player) => (
-                <div key={player.number} className="text-center w-28">
-                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm mx-auto border-2 border-white/70 shadow-md">
-                    {player.number}
-                  </div>
-                  <p className="text-white text-xs mt-1 bg-black/60 px-2 py-0.5 rounded-full truncate">{player.name}</p>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h5 className="text-md font-semibold text-gray-300 border-b border-gray-700 pb-2 mb-3">Substitutes</h5>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {lineup.substitutes?.map((player: Player) => (
-            <PlayerDisplay key={player.number} player={player} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+// Removed inline TeamLineupDisplay - now using imported component
 
 const MatchDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -380,15 +281,12 @@ const MatchDetails = () => {
         if (matchData) {
           setHighlightsLoading(true);
           try {
-            const highlightsData = await highlightlyService.getHighlightsForMatch(id);
+            const highlightsData = await getHighlightsForMatch(id);
             setVideoHighlightsList(highlightsData);
+            console.log(`[MatchDetails] Highlights fetched:`, highlightsData.length, 'highlights');
           } catch (highlightsError) {
-            console.error("Failed to fetch match highlights:", highlightsError);
-            toast({
-              title: "Could Not Load Highlights",
-              description: "There was an issue fetching the match highlights.",
-              variant: "destructive",
-            });
+            console.log(`[MatchDetails] No highlights available for match ${id}:`, highlightsError.message);
+            setVideoHighlightsList([]); // Set empty array instead of keeping loading state
           } finally {
             setHighlightsLoading(false);
           }
@@ -399,11 +297,29 @@ const MatchDetails = () => {
         // Fetch form and H2H data in parallel
         setFormAndH2hLoading(true);
         try {
+          console.log(`[MatchDetails] Fetching form data for teams:`, matchData.homeTeam.id, matchData.awayTeam.id);
+          
           const [homeForm, awayForm, h2h] = await Promise.all([
-            getLastFiveGames(matchData.homeTeam.id),
-            getLastFiveGames(matchData.awayTeam.id),
-            getHeadToHead(matchData.homeTeam.id, matchData.awayTeam.id),
+            getLastFiveGames(matchData.homeTeam.id).catch(err => {
+              console.log(`[MatchDetails] Home team form not available:`, err.message);
+              return [];
+            }),
+            getLastFiveGames(matchData.awayTeam.id).catch(err => {
+              console.log(`[MatchDetails] Away team form not available:`, err.message);
+              return [];
+            }),
+            getHeadToHead(matchData.homeTeam.id, matchData.awayTeam.id).catch(err => {
+              console.log(`[MatchDetails] Head-to-head data not available:`, err.message);
+              return [];
+            }),
           ]);
+          
+          console.log(`[MatchDetails] Form data results:`, {
+            homeFormGames: homeForm.length,
+            awayFormGames: awayForm.length,
+            h2hGames: h2h.length
+          });
+          
           setHomeTeamForm(homeForm);
           setAwayTeamForm(awayForm);
           setH2hData(h2h);
@@ -435,41 +351,16 @@ const MatchDetails = () => {
   }, [id, toast]);
 
   const getMatchTiming = () => {
-    if (!match) return { status: 'loading' };
-
-    const matchDate = new Date(match.date);
+    if (!match) return { status: 'unknown' };
+    
     const now = new Date();
-    const timeDiff = matchDate.getTime() - now.getTime();
-    const hoursUntilMatch = timeDiff / (1000 * 60 * 60);
-
-    if (match.status?.long === 'Match Finished' || match.status?.short === 'FT') {
-        return { status: 'fullTime' };
-    }
-    if (match.status?.long?.includes('In Play') || match.status?.short === 'LIVE') {
-        return { status: 'live' };
-    }
-    if (hoursUntilMatch > 1) {
-        return { status: 'preview', hours: Math.floor(hoursUntilMatch) };
-    }
-    if (hoursUntilMatch > 0) {
-        return { status: 'imminent', minutes: Math.floor(hoursUntilMatch * 60) };
-    }
-    // Default for past matches that might not be explicitly "Finished"
+    const matchDate = new Date(match.date);
+    const diffMs = now.getTime() - matchDate.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffMinutes < -60) return { status: 'preview' };
+    if (diffMinutes >= -60 && diffMinutes < 0) return { status: 'imminent' };
     return { status: 'fullTime' };
-  };
-
-  const isValidVideoUrl = (url: string): boolean => {
-    return url && (url.includes('youtube.com') || url.includes('youtu.be'));
-  };
-
-  const getVideoEmbedUrl = (url: string): string => {
-    if (!isValidVideoUrl(url)) return '';
-    try {
-      const videoId = new URL(url).searchParams.get('v');
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
-    } catch {
-      return '';
-    }
   };
 
   const handleGoBack = () => navigate(-1);
@@ -537,7 +428,7 @@ const MatchDetails = () => {
           <div className="mb-8 w-full space-y-6">
             {/* Teams and Final Score - Main Box */}
             <div 
-              className="rounded-xl overflow-hidden p-6 relative"
+              className="rounded-3xl overflow-hidden p-6 relative"
               style={{
                 background: 'linear-gradient(15deg, #000000 0%, #000000 60%, #1F1F1F 100%)',
                 border: '1px solid #1B1B1B',
@@ -559,9 +450,34 @@ const MatchDetails = () => {
                     <div className="text-white font-medium text-lg">{match.homeTeam.name}</div>
                   </div>
                   <div className="text-center px-8">
-                    <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold mb-4">FULL TIME</div>
-                    <div className="text-white text-6xl font-bold mb-2">{match.score?.home ?? 0} - {match.score?.away ?? 0}</div>
-                    <div className="text-gray-400 text-sm mb-3">FINAL SCORE</div>
+                    <div className="font-bold mb-2" style={{ color: '#FF4C4C', fontSize: '16px' }}>FULL TIME</div>
+                    <div className="text-center font-bold mb-2" style={{ color: '#FFFFFF' }}>
+                      {(() => {
+                        const scoreText = match.score?.current || 
+                         (match.score?.home !== undefined && match.score?.away !== undefined 
+                           ? `${match.score.home} - ${match.score.away}` 
+                           : '0 - 0');
+                        
+                        // Split the score to style numbers and dash separately
+                        const parts = scoreText.split(' - ');
+                        if (parts.length === 2) {
+                          return (
+                            <>
+                              <span style={{ fontSize: '45px' }}>{parts[0]}</span>
+                              <span style={{ fontSize: '48px' }}> - </span>
+                              <span style={{ fontSize: '45px' }}>{parts[1]}</span>
+                            </>
+                          );
+                        }
+                        return <span style={{ fontSize: '45px' }}>{scoreText}</span>;
+                      })()}
+                    </div>
+                    {/* Show penalty scores if available */}
+                    {match.score?.penalties && (
+                      <div className="text-gray-400 text-sm mb-3">
+                        ({match.score.penalties})
+                      </div>
+                    )}
                   </div>
                   <div className="text-center flex-1">
                     <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-20 h-20 object-contain mx-auto mb-3" />
@@ -569,12 +485,12 @@ const MatchDetails = () => {
                   </div>
                 </div>
                 
-                <MatchTimeline events={match.events || []} homeTeamId={match.homeTeam.id} />
+                <ScorelineTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchEvents={match.events || []} />
               </div>
             </div>
 
             {/* TAB NAVIGATION */}
-            <div className="bg-black/30 border border-white/10 rounded-xl p-2 flex justify-around sm:justify-center space-x-1 sm:space-x-2">
+            <div className="rounded-3xl p-2 flex justify-around sm:justify-center space-x-1 sm:space-x-2" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
               {[
                 { key: 'home', label: 'Home', icon: Home },
                 { key: 'lineups', label: 'Lineups', icon: Users },
@@ -601,65 +517,17 @@ const MatchDetails = () => {
               {activeTab === 'home' && (
                 <div className="space-y-6">
                   {/* Highlights Section */}
-                  <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+                  <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
                     <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH HIGHLIGHTS</h4>
-                    {highlightsLoading ? (
-                      <div className="text-center py-8"><div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div></div>
-                    ) : videoHighlightsList.length > 0 ? (
-                      <div className="space-y-6">
-                        {videoHighlightsList.slice(0, 3).map((highlight, index) => (
-                          isValidVideoUrl(highlight.videoUrl) && (
-                            <div key={highlight.id || index} className="bg-gray-900/50 rounded-lg overflow-hidden border border-gray-700/50">
-                              <div className="aspect-video bg-black relative">
-                                {highlight.videoUrl.includes('youtube.com') || highlight.videoUrl.includes('youtu.be') ? (
-                                  <iframe
-                                    className="w-full h-full"
-                                    src={getVideoEmbedUrl(highlight.videoUrl)}
-                                    title={highlight.title}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <a href={highlight.videoUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative group">
-                                      <img src={highlight.thumbnailUrl || '/placeholder-thumbnail.jpg'} alt={highlight.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onError={(e) => (e.currentTarget.src = '/placeholder-thumbnail.jpg')} />
-                                      <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-opacity duration-300 flex items-center justify-center">
-                                        <Video className="text-white w-12 h-12" />
-                                      </div>
-                                    </a>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="p-4">
-                                <h5 className="text-white font-semibold mb-2" title={highlight.title}>{highlight.title}</h5>
-                                <div className="flex justify-between items-center text-sm text-gray-400">
-                                  <span>{highlight.duration || 'N/A'}</span>
-                                  <span>{highlight.views?.toLocaleString() || 0} views</span>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        ))}
-                        {videoHighlightsList.length > 3 && (
-                          <div className="text-center mt-4">
-                            <p className="text-gray-400 text-sm">
-                              Showing {Math.min(3, videoHighlightsList.length)} of {videoHighlightsList.length} highlights
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-400"><Eye size={32} className="mx-auto mb-2" /><p className="text-white font-medium">No Highlights Available</p><p className="text-sm">There are currently no highlight clips for this match.</p></div>
-                    )}
+                    <HighlightsCarousel highlights={videoHighlightsList} loading={highlightsLoading} />
                   </div>
 
                   {/* Form and H2H Section */}
-                  <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+                  <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
                     <h3 className="text-lg font-bold text-white text-center mb-6">Match Preview</h3>
                     {formAndH2hLoading ? (
                       <div className="text-center py-8"><div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div></div>
-                    ) : (
+                    ) : (homeTeamForm.length > 0 || awayTeamForm.length > 0 || h2hData.length > 0) ? (
                       <>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           <TeamFormStats matches={homeTeamForm} teamId={match.homeTeam.id} teamName={match.homeTeam.name} />
@@ -674,76 +542,37 @@ const MatchDetails = () => {
                           awayTeamName={match.awayTeam.name}
                         />
                       </>
+                    ) : (
+                      <div className="text-center py-8 text-gray-400">
+                        <Target size={32} className="mx-auto mb-4" />
+                        <p className="text-white font-medium mb-2">Match Preview Data Unavailable</p>
+                        <p className="text-sm max-w-md mx-auto">
+                          Team form statistics and head-to-head records are not available through the current API endpoints.
+                          This feature will be available once additional endpoints are implemented.
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
               {activeTab === 'lineups' && (
-                <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
-                      <TeamLineupDisplay lineup={match.lineups?.homeTeam} teamName={match.homeTeam.name} />
-                      <TeamLineupDisplay lineup={match.lineups?.awayTeam} teamName={match.awayTeam.name} />
-                   </div>
+                <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+                  <TeamLineups lineups={match.lineups} homeTeamName={match.homeTeam.name} awayTeamName={match.awayTeam.name} />
                 </div>
               )}
 
               {activeTab === 'stats' && (
-                <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+                <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
                   <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH STATISTICS</h4>
-                  {match.statistics && match.statistics.length >= 2 ? (
-                     <div className="space-y-4">
-                        <div className="flex justify-between items-center mb-6">
-                           <div className="flex items-center space-x-3"><img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-8 h-8 object-contain" /><span className="text-white font-medium text-sm">{match.homeTeam.name}</span></div>
-                           <div className="flex items-center space-x-3"><span className="text-white font-medium text-sm">{match.awayTeam.name}</span><img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-8 h-8 object-contain" /></div>
-                        </div>
-                        <div className="space-y-4">
-                          {match.statistics[0].statistics.map((stat, index) => {
-                              const homeValue = stat.value;
-                              const awayValue = match.statistics![1]?.statistics[index]?.value || 0;
-                              let homePercent = 50, awayPercent = 50;
-                              if (typeof homeValue === 'number' && typeof awayValue === 'number') {
-                                const total = homeValue + awayValue;
-                                if (total > 0) {
-                                  homePercent = (homeValue / total) * 100;
-                                  awayPercent = (awayValue / total) * 100;
-                                }
-                              } else if (typeof homeValue === 'string' && homeValue.includes('%')) {
-                                const homeVal = parseFloat(homeValue);
-                                const awayVal = typeof awayValue === 'string' ? parseFloat(awayValue) : 0;
-                                homePercent = homeVal;
-                                awayPercent = awayVal;
-                              }
-                              
-                              const homeIsHigher = typeof homeValue === 'number' && typeof awayValue === 'number' ? homeValue >= awayValue : false;
-                              const awayIsHigher = typeof homeValue === 'number' && typeof awayValue === 'number' ? awayValue > homeValue : false;
-                              
-                              return (
-                                <div key={index} className="mb-4">
-                                  <div className="flex justify-between items-center mb-2">
-                                    <span className={`text-sm font-medium ${homeIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>{homeValue}</span>
-                                    <span className="text-sm font-medium text-white text-center flex-1 mx-4">{stat.displayName}</span>
-                                    <span className={`text-sm font-medium ${awayIsHigher ? 'text-yellow-400' : 'text-gray-400'}`}>{awayValue}</span>
-                                  </div>
-                                  <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden flex">
-                                    <div className={`h-full ${homeIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} style={{ width: `${homePercent}%` }}></div>
-                                    <div className={`h-full ${awayIsHigher ? 'bg-yellow-400' : 'bg-gray-600'}`} style={{ width: `${awayPercent}%` }}></div>
-                                  </div>
-                                </div>
-                              );
-                           })}
-                        </div>
-                     </div>
-                  ) : (
-                     <div className="text-center py-8 text-gray-400"><BarChart4 size={32} className="mx-auto mb-2" /><p>Match statistics are not yet available.</p></div>
-                  )}
+                  <MatchStatistics statistics={match.statistics || []} homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
                 </div>
               )}
 
               {activeTab === 'standings' && (
                 <div className="space-y-8">
                   {/* Standings Section */}
-                  <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+                  <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
                     <h4 className="text-lg font-semibold mb-6 text-center text-white">LEAGUE STANDINGS</h4>
                     {standingsLoading ? (
                       <div className="text-center py-8"><div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div></div>
@@ -753,9 +582,9 @@ const MatchDetails = () => {
                   </div>
 
                   {/* Timeline Section */}
-                  <div className="rounded-xl p-6 border bg-black border-solid border-[#1B1B1B]">
+                  <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
                     <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH TIMELINE</h4>
-                    <MatchTimeline events={match.events || []} homeTeamId={match.homeTeam.id} />
+                    <MatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchEvents={match.events || []} />
                   </div>
                 </div>
               )}

@@ -63,23 +63,48 @@ export interface Match {
 export interface MatchHighlight {
   id: string;
   title: string;
-  date: string;
-  thumbnailUrl: string;
-  videoUrl: string;
-  duration: string;
-  views: number;
-  homeTeam: Team;
-  awayTeam: Team;
-  score: {
-    home: number;
-    away: number;
+  date?: string;
+  thumbnailUrl?: string;
+  videoUrl?: string;
+  duration?: string;
+  views?: number;
+  homeTeam?: Team;
+  awayTeam?: Team;
+  score?: {
+    home?: number;
+    away?: number;
+    current?: string;
+    penalties?: string;
   };
-  competition: {
+  competition?: {
     id: string;
     name: string;
     logo: string;
   };
   status?: { short?: string; long?: string; elapsed?: number };
+  
+  // Additional properties from Highlightly API
+  type?: 'VERIFIED' | 'UNVERIFIED';
+  imgUrl?: string;
+  description?: string;
+  url?: string;
+  embedUrl?: string;
+  channel?: string;
+  source?: 'youtube' | 'other' | string;
+  match?: {
+    id: string;
+    round?: string;
+    date?: string;
+    country?: Country;
+    awayTeam?: Team;
+    homeTeam?: Team;
+    league?: {
+      id: string;
+      logo: string;
+      name: string;
+      season?: number;
+    };
+  };
 }
 
 export interface League {

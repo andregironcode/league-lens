@@ -1087,6 +1087,11 @@ export const getLastFiveGames = async (teamId: string): Promise<any> => {
 };
 
 export const getHeadToHead = async (teamId1: string, teamId2: string): Promise<any> => {
-  console.log(`[Mock] Getting H2H for teams ${teamId1} and ${teamId2}`);
-  return { data: [] }; // Return empty data structure
+  console.log(`[Mock] Getting head-to-head for teams ${teamId1} vs ${teamId2}`);
+  return [];
+};
+
+export const getHighlightsForMatch = async (matchId: string): Promise<MatchHighlight[]> => {
+  console.log(`[Mock] Getting highlights for match ${matchId}`);
+  return [];
 };

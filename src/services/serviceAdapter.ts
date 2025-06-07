@@ -320,8 +320,15 @@ export const serviceAdapter = {
   },
 
   async getHighlightsForMatch(matchId: string): Promise<MatchHighlight[]> {
-    // Implementation needed
-    throw new Error('Method not implemented');
+    switch (activeService) {
+      case 'highlightly':
+        return highlightlyService.getHighlightsForMatch(matchId);
+      case 'mock':
+      case 'supabase':
+      default:
+        console.warn(`[ServiceAdapter] getHighlightsForMatch not implemented for ${activeService}, returning empty array.`);
+        return [];
+    }
   },
 
   async getMatchDetails(matchId: string): Promise<MatchHighlight | null> {
