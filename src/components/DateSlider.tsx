@@ -2,38 +2,40 @@
 
 import * as React from "react";
 import { Slider } from "@/components/ui/slider";
-import { formatDateForAPI, getCurrentDateCET } from "@/utils/dateUtils";
+import { formatDateForAPI, getCurrentDateCET, get14DayDateRange } from "@/utils/dateUtils";
 
 interface DateSliderProps {
   onDateChange: (date: string) => void;
 }
 
 const DateSlider: React.FC<DateSliderProps> = ({ onDateChange }) => {
-  const [daysOffset, setDaysOffset] = React.useState(0);
-
   const dates = React.useMemo(() => {
-    const today = getCurrentDateCET();
-    return Array.from({ length: 15 }, (_, i) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i - 7);
-      return date;
-    });
+    // Use the same date range logic as the data fetching to ensure consistency
+    const { dates: dateStrings } = get14DayDateRange();
+    return dateStrings.map(dateStr => new Date(dateStr));
   }, []);
 
+  // Start at the last date (most recent) to match Index page behavior
+  const [selectedIndex, setSelectedIndex] = React.useState(dates.length - 1);
+
   const handleSliderChange = (value: number[]) => {
-    const newOffset = value[0];
-    setDaysOffset(newOffset);
-    const selectedDate = new Date();
-    selectedDate.setDate(new Date().getDate() + newOffset);
+    const newIndex = value[0];
+    setSelectedIndex(newIndex);
+    const selectedDate = dates[newIndex];
     onDateChange(formatDateForAPI(selectedDate));
   };
 
-  const getLabel = (offset: number) => {
-    if (offset === 0) return "Today";
-    if (offset === -1) return "Yesterday";
-    if (offset === 1) return "Tomorrow";
-    const date = new Date();
-    date.setDate(date.getDate() + offset);
+  const getLabel = (index: number) => {
+    if (index < 0 || index >= dates.length) return "";
+    const date = dates[index];
+    const today = getCurrentDateCET();
+    const isToday = formatDateForAPI(date) === formatDateForAPI(today);
+    const isYesterday = formatDateForAPI(date) === formatDateForAPI(new Date(today.getTime() - 24 * 60 * 60 * 1000));
+    const isTomorrow = formatDateForAPI(date) === formatDateForAPI(new Date(today.getTime() + 24 * 60 * 60 * 1000));
+    
+    if (isToday) return "Today";
+    if (isYesterday) return "Yesterday";
+    if (isTomorrow) return "Tomorrow";
     return date.toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' });
   };
   
@@ -43,20 +45,20 @@ const DateSlider: React.FC<DateSliderProps> = ({ onDateChange }) => {
             Select a Date
         </label>
         <div className="flex items-center gap-4">
-            <span className="text-xs text-gray-400 w-24 text-center">{getLabel(-7)}</span>
+            <span className="text-xs text-gray-400 w-24 text-center">{getLabel(0)}</span>
             <Slider
                 id="date-slider"
-                min={-7}
-                max={7}
+                min={0}
+                max={dates.length - 1}
                 step={1}
-                value={[daysOffset]}
+                value={[selectedIndex]}
                 onValueChange={handleSliderChange}
                 className="w-full"
             />
-            <span className="text-xs text-gray-400 w-24 text-center">{getLabel(7)}</span>
+            <span className="text-xs text-gray-400 w-24 text-center">{getLabel(dates.length - 1)}</span>
         </div>
         <p className="text-center text-lg font-semibold text-white mt-2">
-            {getLabel(daysOffset)}
+            {getLabel(selectedIndex)}
         </p>
     </div>
   );

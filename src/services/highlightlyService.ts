@@ -59,6 +59,8 @@ export const highlightlyService = {
         const leagueId = leagueIds[index];
         const matches = (response as any)?.data || [];
         
+        console.log(`[Highlightly] League ${leagueId} (${TOP_LEAGUES[index]?.name}) returned ${matches.length} matches for ${date}`);
+        
         if (matches.length > 0) {
           const leagueData = LEAGUE_DATA_MAP[leagueId];
           if (leagueData) {
@@ -66,7 +68,10 @@ export const highlightlyService = {
               ...leagueData,
               matches: matches.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()),
             });
+            console.log(`[Highlightly] Added league ${leagueData.name} with ${matches.length} matches`);
           }
+        } else {
+          console.log(`[Highlightly] No matches found for league ${leagueId} (${TOP_LEAGUES[index]?.name}) on ${date}`);
         }
       });
       

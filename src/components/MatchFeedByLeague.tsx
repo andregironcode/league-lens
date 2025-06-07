@@ -87,7 +87,7 @@ const MatchFeedByLeague: React.FC<MatchFeedByLeagueProps> = ({
     // Route finished matches to Full-time Summary page
     const isFinished = match.status === 'finished';
     if (isFinished) {
-      navigate(`/fulltime/${match.id}`);
+      navigate(`/match/${match.id}`);
     } else {
       navigate(`/match/${match.id}`);
     }

@@ -435,30 +435,10 @@ export const highlightlyClient = {
     leagueId?: string;
     season?: string;
   }) {
-    // Build API parameters - API requires leagueId and season as required params
-    const apiParams: Record<string, string> = {};
-    
-    // Handle leagueId parameter
-    if (params.leagueId) {
-      apiParams.leagueId = params.leagueId;
-    } else if (params.league) {
-      // If league name is provided, try to resolve it to an ID
-      // For now, pass the league name as leagueId (API might accept both)
-      apiParams.leagueId = params.league;
-    }
-    
-    // Handle season parameter - required by API
-    if (params.season) {
-      apiParams.season = params.season;
-    } else {
-      // Fallback to current year if no season provided
-      apiParams.season = new Date().getFullYear().toString();
-    }
-    
-    console.log('[Highlightly Client] Calling standings API with params:', apiParams);
+    console.log('[Highlightly Client] Calling standings API with params:', params);
     
     try {
-      const response = await apiRequest<any>('/standings', apiParams);
+      const response = await apiRequest<any>('/standings', params);
       console.log('[Highlightly Client] Standings API response:', response);
       return response;
     } catch (error) {
@@ -471,11 +451,16 @@ export const highlightlyClient = {
    * Optimized: Get standings for multiple leagues
    */
   async getStandingsForLeagues(leagueIds: string[], season?: string) {
-    const currentSeason = season || new Date().getFullYear().toString();
-    const requests = leagueIds.map(leagueId => ({
-      endpoint: '/standings',
-      params: { leagueId, season: currentSeason }
-    }));
+    const requests = leagueIds.map(leagueId => {
+      const params: Record<string, string> = { leagueId };
+      if (season) {
+        params.season = season;
+      }
+      return {
+        endpoint: '/standings',
+        params
+      };
+    });
     
     return batchApiRequests(requests, 3);
   },

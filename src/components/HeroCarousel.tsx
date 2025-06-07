@@ -138,7 +138,7 @@ const HeroCarousel = ({
   };
   const handleNavigateToMatch = () => {
     // HeroCarousel shows highlights which are finished matches, route to Full-time Summary
-    navigate(`/fulltime/${currentHighlight.id}`);
+    navigate(`/match/${currentHighlight.id}`);
   };
   const handleNavigateToTeam = (teamId: string, e: React.MouseEvent) => {
     e.stopPropagation();

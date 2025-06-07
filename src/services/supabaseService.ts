@@ -444,9 +444,9 @@ export const supabaseService = {
       europeanStanding: europeanStanding ? 
         `${this.getOrdinalSuffix(europeanStanding.position)} in ${european?.name}` : 
         null,
-      leagueTable: await this.transformTableRows(leagueTable),
-      europeanTable: await this.transformTableRows(europeanTable),
-      fixtures: await this.transformFixtures(fixtures)
+      leagueTable: leagueTable,
+      europeanTable: europeanTable,
+      fixtures: fixtures
     };
     
     return teamDetails;
@@ -520,55 +520,7 @@ export const supabaseService = {
     return i + "th";
   },
 
-  async transformTableRows(tableRows: LeagueTable[]): Promise<any[]> {
-    // Transform league table rows to include team information
-    return await Promise.all(tableRows.map(async row => {
-      const team = await this.getTeamById(row.team_id);
-      
-      return {
-        position: row.position,
-        team: team ? {
-          id: team.id,
-          name: team.name,
-          logo: team.logo
-        } : { id: row.team_id, name: 'Unknown Team', logo: '' },
-        played: row.played,
-        won: row.won,
-        drawn: row.drawn,
-        lost: row.lost,
-        goalsFor: row.goals_for,
-        goalsAgainst: row.goals_against,
-        goalDifference: row.goal_difference,
-        points: row.points
-      };
-    }));
-  },
-
-  async transformFixtures(fixtures: Fixture[]): Promise<any[]> {
-    // Transform fixtures to include team information
-    return await Promise.all(fixtures.map(async fixture => {
-      const homeTeam = await this.getTeamById(fixture.home_team_id);
-      const awayTeam = await this.getTeamById(fixture.away_team_id);
-      const competition = await this.getCompetitionById(fixture.competition_id);
-      
-      return {
-        id: fixture.id,
-        homeTeam: homeTeam ? {
-          id: homeTeam.id,
-          name: homeTeam.name,
-          logo: homeTeam.logo
-        } : { id: fixture.home_team_id, name: 'Unknown Team', logo: '' },
-        awayTeam: awayTeam ? {
-          id: awayTeam.id,
-          name: awayTeam.name,
-          logo: awayTeam.logo
-        } : { id: fixture.away_team_id, name: 'Unknown Team', logo: '' },
-        date: fixture.date,
-        competition: competition?.name || fixture.competition_id,
-        venue: fixture.venue
-      };
-    }));
-  }
+  // Removed transformTableRows and transformFixtures - trust API responses directly
 };
 
 // Export functions individually for easier importing

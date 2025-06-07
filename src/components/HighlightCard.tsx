@@ -41,7 +41,7 @@ const HighlightCard = ({ highlight, featured = false }: HighlightCardProps) => {
 
   const handleCardClick = () => {
     // HighlightCard represents finished matches (they have scores), so route to Full-time Summary
-    navigate(`/fulltime/${highlight.id}`);
+    navigate(`/match/${highlight.id}`);
   };
 
   const handleTeamClick = (teamId: string, event: React.MouseEvent) => {

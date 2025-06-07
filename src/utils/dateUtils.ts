@@ -53,8 +53,8 @@ export function get14DayDateRange(): { dates: string[], startDate: string, endDa
   if (currentMonth >= 6 && currentMonth <= 7) {
     console.log(`[DateUtils] Off-season period detected (June-July). Looking at recent completed season.`);
     
-    // Look at the last 14 days of the previous season (mid to late May)
-    const endOfSeason = new Date(currentDate.getFullYear(), 4, 25); // May 25th
+    // Look at the end of the previous season (include full end of May through May 31st)
+    const endOfSeason = new Date(currentDate.getFullYear(), 4, 31); // May 31st (last day of May)
     
     for (let i = -13; i <= 0; i++) {
       const date = new Date(endOfSeason);
@@ -65,7 +65,7 @@ export function get14DayDateRange(): { dates: string[], startDate: string, endDa
     startDate = dates[0];
     endDate = dates[dates.length - 1];
     
-    console.log(`[DateUtils] Off-season strategy: Using end-of-season dates ${startDate} to ${endDate}`);
+    console.log(`[DateUtils] Off-season strategy: Using end-of-season dates ${startDate} to ${endDate} (includes May 31st)`);
   } else {
     // Normal season: 7 days past + 7 days future
     for (let i = -7; i <= 7; i++) {

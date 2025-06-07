@@ -108,7 +108,7 @@ const MatchCard: React.FC<{ match: any }> = ({ match }) => {
         
         // Route finished matches to Full-time Summary page
         if (isFinished) {
-          navigate(`/fulltime/${match.id}`);
+          navigate(`/match/${match.id}`);
         } else {
           navigate(`/match/${match.id}`);
         }

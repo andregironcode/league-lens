@@ -160,59 +160,23 @@ const MatchDetails = () => {
             console.log(`[MatchDetails] Raw standings response:`, standingsResponse);
             
             if (standingsResponse && (standingsResponse.groups || standingsResponse.standings || standingsResponse.data)) {
-              // Handle response format - API returns groups with standings
+              // Trust the API response structure completely
               let standingsData = [];
               
               if (standingsResponse.groups && Array.isArray(standingsResponse.groups) && standingsResponse.groups.length > 0) {
-                // Groups format (most common for leagues)
+                // Use groups format as-is
                 standingsData = standingsResponse.groups[0].standings || [];
-                console.log(`[MatchDetails] Using groups format - ${standingsData.length} teams`);
-              } else if (Array.isArray(standingsResponse)) {
-                // Direct array format
-                standingsData = standingsResponse;
-                console.log(`[MatchDetails] Using direct array format - ${standingsData.length} teams`);
-              } else if (standingsResponse.data && Array.isArray(standingsResponse.data)) {
-                // Data array format
-                standingsData = standingsResponse.data;
-                console.log(`[MatchDetails] Using data array format - ${standingsData.length} teams`);
-              } else if (standingsResponse.league && standingsResponse.league.standings) {
-                // League.standings format
-                standingsData = standingsResponse.league.standings[0] || [];
-                console.log(`[MatchDetails] Using league.standings format - ${standingsData.length} teams`);
               } else if (standingsResponse.standings && Array.isArray(standingsResponse.standings)) {
-                // Direct standings format
+                // Use direct standings format as-is
                 standingsData = standingsResponse.standings;
-                console.log(`[MatchDetails] Using direct standings format - ${standingsData.length} teams`);
-              } else if (standingsResponse[0] && standingsResponse[0].standings) {
-                // First element has standings
-                standingsData = standingsResponse[0].standings;
-                console.log(`[MatchDetails] Using first element standings format - ${standingsData.length} teams`);
+              } else {
+                // Default to empty if structure is unexpected
+                standingsData = [];
               }
               
-              // Map the API response format to our expected StandingsRow format
-              const mappedStandings: StandingsRow[] = standingsData.map((standing: any, index: number) => {
-                const totalStats = standing.total || {};
-                
-                return {
-                  position: standing.position || index + 1,
-                  team: {
-                    id: standing.team?.id || '',
-                    name: standing.team?.name || '',
-                    logo: standing.team?.logo || ''
-                  },
-                  points: standing.points || 0,
-                  played: totalStats.games || totalStats.played || 0,
-                  won: totalStats.wins || 0,
-                  drawn: totalStats.draws || 0,
-                  lost: totalStats.loses || totalStats.lost || 0, // Note: API uses "loses"
-                  goalsFor: totalStats.scoredGoals || totalStats.goalsFor || 0,
-                  goalsAgainst: totalStats.receivedGoals || totalStats.goalsAgainst || 0,
-                  goalDifference: (totalStats.scoredGoals || 0) - (totalStats.receivedGoals || 0)
-                };
-              });
-              
-              console.log(`[MatchDetails] Successfully mapped ${mappedStandings.length} teams for standings`);
-              setStandings(mappedStandings);
+              // Use API data directly without mapping
+              setStandings(standingsData);
+              console.log(`[MatchDetails] Successfully loaded ${standingsData.length} teams for standings`);
             } else {
               console.log(`[MatchDetails] No standings found in response`);
               setStandings([]); // No standings available
@@ -230,46 +194,20 @@ const MatchDetails = () => {
                 console.log(`[MatchDetails] Fallback response:`, fallbackResponse);
                 
                 if (fallbackResponse && (fallbackResponse.groups || fallbackResponse.standings || fallbackResponse.data)) {
-                  // Use the same processing logic as above
+                  // Trust the API fallback response structure completely  
                   let standingsData = [];
                   
                   if (fallbackResponse.groups && Array.isArray(fallbackResponse.groups) && fallbackResponse.groups.length > 0) {
                     standingsData = fallbackResponse.groups[0].standings || [];
-                  } else if (Array.isArray(fallbackResponse)) {
-                    standingsData = fallbackResponse;
-                  } else if (fallbackResponse.data && Array.isArray(fallbackResponse.data)) {
-                    standingsData = fallbackResponse.data;
-                  } else if (fallbackResponse.league && fallbackResponse.league.standings) {
-                    standingsData = fallbackResponse.league.standings[0] || [];
                   } else if (fallbackResponse.standings && Array.isArray(fallbackResponse.standings)) {
                     standingsData = fallbackResponse.standings;
-                  } else if (fallbackResponse[0] && fallbackResponse[0].standings) {
-                    standingsData = fallbackResponse[0].standings;
+                  } else {
+                    standingsData = [];
                   }
                   
-                  const mappedStandings: StandingsRow[] = standingsData.map((standing: any, index: number) => {
-                    const totalStats = standing.total || {};
-                    
-                    return {
-                      position: standing.position || index + 1,
-                      team: {
-                        id: standing.team?.id || '',
-                        name: standing.team?.name || '',
-                        logo: standing.team?.logo || ''
-                      },
-                      points: standing.points || 0,
-                      played: totalStats.games || totalStats.played || 0,
-                      won: totalStats.wins || 0,
-                      drawn: totalStats.draws || 0,
-                      lost: totalStats.loses || totalStats.lost || 0,
-                      goalsFor: totalStats.scoredGoals || totalStats.goalsFor || 0,
-                      goalsAgainst: totalStats.receivedGoals || totalStats.goalsAgainst || 0,
-                      goalDifference: (totalStats.scoredGoals || 0) - (totalStats.receivedGoals || 0)
-                    };
-                  });
-                  
-                  console.log(`[MatchDetails] Fallback success! Using ${fallbackSeason} data (${mappedStandings.length} teams)`);
-                  setStandings(mappedStandings);
+                  // Use API data directly without mapping
+                  console.log(`[MatchDetails] Fallback success! Using ${fallbackSeason} data (${standingsData.length} teams)`);
+                  setStandings(standingsData);
                   return; // Exit successfully
                 }
               } catch (fallbackError) {

@@ -142,27 +142,10 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
           }
         }
         
-        // Map the API response format to our expected format
-        const mappedStandings = standingsData.map((standing: any, index: number) => ({
-          position: standing.position || index + 1,
-          team: {
-            id: standing.team?.id || '',
-            name: standing.team?.name || '',
-            logo: standing.team?.logo || ''
-          },
-          points: standing.points || standing.total?.points || 0,
-          played: standing.total?.games || standing.total?.played || 0,
-          won: standing.total?.wins || 0,
-          drawn: standing.total?.draws || 0,
-          lost: standing.total?.loses || standing.total?.lost || 0,
-          goalsFor: standing.total?.scoredGoals || standing.total?.goalsFor || 0,
-          goalsAgainst: standing.total?.receivedGoals || standing.total?.goalsAgainst || 0,
-          goalDifference: (standing.total?.scoredGoals || 0) - (standing.total?.receivedGoals || 0)
-        }));
-        
-        console.log(`[LeaguePage] Final standings data:`, mappedStandings);
-        setStandings(mappedStandings);
-        console.log(`[LeaguePage] Loaded ${mappedStandings.length} standings entries`);
+        // Use API response format directly without mapping
+        setStandings(standingsData);
+        console.log(`[LeaguePage] Final standings data:`, standingsData);
+        console.log(`[LeaguePage] Loaded ${standingsData.length} standings entries`);
         
       } catch (firstError) {
         console.log(`[LeaguePage] Current season failed, trying 2024...`);
@@ -185,25 +168,10 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
             standingsData = response.league.standings[0] || [];
           }
           
-          const mappedStandings = standingsData.map((standing: any, index: number) => ({
-            position: standing.position || index + 1,
-            team: {
-              id: standing.team?.id || '',
-              name: standing.team?.name || '',
-              logo: standing.team?.logo || ''
-            },
-            points: standing.points || standing.total?.points || 0,
-            played: standing.total?.games || standing.total?.played || 0,
-            won: standing.total?.wins || 0,
-            drawn: standing.total?.draws || 0,
-            lost: standing.total?.loses || standing.total?.lost || 0,
-            goalsFor: standing.total?.scoredGoals || standing.total?.goalsFor || 0,
-            goalsAgainst: standing.total?.receivedGoals || standing.total?.goalsAgainst || 0,
-            goalDifference: (standing.total?.scoredGoals || 0) - (standing.total?.receivedGoals || 0)
-          }));
-          
-          setStandings(mappedStandings);
-          console.log(`[LeaguePage] Loaded ${mappedStandings.length} standings entries with 2024`);
+          // Use API response format directly without mapping
+          setStandings(standingsData);
+          console.log(`[LeaguePage] Final standings data:`, standingsData);
+          console.log(`[LeaguePage] Loaded ${standingsData.length} standings entries with 2024`);
           
         } catch (secondError) {
           console.log(`[LeaguePage] All standings approaches failed:`, firstError, secondError);
@@ -226,36 +194,12 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
       });
 
       if (response.data && Array.isArray(response.data)) {
-        const transformedMatches: Match[] = response.data.map((match: any) => ({
-          id: match.id || `match-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          date: match.date || new Date().toISOString(),
-          homeTeam: {
-            id: match.homeTeam?.id || match.teams?.home?.id || 'unknown',
-            name: match.homeTeam?.name || match.teams?.home?.name || 'Unknown Team',
-            logo: match.homeTeam?.logo || match.teams?.home?.logo || '/teams/default.png'
-          },
-          awayTeam: {
-            id: match.awayTeam?.id || match.teams?.away?.id || 'unknown',
-            name: match.awayTeam?.name || match.teams?.away?.name || 'Unknown Team',
-            logo: match.awayTeam?.logo || match.teams?.away?.logo || '/teams/default.png'
-          },
-          status: match.fixture?.status?.short === 'FT' ? 'finished' : 
-                  match.fixture?.status?.short === 'LIVE' ? 'live' : 'upcoming',
-          competition: {
-            id: league.id,
-            name: league.name,
-            logo: league.logo || '/leagues/default.png'
-          },
-          fixture: match.fixture,
-          goals: match.goals,
-          score: match.score
-        }));
-
-        setAllMatches(transformedMatches);
+        // Use API response directly without transformation
+        setAllMatches(response.data);
         
-        // Filter for upcoming matches
-        const upcoming = transformedMatches.filter(match => 
-          match.status === 'upcoming' || match.status === 'live'
+        // Filter for upcoming matches using API response format
+        const upcoming = response.data.filter((match: any) => 
+          match.fixture?.status?.short !== 'FT'
         );
         setUpcomingMatches(upcoming);
       }
@@ -358,7 +302,7 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
     });
   };
 
-  const handleMatchClick = (matchId: string) => {
+  const handleMatchClick = (matchId: string | number) => {
     navigate(`/match/${matchId}`);
   };
 
@@ -479,20 +423,12 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
         <h3 className="text-lg font-semibold">{title}</h3>
         <div className="divide-y divide-gray-700/30">
           {matches.map((match) => {
-            // Get score from the match object using the proper type
+            // Use the API response format directly - trust the structure from Highlightly API
             let homeScore: number | undefined = undefined;
             let awayScore: number | undefined = undefined;
 
-            if (match.score?.home !== undefined && match.score?.away !== undefined) {
-              homeScore = match.score.home;
-              awayScore = match.score.away;
-            } else if (match.score?.fulltime?.home !== undefined && match.score?.fulltime?.away !== undefined) {
-              homeScore = match.score.fulltime.home;
-              awayScore = match.score.fulltime.away;
-            } else if (match.score?.final?.home !== undefined && match.score?.final?.away !== undefined) {
-              homeScore = match.score.final.home;
-              awayScore = match.score.final.away;
-            } else if (match.goals?.home !== undefined && match.goals?.away !== undefined) {
+            // Check goals object first (most reliable source)
+            if (match.goals?.home !== undefined && match.goals?.away !== undefined) {
               homeScore = match.goals.home;
               awayScore = match.goals.away;
             }
@@ -714,31 +650,10 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
                             let homeScore: number | undefined = undefined;
                             let awayScore: number | undefined = undefined;
                             
-                            // Try multiple ways to get scores from the API response
-                            if (match.score?.home !== undefined && match.score?.away !== undefined) {
-                              homeScore = match.score.home;
-                              awayScore = match.score.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in match.score:`, { homeScore, awayScore });
-                            } else if (match.score?.fulltime?.home !== undefined && match.score?.fulltime?.away !== undefined) {
-                              homeScore = match.score.fulltime.home;
-                              awayScore = match.score.fulltime.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in match.score.fulltime:`, { homeScore, awayScore });
-                            } else if (match.score?.final?.home !== undefined && match.score?.final?.away !== undefined) {
-                              homeScore = match.score.final.home;
-                              awayScore = match.score.final.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in match.score.final:`, { homeScore, awayScore });
-                            } else if (match.goals?.home !== undefined && match.goals?.away !== undefined) {
+                            // Use API response format directly - trust Highlightly API structure
+                            if (match.goals?.home !== undefined && match.goals?.away !== undefined) {
                               homeScore = match.goals.home;
                               awayScore = match.goals.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in match.goals:`, { homeScore, awayScore });
-                            } else if (match.fixture?.score?.fulltime?.home !== undefined && match.fixture?.score?.fulltime?.away !== undefined) {
-                              homeScore = match.fixture.score.fulltime.home;
-                              awayScore = match.fixture.score.fulltime.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in fixture.score.fulltime:`, { homeScore, awayScore });
-                            } else if (match.fixture?.score?.final?.home !== undefined && match.fixture?.score?.final?.away !== undefined) {
-                              homeScore = match.fixture.score.final.home;
-                              awayScore = match.fixture.score.final.away;
-                              console.log(`[LeaguePage] DEBUG: Found scores in fixture.score.final:`, { homeScore, awayScore });
                             }
 
                             const hasScore = homeScore !== undefined && awayScore !== undefined;

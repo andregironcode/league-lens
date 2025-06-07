@@ -110,11 +110,11 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
         
         // Route finished matches to Full-time Summary page
         if (isFinished) {
-          console.log(`[MatchRow] 🎯 ROUTING FINISHED MATCH to /fulltime/${match.id}`);
-          navigate(`/fulltime/${match.id}`);
+                  console.log(`[MatchRow] 🎯 ROUTING FINISHED MATCH to /match/${String(match.id)}`);
+        navigate(`/match/${String(match.id)}`);
         } else {
-          console.log(`[MatchRow] 🎯 ROUTING NON-FINISHED MATCH to /match/${match.id}`);
-          navigate(`/match/${match.id}`);
+                                  console.log(`[MatchRow] 🎯 ROUTING NON-FINISHED MATCH to /match/${String(match.id)}`);
+            navigate(`/match/${String(match.id)}`);
         }
       } catch (error) {
         console.error('Navigation error:', error);

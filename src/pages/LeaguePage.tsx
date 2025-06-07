@@ -208,43 +208,14 @@ const LeaguePage: React.FC = () => {
           });
           
           if (standingsResponse?.groups && standingsResponse.groups.length > 0 && standingsResponse.groups[0].standings) {
-            // Transform Highlightly API response to match our StandingsRow interface
-            const transformedStandings: StandingsRow[] = standingsResponse.groups[0].standings.map((item: any) => ({
-              position: item.position,
-              team: {
-                id: item.team.id.toString(),
-                name: item.team.name,
-                logo: item.team.logo || ''
-              },
-              played: item.total?.games || 0,
-              won: item.total?.wins || 0,
-              drawn: item.total?.draws || 0,
-              lost: item.total?.loses || 0,
-              goalsFor: item.total?.scoredGoals || 0,
-              goalsAgainst: item.total?.receivedGoals || 0,
-              goalDifference: (item.total?.scoredGoals || 0) - (item.total?.receivedGoals || 0),
-              points: item.points || 0
-            }));
-            setStandings(transformedStandings);
-          } else if (standingsResponse?.data && Array.isArray(standingsResponse.data)) {
-            // Transform alternative response format
-            const transformedStandings: StandingsRow[] = standingsResponse.data.map((item: any) => ({
-              position: item.position,
-              team: {
-                id: item.team?.id?.toString() || item.teamId?.toString() || '',
-                name: item.team?.name || item.teamName || '',
-                logo: item.team?.logo || ''
-              },
-              played: item.total?.games || item.played || 0,
-              won: item.total?.wins || item.won || 0,
-              drawn: item.total?.draws || item.drawn || 0,
-              lost: item.total?.loses || item.lost || 0,
-              goalsFor: item.total?.scoredGoals || item.goalsFor || 0,
-              goalsAgainst: item.total?.receivedGoals || item.goalsAgainst || 0,
-              goalDifference: (item.total?.scoredGoals || item.goalsFor || 0) - (item.total?.receivedGoals || item.goalsAgainst || 0),
-              points: item.points || 0
-            }));
-            setStandings(transformedStandings);
+            // Use API response directly without transformation
+            setStandings(standingsResponse.groups[0].standings);
+          } else if (standingsResponse?.standings && Array.isArray(standingsResponse.standings)) {
+            // Use API response directly without transformation  
+            setStandings(standingsResponse.standings);
+          } else {
+            // No valid standings data found
+            setStandings([]);
           }
         } catch (standingsErr) {
           console.error('[LeaguePage] Error fetching standings:', standingsErr);

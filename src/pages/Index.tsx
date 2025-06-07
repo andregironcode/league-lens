@@ -6,7 +6,7 @@ import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
 import TopLeaguesFilter from '@/components/TopLeaguesFilter';
 import DateSlider from '@/components/DateSlider';
-import { formatDateForAPI, getCurrentDateCET } from '@/utils/dateUtils';
+import { formatDateForAPI, getCurrentDateCET, get14DayDateRange } from '@/utils/dateUtils';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
@@ -23,7 +23,13 @@ const Index: React.FC = () => {
       setError(null);
       console.log(`[Index] Fetching matches for date: ${date}`);
       const matchesData = await serviceAdapter.getMatchesForDate(date);
+      console.log(`[Index] Received ${matchesData.length} leagues with matches for ${date}:`, matchesData);
       setRecentMatches(matchesData);
+      
+      // If no matches found, provide helpful logging
+      if (matchesData.length === 0) {
+        console.warn(`[Index] No matches found for ${date}. This might be normal if the date is during off-season or if no games were scheduled.`);
+      }
     } catch (err) {
       console.error(`[Index] Error loading matches for date ${date}:`, err);
       setError('Failed to load matches for the selected date.');
@@ -45,8 +51,13 @@ const Index: React.FC = () => {
         setLoading(false);
       }
       
-      const today = formatDateForAPI(getCurrentDateCET());
-      fetchMatchesForDate(today);
+      // Instead of using today's date (which might be off-season), 
+      // use a recent date when matches were actually played
+      const { dates } = get14DayDateRange();
+      const recentActiveDate = dates[dates.length - 1]; // Use the most recent date from the range
+      
+      console.log(`[Index] Using recent active date: ${recentActiveDate} instead of today for initial matches`);
+      fetchMatchesForDate(recentActiveDate);
     };
 
     loadInitialData();
