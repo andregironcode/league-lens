@@ -1,157 +1,96 @@
-import React from 'react';
-import { Clock, Target, UserMinus, UserPlus, Square, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, Target, UserMinus, UserPlus, Square, AlertTriangle, CheckCircle, XCircle, Flag, ChevronDown, Play, Flag as FlagIcon, Timer, Tv2, ArrowRightLeft, PauseCircle } from 'lucide-react';
+import { MatchEvent, Team, Match } from '@/types';
 
-interface MatchAction {
-  id: string;
-  minute: number;
-  type: 'goal' | 'yellow_card' | 'red_card' | 'substitution' | 'own_goal' | 'penalty' | 'var';
-  team: 'home' | 'away';
-  player: string;
-  playerOut?: string;
-  assist?: string;
-  description: string;
-}
+/**
+ * Helper functions for event visualization and description
+ */
 
-const getMatchActionsFromAPI = (matchEvents: any[], homeTeam: any, awayTeam: any): MatchAction[] => {
-  if (!matchEvents || !Array.isArray(matchEvents)) return [];
+// Event icon map based on event type
+const getEventIcon = (type: string) => {
+  if (!type) return <Clock size={36} className="text-gray-400" />;
   
-  return matchEvents
-    .map((event: any, index: number): MatchAction | null => {
-      try {
-        let eventType: MatchAction['type'];
-        const apiType = event.type?.toLowerCase() || '';
-        
-        if (apiType.includes('goal') || apiType === 'goal') {
-          eventType = 'goal';
-        } else if (apiType.includes('penalty') || apiType === 'penalty') {
-          eventType = 'penalty';
-        } else if (apiType.includes('own') && apiType.includes('goal')) {
-          eventType = 'own_goal';
-        } else if (apiType.includes('yellow') || apiType === 'yellow card') {
-          eventType = 'yellow_card';
-        } else if (apiType.includes('red') || apiType === 'red card') {
-          eventType = 'red_card';
-        } else if (apiType.includes('substitution') || apiType === 'subst') {
-          eventType = 'substitution';
-        } else if (apiType.includes('var')) {
-          eventType = 'var';
-        } else {
-          return null;
-        }
-        
-        // Determine which team this event belongs to
-        let team: 'home' | 'away' = 'home'; // default to home
-        
-        if (event.team && event.team.id) {
-          const eventTeamId = Number(event.team.id);
-          const homeTeamId = Number(homeTeam?.id);
-          const awayTeamId = Number(awayTeam?.id);
-          
-          console.log(`[Timeline] Event analysis:`, {
-            eventPlayer: event.player,
-            eventTeamId,
-            eventTeamName: event.team.name,
-            homeTeamId,
-            homeTeamName: homeTeam?.name,
-            awayTeamId,
-            awayTeamName: awayTeam?.name,
-            isEventHomeTeam: eventTeamId === homeTeamId,
-            isEventAwayTeam: eventTeamId === awayTeamId
-          });
-          
-          if (eventTeamId === homeTeamId) {
-            team = 'home';
-            console.log(`[Timeline] ✅ ${event.player} (${event.team.name}) -> HOME side (left)`);
-          } else if (eventTeamId === awayTeamId) {
-            team = 'away';
-            console.log(`[Timeline] ✅ ${event.player} (${event.team.name}) -> AWAY side (right)`);
-          } else {
-            console.warn(`[Timeline] ⚠️  Unknown team for ${event.player}:`, {
-              eventTeamId,
-              homeTeamId,
-              awayTeamId
-            });
-          }
-        }
-        
-        const playerName = event.player || 'Unknown Player';
-        const playerOut = event.substituted || undefined;
-        const assist = event.assist || undefined;
-        
-        let description = '';
-        if (eventType === 'goal' || eventType === 'penalty') {
-          description = assist ? `Assisted by ${assist}` : 'Goal scored';
-        } else if (eventType === 'substitution') {
-          description = playerOut ? `Substituted for ${playerOut}` : 'Substitution';
-        } else if (eventType === 'yellow_card' || eventType === 'red_card') {
-          description = 'Card shown';
-        } else {
-          description = event.detail || 'Match event';
-        }
-        
-        return {
-          id: `api-event-${index}`,
-          minute: parseInt(event.time?.replace(/[^0-9]/g, '') || '0'),
-          type: eventType,
-          team,
-          player: playerName,
-          playerOut,
-          assist,
-          description
-        };
-      } catch (err) {
-        console.error('Error processing match event:', event, err);
-        return null;
-      }
-    })
-    .filter((action): action is MatchAction => action !== null)
-    .sort((a, b) => a.minute - b.minute);
+  const t = type.toLowerCase();
+  
+  // Match phases
+  if (t.includes('kickoff') && t.includes('1')) return <Play size={36} className="text-green-400" />;
+  if (t.includes('kickoff') && t.includes('2')) return <Play size={36} className="text-blue-400" />;
+  if (t.includes('half-time') || t.includes('halftime')) return <PauseCircle size={36} className="text-yellow-400" />;
+  if (t.includes('full-time') || t.includes('fulltime') || t.includes('end')) return <Timer size={36} className="text-red-400" />;
+  if (t.includes('var')) return <Tv2 size={36} className="text-purple-400" />;
+  
+  // Regular events
+  if (t.includes('goal') && !t.includes('cancel')) return <Target size={36} className="text-yellow-400" />;
+  if (t.includes('kick') || t.includes('off')) return <FlagIcon size={36} className="text-white" />;
+  if (t.includes('cancel')) return <XCircle size={36} className="text-white" />;
+  if (t.includes('penalty')) return <FlagIcon size={36} className="text-yellow-400" />;
+  if (t.includes('substitution')) return <ArrowRightLeft size={36} className="text-blue-300" />;
+  if (t.includes('card')) return <Square size={36} className={t.includes('yellow') ? "text-yellow-400" : "text-red-500"} />;
+  
+  // Default
+  return <Clock size={36} className="text-gray-400" />;
 };
 
-const MatchTimeline: React.FC<{ homeTeam: any; awayTeam: any; matchEvents?: any[] }> = ({ 
-  homeTeam, 
-  awayTeam, 
-  matchEvents 
-}) => {
-  const actions = getMatchActionsFromAPI(matchEvents || [], homeTeam, awayTeam);
+// Generate event description based on type
+const getEventDescription = (event: any) => {
+  if (!event) return null;
+  
+  const type = (event.type || '').toLowerCase();
+  let description = '';
+  
+  // Special event descriptions
+  if (type.includes('kickoff') && type.includes('1')) {
+    return 'First half begins';
+  } else if (type.includes('kickoff') && type.includes('2')) {
+    return 'Second half begins';
+  } else if (type.includes('half-time') || type.includes('halftime')) {
+    return 'Half-time break';
+  } else if (type.includes('full-time') || type.includes('fulltime') || type.includes('end')) {
+    return 'Match ended';
+  } else if (type.includes('var')) {
+    return 'VAR Review: ' + (event.description || 'Checking incident');
+  }
+  
+  return event.description || null;
+};
 
-  const getActionIcon = (type: string) => {
-    switch (type) {
-      case 'goal':
-      case 'penalty':
-        return <Target size={16} className="text-gray-300" />;
-      case 'own_goal':
-        return <Target size={16} className="text-gray-300" />;
-      case 'yellow_card':
-        return <Square size={12} className="text-yellow-400 fill-current" />;
-      case 'red_card':
-        return <Square size={12} className="text-red-500 fill-current" />;
-      case 'substitution':
-        return <div className="flex items-center">
-          <UserMinus size={12} className="text-gray-300" />
-          <UserPlus size={12} className="text-gray-300 ml-1" />
-        </div>;
-      case 'var':
-        return <AlertTriangle size={16} className="text-gray-300" />;
-      default:
-        return <Clock size={16} className="text-gray-300" />;
+interface MatchTimelineProps {
+  matchEvents?: any[];
+  homeTeam?: Team;
+  awayTeam?: Team;
+}
+
+const MatchTimeline: React.FC<MatchTimelineProps> = ({ matchEvents, homeTeam, awayTeam }) => {
+  const [showAllEvents, setShowAllEvents] = useState(false);
+  
+  // Calculate match end time - typically the last event or 90+ minutes
+  const calculateMatchEndTime = (): string => {
+    if (!matchEvents || matchEvents.length === 0) return '90\'';
+    
+    // Look for a full-time or end event
+    const endEvent = matchEvents.find(event => {
+      const type = (event.type || '').toLowerCase();
+      return type.includes('full-time') || type.includes('fulltime') || type.includes('end');
+    });
+    
+    if (endEvent && endEvent.time) return endEvent.time;
+    
+    // If no specific end event, get the time from the last event
+    const lastEvent = matchEvents[matchEvents.length - 1];
+    if (lastEvent && lastEvent.time) {
+      // Try to parse the time and add a small buffer if it's less than 90
+      const timeMatch = lastEvent.time.match(/(\d+)/);
+      if (timeMatch) {
+        const minutes = parseInt(timeMatch[1], 10);
+        return minutes < 90 ? '90\'' : lastEvent.time;
+      }
+      return lastEvent.time;
     }
+    
+    return '90\'';
   };
 
-  const getActionLabel = (type: string) => {
-    switch (type) {
-      case 'goal': return 'Goal';
-      case 'penalty': return 'Penalty Goal';
-      case 'own_goal': return 'Own Goal';
-      case 'yellow_card': return 'Yellow Card';
-      case 'red_card': return 'Red Card';
-      case 'substitution': return 'Substitution';
-      case 'var': return 'VAR';
-      default: return 'Event';
-    }
-  };
-
-  if (!actions.length) {
+  if (!matchEvents || !Array.isArray(matchEvents) || matchEvents.length === 0) {
     return (
       <div className="text-center py-8">
         <Clock size={32} className="mx-auto mb-2 text-gray-400" />
@@ -160,99 +99,203 @@ const MatchTimeline: React.FC<{ homeTeam: any; awayTeam: any; matchEvents?: any[
     );
   }
 
+  // Create a special end event
+  const endEvent = {
+    type: 'Full-time',
+    time: calculateMatchEndTime(),
+    special: true
+  };
+  
+  // Handle events properly - include regular events (not the end event yet)
+  const regularEvents = matchEvents;
+  
+  // Determine which events to display:
+  // If showing all events: all regular events plus the end event
+  // If collapsed: just the first 3 regular events
+  const displayedEvents = showAllEvents ? [...regularEvents, endEvent] : regularEvents.slice(0, Math.min(3, regularEvents.length));
+  
+  // Always show the 'View more' button to reveal/hide the end event
+  const hasMoreEvents = true;
+
   return (
-    <div className="space-y-4">
-      {/* Timeline Events with New Design */}
-      <div className="relative max-h-96 overflow-y-auto px-2 min-w-[600px]">
-        {/* Center separator line */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-600 transform -translate-x-1/2"></div>
+    <div className="relative w-full max-w-2xl mx-auto pt-4 pb-8 overflow-hidden">
+      {/* Timeline container with consistent spacing */}
+      <div className="flex flex-col space-y-16 relative">
+        {/* Simplified timeline vertical connector */}
+        <div className="absolute left-7 w-0.5 bg-gray-700 z-0" style={{
+          top: '3.5rem',  // Start right after Match Start icon
+          bottom: '3.5rem',  // End right before the last element (View More or Match End)
+          display: matchEvents && matchEvents.length > 0 ? 'block' : 'none'
+        }} />
         
-        <div className="space-y-3 pb-4">
-          {actions.map((action, index) => {
-            const isHome = action.team === 'home';
-            
-            return (
-              <div key={action.id} className="relative flex items-center min-h-[80px]">
-                {/* Home team events (left side) */}
-                {isHome ? (
-                  <>
-                    <div className="flex-1 flex justify-end pr-8">
-                      <div 
-                        className="bg-gray-800 border border-gray-700 p-4 max-w-[280px] min-w-[240px] flex items-center gap-3"
-                        style={{ borderRadius: '18px' }}
-                      >
-                        {/* Icon */}
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-700 border border-gray-600 flex-shrink-0">
-                          {getActionIcon(action.type)}
-                        </div>
-                        
-                        {/* Time */}
-                        <div className="text-white text-base font-bold flex-shrink-0 min-w-[40px]">
-                          {action.minute}'
-                        </div>
-                        
-                        {/* Player info */}
-                        <div className="flex-1 min-w-0 text-left">
-                          <div className="text-gray-200 text-sm font-medium truncate">
-                            {action.player}
-                          </div>
-                          {action.assist && (
-                            <div className="text-gray-400 text-xs truncate">
-                              Assist: {action.assist}
-                            </div>
-                          )}
-                          {action.playerOut && (
-                            <div className="text-gray-400 text-xs truncate">
-                              Out: {action.playerOut}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1"></div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex-1"></div>
-                    <div className="flex-1 flex justify-start pl-8">
-                      <div 
-                        className="bg-gray-800 border border-gray-700 p-4 max-w-[280px] min-w-[240px] flex items-center gap-3"
-                        style={{ borderRadius: '18px' }}
-                      >
-                        {/* Player info */}
-                        <div className="flex-1 min-w-0 text-right">
-                          <div className="text-gray-200 text-sm font-medium truncate">
-                            {action.player}
-                          </div>
-                          {action.assist && (
-                            <div className="text-gray-400 text-xs truncate">
-                              Assist: {action.assist}
-                            </div>
-                          )}
-                          {action.playerOut && (
-                            <div className="text-gray-400 text-xs truncate">
-                              Out: {action.playerOut}
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Time */}
-                        <div className="text-white text-base font-bold flex-shrink-0 min-w-[40px]">
-                          {action.minute}'
-                        </div>
-                        
-                        {/* Icon */}
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-700 border border-gray-600 flex-shrink-0">
-                          {getActionIcon(action.type)}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
+        {/* Timeline start marker */}
+        <div className="relative flex items-center">
+          <div className="absolute left-0 w-14 h-14 flex items-center justify-center rounded-full bg-[#222] border-2 border-green-700 z-10">
+            <Play size={36} className="text-green-400" />
+          </div>
+          <div className="ml-20">
+            <div className="flex items-baseline gap-3">
+              <span className="text-2xl font-bold text-gray-200 min-w-[48px]">0'</span>
+              <span className="text-xl font-bold text-green-400">MATCH START</span>
+            </div>
+          </div>
         </div>
+        
+        {/* Event items */}
+        {displayedEvents.map((event, idx) => (
+          <div key={idx} className="relative flex items-start">
+            {/* Icon positioned directly on the timeline - with special styling for end event */}
+            <div className="absolute left-0 w-14 h-14 flex items-center justify-center rounded-full bg-[#222] border-2 border-gray-700 z-10"
+                 style={event.special ? {borderColor: '#b91c1c'} : {}}
+            >
+              {getEventIcon(event.type || '')}
+            </div>
+            
+            {/* Event content - pushed to the right of the timeline */}
+            <div className="ml-20">
+              <div className="flex items-baseline gap-3">
+                <span className="text-2xl font-bold text-gray-200 min-w-[48px]">{event.time || ''}</span>
+                <span className="text-xl font-extrabold">
+                  {/* Format event type based on category */}
+                  {(() => {
+                    const t = (event.type || '').toLowerCase();
+                    
+                    // Event type styling based on category
+                    if (t.includes('goal') && !t.includes('cancel')) {
+                      return <span className="text-yellow-400">GOAL!!</span>;
+                    } else if (t.includes('var')) {
+                      return <span className="text-purple-400">VAR CHECK</span>;
+                    } else if (t.includes('yellow card')) {
+                      return <span className="text-yellow-400">YELLOW CARD</span>;
+                    } else if (t.includes('red card')) {
+                      return <span className="text-red-500">RED CARD</span>;
+                    } else if (t.includes('kickoff') && t.includes('1')) {
+                      return <span className="text-green-400">KICK OFF</span>;
+                    } else if (t.includes('kickoff') && t.includes('2')) {
+                      return <span className="text-blue-400">SECOND HALF</span>;
+                    } else if (t.includes('half-time') || t.includes('halftime')) {
+                      return <span className="text-yellow-400">HALF-TIME</span>;
+                    } else if (t.includes('full-time') || t.includes('fulltime') || t.includes('end')) {
+                      return <span className="text-red-400">MATCH END</span>;
+                    } else {
+                      return <span className="text-white">{event.type || 'Event'}</span>;
+                    }
+                  })()} 
+                </span>
+                {event.score && <span className="text-2xl font-bold text-white ml-2">{event.score}</span>}
+              </div>
+              
+              <div className="text-gray-300 text-lg mt-1">
+                {/* Event description */}
+                <div className="space-y-1">
+                  {/* Event description based on type */}
+                  {(() => {
+                    const t = (event.type || '').toLowerCase();
+                    const customDescription = getEventDescription(event);
+                    
+                    // For match phase events (kickoff, halftime, fulltime)
+                    if (t.includes('kickoff') || t.includes('half-time') || t.includes('halftime') || 
+                        t.includes('full-time') || t.includes('fulltime') || t.includes('end')) {
+                      return (
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">{customDescription}</span>
+                        </div>
+                      );
+                    }
+                    
+                    // For VAR events
+                    else if (t.includes('var')) {
+                      return (
+                        <div>
+                          <div className="font-medium">{customDescription}</div>
+                          {event.detail && (
+                            <div className="ml-0 mt-1 text-sm italic text-purple-300">{event.detail}</div>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    // For standard player events
+                    else {
+                      return (
+                        <>
+                          {/* Player information with team context */}
+                          {event.player && (
+                            <div className="flex items-center space-x-2">
+                              {event.team && event.team.logo && (
+                                <img 
+                                  src={event.team.logo} 
+                                  alt={event.team.name || 'Team'} 
+                                  className="w-5 h-5 object-contain"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                                  }}
+                                />
+                              )}
+                              <span className="font-medium">{event.player}</span>
+                              {event.assist && <span className="text-sm opacity-75"> (Assist: {event.assist})</span>}
+                            </div>
+                          )}
+                          
+                          {/* Substitution info */}
+                          {event.substituted && (
+                            <div className="ml-7 text-sm opacity-75">
+                              <span>Player substituted: {event.substituted}</span>
+                            </div>
+                          )}
+                          
+                          {/* Additional event details */}
+                          {event.description && (
+                            <div className="ml-0 mt-1">
+                              <span className="text-sm">{event.description}</span>
+                            </div>
+                          )}
+                          
+                          {/* Technical details */}
+                          {event.detail && event.detail !== event.description && (
+                            <div className="ml-0 mt-1 text-gray-400">
+                              <span className="text-sm italic">{event.detail}</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    }
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {/* Fade effect at the bottom of the timeline */}
+        <div className="absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent z-0" />
+        
+        {/* View more/less button */}
+        {hasMoreEvents && (
+          <div className="relative flex items-center z-10">
+            <div className="absolute left-0 w-14 h-14 flex items-center justify-center rounded-full bg-[#222] border-2 border-gray-700 opacity-90 z-10 shadow-lg">
+              <ChevronDown 
+                size={24} 
+                className={`text-yellow-400 transition-transform duration-300 ${showAllEvents ? 'transform rotate-180' : ''}`} 
+              />
+            </div>
+            <div className="ml-20">
+              <button 
+                onClick={() => setShowAllEvents(!showAllEvents)} 
+                className="text-yellow-400 font-medium text-lg hover:underline flex items-center gap-2 transition-all hover:text-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-30 rounded px-2 py-1"
+              >
+                {showAllEvents ? 'View less' : 'View more'}
+                <ChevronDown 
+                  size={18} 
+                  className={`transition-transform duration-300 ${showAllEvents ? 'transform rotate-180' : ''}`} 
+                />
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Match End event is now part of the allEvents array */}
       </div>
     </div>
   );

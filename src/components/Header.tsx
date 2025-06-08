@@ -98,10 +98,7 @@ const Header = () => {
             />
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/leagues" className="text-gray-300 hover:text-white font-medium transition-colors">
-              Leagues
-            </Link>
-            {/* Add teams link later if needed */}
+            {/* Navigation links can be added here when needed */}
             {/* <Link to="/teams" className="text-gray-300 hover:text-white font-medium transition-colors">
               Teams
             </Link> */}
