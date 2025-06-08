@@ -378,11 +378,11 @@ const MatchDetails = () => {
   return (
     <main className="min-h-screen bg-black text-white font-sans">
       <Header />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 pt-16 md:pt-20 max-w-4xl">
         <div className="mb-6">
           <button onClick={handleGoBack} className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
-            <ArrowLeft size={18} className="mr-2" />
-            Back to Matches
+            <ArrowLeft size={16} className="mr-2" />
+            Go Back
           </button>
         </div>
         

@@ -86,7 +86,7 @@ const Index: React.FC = () => {
   
   if (error && !matchesLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-center">
+      <div className="min-h-screen bg-black flex items-center justify-center text-center">
         <div>
           <h1 className="text-2xl font-bold text-white mb-4">Something went wrong</h1>
           <p className="text-gray-400 mb-6">{error}</p>
@@ -102,11 +102,11 @@ const Index: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white">
+    <div className="min-h-screen bg-black text-white">
       <Header />
       
-      <main className="flex-1 pb-10 pt-16">
-        <section className="mb-12">
+      <main className="flex-1 pb-10 pt-16 md:pt-20">
+        <section className="container mx-auto px-4 mb-12">
           {loading ? (
             <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
           ) : (
@@ -114,18 +114,18 @@ const Index: React.FC = () => {
           )}
         </section>
 
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
-          <div className="mb-8">
+        <div className="container mx-auto px-4 sm:px-6 mt-8">
+          <div className="mb-8 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
             <h1 className="text-3xl font-bold text-white mb-2">Recent Matches</h1>
             <p className="text-gray-400">Select a date to view matches</p>
           </div>
           
-          <div className="mb-8">
+          <div className="mb-8 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
             <DateSlider onDateChange={handleDateChange} />
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-8">
-            <div className="flex-1 min-w-0">
+          <div className="flex flex-col lg:flex-row gap-8 mb-8">
+            <div className="flex-1 min-w-0 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
               <MatchFeedByLeague 
                 leaguesWithMatches={recentMatches}
                 loading={matchesLoading}
@@ -135,7 +135,7 @@ const Index: React.FC = () => {
               />
             </div>
 
-            <div className="lg:w-80 flex-shrink-0">
+            <div className="lg:w-80 flex-shrink-0 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
               <div className="lg:sticky lg:top-24">
                 <TopLeaguesFilter
                   selectedLeagueId={null}
@@ -148,7 +148,7 @@ const Index: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#222222] py-8">
+      <footer className="bg-[#111111] border-t border-[#1B1B1B] py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center text-gray-400">
             <p>&copy; 2024 League Lens. All rights reserved.</p>

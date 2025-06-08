@@ -124,9 +124,13 @@ const LeaguePage: React.FC = () => {
   const seasonButtonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
-  // Memoized sorted seasons (newest first)
+  // Memoized sorted seasons (newest first, only 2023 and newer)
   const sortedSeasons = useMemo(() => {
-    return league?.seasons ? [...league.seasons].sort((a, b) => b.season - a.season) : [];
+    return league?.seasons 
+      ? [...league.seasons]
+        .filter(season => season.season >= 2023) // Only include 2023 and newer seasons
+        .sort((a, b) => b.season - a.season) 
+      : [];
   }, [league?.seasons]);
 
   useEffect(() => {
@@ -207,14 +211,43 @@ const LeaguePage: React.FC = () => {
             season: selectedSeason
           });
           
-          if (standingsResponse?.groups && standingsResponse.groups.length > 0 && standingsResponse.groups[0].standings) {
-            // Use API response directly without transformation
-            setStandings(standingsResponse.groups[0].standings);
-          } else if (standingsResponse?.standings && Array.isArray(standingsResponse.standings)) {
-            // Use API response directly without transformation  
+          console.log('[LeaguePage] Standings API response:', standingsResponse);
+          
+          // Handle all possible API response formats
+          if (standingsResponse?.groups && standingsResponse.groups.length > 0) {
+            // Format 1: Nested in groups array with standings property
+            if (standingsResponse.groups[0].standings && Array.isArray(standingsResponse.groups[0].standings)) {
+              setStandings(standingsResponse.groups[0].standings);
+            } 
+            // Format 2: Each group might have a table property instead of standings
+            else if (standingsResponse.groups[0].table && Array.isArray(standingsResponse.groups[0].table)) {
+              setStandings(standingsResponse.groups[0].table);
+            }
+            // Format 3: Try other groups if first group has no standings
+            else {
+              const anyGroupWithStandings = standingsResponse.groups.find(g => Array.isArray(g.standings) || Array.isArray(g.table));
+              if (anyGroupWithStandings) {
+                setStandings(anyGroupWithStandings.standings || anyGroupWithStandings.table);
+              } else {
+                setStandings([]);
+              }
+            }
+          } 
+          // Format 4: Direct standings array in response
+          else if (standingsResponse?.standings && Array.isArray(standingsResponse.standings)) {
             setStandings(standingsResponse.standings);
-          } else {
-            // No valid standings data found
+          }
+          // Format 5: Direct league property with standings array
+          else if (standingsResponse?.league?.standings && Array.isArray(standingsResponse.league.standings)) {
+            setStandings(standingsResponse.league.standings);
+          }
+          // Format 6: Response might be an array directly
+          else if (Array.isArray(standingsResponse)) {
+            setStandings(standingsResponse);
+          }
+          else {
+            // No valid standings data found in any recognized format
+            console.warn('[LeaguePage] Standings data format not recognized:', standingsResponse);
             setStandings([]);
           }
         } catch (standingsErr) {
@@ -348,7 +381,7 @@ const LeaguePage: React.FC = () => {
     navigate(`/league/${leagueId}/${numericSeason}`, { replace: true });
   };
 
-  const handleGoBack = () => navigate('/leagues');
+  const handleGoBack = () => navigate(-1);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -463,7 +496,7 @@ const LeaguePage: React.FC = () => {
             className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
           >
             <ArrowLeft className="mr-2 -ml-1 h-5 w-5" />
-            Back to Leagues
+            Go Back
             </button>
         </div>
       </div>
@@ -473,11 +506,11 @@ const LeaguePage: React.FC = () => {
   return (
     <main className="min-h-screen bg-black text-white font-sans">
       <Header />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 pt-16 md:pt-20 max-w-4xl">
           <div className="mb-6">
           <button onClick={handleGoBack} className="inline-flex items-center text-gray-300 hover:text-white transition-colors">
             <ArrowLeft size={18} className="mr-2" />
-            Back to Leagues
+            Go Back
           </button>
           </div>
 

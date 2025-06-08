@@ -244,10 +244,10 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, initialSeason, on
   // }
 
   return (
-    <div className="container mx-auto p-4">
-      <Button onClick={onBack} variant="outline" className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Leagues
-      </Button>
+    <div className="container mx-auto p-4 pt-16 md:pt-20">
+      <button onClick={onBack} className="inline-flex items-center text-gray-300 hover:text-white transition-colors mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+      </button>
 
       <Card className="mb-6 shadow-lg">
         <CardHeader className="flex flex-row items-center space-x-4 bg-gray-50 p-4 rounded-t-lg">
