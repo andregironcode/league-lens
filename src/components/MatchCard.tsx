@@ -35,7 +35,12 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
   };
 
   const statusString = getStatusString(match.status);
-  const stateDescription = match.state?.description?.toLowerCase() || '';
+  // Get status description from various API formats
+  let stateDescription = '';
+  // Direct status.description format
+  if (match.status && typeof match.status === 'object' && 'description' in match.status) {
+    stateDescription = (match.status.description as string)?.toLowerCase() || '';
+  }
   const isFinished = statusString.includes('finished') || statusString.includes('ft') || stateDescription.includes('finished');
 
   const formatMatchTime = (dateString: string) => format(new Date(dateString), 'HH:mm');
@@ -54,14 +59,33 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
       )}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-1">
-          <img 
-            src={match.homeTeam?.logo || '/placeholder-team.png'} 
-            alt={match.homeTeam?.name} 
-            className="w-8 h-8 object-contain"
-          />
-          <span className="text-white text-sm font-medium truncate">
-            {match.homeTeam?.name}
-          </span>
+          {match.homeTeam?.id ? (
+            <Link 
+              to={`/team/${match.homeTeam.id}`}
+              onClick={(e) => e.stopPropagation()} 
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            >
+              <img 
+                src={match.homeTeam?.logo || '/placeholder-team.png'} 
+                alt={match.homeTeam?.name} 
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-white text-sm font-medium truncate">
+                {match.homeTeam?.name}
+              </span>
+            </Link>
+          ) : (
+            <>
+              <img 
+                src={match.homeTeam?.logo || '/placeholder-team.png'} 
+                alt={match.homeTeam?.name} 
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-white text-sm font-medium truncate">
+                {match.homeTeam?.name}
+              </span>
+            </>
+          )}
         </div>
         
         <div className="text-center px-4">
@@ -77,14 +101,33 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
         </div>
         
         <div className="flex items-center space-x-3 flex-1 justify-end">
-          <span className="text-white text-sm font-medium truncate text-right">
-            {match.awayTeam?.name}
-          </span>
-          <img 
-            src={match.awayTeam?.logo || '/placeholder-team.png'} 
-            alt={match.awayTeam?.name} 
-            className="w-8 h-8 object-contain"
-          />
+          {match.awayTeam?.id ? (
+            <Link 
+              to={`/team/${match.awayTeam.id}`}
+              onClick={(e) => e.stopPropagation()} 
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            >
+              <span className="text-white text-sm font-medium truncate text-right">
+                {match.awayTeam?.name}
+              </span>
+              <img 
+                src={match.awayTeam?.logo || '/placeholder-team.png'} 
+                alt={match.awayTeam?.name} 
+                className="w-8 h-8 object-contain"
+              />
+            </Link>
+          ) : (
+            <>
+              <span className="text-white text-sm font-medium truncate text-right">
+                {match.awayTeam?.name}
+              </span>
+              <img 
+                src={match.awayTeam?.logo || '/placeholder-team.png'} 
+                alt={match.awayTeam?.name} 
+                className="w-8 h-8 object-contain"
+              />
+            </>
+          )}
         </div>
       </div>
       

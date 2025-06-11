@@ -25,7 +25,7 @@ export interface FixtureScore {
 
 export interface Match {
   id: string | number;
-  date: string;
+  date?: string;
   time?: string;
   timestamp?: number;
   timezone?: string;
@@ -33,31 +33,64 @@ export interface Match {
   fixture?: {
     status?: { short?: string; long?: string; elapsed?: number };
     date?: string;
+    time?: string;
+    timestamp?: number;
+    score?: FixtureScore;
+    events?: MatchEvent[];
   };
-  league: {
+  league?: {
     id: string | number;
     name: string;
     logo?: string;
     season?: string | number;
     round?: string;
   };
-  homeTeam: MatchTeam;
-  awayTeam: MatchTeam;
+  // Support both competition and league properties (API might use either)
+  competition?: {
+    id: string | number;
+    name: string;
+    logo?: string;
+    season?: string | number;
+    round?: string;
+  };
+  // Support both direct team objects and teams container
+  homeTeam?: MatchTeam;
+  awayTeam?: MatchTeam;
+  teams?: {
+    home?: MatchTeam;
+    away?: MatchTeam;
+  };
+  // Support all possible score formats
   score?: {
-    halftime?: string;
-    fulltime?: string;
-    extratime?: string | null;
-    penalty?: string | null;
+    halftime?: string | { home?: number; away?: number };
+    fulltime?: string | { home?: number; away?: number };
+    extratime?: string | { home?: number; away?: number } | null;
+    penalty?: string | { home?: number; away?: number } | null;
+    home?: number;
+    away?: number;
+    current?: string;
+    penalties?: string;
   };
   goals?: {
-    home: number | null;
-    away: number | null;
+    home: number;
+    away: number;
   };
-  events?: any[];
+  events?: MatchEvent[];
   highlights?: MatchHighlight[];
-  state?: MatchState;
-  round?: string;
-  country?: Country;
+  // Support single highlight object
+  highlight?: {
+    videoUrl?: string;
+    url?: string;
+  };
+  // Support direct video properties
+  video?: string;
+  videoUrl?: string;
+  venue?: {
+    id: string;
+    name: string;
+    city: string;
+  };
+  lineups?: any[];
 }
 
 export interface MatchHighlight {
@@ -190,12 +223,27 @@ export interface Fixture {
 
 export interface TeamDetails {
   team: Team;
+  league?: {
+    id: string;
+    name: string;
+    logo: string;
+    season?: string;
+  };
   leagueStanding: string;
   europeanCompetition: string | null;
   europeanStanding: string | null;
   leagueTable: TableRow[];
   europeanTable: TableRow[];
   fixtures: Fixture[];
+  // Recent matches with full scoreline details
+  recentMatches: Match[];
+  // Raw API data references
+  apiData?: {
+    teamInfo?: any;
+    teamStats?: any;
+    lastFiveGames?: any;
+    standings?: any;
+  };
 }
 
 export interface Player {

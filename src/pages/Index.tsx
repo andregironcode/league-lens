@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MatchHighlight, LeagueWithMatches } from '@/types';
+import { MatchHighlight, LeagueWithMatches, Match } from '@/types';
 import { serviceAdapter } from '@/services/serviceAdapter';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
@@ -10,6 +10,7 @@ import { formatDateForAPI, getCurrentDateCET, get14DayDateRange } from '@/utils/
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
+  const [featuredMatches, setFeaturedMatches] = useState<Match[]>([]);
   const [recentMatches, setRecentMatches] = useState<LeagueWithMatches[]>([]);
   const [selectedLeagueIds, setSelectedLeagueIds] = useState<string[]>([]);
   const [selectedTopLeagueId, setSelectedTopLeagueId] = useState<string | null>(null);
@@ -42,11 +43,17 @@ const Index: React.FC = () => {
     const loadInitialData = async () => {
       try {
         setLoading(true);
+        
+        // Fetch featured matches with highlights for the hero carousel
+        const featuredMatchesData = await serviceAdapter.getLast5FeaturedMatches();
+        setFeaturedMatches(featuredMatchesData);
+        
+        // Also fetch regular highlights as fallback
         const highlightsData = await serviceAdapter.getRecommendedHighlights();
         setFeaturedHighlights(highlightsData);
       } catch (err) {
-        console.error('[Index] Error loading highlights:', err);
-        setError('Failed to load featured highlights.');
+        console.error('[Index] Error loading highlights or featured matches:', err);
+        setError('Failed to load featured content.');
       } finally {
         setLoading(false);
       }
@@ -110,7 +117,10 @@ const Index: React.FC = () => {
           {loading ? (
             <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
           ) : (
-            <HeroCarousel highlights={featuredHighlights} />
+            <HeroCarousel 
+              highlights={featuredHighlights} 
+              featuredMatches={featuredMatches} 
+            />
           )}
         </section>
 

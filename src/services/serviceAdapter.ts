@@ -52,6 +52,64 @@ export const serviceAdapter = {
   },
 
   /**
+   * Get last 5 matches from featured leagues with highlights
+   */
+  async getLast5FeaturedMatches(): Promise<Match[]> {
+    switch (activeService) {
+      case 'mock':
+        return mockService.getRecommendedHighlights()
+          .then(highlights => highlights.slice(0, 5)
+            .map(h => ({ 
+              id: h.id,
+              date: h.date || new Date().toISOString(),
+              league: h.competition || { id: '0', name: 'Unknown' },
+              homeTeam: h.homeTeam || { id: '0', name: 'Unknown', logo: '' },
+              awayTeam: h.awayTeam || { id: '0', name: 'Unknown', logo: '' },
+              goals: { 
+                home: h.score?.home || 0, 
+                away: h.score?.away || 0 
+              },
+              highlights: [h],
+              events: []
+            })));
+      case 'supabase':
+        return supabaseService.getRecommendedHighlights()
+          .then(highlights => highlights.slice(0, 5)
+            .map(h => ({ 
+              id: h.id,
+              date: h.date || new Date().toISOString(),
+              league: h.competition || { id: '0', name: 'Unknown' },
+              homeTeam: h.homeTeam || { id: '0', name: 'Unknown', logo: '' },
+              awayTeam: h.awayTeam || { id: '0', name: 'Unknown', logo: '' },
+              goals: { 
+                home: h.score?.home || 0, 
+                away: h.score?.away || 0 
+              },
+              highlights: [h],
+              events: []
+            })));
+      case 'highlightly':
+        return highlightlyService.getLast5FeaturedMatches();
+      default:
+        return mockService.getRecommendedHighlights()
+          .then(highlights => highlights.slice(0, 5)
+            .map(h => ({ 
+              id: h.id,
+              date: h.date || new Date().toISOString(),
+              league: h.competition || { id: '0', name: 'Unknown' },
+              homeTeam: h.homeTeam || { id: '0', name: 'Unknown', logo: '' },
+              awayTeam: h.awayTeam || { id: '0', name: 'Unknown', logo: '' },
+              goals: { 
+                home: h.score?.home || 0, 
+                away: h.score?.away || 0 
+              },
+              highlights: [h],
+              events: []
+            })));
+    }
+  },
+
+  /**
    * Get league highlights organized by top leagues
    */
   async getLeagueHighlights(): Promise<League[]> {

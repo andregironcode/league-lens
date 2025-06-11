@@ -468,12 +468,18 @@ export const highlightlyClient = {
   /**
    * Get team statistics
    */
-  async getTeamStats(params: {
-    team: string;
-    league?: string;
-    season?: string;
-  }) {
-    return apiRequest<any>('/teams/statistics', params);
+  async getTeamStats(teamId: string, fromDate?: string, timezone?: string) {
+    // API requires team id as path param and fromDate query param in YYYY-MM-DD format.
+    const queryParams: Record<string, string> = {};
+    if (fromDate) queryParams.fromDate = fromDate;
+    else {
+      // Default to 30 days ago to ensure at least some stats
+      const date = new Date();
+      date.setDate(date.getDate() - 30);
+      queryParams.fromDate = date.toISOString().split('T')[0];
+    }
+    if (timezone) queryParams.timezone = timezone;
+    return apiRequest<any>(`/teams/statistics/${teamId}`, queryParams);
   },
   
   /**

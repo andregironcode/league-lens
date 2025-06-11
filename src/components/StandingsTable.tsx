@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Interface that matches the actual API response structure with all possible formats
 interface ApiStandingsRow {
@@ -216,10 +217,37 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ standings, homeTeamId, 
               <tr key={`${row.team?.id}-${position}`} className={`border-b border-gray-800 hover:bg-gray-800/60 ${rowClass}`}>
                 <td className="px-4 py-3 font-medium text-center text-white">{position}</td>
                 <td className="px-6 py-3 font-medium text-white whitespace-nowrap">
-                  <div className="flex items-center gap-3">
-                    <img src={row.team.logo} alt={row.team.name} className="w-5 h-5 object-contain" />
-                    <span>{row.team.name}</span>
-                  </div>
+                  {row.team.id ? (
+                    <Link 
+                      to={`/team/${row.team.id}`} 
+                      className="flex items-center gap-3 hover:text-yellow-400 transition-colors"
+                      title={`View ${row.team.name} team page`}
+                    >
+                      <img 
+                        src={row.team.logo} 
+                        alt={row.team.name} 
+                        className="w-5 h-5 object-contain"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                        }} 
+                      />
+                      <span>{row.team.name}</span>
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={row.team.logo} 
+                        alt={row.team.name} 
+                        className="w-5 h-5 object-contain"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                        }} 
+                      />
+                      <span>{row.team.name}</span>
+                    </div>
+                  )}
                 </td>
                 <td className="px-2 py-3 text-center">{played}</td>
                 <td className="px-2 py-3 text-center">{wins}</td>

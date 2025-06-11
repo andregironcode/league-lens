@@ -50,17 +50,42 @@ const MatchList: React.FC<MatchListProps> = ({
                   {showLeagueInfo && match.league && (
                     <>
                       <span>|</span>
-                      <img src={match.league.logo || '/icons/default-league.png'} alt={match.league.name} className="w-4 h-4 object-contain" />
-                      <span>{match.league.name}</span>
+                      {match.league && match.league.id ? (
+                        <Link 
+                          to={`/league/${match.league.id}`} 
+                          className="flex items-center space-x-1 hover:text-blue-500 transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <img 
+                            src={match.league.logo || '/icons/default-league.png'} 
+                            alt={match.league.name} 
+                            className="w-4 h-4 object-contain" 
+                          />
+                          <span>{match.league.name}</span>
+                        </Link>
+                      ) : (
+                        <>
+                          <img 
+                            src={match.league.logo || '/icons/default-league.png'} 
+                            alt={match.league.name} 
+                            className="w-4 h-4 object-contain" 
+                          />
+                          <span>{match.league.name}</span>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
-                {match.state?.description && (
+                {/* Handle match status/state using various possible API formats */}
+                {(match.status && typeof match.status === 'object' && 'description' in match.status) && (
                   <Badge 
-                    variant={match.state.description.toLowerCase().includes('finished') ? 'secondary' : 
-                             match.state.description.toLowerCase().includes('live') || match.state.description.toLowerCase().includes('half') ? 'destructive' : 'outline'}
+                    variant={
+                      (match.status.description as string).toLowerCase().includes('finished') ? 'secondary' : 
+                      (match.status.description as string).toLowerCase().includes('live') || 
+                      (match.status.description as string).toLowerCase().includes('half') ? 'destructive' : 'outline'
+                    }
                   >
-                    {match.state.description}
+                    {match.status.description as string}
                   </Badge>
                 )}
               </div>
@@ -72,9 +97,12 @@ const MatchList: React.FC<MatchListProps> = ({
                 </div>
 
                 <div className="text-center w-1/5">
-                  {match.state?.description?.toLowerCase().includes('finished') || match.state?.score?.current ? (
+                  {(match.status && typeof match.status === 'object' && 'description' in match.status && 
+                    (match.status.description as string).toLowerCase().includes('finished')) || 
+                    (match.score && typeof match.score === 'object' && 'current' in match.score) ? (
                     <span className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">
-                      {match.state?.score?.current || '-'}
+                      {(match.score && typeof match.score === 'object' && 'current' in match.score) ? 
+                        match.score.current as string : '-'}
                     </span>
                   ) : (
                     <span className="text-lg md:text-xl text-gray-400 dark:text-gray-500">vs</span>
