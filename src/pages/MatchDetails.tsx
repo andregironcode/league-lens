@@ -329,77 +329,30 @@ const MatchDetails = () => {
     const rawStatus = (m.fixture as any)?.status?.short ?? '';
 
     // Get the raw kickoff time from the API (fully trust API data)
-    // Fix for the "+1 hour away" bug - ensure proper UTC handling
+    // IMPORTANT: The API provides UTC timestamps (either as Unix seconds or ISO date with Z suffix)
+    // We need to ensure consistent timezone handling throughout the calculation
+    // We use the raw UTC timestamp directly to avoid timezone conversion issues
     const kickoffTs = (() => {
-      try {
-        // Log raw values for debugging
-        console.log('[MatchDetails] Raw match data for timing:', {
-          date: m.date,
-          timestamp: (m.fixture as any)?.timestamp,
-          fixture: m.fixture,
-          status: (m.fixture as any)?.status
-        });
+      // Logging to help diagnose time issues
+      console.log('[MatchDetails] Raw date from API:', m.date);
+      console.log('[MatchDetails] Raw timestamp from API:', (m.fixture as any)?.timestamp);
 
-        // IMPORTANT: First, check for valid status codes that override time calculations
-        if (rawStatus === 'FT') {
-          // Match is finished - no need for precise timestamp
-          return Date.now() - 90 * 60 * 1000; // Set to 90 minutes ago for fullTime state
-        }
-        
-        const liveCodes = ['1H', 'HT', '2H', 'ET', 'P', 'LIVE'];
-        if (liveCodes.includes(rawStatus)) {
-          // Match is live - use current time minus elapsed minutes if available
-          const elapsed = (m.fixture as any)?.status?.elapsed ?? 0;
-          return Date.now() - (elapsed * 60 * 1000);
-        }
-
-        // For upcoming matches, calculate precise kickoff time
-        // First choice: Use fixture timestamp if available (typically in UTC seconds)
-        if ((m.fixture as any)?.timestamp) {
-          const timestamp = ((m.fixture as any).timestamp as number);
-          // Safety check - validate timestamp is reasonable (after 2020, before 2030)
-          if (timestamp > 1577836800 && timestamp < 1893456000) { // 2020-01-01 to 2030-01-01
-            return timestamp * 1000; // Convert seconds to milliseconds
-          } else {
-            console.warn('[MatchDetails] Invalid timestamp detected:', timestamp);
-          }
-        }
-        
-        // Second choice: Parse ISO date string
-        if (m.date) {
-          // The API should provide dates in ISO8601 UTC format (with Z suffix)
-          // But we need to handle various formats safely
-          let dateStr = m.date;
-          
-          // Fix common issues with API date format
-          // Remove any extra quotes that might be in the date string
-          dateStr = dateStr.replace(/\"/g, '');
-          
-          // Ensure UTC timezone indicator (Z)
-          if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
-            dateStr = `${dateStr}Z`;
-          }
-          
-          const parsedDate = new Date(dateStr);
-          
-          // Validate the parsed date (should be between 2020-2030)
-          if (!isNaN(parsedDate.getTime()) && 
-              parsedDate.getFullYear() >= 2020 && 
-              parsedDate.getFullYear() <= 2030) {
-            return parsedDate.getTime();
-          } else {
-            console.warn('[MatchDetails] Invalid date parsed:', dateStr, parsedDate);
-          }
-        }
-        
-        // Final fallback: If all attempts failed, return a reasonable time
-        console.warn('[MatchDetails] Unable to determine match time, using fallback');
-        return Date.now() + 24 * 60 * 60 * 1000; // Default to 1 day in the future
-      } catch (err) {
-        console.error('[MatchDetails] Error calculating kickoff time:', err);
-        // Safe fallback in case of any errors
-        return Date.now() + 24 * 60 * 60 * 1000; // Default to 1 day in the future
+      // First choice: Use fixture timestamp if available (already in UTC)
+      if ((m.fixture as any)?.timestamp) {
+        // Convert seconds to milliseconds for consistency
+        return ((m.fixture as any).timestamp as number) * 1000;
       }
+      
+      // Second choice: Use ISO date (ensuring proper UTC parsing)
+      if (m.date) {
+        // The API provides dates in UTC ISO format (with Z suffix)
+        // Parse directly as UTC by ensuring the Z suffix is present
+        const dateStr = m.date.endsWith('Z') ? m.date : `${m.date}Z`;
+        return new Date(dateStr).getTime();
+      }
+      
+      // Fallback: Use current time (should never reach this point)
+      return Date.now();
     })();
     
     // Current time in UTC milliseconds for consistent comparison
@@ -413,11 +366,9 @@ const MatchDetails = () => {
       diffMs,
       diffMinutes: Math.floor(diffMs / (60 * 1000)),
       kickoffTime: new Date(kickoffTs).toISOString(),
-      nowTime: new Date(now).toISOString(),
-      rawStatus
+      nowTime: new Date(now).toISOString()
     });
 
-    // Status-based state determination
     if (rawStatus === 'FT') {
       return { state: 'fullTime' };
     }
@@ -433,13 +384,10 @@ const MatchDetails = () => {
 
     // Not started yet (NS / TBD)
     if (rawStatus === 'NS' || rawStatus === 'TBD' || diffMs > 0) {
-      // Apply reasonable limits to diffMs to prevent absurd countdown displays
-      const cappedDiffMs = Math.min(diffMs, 7 * 24 * 60 * 60 * 1000); // Cap at 7 days
-      
-      if (cappedDiffMs > 60 * 60 * 1000) {
-        return { state: 'preview', startsIn: cappedDiffMs };
+      if (diffMs > 60 * 60 * 1000) {
+        return { state: 'preview', startsIn: diffMs };
       }
-      return { state: 'imminent', startsIn: cappedDiffMs };
+      return { state: 'imminent', startsIn: diffMs };
     }
 
     return { state: 'unknown' };

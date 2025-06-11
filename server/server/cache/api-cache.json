@@ -6706,7 +6706,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666292244,
+    "expiry": 1749666953418,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-11&limit=20": {
@@ -6722,7 +6722,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666292320,
+    "expiry": 1749666953326,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=200": {
@@ -12355,7 +12355,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666292603,
+    "expiry": 1749666953635,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-11&limit=20": {
@@ -12371,7 +12371,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666292580,
+    "expiry": 1749666953664,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=400": {
@@ -17707,7 +17707,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666292812,
+    "expiry": 1749666953871,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-11&limit=20": {
@@ -17723,7 +17723,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666292827,
+    "expiry": 1749666953902,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-10&limit=20": {
@@ -20081,7 +20081,7 @@
         "season": 2021
       }
     },
-    "expiry": 1749665261152,
+    "expiry": 1749668457302,
     "ttl": 1800
   },
   "/api/highlightly/matches?leagueId=2486&season=2021&limit=100": {
@@ -30935,7 +30935,7 @@
         "name": "https://highlightly.net/soccer/images/teams/486705.png"
       }
     },
-    "expiry": 1749649426326,
+    "expiry": 1749673858955,
     "ttl": 7200
   },
   "/api/highlightly/statistics/694625279?": {
@@ -31087,7 +31087,7 @@
         ]
       }
     ],
-    "expiry": 1749645836863,
+    "expiry": 1749667259106,
     "ttl": 600
   },
   "/api/highlightly/matches/694625279?": {
@@ -31529,7 +31529,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749645826582,
+    "expiry": 1749670259261,
     "ttl": 3600
   },
   "/api/highlightly/head-2-head?teamIdOne=134391&teamIdTwo=486705": {
@@ -72220,7 +72220,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666293037,
+    "expiry": 1749666954118,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=13549&date=2025-06-12&limit=20": {

@@ -232,29 +232,20 @@ export const highlightlyService = {
    * API Calls: 1 batch request (instead of 3+ individual calls)
    */
   async getMatchById(id: string): Promise<EnhancedMatchHighlight | null> {
-    console.log(`[Highlightly] Fetching match with ID ${id} from API`);
+    console.log(`[Highlightly] OPTIMIZED: Fetching complete match details for ID: ${id}`);
     
     try {
-      // Get complete match details from the API
-      const matchResponse = await highlightlyClient.getCompleteMatchDetails(id);
+      // Use the new batch method to get all match data at once
+      const { match: matchDataResponse, lineups, statistics } = await highlightlyClient.getCompleteMatchDetails(id);
       
-      if (!matchResponse || !matchResponse.match) {
+      if (!matchDataResponse) {
         console.error(`[Highlightly] No match data found for ID: ${id}`);
         return null;
       }
+
+      // The API returns an array, get the first item
+      const matchData = Array.isArray(matchDataResponse) ? matchDataResponse[0] : matchDataResponse;
       
-      // The API returns an array, get the first item if necessary
-      const matchData = Array.isArray(matchResponse.match) ? matchResponse.match[0] : matchResponse.match;
-      const lineups = matchResponse.lineups;
-      const statistics = matchResponse.statistics;
-      const events = matchData.events || [];
-      
-      console.log(`[Highlightly] Match API response for ID ${id}:`, matchData); 
-      console.log(`[Highlightly] Events found: ${events ? events.length : 0} events`);
-      console.log(`[Highlightly] Lineups response:`, Boolean(lineups)); 
-      console.log(`[Highlightly] Statistics response:`, Array.isArray(statistics) ? statistics.length : 0);
-      
-      // Check if match data is available
       if (!matchData) {
         console.error(`[Highlightly] No match data in response for ID: ${id}`);
         return null;
@@ -262,164 +253,72 @@ export const highlightlyService = {
 
       console.log(`[Highlightly] Raw match data from API:`, JSON.stringify(matchData, null, 2));
 
-      // Robust extraction of team data from multiple possible sources in the API response
-      // This ensures teams are correctly displayed in all match states (pre-match, live, etc.)
-      const extractTeams = () => {
-        // Initialize with defaults in case we can't extract anything
-        let homeTeam: any = { id: '', name: 'Home', logo: '' };
-        let awayTeam: any = { id: '', name: 'Away', logo: '' };
-        
-        console.log('[Highlightly] Attempting to extract team data from multiple sources');
-        
-        // Try to extract from fixture.teams first (most reliable for pre-match)
-        if (matchData.fixture && matchData.fixture.teams) {
-          if (matchData.fixture.teams.home) {
-            homeTeam = {
-              id: matchData.fixture.teams.home.id?.toString() || '',
-              name: matchData.fixture.teams.home.name || 'Home',
-              logo: matchData.fixture.teams.home.logo || ''
-            };
-            console.log('[Highlightly] Extracted home team from fixture.teams:', homeTeam);
-          }
-          
-          if (matchData.fixture.teams.away) {
-            awayTeam = {
-              id: matchData.fixture.teams.away.id?.toString() || '',
-              name: matchData.fixture.teams.away.name || 'Away',
-              logo: matchData.fixture.teams.away.logo || ''
-            };
-            console.log('[Highlightly] Extracted away team from fixture.teams:', awayTeam);
-          }
+      // Extract teams from events since they're not in the root object
+      const extractTeamsFromEvents = (events: any[]) => {
+        if (!events || !Array.isArray(events)) {
+          console.warn(`[Highlightly] No events found to extract teams from`);
+          return { homeTeam: null, awayTeam: null };
         }
-        
-        // If teams not found in fixture, try teams at root level
-        else if (matchData.teams) {
-          if (matchData.teams.home) {
-            homeTeam = {
-              id: matchData.teams.home.id?.toString() || '',
-              name: matchData.teams.home.name || 'Home',
-              logo: matchData.teams.home.logo || ''
-            };
-            console.log('[Highlightly] Extracted home team from root teams:', homeTeam);
-          }
-          
-          if (matchData.teams.away) {
-            awayTeam = {
-              id: matchData.teams.away.id?.toString() || '',
-              name: matchData.teams.away.name || 'Away',
-              logo: matchData.teams.away.logo || ''
-            };
-            console.log('[Highlightly] Extracted away team from root teams:', awayTeam);
-          }
-        }
-        
-        // If still not found, try homeTeam/awayTeam direct properties
-        else if (matchData.homeTeam || matchData.awayTeam) {
-          if (matchData.homeTeam) {
-            homeTeam = {
-              id: matchData.homeTeam.id?.toString() || '',
-              name: matchData.homeTeam.name || 'Home',
-              logo: matchData.homeTeam.logo || ''
-            };
-            console.log('[Highlightly] Extracted home team from direct properties:', homeTeam);
-          }
-          
-          if (matchData.awayTeam) {
-            awayTeam = {
-              id: matchData.awayTeam.id?.toString() || '',
-              name: matchData.awayTeam.name || 'Away',
-              logo: matchData.awayTeam.logo || ''
-            };
-            console.log('[Highlightly] Extracted away team from direct properties:', awayTeam);
-          }
-        }
-        
-        // Last resort: extract from events
-        else if (events && Array.isArray(events) && events.length > 0) {
-          const teamsFromEvents = new Map();
-          events.forEach(event => {
-            if (event.team && event.team.id) {
-              teamsFromEvents.set(event.team.id, {
-                id: event.team.id.toString(),
-                name: event.team.name || 'Unknown',
-                logo: event.team.logo || ''
-              });
-            }
-          });
 
-          const teamArray = Array.from(teamsFromEvents.values());
-          if (teamArray.length >= 1) homeTeam = teamArray[0];
-          if (teamArray.length >= 2) awayTeam = teamArray[1];
-          
-          console.log(`[Highlightly] Extracted ${teamArray.length} teams from events:`, teamArray);
-        }
-        
-        // For lineup data, ensure logos are properly set
-        if (lineups) {
-          // Fix home team logo in lineups if available
-          if (lineups.homeTeam && lineups.homeTeam.logo !== homeTeam.logo && homeTeam.logo) {
-            lineups.homeTeam.logo = homeTeam.logo;
+        const teams = new Map();
+        events.forEach(event => {
+          if (event.team && event.team.id) {
+            teams.set(event.team.id, {
+              id: event.team.id.toString(),
+              name: event.team.name || 'Unknown',
+              logo: event.team.logo || ''
+            });
           }
-          
-          // Fix away team logo in lineups if available
-          if (lineups.awayTeam && lineups.awayTeam.logo !== awayTeam.logo && awayTeam.logo) {
-            lineups.awayTeam.logo = awayTeam.logo;
-          }
-        }
-        
-        return { homeTeam, awayTeam };
+        });
+
+        const teamArray = Array.from(teams.values());
+        console.log(`[Highlightly] Extracted ${teamArray.length} teams from events:`, teamArray);
+
+        return {
+          homeTeam: teamArray[0] || { id: '', name: 'Home', logo: '' },
+          awayTeam: teamArray[1] || { id: '', name: 'Away', logo: '' }
+        };
       };
 
-      // Extract teams using our robust method
-      const { homeTeam, awayTeam } = extractTeams();
-
-      // Calculate score from goal events or extract from API
-      const getScore = () => {
-        // First try to get score from matchData directly
-        if (matchData.score) {
-          return matchData.score;
+      // Calculate score from goal events
+      const calculateScoreFromEvents = (events: any[], homeTeamId: string, awayTeamId: string) => {
+        if (!events || !Array.isArray(events)) {
+          console.warn(`[Highlightly] No events found to calculate score from`);
+          return { current: '0 - 0', home: 0, away: 0 };
         }
-        
-        if (matchData.goals) {
-          return {
-            current: `${matchData.goals.home || 0} - ${matchData.goals.away || 0}`,
-            home: matchData.goals.home || 0,
-            away: matchData.goals.away || 0
-          };
-        }
-        
-        // Calculate from events if needed
-        if (events && Array.isArray(events)) {
-          let homeGoals = 0;
-          let awayGoals = 0;
 
-          events.forEach(event => {
-            if (event.type && event.type.toLowerCase().includes('goal') && !event.type.toLowerCase().includes('own')) {
-              if (event.team && event.team.id) {
-                const teamId = event.team.id.toString();
-                if (teamId === homeTeam.id) {
-                  homeGoals++;
-                } else if (teamId === awayTeam.id) {
-                  awayGoals++;
-                }
+        let homeGoals = 0;
+        let awayGoals = 0;
+
+        events.forEach(event => {
+          if (event.type && event.type.toLowerCase().includes('goal') && !event.type.toLowerCase().includes('own')) {
+            if (event.team && event.team.id) {
+              const teamId = event.team.id.toString();
+              if (teamId === homeTeamId) {
+                homeGoals++;
+              } else if (teamId === awayTeamId) {
+                awayGoals++;
               }
             }
-          });
+          }
+        });
 
-          console.log(`[Highlightly] Calculated score - Home: ${homeGoals}, Away: ${awayGoals}`);
-          return {
-            current: `${homeGoals} - ${awayGoals}`,
-            home: homeGoals,
-            away: awayGoals
-          };
-        }
-        
-        // Default for pre-match
-        return { current: '0 - 0', home: 0, away: 0 };
+        console.log(`[Highlightly] Calculated score - Home: ${homeGoals}, Away: ${awayGoals}`);
+        return {
+          current: `${homeGoals} - ${awayGoals}`,
+          home: homeGoals,
+          away: awayGoals
+        };
       };
 
-      // Extract competition / league data directly from the API response
-      // The Highlightly API may return this information in different locations
+      // Extract teams from events
+      const { homeTeam, awayTeam } = extractTeamsFromEvents(matchData.events || []);
+
+      // Extract competition / league data directly from the API response.
+      // The Highlightly API may return this information in different locations depending on the
+      // endpoint version. We trust the API structure entirely and do **not** map or transform any
+      // field names – only pick the existing league/competition object as-is.
+
       let competition: any = null;
 
       if (matchData.league && (matchData.league.id || matchData.league.name)) {
@@ -432,21 +331,12 @@ export const highlightlyService = {
 
       if (!competition) {
         console.warn('[Highlightly] No league/competition information found in match response.');
-        // Create minimal competition object to avoid UI errors
-        competition = { id: '', name: '', logo: '' };
       } else {
         console.log('[Highlightly] League information extracted from API:', competition);
       }
 
-      // Get score using our robust method
-      const score = getScore();
-      
-      // Ensure fixture field is available for timing calculations
-      const fixture = matchData.fixture || {
-        date: matchData.date,
-        timestamp: matchData.timestamp,
-        status: matchData.status
-      };
+      // Calculate score from events
+      const score = calculateScoreFromEvents(matchData.events || [], homeTeam?.id || '', awayTeam?.id || '');
 
       // Create enhanced match object from processed data
       const enhancedMatch: EnhancedMatchHighlight = {
@@ -457,25 +347,22 @@ export const highlightlyService = {
         duration: matchData.duration || '90:00',
         views: matchData.views || 0,
         competition,
-        homeTeam,
-        awayTeam,
-        date: matchData.date || fixture.date || new Date().toISOString(),
-        status: matchData.status || fixture.status || { description: 'Not Started' },
-        fixture, // Include fixture for timezone/timing calculations
+        homeTeam: homeTeam || { id: '', name: 'Home', logo: '' },
+        awayTeam: awayTeam || { id: '', name: 'Away', logo: '' },
+        date: matchData.date || new Date().toISOString(),
+        status: matchData.status || { description: 'Full Time' },
         score,
-        events: events || [],
+        events: matchData.events || [],
         statistics: Array.isArray(statistics) ? statistics : [],
         lineups: lineups || undefined
       };
 
-      // Log enhanced match for debugging
       console.log(`[Highlightly] Enhanced match created:`, {
         id: enhancedMatch.id,
         homeTeam: enhancedMatch.homeTeam,
         awayTeam: enhancedMatch.awayTeam,
         competition: enhancedMatch.competition,
-        score: enhancedMatch.score,
-        fixture: enhancedMatch.fixture
+        score: enhancedMatch.score
       });
 
       return enhancedMatch;

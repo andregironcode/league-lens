@@ -17,25 +17,11 @@ interface ScorelineBannerProps {
 // Helper to format a countdown in HH:MM:SS (or MM:SS for <1h)
 const formatCountdown = (ms: number) => {
   if (ms <= 0) return '00:00';
-  
-  // Safety check: if the time difference is absurdly large (>24 hours),
-  // just show a reasonable default to prevent bizarre countdown displays
-  // This acts as a fail-safe for timestamp parsing issues
-  if (ms > 24 * 60 * 60 * 1000) {
-    console.warn('[ScorelineBanner] Very large time difference detected:', {
-      ms,
-      hours: Math.floor(ms / (3600 * 1000))
-    });
-    // For matches more than 24 hours away, just show "1+ days"
-    return '1+ days';
-  }
-  
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
   const pad = (n: number) => n.toString().padStart(2, '0');
-  
   return hours > 0
     ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
     : `${pad(minutes)}:${pad(seconds)}`;
