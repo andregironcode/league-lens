@@ -1,4 +1,4 @@
-import { MatchHighlight, LeagueWithMatches, TeamDetails, League, Match, EnhancedMatchHighlight, Player, Lineups, TableRow } from '@/types';
+import { MatchHighlight, LeagueWithMatches, TeamDetails, League, Match, Team, EnhancedMatchHighlight, Player, Lineups, TableRow } from '@/types';
 import { highlightlyClient } from '@/integrations/highlightly/client';
 import * as mockService from './highlightService';
 import { get14DayDateRange, getCurrentDateCET, formatDateForAPI, logCurrentTimeInfo } from '@/utils/dateUtils';
@@ -312,23 +312,32 @@ export const highlightlyService = {
       // Extract teams from events
       const { homeTeam, awayTeam } = extractTeamsFromEvents(matchData.events || []);
 
+      // Extract competition / league data directly from the API response.
+      // The Highlightly API may return this information in different locations depending on the
+      // endpoint version. We trust the API structure entirely and do **not** map or transform any
+      // field names – only pick the existing league/competition object as-is.
+
+      let competition: any = null;
+
+      if (matchData.league && (matchData.league.id || matchData.league.name)) {
+        competition = matchData.league;
+      } else if (matchData.competition && (matchData.competition.id || matchData.competition.name)) {
+        competition = matchData.competition;
+      } else if (matchData.match && matchData.match.league) {
+        competition = matchData.match.league;
+      }
+
+      if (!competition) {
+        console.warn('[Highlightly] No league/competition information found in match response.');
+      } else {
+        console.log('[Highlightly] League information extracted from API:', competition);
+      }
+
+      // Ensure that at least an empty object is set to avoid runtime `undefined` checks in the UI.
+      competition = competition || { id: '', name: '', logo: '' };
+
       // Calculate score from events
       const score = calculateScoreFromEvents(matchData.events || [], homeTeam?.id || '', awayTeam?.id || '');
-
-      // Try to determine competition from match ID or use default
-      // For now, we'll determine this from the events or use a default
-      const competition = {
-        id: '2486', // Default to Champions League for now since we can't extract it
-        name: 'UEFA Champions League',
-        logo: 'https://highlightly.net/soccer/images/leagues/2486.png'
-      };
-
-      console.log(`[Highlightly] Extracted data:`, {
-        homeTeam,
-        awayTeam,
-        competition,
-        score
-      });
 
       // Create enhanced match object from processed data
       const enhancedMatch: EnhancedMatchHighlight = {
@@ -752,5 +761,47 @@ export const highlightlyService = {
    */
   clearCache() {
     return highlightlyClient.clearCache();
-  }
+  },
+
+  /**
+   * Search entities (teams, leagues, matches) - trusts API data
+   */
+  async searchEntities(query: string): Promise<{ teams: Team[]; leagues: League[]; matches: Match[] }> {
+    if (!query.trim()) {
+      return { teams: [], leagues: [], matches: [] };
+    }
+    try {
+      const normalizedQuery = query.trim();
+
+      // Perform parallel API requests
+      const [teamsRes, leaguesRes, matchesHomeRes, matchesAwayRes] = await Promise.all([
+        highlightlyClient.getTeams({ name: normalizedQuery, limit: '10' } as any),
+        highlightlyClient.getLeagues({ leagueName: normalizedQuery, limit: '10' }),
+        highlightlyClient.getMatches({ homeTeamName: normalizedQuery, limit: '10' }),
+        highlightlyClient.getMatches({ awayTeamName: normalizedQuery, limit: '10' }),
+      ]);
+
+      // The API sometimes wraps results in { data: [] }
+      const extract = (resp: any) => (Array.isArray(resp) ? resp : resp?.data ?? []);
+
+      const matchesCombined: Match[] = [
+        ...extract(matchesHomeRes),
+        ...extract(matchesAwayRes),
+      ];
+      // De-duplicate matches by id
+      const uniqueMatches: Record<string, Match> = {};
+      matchesCombined.forEach((m) => {
+        if (m && !uniqueMatches[m.id]) uniqueMatches[m.id] = m;
+      });
+
+      return {
+        teams: extract(teamsRes) as Team[],
+        leagues: extract(leaguesRes) as League[],
+        matches: Object.values(uniqueMatches),
+      };
+    } catch (error) {
+      console.error('[Highlightly] Error searching entities:', error);
+      return { teams: [], leagues: [], matches: [] };
+    }
+  },
 };

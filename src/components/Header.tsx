@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MatchHighlight } from '@/types';
-import { searchHighlights, getActiveService } from '@/services/serviceAdapter';
+import { Match, Team, League } from '@/types';
+import { searchEntities } from '@/services/serviceAdapter';
 import ServiceSwitcher from './ServiceSwitcher';
 
 const Header = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<MatchHighlight[]>([]);
+  const [searchResults, setSearchResults] = useState<Array<{ type: 'match' | 'team' | 'league'; item: any }>>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -59,8 +59,13 @@ const Header = () => {
 
     setIsSearching(true);
     try {
-      const results = await searchHighlights(searchQuery);
-      setSearchResults(results);
+      const { matches, teams, leagues } = await searchEntities(searchQuery);
+      const flattened: Array<{ type: 'match' | 'team' | 'league'; item: any }> = [
+        ...matches.map((m: Match) => ({ type: 'match', item: m })),
+        ...teams.map((t: Team) => ({ type: 'team', item: t })),
+        ...leagues.map((l: League) => ({ type: 'league', item: l })),
+      ];
+      setSearchResults(flattened);
       setShowResults(true);
     } catch (error) {
       console.error('Error searching:', error);
@@ -69,8 +74,20 @@ const Header = () => {
     }
   };
 
-  const handleResultClick = (id: string) => {
-    navigate(`/match/${id}`);
+  const handleResultClick = (result: { type: 'match' | 'team' | 'league'; item: any }) => {
+    switch (result.type) {
+      case 'match':
+        navigate(`/match/${result.item.id}`);
+        break;
+      case 'team':
+        navigate(`/team/${result.item.id}`);
+        break;
+      case 'league':
+        navigate(`/league/${result.item.id}`);
+        break;
+      default:
+        break;
+    }
     setSearchQuery('');
     setShowResults(false);
   };
@@ -150,39 +167,73 @@ const Header = () => {
                   </div>
                 ) : (
                   <div className="py-2">
-                    {searchResults.map((result) => (
+                    {searchResults.map((result, idx) => (
                       <div 
-                        key={result.id}
-                        onClick={() => handleResultClick(result.id)}
+                        key={`${result.type}-${idx}`}
+                        onClick={() => handleResultClick(result)}
                         className="px-6 py-3 hover:bg-[#444444] cursor-pointer transition-colors duration-200 border-b border-gray-600/20 last:border-b-0"
                       >
-                        <div className="flex items-center">
-                          <div className="flex items-center space-x-3 flex-1">
-                            <img 
-                              src={result.homeTeam.logo} 
-                              alt={result.homeTeam.name}
+                        {result.type === 'match' ? (
+                          (() => {
+                            const homeTeam = result.item.homeTeam ?? result.item.teams?.home;
+                            const awayTeam = result.item.awayTeam ?? result.item.teams?.away;
+                            const scoreHome = result.item.score?.home ?? result.item.goals?.home ?? '-';
+                            const scoreAway = result.item.score?.away ?? result.item.goals?.away ?? '-';
+                            return (
+                              <div className="flex items-center space-x-3">
+                                {homeTeam && (
+                                  <img
+                                    src={homeTeam.logo}
+                                    alt={homeTeam.name}
+                                    className="w-7 h-7 object-contain"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.src = 'https://www.sofascore.com/static/images/placeholders/team.svg';
+                                    }}
+                                  />
+                                )}
+                                <span className="text-white text-base font-semibold">{scoreHome} - {scoreAway}</span>
+                                {awayTeam && (
+                                  <img
+                                    src={awayTeam.logo}
+                                    alt={awayTeam.name}
+                                    className="w-7 h-7 object-contain"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.src = 'https://www.sofascore.com/static/images/placeholders/team.svg';
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })()
+                        ) : result.type === 'team' ? (
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={result.item.logo}
+                              alt={result.item.name}
                               className="w-7 h-7 object-contain"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                                target.src = 'https://www.sofascore.com/static/images/placeholders/team.svg';
                               }}
                             />
-                            <span className="text-white text-base font-semibold">{result.score.home} - {result.score.away}</span>
-                            <img 
-                              src={result.awayTeam.logo} 
-                              alt={result.awayTeam.name}
+                            <span className="text-white text-base font-semibold">{result.item.name}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={result.item.logo}
+                              alt={result.item.name}
                               className="w-7 h-7 object-contain"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
+                                target.src = 'https://www.sofascore.com/static/images/placeholders/team.svg';
                               }}
                             />
+                            <span className="text-white text-base font-semibold">{result.item.name}</span>
                           </div>
-                          <div className="text-gray-300 text-sm font-medium">
-                            {result.competition.name}
-                          </div>
-                        </div>
-                        <div className="text-white text-base mt-2 font-medium">{result.title}</div>
+                        )}
                       </div>
                     ))}
                   </div>

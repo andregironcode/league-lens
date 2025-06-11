@@ -200,6 +200,20 @@ export const serviceAdapter = {
   },
 
   /**
+   * Search entities
+   */
+  async searchEntities(query: string): Promise<{ teams: any[]; leagues: any[]; matches: any[] }> {
+    switch (activeService) {
+      case 'highlightly':
+        return highlightlyService.searchEntities(query);
+      case 'mock':
+        return { teams: [], leagues: [], matches: [] }; // fallback
+      default:
+        return { teams: [], leagues: [], matches: [] };
+    }
+  },
+
+  /**
    * Get recent matches for top leagues
    */
   async getRecentMatchesForTopLeagues(): Promise<LeagueWithMatches[]> {
@@ -423,6 +437,7 @@ export const {
   getTeamHighlights,
   getTeamDetails,
   searchHighlights,
+  searchEntities,
   getRecentMatchesForTopLeagues,
   getMatchesForDate,
   getMatchesFromLast7Days,
@@ -444,6 +459,7 @@ export const {
   getTeamHighlights: (teamId: string) => serviceAdapter.getTeamHighlights(teamId),
   getTeamDetails: (teamId: string) => serviceAdapter.getTeamDetails(teamId),
   searchHighlights: (query: string) => serviceAdapter.searchHighlights(query),
+  searchEntities: serviceAdapter.searchEntities.bind(serviceAdapter),
   getRecentMatchesForTopLeagues: () => serviceAdapter.getRecentMatchesForTopLeagues(),
   getMatchesForDate: (dateString: string) => serviceAdapter.getMatchesForDate(dateString),
   getMatchesFromLast7Days: () => serviceAdapter.getMatchesFromLast7Days(),
