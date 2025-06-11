@@ -147,6 +147,17 @@ const ScorelineTimeline: React.FC<{
   matchDate,
   matchTime
 }) => {
+  // Top-level debugging of incoming events
+  console.log(`[ScorelineTimeline] Component rendering with:`, {
+    eventsCount: matchEvents?.length || 0,
+    homeTeamName: homeTeam?.name,
+    awayTeamName: awayTeam?.name,
+    hasValidEvents: Array.isArray(matchEvents) && matchEvents.length > 0,
+    matchDate,
+    firstTwoEvents: matchEvents?.slice(0, 2) || [],
+    allEvents: matchEvents
+  });
+  
   const events = getScorelineEventsFromAPI(matchEvents || [], homeTeam, awayTeam);
 
   const formatMatchDateTime = (date?: string, time?: string): string => {

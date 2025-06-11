@@ -236,7 +236,17 @@ export const highlightlyService = {
     
     try {
       // Use the new batch method to get all match data at once
-      const { match: matchDataResponse, lineups, statistics } = await highlightlyClient.getCompleteMatchDetails(id);
+      console.log(`[Highlightly] Fetching complete match details for match ID: ${id}`);
+      const batchResponse = await highlightlyClient.getCompleteMatchDetails(id);
+      const { match: matchDataResponse, lineups, statistics, events } = batchResponse;
+      
+      console.log(`[Highlightly] Match batch response structure:`, {
+        hasMatchData: Boolean(matchDataResponse),
+        hasLineups: Boolean(lineups),
+        hasStatistics: Boolean(statistics),
+        hasEvents: Boolean(events),
+        eventsCount: events ? (Array.isArray(events) ? events.length : 'not an array') : 'null'
+      });
       
       if (!matchDataResponse) {
         console.error(`[Highlightly] No match data found for ID: ${id}`);
@@ -311,8 +321,16 @@ export const highlightlyService = {
         };
       };
 
+      // Prioritize separately fetched events data over any events in the match data
+      const eventsData = events || matchData.events || [];
+      console.log(`[Highlightly] Events data:`, { 
+        fromSeparateCall: Boolean(events), 
+        fromMatchData: Boolean(matchData.events),
+        eventCount: eventsData.length
+      });
+      
       // Extract teams from events
-      const { homeTeam, awayTeam } = extractTeamsFromEvents(matchData.events || []);
+      const { homeTeam, awayTeam } = extractTeamsFromEvents(eventsData);
 
       // Extract competition / league data directly from the API response.
       // The Highlightly API may return this information in different locations depending on the
@@ -336,7 +354,7 @@ export const highlightlyService = {
       }
 
       // Calculate score from events
-      const score = calculateScoreFromEvents(matchData.events || [], homeTeam?.id || '', awayTeam?.id || '');
+      const score = calculateScoreFromEvents(eventsData, homeTeam?.id || '', awayTeam?.id || '');
 
       // Create enhanced match object from processed data
       const enhancedMatch: EnhancedMatchHighlight = {
@@ -352,7 +370,7 @@ export const highlightlyService = {
         date: matchData.date || new Date().toISOString(),
         status: matchData.status || { description: 'Full Time' },
         score,
-        events: matchData.events || [],
+        events: eventsData,
         statistics: Array.isArray(statistics) ? statistics : [],
         lineups: lineups || undefined
       };

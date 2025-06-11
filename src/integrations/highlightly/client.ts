@@ -518,23 +518,40 @@ export const highlightlyClient = {
   },
 
   /**
-   * Optimized: Get complete match details (match + lineups + statistics) in a batch
+   * Optimized: Get complete match details (match + lineups + statistics + events) in a batch
    */
   async getCompleteMatchDetails(matchId: string) {
+    console.log(`[highlightlyClient] Requesting complete match details for match ID: ${matchId}`);
+    
     const requests = [
       { endpoint: `/matches/${matchId}` },
       { endpoint: `/lineups/${matchId}` },
-      { endpoint: `/statistics/${matchId}` }
+      { endpoint: `/statistics/${matchId}` },
+      { endpoint: `/events/${matchId}` } // Added events endpoint
     ];
     
-    const [matchData, lineups, statistics] = await Promise.allSettled(
+    const [matchData, lineups, statistics, events] = await Promise.allSettled(
       requests.map(req => apiRequest<any>(req.endpoint))
     );
+    
+    console.log(`[highlightlyClient] Received responses for match ID ${matchId}:`, {
+      matchStatus: matchData.status,
+      lineupsStatus: lineups.status,
+      statisticsStatus: statistics.status,
+      eventsStatus: events.status,
+      eventsResponse: events.status === 'fulfilled' ? {
+        type: typeof events.value,
+        isArray: Array.isArray(events.value),
+        length: Array.isArray(events.value) ? events.value.length : 'N/A',
+        sample: Array.isArray(events.value) && events.value.length > 0 ? events.value[0] : null
+      } : 'rejected'
+    });
     
     return {
       match: matchData.status === 'fulfilled' ? matchData.value : null,
       lineups: lineups.status === 'fulfilled' ? lineups.value : null,
-      statistics: statistics.status === 'fulfilled' ? statistics.value : null
+      statistics: statistics.status === 'fulfilled' ? statistics.value : null,
+      events: events.status === 'fulfilled' ? events.value : null // Return events data
     };
   },
 

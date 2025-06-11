@@ -326,7 +326,33 @@ const MatchDetails = () => {
     if (!m) return { state: 'unknown' };
 
     // Prefer API fixture status if present
-    const rawStatus = (m.fixture as any)?.status?.short ?? '';
+    // Note: The match data from the API may have status information in different formats
+    // Some API responses include it directly in the match object, others in a fixture property
+    console.log('[MatchDetails] FULL match object from API:', {
+      id: m.id,
+      entireMatch: m // Log the entire match object to see its structure
+    });
+    
+    // Log every possible status field for thorough investigation
+    console.log('[MatchDetails] All possible status fields from API:', {
+      directStatus: m.status,
+      directStatusShort: m.status?.short,
+      directStatusLong: m.status?.long,
+      fixtureStatus: (m as any).fixture?.status,
+      fixtureStatusShort: (m as any).fixture?.status?.short,
+      fixtureStatusLong: (m as any).fixture?.status?.long,
+      stateStatus: (m as any).state?.description,
+      rawStatusString: typeof m.status === 'string' ? m.status : 'not a string',
+      matchState: (m as any).state,
+      hasEventData: Boolean(m.events) && Array.isArray(m.events) && m.events.length > 0,
+      eventCount: Array.isArray(m.events) ? m.events.length : 0
+    });
+    
+    // Now extract the rawStatus for decision making, considering all possible locations
+    const rawStatus = m.status?.short || 
+                     (typeof m.status === 'string' ? m.status : '') ||
+                     (m as any).fixture?.status?.short ||
+                     (m as any).state?.description || '';
 
     // Get the raw kickoff time from the API (fully trust API data)
     // IMPORTANT: The API provides UTC timestamps (either as Unix seconds or ISO date with Z suffix)
@@ -335,12 +361,17 @@ const MatchDetails = () => {
     const kickoffTs = (() => {
       // Logging to help diagnose time issues
       console.log('[MatchDetails] Raw date from API:', m.date);
-      console.log('[MatchDetails] Raw timestamp from API:', (m.fixture as any)?.timestamp);
+      
+      // The timestamp might be in different places depending on API response structure
+      // It could be in fixture.timestamp, timestamp, or we'll fall back to parsing the date
+      // Using 'as any' since the API structure might vary and we're accessing properties dynamically
+      const timestamp = (m as any).timestamp || (m as any)?.fixture?.timestamp;
+      console.log('[MatchDetails] Raw timestamp from API:', timestamp);
 
-      // First choice: Use fixture timestamp if available (already in UTC)
-      if ((m.fixture as any)?.timestamp) {
+      // First choice: Use timestamp if available (already in UTC)
+      if (timestamp) {
         // Convert seconds to milliseconds for consistency
-        return ((m.fixture as any).timestamp as number) * 1000;
+        return (timestamp as number) * 1000;
       }
       
       // Second choice: Use ISO date (ensuring proper UTC parsing)
@@ -369,16 +400,51 @@ const MatchDetails = () => {
       nowTime: new Date(now).toISOString()
     });
 
-    if (rawStatus === 'FT') {
+    // Recognize all possible full-time/completed match status codes from the Highlightly API
+    // FT = Full Time, AET = After Extra Time, PEN = After Penalties, AWD = Awarded Win, etc.
+    const fullTimeStatusCodes = ['FT', 'AET', 'PEN', 'AWD', 'CANC', 'ABD', 'WO'];
+    
+    // IMPORTANT: Check if we need to infer full-time status from other signals
+    const hasEvents = Boolean(m.events) && Array.isArray(m.events) && m.events.length > 0;
+    const isPastDate = diffMs < 0; // Match date is in the past
+    
+    // A match is considered full-time if ANY of these conditions are true:
+    // 1. API explicitly states full-time status via known codes
+    // 2. API long description indicates completed match
+    // 3. The match date is in the past AND it has events data
+    //    (past matches with events are very likely completed)
+    if (fullTimeStatusCodes.includes(rawStatus) || 
+        // Check long status descriptions that might indicate a completed match
+        m.status?.long?.toLowerCase().includes('finish') ||
+        m.status?.long?.toLowerCase().includes('full-time') ||
+        m.status?.long?.toLowerCase().includes('ended') ||
+        // IMPORTANT: Consider a match with events data and a past date as completed
+        // This is critical for displays like timelines that should show for completed matches
+        (isPastDate && hasEvents)) {
+      console.log('[MatchDetails] Match identified as FULL TIME:', { 
+        rawStatus, 
+        matchId: m.id,
+        isPastDate,
+        hasEvents,
+        eventsCount: hasEvents ? m.events!.length : 0,
+        inferredFromEvents: isPastDate && hasEvents && !fullTimeStatusCodes.includes(rawStatus)
+      });
       return { state: 'fullTime' };
     }
 
     // LIVE codes encountered in Highlightly
     const liveCodes = ['1H', 'HT', '2H', 'ET', 'P', 'LIVE'];
     if (liveCodes.includes(rawStatus)) {
-      const elapsedLabel = (m.fixture as any)?.status?.elapsed
-        ? `${(m.fixture as any).status.elapsed}′`
+      // Get elapsed time from any of the possible API structures
+      const elapsed = m.status?.elapsed || 
+                    (m as any).fixture?.status?.elapsed || 
+                    (m as any).state?.clock;
+      
+      // Format the elapsed time with minute symbol if available
+      const elapsedLabel = elapsed
+        ? `${elapsed}′`
         : rawStatus;
+      
       return { state: 'live', elapsedLabel };
     }
 
@@ -486,6 +552,22 @@ const MatchDetails = () => {
             <ScorelineBanner match={match} timing={timing} />
 
             {/* Show timeline during live or after FT if events exist */}
+            {(() => {
+              // Execute this debugging code as part of the rendering
+              console.log(`[MatchDetails] Timeline rendering check:`, {
+                isLive,
+                isFullTime,
+                hasEvents: Boolean(match.events),
+                eventCount: match.events?.length || 0,
+                shouldRender: (isLive || isFullTime) && match.events && match.events.length > 0,
+                statusShort: match.status?.short,
+                statusLong: match.status?.long,
+                statusElapsed: match.status?.elapsed,
+                matchId: match.id,
+                events: match.events?.slice(0, 2) // Log first two events (if any) as sample
+              });
+              return null; // Don't render anything for this debugging code
+            })()}
             {(isLive || isFullTime) && match.events && match.events.length > 0 && (
               <ScorelineTimeline 
                 homeTeam={match.homeTeam} 

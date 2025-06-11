@@ -324,7 +324,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749666900649,
+    "expiry": 1749678000514,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-11&season=2025": {
@@ -340,7 +340,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749666901046,
+    "expiry": 1749678000888,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-11&season=2025": {
@@ -356,7 +356,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749666900632,
+    "expiry": 1749678000551,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-11&season=2025": {
@@ -372,7 +372,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749666901501,
+    "expiry": 1749678001248,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-11&season=2025": {
@@ -388,7 +388,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749666901521,
+    "expiry": 1749678001257,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-11&season=2025": {
@@ -404,7 +404,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749666901083,
+    "expiry": 1749678000901,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-12&season=2025": {
@@ -516,7 +516,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749668400391,
+    "expiry": 1749679201133,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=115669&season=2025&limit=20": {
@@ -532,7 +532,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749668400403,
+    "expiry": 1749679201144,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=119924&season=2025&limit=20": {
@@ -548,7 +548,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749668400354,
+    "expiry": 1749679201102,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=52695&season=2025&limit=20": {
@@ -564,7 +564,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749668400847,
+    "expiry": 1749679201535,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=67162&season=2025&limit=20": {
@@ -580,7 +580,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749668400876,
+    "expiry": 1749679201505,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=2486&season=2025&limit=20": {
@@ -596,7 +596,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749668400865,
+    "expiry": 1749679201523,
     "ttl": 3600
   },
   "/api/highlightly/leagues/3337?": {
@@ -6706,7 +6706,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666953418,
+    "expiry": 1749677563927,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-11&limit=20": {
@@ -6722,7 +6722,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666953326,
+    "expiry": 1749677564138,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=200": {
@@ -12355,7 +12355,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666953635,
+    "expiry": 1749677564467,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-11&limit=20": {
@@ -12371,7 +12371,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666953664,
+    "expiry": 1749677564442,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=400": {
@@ -17707,7 +17707,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666953871,
+    "expiry": 1749677564729,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-11&limit=20": {
@@ -17723,7 +17723,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666953902,
+    "expiry": 1749677564708,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-10&limit=20": {
@@ -18411,7 +18411,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669888063,
+    "expiry": 1749675885899,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-12&limit=20": {
@@ -18427,7 +18427,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669888002,
+    "expiry": 1749675885960,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-13&limit=20": {
@@ -18443,7 +18443,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669894506,
+    "expiry": 1749675888329,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-14&limit=20": {
@@ -18459,7 +18459,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669673139,
+    "expiry": 1749675851817,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-13&limit=20": {
@@ -18475,7 +18475,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669894480,
+    "expiry": 1749675888348,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-14&limit=20": {
@@ -18491,7 +18491,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669673103,
+    "expiry": 1749675851801,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-15&limit=20": {
@@ -18507,7 +18507,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669594379,
+    "expiry": 1749675890539,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-15&limit=20": {
@@ -18523,7 +18523,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669594370,
+    "expiry": 1749675890520,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-12&limit=20": {
@@ -18539,7 +18539,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669888343,
+    "expiry": 1749675886206,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-16&limit=20": {
@@ -18571,7 +18571,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669888327,
+    "expiry": 1749675886169,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-16&limit=20": {
@@ -18603,7 +18603,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669894743,
+    "expiry": 1749675888588,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-13&limit=20": {
@@ -18619,7 +18619,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669894756,
+    "expiry": 1749675888570,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-15&limit=20": {
@@ -18635,7 +18635,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669594627,
+    "expiry": 1749675890786,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-14&limit=20": {
@@ -18651,7 +18651,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669673443,
+    "expiry": 1749675852039,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-14&limit=20": {
@@ -18667,7 +18667,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669673423,
+    "expiry": 1749675852070,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-15&limit=20": {
@@ -18683,7 +18683,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669594619,
+    "expiry": 1749675890769,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-12&limit=20": {
@@ -18699,7 +18699,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669888599,
+    "expiry": 1749675886431,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-16&limit=20": {
@@ -18747,7 +18747,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669888572,
+    "expiry": 1749675886451,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-13&limit=20": {
@@ -18763,7 +18763,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669895015,
+    "expiry": 1749675888875,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-13&limit=20": {
@@ -18779,7 +18779,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669895002,
+    "expiry": 1749675888855,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-14&limit=20": {
@@ -18795,7 +18795,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669673709,
+    "expiry": 1749675852305,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-14&limit=20": {
@@ -18811,7 +18811,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669673728,
+    "expiry": 1749675852285,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-15&limit=20": {
@@ -18827,7 +18827,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669594861,
+    "expiry": 1749675891010,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-15&limit=20": {
@@ -18843,7 +18843,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669594878,
+    "expiry": 1749675891047,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-16&limit=20": {
@@ -20081,7 +20081,7 @@
         "season": 2021
       }
     },
-    "expiry": 1749668457302,
+    "expiry": 1749679066492,
     "ttl": 1800
   },
   "/api/highlightly/matches?leagueId=2486&season=2021&limit=100": {
@@ -24705,7 +24705,7 @@
         "season": 2024
       }
     },
-    "expiry": 1749665265444,
+    "expiry": 1749677842418,
     "ttl": 1800
   },
   "/api/highlightly/matches?leagueId=2486&season=2024&limit=100": {
@@ -32358,7 +32358,7 @@
         "name": "Inter"
       }
     },
-    "expiry": 1749670713219,
+    "expiry": 1749681588576,
     "ttl": 7200
   },
   "/api/highlightly/statistics/1169965796?": {
@@ -32694,7 +32694,7 @@
         ]
       }
     ],
-    "expiry": 1749664113355,
+    "expiry": 1749678327175,
     "ttl": 600
   },
   "/api/highlightly/matches/1169965796?": {
@@ -34338,7 +34338,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749667113523,
+    "expiry": 1749677988741,
     "ttl": 3600
   },
   "/api/highlightly/head-2-head?teamIdOne=73119&teamIdTwo=430539": {
@@ -38480,7 +38480,7 @@
         "season": 2025
       }
     },
-    "expiry": 1749666960434,
+    "expiry": 1749676088424,
     "ttl": 1800
   },
   "/api/highlightly/leagues?leagueName=arsenal&limit=10": {
@@ -59636,7 +59636,7 @@
         "season": 2023
       }
     },
-    "expiry": 1749661886083,
+    "expiry": 1749676185465,
     "ttl": 1800
   },
   "/api/highlightly/highlights?matchId=1020851023&limit=20": {
@@ -62079,12 +62079,12 @@
         "name": "https://highlightly.net/soccer/images/teams/8143152.png"
       }
     },
-    "expiry": 1749667324526,
+    "expiry": 1749679509151,
     "ttl": 7200
   },
   "/api/highlightly/statistics/1124750464?": {
     "data": [],
-    "expiry": 1749666945055,
+    "expiry": 1749674926989,
     "ttl": 600
   },
   "/api/highlightly/highlights?matchId=1124750464&limit=20": {
@@ -62100,7 +62100,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749667350134,
+    "expiry": 1749677927134,
     "ttl": 3600
   },
   "/api/highlightly/standings?leagueId=13549&season=2024": {
@@ -69837,7 +69837,7 @@
         "name": "Stade Brestois 29"
       }
     },
-    "expiry": 1749667487930,
+    "expiry": 1749684470621,
     "ttl": 7200
   },
   "/api/highlightly/matches/1145223822?": {
@@ -70439,7 +70439,7 @@
         ]
       }
     ],
-    "expiry": 1749660888045,
+    "expiry": 1749677870853,
     "ttl": 600
   },
   "/api/highlightly/highlights?matchId=1145223822&limit=20": {
@@ -70752,7 +70752,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749663888194,
+    "expiry": 1749680871007,
     "ttl": 3600
   },
   "/api/highlightly/head-2-head?teamIdOne=73119&teamIdTwo=90990": {
@@ -72220,7 +72220,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749666954118,
+    "expiry": 1749677565084,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=13549&date=2025-06-12&limit=20": {
@@ -72236,7 +72236,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669888808,
+    "expiry": 1749675886703,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=13549&date=2025-06-13&limit=20": {
@@ -72252,7 +72252,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669895259,
+    "expiry": 1749675889099,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=13549&date=2025-06-14&limit=20": {
@@ -72268,7 +72268,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669673998,
+    "expiry": 1749675852553,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=13549&date=2025-06-15&limit=20": {
@@ -72421,7 +72421,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749669595098,
+    "expiry": 1749675891329,
     "ttl": 3600
   },
   "/api/highlightly/head-2-head?teamIdOne=1342811&teamIdTwo=8143152": {
@@ -72780,5 +72780,4260 @@
     ],
     "expiry": 1749752745376,
     "ttl": 86400
+  },
+  "/api/highlightly/matches/1124751315?": {
+    "data": [
+      {
+        "venue": {
+          "city": "Cincinnati, OH",
+          "name": "TQL Stadium",
+          "country": "USA",
+          "capacity": "26000"
+        },
+        "referee": {
+          "name": null,
+          "nationality": null
+        },
+        "forecast": {
+          "status": "clear day",
+          "temperature": "24.72°C"
+        },
+        "events": [],
+        "predictions": {
+          "live": [],
+          "prematch": [
+            {
+              "type": "prematch",
+              "modelType": "three-way",
+              "description": "Bayern Munich is most likely to win the game against Auckland City.",
+              "generatedAt": "2025-06-08T02:13:16.877Z",
+              "probabilities": {
+                "away": "1.77%",
+                "draw": "4.10%",
+                "home": "94.13%"
+              }
+            },
+            {
+              "type": "prematch",
+              "modelType": "three-way",
+              "description": "Bayern Munich is most likely to win the game against Auckland City.",
+              "generatedAt": "2025-06-09T01:57:59.825Z",
+              "probabilities": {
+                "away": "1.81%",
+                "draw": "4.04%",
+                "home": "94.16%"
+              }
+            },
+            {
+              "type": "prematch",
+              "modelType": "three-way",
+              "description": "Bayern Munich is most likely to win the game against Auckland City.",
+              "generatedAt": "2025-06-10T01:58:44.704Z",
+              "probabilities": {
+                "away": "1.85%",
+                "draw": "3.86%",
+                "home": "94.30%"
+              }
+            },
+            {
+              "type": "prematch",
+              "modelType": "three-way",
+              "description": "Bayern Munich is most likely to win the game against Auckland City.",
+              "generatedAt": "2025-06-11T02:01:59.872Z",
+              "probabilities": {
+                "away": "1.70%",
+                "draw": "3.87%",
+                "home": "94.43%"
+              }
+            }
+          ]
+        },
+        "id": 1124751315,
+        "round": "Group Stage - 1",
+        "date": "2025-06-15T16:00:00.000Z",
+        "country": {
+          "code": "World",
+          "name": "World",
+          "logo": "https://highlightly.net/soccer/images/countries/World.png"
+        },
+        "state": {
+          "clock": null,
+          "score": {
+            "current": null,
+            "penalties": null
+          },
+          "description": "Not started"
+        },
+        "awayTeam": {
+          "id": 2159771,
+          "logo": "https://highlightly.net/soccer/images/teams/2159771.png",
+          "name": "Auckland City",
+          "topPlayers": [],
+          "shots": []
+        },
+        "homeTeam": {
+          "id": 134391,
+          "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+          "name": "Bayern Munich",
+          "topPlayers": [],
+          "shots": []
+        },
+        "league": {
+          "id": 13549,
+          "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
+          "name": "FIFA Club World Cup",
+          "season": 2025
+        },
+        "statistics": [],
+        "news": []
+      }
+    ],
+    "expiry": 1749755921763,
+    "ttl": 86400
+  },
+  "/api/highlightly/statistics/1124751315?": {
+    "data": [],
+    "expiry": 1749672189295,
+    "ttl": 600
+  },
+  "/api/highlightly/lineups/1124751315?": {
+    "data": {
+      "homeTeam": {
+        "formation": "Unknown",
+        "substitutes": [],
+        "initialLineup": [],
+        "id": 134391,
+        "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+        "name": "https://highlightly.net/soccer/images/teams/2159771.png"
+      },
+      "awayTeam": {
+        "formation": "Unknown",
+        "substitutes": [],
+        "initialLineup": [],
+        "id": 2159771,
+        "logo": "https://highlightly.net/soccer/images/teams/2159771.png",
+        "name": "https://highlightly.net/soccer/images/teams/2159771.png"
+      }
+    },
+    "expiry": 1749676721847,
+    "ttl": 7200
+  },
+  "/api/highlightly/highlights?matchId=1124751315&limit=20": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 20
+      }
+    },
+    "expiry": 1749673121999,
+    "ttl": 3600
+  },
+  "/api/highlightly/head-2-head?teamIdOne=134391&teamIdTwo=2159771": {
+    "data": [],
+    "expiry": 1749755922140,
+    "ttl": 86400
+  },
+  "/api/highlightly/last-five-games?teamId=2159771": {
+    "data": [
+      {
+        "id": 1170418528,
+        "round": "2nd Round",
+        "date": "2025-05-31T02:00:00.000Z",
+        "country": {
+          "code": "NZ",
+          "name": "New Zealand",
+          "logo": "https://highlightly.net/soccer/images/countries/NZ.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "0 - 4",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 2159771,
+          "logo": "https://highlightly.net/soccer/images/teams/2159771.png",
+          "name": "Auckland City"
+        },
+        "homeTeam": {
+          "id": 20660511,
+          "logo": null,
+          "name": "Onehunga Mangere United"
+        },
+        "league": {
+          "id": 959861,
+          "logo": null,
+          "name": "Chatham Cup",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1165411244,
+        "round": "Final",
+        "date": "2025-04-12T07:00:00.000Z",
+        "country": {
+          "code": "World",
+          "name": "World",
+          "logo": "https://highlightly.net/soccer/images/countries/World.png"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "2 - 0",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 6928775,
+          "logo": "https://highlightly.net/soccer/images/teams/6928775.png",
+          "name": "Hekari United"
+        },
+        "homeTeam": {
+          "id": 2159771,
+          "logo": "https://highlightly.net/soccer/images/teams/2159771.png",
+          "name": "Auckland City"
+        },
+        "league": {
+          "id": 23761,
+          "logo": "https://highlightly.net/soccer/images/leagues/23761.png",
+          "name": "OFC Champions League",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1164411319,
+        "round": "Semi-finals",
+        "date": "2025-04-09T01:00:00.000Z",
+        "country": {
+          "code": "World",
+          "name": "World",
+          "logo": "https://highlightly.net/soccer/images/countries/World.png"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "2 - 0",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 17886251,
+          "logo": null,
+          "name": "Ifira Black Bird"
+        },
+        "homeTeam": {
+          "id": 2159771,
+          "logo": "https://highlightly.net/soccer/images/teams/2159771.png",
+          "name": "Auckland City"
+        },
+        "league": {
+          "id": 23761,
+          "logo": "https://highlightly.net/soccer/images/leagues/23761.png",
+          "name": "OFC Champions League",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1152595184,
+        "round": "Group Stage - 3",
+        "date": "2025-04-05T04:00:00.000Z",
+        "country": {
+          "code": "World",
+          "name": "World",
+          "logo": "https://highlightly.net/soccer/images/countries/World.png"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "1 - 1",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 2159771,
+          "logo": "https://highlightly.net/soccer/images/teams/2159771.png",
+          "name": "Auckland City"
+        },
+        "homeTeam": {
+          "id": 3734121,
+          "logo": "https://highlightly.net/soccer/images/teams/3734121.png",
+          "name": "Rewa"
+        },
+        "league": {
+          "id": 23761,
+          "logo": "https://highlightly.net/soccer/images/leagues/23761.png",
+          "name": "OFC Champions League",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1152591780,
+        "round": "Group Stage - 2",
+        "date": "2025-04-02T04:00:00.000Z",
+        "country": {
+          "code": "World",
+          "name": "World",
+          "logo": "https://highlightly.net/soccer/images/countries/World.png"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "2 - 0",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 17848807,
+          "logo": null,
+          "name": "Tiga Sport"
+        },
+        "homeTeam": {
+          "id": 2159771,
+          "logo": "https://highlightly.net/soccer/images/teams/2159771.png",
+          "name": "Auckland City"
+        },
+        "league": {
+          "id": 23761,
+          "logo": "https://highlightly.net/soccer/images/leagues/23761.png",
+          "name": "OFC Champions League",
+          "season": 2025
+        }
+      }
+    ],
+    "expiry": 1749755922184,
+    "ttl": 86400
+  },
+  "/api/highlightly/matches?leagueId=2486&season=2023&limit=100": {
+    "data": {
+      "data": [
+        {
+          "id": 1020680823,
+          "round": "Final",
+          "date": "2024-06-01T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "homeTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1018259728,
+          "round": "Semi-finals",
+          "date": "2024-05-08T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "homeTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1018223986,
+          "round": "Semi-finals",
+          "date": "2024-05-07T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "homeTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1018223135,
+          "round": "Semi-finals",
+          "date": "2024-05-01T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "homeTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1018258877,
+          "round": "Semi-finals",
+          "date": "2024-04-30T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "homeTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1008248564,
+          "round": "Quarter-finals",
+          "date": "2024-04-17T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 120,
+            "score": {
+              "current": "1 - 1",
+              "penalties": "3 - 4"
+            },
+            "description": "Finished after penalties"
+          },
+          "awayTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "homeTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1008246862,
+          "round": "Quarter-finals",
+          "date": "2024-04-17T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 36526,
+            "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+            "name": "Arsenal"
+          },
+          "homeTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1008250266,
+          "round": "Quarter-finals",
+          "date": "2024-04-16T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "4 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "homeTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1008251968,
+          "round": "Quarter-finals",
+          "date": "2024-04-16T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 4",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "homeTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1008251117,
+          "round": "Quarter-finals",
+          "date": "2024-04-10T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "homeTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1008249415,
+          "round": "Quarter-finals",
+          "date": "2024-04-10T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "homeTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1008247713,
+          "round": "Quarter-finals",
+          "date": "2024-04-09T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "homeTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 1008246011,
+          "round": "Quarter-finals",
+          "date": "2024-04-09T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "homeTeam": {
+            "id": 36526,
+            "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+            "name": "Arsenal"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978243155,
+          "round": "Round of 16",
+          "date": "2024-03-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 168431,
+            "logo": "https://highlightly.net/soccer/images/teams/168431.png",
+            "name": "PSV Eindhoven"
+          },
+          "homeTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978241453,
+          "round": "Round of 16",
+          "date": "2024-03-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 120,
+            "score": {
+              "current": "2 - 1",
+              "penalties": "3 - 2"
+            },
+            "description": "Finished after penalties"
+          },
+          "awayTeam": {
+            "id": 430539,
+            "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+            "name": "Inter"
+          },
+          "homeTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978246559,
+          "round": "Round of 16",
+          "date": "2024-03-12T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 419476,
+            "logo": "https://highlightly.net/soccer/images/teams/419476.png",
+            "name": "Napoli"
+          },
+          "homeTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978244857,
+          "round": "Round of 16",
+          "date": "2024-03-12T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 120,
+            "score": {
+              "current": "1 - 0",
+              "penalties": "4 - 2"
+            },
+            "description": "Finished after penalties"
+          },
+          "awayTeam": {
+            "id": 181196,
+            "logo": "https://highlightly.net/soccer/images/teams/181196.png",
+            "name": "FC Porto"
+          },
+          "homeTeam": {
+            "id": 36526,
+            "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+            "name": "Arsenal"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978234645,
+          "round": "Round of 16",
+          "date": "2024-03-06T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 341184,
+            "logo": "https://highlightly.net/soccer/images/teams/341184.png",
+            "name": "FC Copenhagen"
+          },
+          "homeTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978236347,
+          "round": "Round of 16",
+          "date": "2024-03-06T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 148007,
+            "logo": "https://highlightly.net/soccer/images/teams/148007.png",
+            "name": "RB Leipzig"
+          },
+          "homeTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978238049,
+          "round": "Round of 16",
+          "date": "2024-03-05T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "homeTeam": {
+            "id": 467132,
+            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
+            "name": "Real Sociedad"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978239751,
+          "round": "Round of 16",
+          "date": "2024-03-05T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 415221,
+            "logo": "https://highlightly.net/soccer/images/teams/415221.png",
+            "name": "Lazio"
+          },
+          "homeTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978245708,
+          "round": "Round of 16",
+          "date": "2024-02-21T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "homeTeam": {
+            "id": 419476,
+            "logo": "https://highlightly.net/soccer/images/teams/419476.png",
+            "name": "Napoli"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978244006,
+          "round": "Round of 16",
+          "date": "2024-02-21T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 36526,
+            "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+            "name": "Arsenal"
+          },
+          "homeTeam": {
+            "id": 181196,
+            "logo": "https://highlightly.net/soccer/images/teams/181196.png",
+            "name": "FC Porto"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978240602,
+          "round": "Round of 16",
+          "date": "2024-02-20T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "homeTeam": {
+            "id": 430539,
+            "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+            "name": "Inter"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978242304,
+          "round": "Round of 16",
+          "date": "2024-02-20T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "homeTeam": {
+            "id": 168431,
+            "logo": "https://highlightly.net/soccer/images/teams/168431.png",
+            "name": "PSV Eindhoven"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978237198,
+          "round": "Round of 16",
+          "date": "2024-02-14T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 467132,
+            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
+            "name": "Real Sociedad"
+          },
+          "homeTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978238900,
+          "round": "Round of 16",
+          "date": "2024-02-14T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "homeTeam": {
+            "id": 415221,
+            "logo": "https://highlightly.net/soccer/images/teams/415221.png",
+            "name": "Lazio"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978233794,
+          "round": "Round of 16",
+          "date": "2024-02-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "homeTeam": {
+            "id": 341184,
+            "logo": "https://highlightly.net/soccer/images/teams/341184.png",
+            "name": "FC Copenhagen"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 978235496,
+          "round": "Round of 16",
+          "date": "2024-02-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "homeTeam": {
+            "id": 148007,
+            "logo": "https://highlightly.net/soccer/images/teams/148007.png",
+            "name": "RB Leipzig"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958425918,
+          "round": "Group E - 6",
+          "date": "2023-12-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 415221,
+            "logo": "https://highlightly.net/soccer/images/teams/415221.png",
+            "name": "Lazio"
+          },
+          "homeTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958426769,
+          "round": "Group E - 6",
+          "date": "2023-12-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 178643,
+            "logo": "https://highlightly.net/soccer/images/teams/178643.png",
+            "name": "Feyenoord"
+          },
+          "homeTeam": {
+            "id": 210981,
+            "logo": "https://highlightly.net/soccer/images/teams/210981.png",
+            "name": "Celtic"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958427620,
+          "round": "Group F - 6",
+          "date": "2023-12-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "homeTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958428471,
+          "round": "Group F - 6",
+          "date": "2023-12-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 416923,
+            "logo": "https://highlightly.net/soccer/images/teams/416923.png",
+            "name": "AC Milan"
+          },
+          "homeTeam": {
+            "id": 29718,
+            "logo": "https://highlightly.net/soccer/images/teams/29718.png",
+            "name": "Newcastle"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958430173,
+          "round": "Group H - 6",
+          "date": "2023-12-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "homeTeam": {
+            "id": 630524,
+            "logo": "https://highlightly.net/soccer/images/teams/630524.png",
+            "name": "Antwerp"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958429322,
+          "round": "Group H - 6",
+          "date": "2023-12-13T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "5 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 468834,
+            "logo": "https://highlightly.net/soccer/images/teams/468834.png",
+            "name": "Shakhtar Donetsk"
+          },
+          "homeTeam": {
+            "id": 181196,
+            "logo": "https://highlightly.net/soccer/images/teams/181196.png",
+            "name": "FC Porto"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958424216,
+          "round": "Group G - 6",
+          "date": "2023-12-13T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 481599,
+            "logo": "https://highlightly.net/soccer/images/teams/481599.png",
+            "name": "BSC Young Boys"
+          },
+          "homeTeam": {
+            "id": 148007,
+            "logo": "https://highlightly.net/soccer/images/teams/148007.png",
+            "name": "RB Leipzig"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958425067,
+          "round": "Group G - 6",
+          "date": "2023-12-13T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "homeTeam": {
+            "id": 509682,
+            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
+            "name": "FK Crvena Zvezda"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958419110,
+          "round": "Group A - 6",
+          "date": "2023-12-12T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "homeTeam": {
+            "id": 28867,
+            "logo": "https://highlightly.net/soccer/images/teams/28867.png",
+            "name": "Manchester United"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958419961,
+          "round": "Group A - 6",
+          "date": "2023-12-12T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 549679,
+            "logo": "https://highlightly.net/soccer/images/teams/549679.png",
+            "name": "Galatasaray"
+          },
+          "homeTeam": {
+            "id": 341184,
+            "logo": "https://highlightly.net/soccer/images/teams/341184.png",
+            "name": "FC Copenhagen"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958423365,
+          "round": "Group D - 6",
+          "date": "2023-12-12T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 180345,
+            "logo": "https://highlightly.net/soccer/images/teams/180345.png",
+            "name": "Benfica"
+          },
+          "homeTeam": {
+            "id": 486705,
+            "logo": "https://highlightly.net/soccer/images/teams/486705.png",
+            "name": "Red Bull Salzburg"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958421663,
+          "round": "Group C - 6",
+          "date": "2023-12-12T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "homeTeam": {
+            "id": 155666,
+            "logo": "https://highlightly.net/soccer/images/teams/155666.png",
+            "name": "Union Berlin"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958422514,
+          "round": "Group D - 6",
+          "date": "2023-12-12T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 467132,
+            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
+            "name": "Real Sociedad"
+          },
+          "homeTeam": {
+            "id": 430539,
+            "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+            "name": "Inter"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958420812,
+          "round": "Group C - 6",
+          "date": "2023-12-12T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 185451,
+            "logo": "https://highlightly.net/soccer/images/teams/185451.png",
+            "name": "SC Braga"
+          },
+          "homeTeam": {
+            "id": 419476,
+            "logo": "https://highlightly.net/soccer/images/teams/419476.png",
+            "name": "Napoli"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958417408,
+          "round": "Group B - 6",
+          "date": "2023-12-12T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 456920,
+            "logo": "https://highlightly.net/soccer/images/teams/456920.png",
+            "name": "Sevilla"
+          },
+          "homeTeam": {
+            "id": 99500,
+            "logo": "https://highlightly.net/soccer/images/teams/99500.png",
+            "name": "Lens"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958418259,
+          "round": "Group B - 6",
+          "date": "2023-12-12T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 36526,
+            "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+            "name": "Arsenal"
+          },
+          "homeTeam": {
+            "id": 168431,
+            "logo": "https://highlightly.net/soccer/images/teams/168431.png",
+            "name": "PSV Eindhoven"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958413153,
+          "round": "Group B - 5",
+          "date": "2023-11-29T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "6 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 99500,
+            "logo": "https://highlightly.net/soccer/images/teams/99500.png",
+            "name": "Lens"
+          },
+          "homeTeam": {
+            "id": 36526,
+            "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+            "name": "Arsenal"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958414004,
+          "round": "Group C - 5",
+          "date": "2023-11-29T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "4 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 419476,
+            "logo": "https://highlightly.net/soccer/images/teams/419476.png",
+            "name": "Napoli"
+          },
+          "homeTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958415706,
+          "round": "Group D - 5",
+          "date": "2023-11-29T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 430539,
+            "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+            "name": "Inter"
+          },
+          "homeTeam": {
+            "id": 180345,
+            "logo": "https://highlightly.net/soccer/images/teams/180345.png",
+            "name": "Benfica"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958416557,
+          "round": "Group D - 5",
+          "date": "2023-11-29T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 486705,
+            "logo": "https://highlightly.net/soccer/images/teams/486705.png",
+            "name": "Red Bull Salzburg"
+          },
+          "homeTeam": {
+            "id": 467132,
+            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
+            "name": "Real Sociedad"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958414855,
+          "round": "Group C - 5",
+          "date": "2023-11-29T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 155666,
+            "logo": "https://highlightly.net/soccer/images/teams/155666.png",
+            "name": "Union Berlin"
+          },
+          "homeTeam": {
+            "id": 185451,
+            "logo": "https://highlightly.net/soccer/images/teams/185451.png",
+            "name": "SC Braga"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958412302,
+          "round": "Group A - 5",
+          "date": "2023-11-29T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 341184,
+            "logo": "https://highlightly.net/soccer/images/teams/341184.png",
+            "name": "FC Copenhagen"
+          },
+          "homeTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958410600,
+          "round": "Group A - 5",
+          "date": "2023-11-29T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 28867,
+            "logo": "https://highlightly.net/soccer/images/teams/28867.png",
+            "name": "Manchester United"
+          },
+          "homeTeam": {
+            "id": 549679,
+            "logo": "https://highlightly.net/soccer/images/teams/549679.png",
+            "name": "Galatasaray"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958411451,
+          "round": "Group B - 5",
+          "date": "2023-11-29T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 168431,
+            "logo": "https://highlightly.net/soccer/images/teams/168431.png",
+            "name": "PSV Eindhoven"
+          },
+          "homeTeam": {
+            "id": 456920,
+            "logo": "https://highlightly.net/soccer/images/teams/456920.png",
+            "name": "Sevilla"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958406345,
+          "round": "Group F - 5",
+          "date": "2023-11-28T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 29718,
+            "logo": "https://highlightly.net/soccer/images/teams/29718.png",
+            "name": "Newcastle"
+          },
+          "homeTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958408047,
+          "round": "Group G - 5",
+          "date": "2023-11-28T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 148007,
+            "logo": "https://highlightly.net/soccer/images/teams/148007.png",
+            "name": "RB Leipzig"
+          },
+          "homeTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958405494,
+          "round": "Group E - 5",
+          "date": "2023-11-28T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "homeTeam": {
+            "id": 178643,
+            "logo": "https://highlightly.net/soccer/images/teams/178643.png",
+            "name": "Feyenoord"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958407196,
+          "round": "Group F - 5",
+          "date": "2023-11-28T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "homeTeam": {
+            "id": 416923,
+            "logo": "https://highlightly.net/soccer/images/teams/416923.png",
+            "name": "AC Milan"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958408898,
+          "round": "Group G - 5",
+          "date": "2023-11-28T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 509682,
+            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
+            "name": "FK Crvena Zvezda"
+          },
+          "homeTeam": {
+            "id": 481599,
+            "logo": "https://highlightly.net/soccer/images/teams/481599.png",
+            "name": "BSC Young Boys"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958409749,
+          "round": "Group H - 5",
+          "date": "2023-11-28T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 181196,
+            "logo": "https://highlightly.net/soccer/images/teams/181196.png",
+            "name": "FC Porto"
+          },
+          "homeTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958403792,
+          "round": "Group E - 5",
+          "date": "2023-11-28T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 210981,
+            "logo": "https://highlightly.net/soccer/images/teams/210981.png",
+            "name": "Celtic"
+          },
+          "homeTeam": {
+            "id": 415221,
+            "logo": "https://highlightly.net/soccer/images/teams/415221.png",
+            "name": "Lazio"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958404643,
+          "round": "Group H - 5",
+          "date": "2023-11-28T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 630524,
+            "logo": "https://highlightly.net/soccer/images/teams/630524.png",
+            "name": "Antwerp"
+          },
+          "homeTeam": {
+            "id": 468834,
+            "logo": "https://highlightly.net/soccer/images/teams/468834.png",
+            "name": "Shakhtar Donetsk"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958399537,
+          "round": "Group A - 4",
+          "date": "2023-11-08T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "4 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 28867,
+            "logo": "https://highlightly.net/soccer/images/teams/28867.png",
+            "name": "Manchester United"
+          },
+          "homeTeam": {
+            "id": 341184,
+            "logo": "https://highlightly.net/soccer/images/teams/341184.png",
+            "name": "FC Copenhagen"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958402090,
+          "round": "Group C - 4",
+          "date": "2023-11-08T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 185451,
+            "logo": "https://highlightly.net/soccer/images/teams/185451.png",
+            "name": "SC Braga"
+          },
+          "homeTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958398686,
+          "round": "Group A - 4",
+          "date": "2023-11-08T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 549679,
+            "logo": "https://highlightly.net/soccer/images/teams/549679.png",
+            "name": "Galatasaray"
+          },
+          "homeTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958400388,
+          "round": "Group B - 4",
+          "date": "2023-11-08T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 456920,
+            "logo": "https://highlightly.net/soccer/images/teams/456920.png",
+            "name": "Sevilla"
+          },
+          "homeTeam": {
+            "id": 36526,
+            "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+            "name": "Arsenal"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958401239,
+          "round": "Group B - 4",
+          "date": "2023-11-08T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 99500,
+            "logo": "https://highlightly.net/soccer/images/teams/99500.png",
+            "name": "Lens"
+          },
+          "homeTeam": {
+            "id": 168431,
+            "logo": "https://highlightly.net/soccer/images/teams/168431.png",
+            "name": "PSV Eindhoven"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958402941,
+          "round": "Group D - 4",
+          "date": "2023-11-08T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 430539,
+            "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+            "name": "Inter"
+          },
+          "homeTeam": {
+            "id": 486705,
+            "logo": "https://highlightly.net/soccer/images/teams/486705.png",
+            "name": "Red Bull Salzburg"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958396984,
+          "round": "Group C - 4",
+          "date": "2023-11-08T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 155666,
+            "logo": "https://highlightly.net/soccer/images/teams/155666.png",
+            "name": "Union Berlin"
+          },
+          "homeTeam": {
+            "id": 419476,
+            "logo": "https://highlightly.net/soccer/images/teams/419476.png",
+            "name": "Napoli"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958397835,
+          "round": "Group D - 4",
+          "date": "2023-11-08T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 180345,
+            "logo": "https://highlightly.net/soccer/images/teams/180345.png",
+            "name": "Benfica"
+          },
+          "homeTeam": {
+            "id": 467132,
+            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
+            "name": "Real Sociedad"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958395282,
+          "round": "Group G - 4",
+          "date": "2023-11-07T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 148007,
+            "logo": "https://highlightly.net/soccer/images/teams/148007.png",
+            "name": "RB Leipzig"
+          },
+          "homeTeam": {
+            "id": 509682,
+            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
+            "name": "FK Crvena Zvezda"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958391878,
+          "round": "Group E - 4",
+          "date": "2023-11-07T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "6 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 210981,
+            "logo": "https://highlightly.net/soccer/images/teams/210981.png",
+            "name": "Celtic"
+          },
+          "homeTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958394431,
+          "round": "Group G - 4",
+          "date": "2023-11-07T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 481599,
+            "logo": "https://highlightly.net/soccer/images/teams/481599.png",
+            "name": "BSC Young Boys"
+          },
+          "homeTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958396133,
+          "round": "Group H - 4",
+          "date": "2023-11-07T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 630524,
+            "logo": "https://highlightly.net/soccer/images/teams/630524.png",
+            "name": "Antwerp"
+          },
+          "homeTeam": {
+            "id": 181196,
+            "logo": "https://highlightly.net/soccer/images/teams/181196.png",
+            "name": "FC Porto"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958392729,
+          "round": "Group E - 4",
+          "date": "2023-11-07T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 178643,
+            "logo": "https://highlightly.net/soccer/images/teams/178643.png",
+            "name": "Feyenoord"
+          },
+          "homeTeam": {
+            "id": 415221,
+            "logo": "https://highlightly.net/soccer/images/teams/415221.png",
+            "name": "Lazio"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958393580,
+          "round": "Group F - 4",
+          "date": "2023-11-07T20:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "homeTeam": {
+            "id": 416923,
+            "logo": "https://highlightly.net/soccer/images/teams/416923.png",
+            "name": "AC Milan"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958391027,
+          "round": "Group H - 4",
+          "date": "2023-11-07T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "homeTeam": {
+            "id": 468834,
+            "logo": "https://highlightly.net/soccer/images/teams/468834.png",
+            "name": "Shakhtar Donetsk"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958390176,
+          "round": "Group F - 4",
+          "date": "2023-11-07T17:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 29718,
+            "logo": "https://highlightly.net/soccer/images/teams/29718.png",
+            "name": "Newcastle"
+          },
+          "homeTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958385921,
+          "round": "Group F - 3",
+          "date": "2023-10-25T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 416923,
+            "logo": "https://highlightly.net/soccer/images/teams/416923.png",
+            "name": "AC Milan"
+          },
+          "homeTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958387623,
+          "round": "Group G - 3",
+          "date": "2023-10-25T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 509682,
+            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
+            "name": "FK Crvena Zvezda"
+          },
+          "homeTeam": {
+            "id": 148007,
+            "logo": "https://highlightly.net/soccer/images/teams/148007.png",
+            "name": "RB Leipzig"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958388474,
+          "round": "Group G - 3",
+          "date": "2023-10-25T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "homeTeam": {
+            "id": 481599,
+            "logo": "https://highlightly.net/soccer/images/teams/481599.png",
+            "name": "BSC Young Boys"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958389325,
+          "round": "Group H - 3",
+          "date": "2023-10-25T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 4",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 181196,
+            "logo": "https://highlightly.net/soccer/images/teams/181196.png",
+            "name": "FC Porto"
+          },
+          "homeTeam": {
+            "id": 630524,
+            "logo": "https://highlightly.net/soccer/images/teams/630524.png",
+            "name": "Antwerp"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958385070,
+          "round": "Group E - 3",
+          "date": "2023-10-25T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "homeTeam": {
+            "id": 210981,
+            "logo": "https://highlightly.net/soccer/images/teams/210981.png",
+            "name": "Celtic"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958386772,
+          "round": "Group F - 3",
+          "date": "2023-10-25T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "homeTeam": {
+            "id": 29718,
+            "logo": "https://highlightly.net/soccer/images/teams/29718.png",
+            "name": "Newcastle"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958383368,
+          "round": "Group E - 3",
+          "date": "2023-10-25T16:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 415221,
+            "logo": "https://highlightly.net/soccer/images/teams/415221.png",
+            "name": "Lazio"
+          },
+          "homeTeam": {
+            "id": 178643,
+            "logo": "https://highlightly.net/soccer/images/teams/178643.png",
+            "name": "Feyenoord"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958384219,
+          "round": "Group H - 3",
+          "date": "2023-10-25T16:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 468834,
+            "logo": "https://highlightly.net/soccer/images/teams/468834.png",
+            "name": "Shakhtar Donetsk"
+          },
+          "homeTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958380815,
+          "round": "Group C - 3",
+          "date": "2023-10-24T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 461175,
+            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
+            "name": "Real Madrid"
+          },
+          "homeTeam": {
+            "id": 185451,
+            "logo": "https://highlightly.net/soccer/images/teams/185451.png",
+            "name": "SC Braga"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958382517,
+          "round": "Group D - 3",
+          "date": "2023-10-24T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 467132,
+            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
+            "name": "Real Sociedad"
+          },
+          "homeTeam": {
+            "id": 180345,
+            "logo": "https://highlightly.net/soccer/images/teams/180345.png",
+            "name": "Benfica"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958378262,
+          "round": "Group A - 3",
+          "date": "2023-10-24T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 341184,
+            "logo": "https://highlightly.net/soccer/images/teams/341184.png",
+            "name": "FC Copenhagen"
+          },
+          "homeTeam": {
+            "id": 28867,
+            "logo": "https://highlightly.net/soccer/images/teams/28867.png",
+            "name": "Manchester United"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958379964,
+          "round": "Group B - 3",
+          "date": "2023-10-24T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 36526,
+            "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+            "name": "Arsenal"
+          },
+          "homeTeam": {
+            "id": 456920,
+            "logo": "https://highlightly.net/soccer/images/teams/456920.png",
+            "name": "Sevilla"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958379113,
+          "round": "Group B - 3",
+          "date": "2023-10-24T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 168431,
+            "logo": "https://highlightly.net/soccer/images/teams/168431.png",
+            "name": "PSV Eindhoven"
+          },
+          "homeTeam": {
+            "id": 99500,
+            "logo": "https://highlightly.net/soccer/images/teams/99500.png",
+            "name": "Lens"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958381666,
+          "round": "Group C - 3",
+          "date": "2023-10-24T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 419476,
+            "logo": "https://highlightly.net/soccer/images/teams/419476.png",
+            "name": "Napoli"
+          },
+          "homeTeam": {
+            "id": 155666,
+            "logo": "https://highlightly.net/soccer/images/teams/155666.png",
+            "name": "Union Berlin"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958377411,
+          "round": "Group D - 3",
+          "date": "2023-10-24T16:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 486705,
+            "logo": "https://highlightly.net/soccer/images/teams/486705.png",
+            "name": "Red Bull Salzburg"
+          },
+          "homeTeam": {
+            "id": 430539,
+            "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+            "name": "Inter"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958376560,
+          "round": "Group A - 3",
+          "date": "2023-10-24T16:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "homeTeam": {
+            "id": 549679,
+            "logo": "https://highlightly.net/soccer/images/teams/549679.png",
+            "name": "Galatasaray"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958372305,
+          "round": "Group F - 2",
+          "date": "2023-10-04T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 0",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 416923,
+            "logo": "https://highlightly.net/soccer/images/teams/416923.png",
+            "name": "AC Milan"
+          },
+          "homeTeam": {
+            "id": 141199,
+            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
+            "name": "Borussia Dortmund"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958375709,
+          "round": "Group H - 2",
+          "date": "2023-10-04T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "0 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 450963,
+            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
+            "name": "Barcelona"
+          },
+          "homeTeam": {
+            "id": 181196,
+            "logo": "https://highlightly.net/soccer/images/teams/181196.png",
+            "name": "FC Porto"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958374858,
+          "round": "Group G - 2",
+          "date": "2023-10-04T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "2 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 481599,
+            "logo": "https://highlightly.net/soccer/images/teams/481599.png",
+            "name": "BSC Young Boys"
+          },
+          "homeTeam": {
+            "id": 509682,
+            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
+            "name": "FK Crvena Zvezda"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958374007,
+          "round": "Group G - 2",
+          "date": "2023-10-04T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 3",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 43334,
+            "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+            "name": "Manchester City"
+          },
+          "homeTeam": {
+            "id": 148007,
+            "logo": "https://highlightly.net/soccer/images/teams/148007.png",
+            "name": "RB Leipzig"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958373156,
+          "round": "Group F - 2",
+          "date": "2023-10-04T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "4 - 1",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "homeTeam": {
+            "id": 29718,
+            "logo": "https://highlightly.net/soccer/images/teams/29718.png",
+            "name": "Newcastle"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958371454,
+          "round": "Group E - 2",
+          "date": "2023-10-04T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "1 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 415221,
+            "logo": "https://highlightly.net/soccer/images/teams/415221.png",
+            "name": "Lazio"
+          },
+          "homeTeam": {
+            "id": 210981,
+            "logo": "https://highlightly.net/soccer/images/teams/210981.png",
+            "name": "Celtic"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        },
+        {
+          "id": 958369752,
+          "round": "Group E - 2",
+          "date": "2023-10-04T16:45:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": 90,
+            "score": {
+              "current": "3 - 2",
+              "penalties": null
+            },
+            "description": "Finished"
+          },
+          "awayTeam": {
+            "id": 178643,
+            "logo": "https://highlightly.net/soccer/images/teams/178643.png",
+            "name": "Feyenoord"
+          },
+          "homeTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "league": {
+            "id": 2486,
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League",
+            "season": 2023
+          }
+        }
+      ],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 214,
+        "offset": 0,
+        "limit": 100
+      }
+    },
+    "expiry": 1749760785766,
+    "ttl": 86400
+  },
+  "/api/highlightly/events/1169965796?": {
+    "data": [
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "12",
+        "type": "Goal",
+        "assist": "D. Doue",
+        "player": "A. Hakimi",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "20",
+        "type": "Goal",
+        "assist": "O. Dembele",
+        "player": "D. Doue",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "53",
+        "type": "Substitution",
+        "assist": null,
+        "player": "Y. Bisseck",
+        "substituted": "B. Pavard"
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "53",
+        "type": "Substitution",
+        "assist": null,
+        "player": "N. Zalewski",
+        "substituted": "F. Dimarco"
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "56",
+        "type": "Yellow Card",
+        "assist": null,
+        "player": "N. Zalewski",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "58",
+        "type": "Yellow Card",
+        "assist": null,
+        "player": "S. Inzaghi",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "62",
+        "type": "Substitution",
+        "assist": null,
+        "player": "Carlos Augusto",
+        "substituted": "H. Mkhitaryan"
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "62",
+        "type": "Substitution",
+        "assist": null,
+        "player": "M. Darmian",
+        "substituted": "Y. Bisseck"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "63",
+        "type": "Goal",
+        "assist": "Vitinha",
+        "player": "D. Doue",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "65",
+        "type": "Yellow Card",
+        "assist": null,
+        "player": "D. Doue",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "66",
+        "type": "Substitution",
+        "assist": null,
+        "player": "B. Barcola",
+        "substituted": "D. Doue"
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "69",
+        "type": "Yellow Card",
+        "assist": null,
+        "player": "M. Thuram",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "70",
+        "type": "Substitution",
+        "assist": null,
+        "player": "K. Asllani",
+        "substituted": "H. Calhanoglu"
+      },
+      {
+        "team": {
+          "id": 430539,
+          "logo": "https://highlightly.net/soccer/images/teams/430539.png",
+          "name": "Inter"
+        },
+        "time": "71",
+        "type": "Yellow Card",
+        "assist": null,
+        "player": "F. Acerbi",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "73",
+        "type": "Goal",
+        "assist": "O. Dembele",
+        "player": "K. Kvaratskhelia",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "78",
+        "type": "Substitution",
+        "assist": null,
+        "player": "L. Hernandez",
+        "substituted": "N. Mendes"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "84",
+        "type": "Substitution",
+        "assist": null,
+        "player": "G. Ramos",
+        "substituted": "K. Kvaratskhelia"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "84",
+        "type": "Substitution",
+        "assist": null,
+        "player": "S. Mayulu",
+        "substituted": "F. Ruiz"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "84",
+        "type": "Substitution",
+        "assist": null,
+        "player": "W. Zaire-Emery",
+        "substituted": "J. Neves"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "87",
+        "type": "Goal",
+        "assist": "B. Barcola",
+        "player": "S. Mayulu",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "90+1",
+        "type": "Yellow Card",
+        "assist": null,
+        "player": "A. Hakimi",
+        "substituted": null
+      }
+    ],
+    "expiry": 1749678327076,
+    "ttl": 600
+  },
+  "/api/highlightly/events/1145223822?": {
+    "data": [
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "20",
+        "type": "Goal",
+        "assist": "F. Ruiz",
+        "player": "B. Barcola",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "39",
+        "type": "Goal",
+        "assist": "B. Barcola",
+        "player": "K. Kvaratskhelia",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "59",
+        "type": "Goal",
+        "assist": "F. Ruiz",
+        "player": "Vitinha",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 90990,
+          "logo": "https://highlightly.net/soccer/images/teams/90990.png",
+          "name": "Stade Brestois 29"
+        },
+        "time": "60",
+        "type": "Substitution",
+        "assist": null,
+        "player": "H. Magnetti",
+        "substituted": "E. Fernandes"
+      },
+      {
+        "team": {
+          "id": 90990,
+          "logo": "https://highlightly.net/soccer/images/teams/90990.png",
+          "name": "Stade Brestois 29"
+        },
+        "time": "60",
+        "type": "Substitution",
+        "assist": null,
+        "player": "M. Camara",
+        "substituted": "M. Balde"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "60",
+        "type": "Substitution",
+        "assist": null,
+        "player": "Lee Kang-In",
+        "substituted": "F. Ruiz"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "60",
+        "type": "Substitution",
+        "assist": null,
+        "player": "D. Doue",
+        "substituted": "O. Dembele"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "61",
+        "type": "Substitution",
+        "assist": null,
+        "player": "G. Ramos",
+        "substituted": "B. Barcola"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "64",
+        "type": "Goal",
+        "assist": "G. Ramos",
+        "player": "D. Doue",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 90990,
+          "logo": "https://highlightly.net/soccer/images/teams/90990.png",
+          "name": "Stade Brestois 29"
+        },
+        "time": "67",
+        "type": "Yellow Card",
+        "assist": null,
+        "player": "M. Haidara",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "69",
+        "type": "Goal",
+        "assist": "A. Hakimi",
+        "player": "N. Mendes",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 90990,
+          "logo": "https://highlightly.net/soccer/images/teams/90990.png",
+          "name": "Stade Brestois 29"
+        },
+        "time": "70",
+        "type": "Substitution",
+        "assist": null,
+        "player": "K. Doumbia",
+        "substituted": "R. Faivre"
+      },
+      {
+        "team": {
+          "id": 90990,
+          "logo": "https://highlightly.net/soccer/images/teams/90990.png",
+          "name": "Stade Brestois 29"
+        },
+        "time": "70",
+        "type": "Substitution",
+        "assist": null,
+        "player": "J. Le Cardinal",
+        "substituted": "M. Haidara"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "72",
+        "type": "Substitution",
+        "assist": null,
+        "player": "S. Mayulu",
+        "substituted": "J. Neves"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "72",
+        "type": "Substitution",
+        "assist": null,
+        "player": "P. Kimpembe",
+        "substituted": "W. Pacho"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "76",
+        "type": "Goal",
+        "assist": "D. Doue",
+        "player": "G. Ramos",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 90990,
+          "logo": "https://highlightly.net/soccer/images/teams/90990.png",
+          "name": "Stade Brestois 29"
+        },
+        "time": "77",
+        "type": "VAR Goal Cancelled - Offside",
+        "assist": null,
+        "player": "A. Sima",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 90990,
+          "logo": "https://highlightly.net/soccer/images/teams/90990.png",
+          "name": "Stade Brestois 29"
+        },
+        "time": "80",
+        "type": "Yellow Card",
+        "assist": null,
+        "player": "J. Le Cardinal",
+        "substituted": null
+      },
+      {
+        "team": {
+          "id": 90990,
+          "logo": "https://highlightly.net/soccer/images/teams/90990.png",
+          "name": "Stade Brestois 29"
+        },
+        "time": "82",
+        "type": "Substitution",
+        "assist": null,
+        "player": "J. Martin",
+        "substituted": "P. Lees-Melou"
+      },
+      {
+        "team": {
+          "id": 73119,
+          "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+          "name": "Paris Saint Germain"
+        },
+        "time": "86",
+        "type": "Goal",
+        "assist": "K. Kvaratskhelia",
+        "player": "S. Mayulu",
+        "substituted": null
+      }
+    ],
+    "expiry": 1749677870771,
+    "ttl": 600
   }
 }
