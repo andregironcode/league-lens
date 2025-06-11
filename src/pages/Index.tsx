@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
 import TopLeaguesFilter from '@/components/TopLeaguesFilter';
-import DateSlider from '@/components/DateSlider';
+import DateSelector from '@/components/DateSelector';
 import { formatDateForAPI, getCurrentDateCET, get14DayDateRange } from '@/utils/dateUtils';
 
 const Index: React.FC = () => {
@@ -121,7 +121,7 @@ const Index: React.FC = () => {
           </div>
           
           <div className="mb-8 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-            <DateSlider onDateChange={handleDateChange} />
+            <DateSelector onDateChange={handleDateChange} />
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8 mb-8">
