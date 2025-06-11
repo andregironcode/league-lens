@@ -60,18 +60,26 @@ const DateSelector: React.FC<DateSelectorProps> = ({ onDateChange }) => {
   };
 
   return (
-    <div className="w-full px-4 py-6 bg-gray-800/20 rounded-3xl">
-      <label className="block text-lg font-medium text-gray-300 mb-4 ml-2">
+    <>
+      <label className="block text-xl font-semibold text-white mb-5">
         Select a Date
       </label>
       
-      {/* Main pill container */}
-      <div className="relative w-full bg-gray-800/50 rounded-full p-2 mb-4">
+      {/* Main pill container with fading edges */}
+      <div className="relative w-full overflow-hidden">
+        {/* Fading edge overlays */}
+        <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none" 
+          style={{ background: 'linear-gradient(to right, #000000 10%, rgba(0,0,0,0))' }}>
+        </div>
+        <div className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
+          style={{ background: 'linear-gradient(to left, #000000 10%, rgba(0,0,0,0))' }}>
+        </div>
+        
         {/* Scrollable container for dates */}
         <div 
           ref={containerRef}
           className={cn(
-            "flex overflow-x-auto py-2 px-4 snap-x snap-mandatory",
+            "flex overflow-x-auto py-3 px-4 snap-x snap-mandatory",
             "scrollbar-hide" /* Using existing utility class from index.css */
           )}
           style={{ 
@@ -94,7 +102,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ onDateChange }) => {
                   className={`flex-shrink-0 snap-center cursor-pointer py-2 px-4 rounded-full transition-all duration-300 flex flex-col items-center justify-center min-w-[100px] ${
                     isSelected 
                       ? 'bg-[#FFC30B] text-black font-medium' 
-                      : 'bg-gray-700/70 text-gray-300 hover:bg-gray-700'
+                      : 'bg-black text-gray-300 hover:bg-[#121212] border border-[#1B1B1B]'
                   }`}
                   onClick={() => handleDateSelect(index)}
                   animate={{
@@ -119,13 +127,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ onDateChange }) => {
         </div>
       </div>
       
-      {/* Selected date display */}
-      <div className="text-center mt-4">
-        <p className="text-xl font-semibold text-white">
-          {getLabel(selectedIndex)}
-        </p>
-      </div>
-    </div>
+    </>
   );
 };
 

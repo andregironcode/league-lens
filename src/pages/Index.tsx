@@ -115,12 +115,11 @@ const Index: React.FC = () => {
         </section>
 
         <div className="container mx-auto px-4 sm:px-6 mt-8">
-          <div className="mb-8 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-            <h1 className="text-3xl font-bold text-white mb-2">Recent Matches</h1>
-            <p className="text-gray-400">Select a date to view matches</p>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white">Recent Matches</h1>
           </div>
           
-          <div className="mb-8 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+          <div className="mb-8">
             <DateSelector onDateChange={handleDateChange} />
           </div>
 
