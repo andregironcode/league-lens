@@ -324,7 +324,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749660901270,
+    "expiry": 1749666900649,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-11&season=2025": {
@@ -340,7 +340,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749660901684,
+    "expiry": 1749666901046,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-11&season=2025": {
@@ -356,7 +356,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749660901290,
+    "expiry": 1749666900632,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-11&season=2025": {
@@ -372,7 +372,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749660902094,
+    "expiry": 1749666901501,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-11&season=2025": {
@@ -388,7 +388,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749660902074,
+    "expiry": 1749666901521,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-11&season=2025": {
@@ -404,7 +404,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749660901654,
+    "expiry": 1749666901083,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-12&season=2025": {
@@ -516,7 +516,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661200390,
+    "expiry": 1749668400391,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=115669&season=2025&limit=20": {
@@ -532,7 +532,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661200422,
+    "expiry": 1749668400403,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=119924&season=2025&limit=20": {
@@ -548,7 +548,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661200405,
+    "expiry": 1749668400354,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=52695&season=2025&limit=20": {
@@ -564,7 +564,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661200809,
+    "expiry": 1749668400847,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=67162&season=2025&limit=20": {
@@ -580,7 +580,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661200864,
+    "expiry": 1749668400876,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=2486&season=2025&limit=20": {
@@ -596,7 +596,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661200817,
+    "expiry": 1749668400865,
     "ttl": 3600
   },
   "/api/highlightly/leagues/3337?": {
@@ -6706,7 +6706,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749660380242,
+    "expiry": 1749666292244,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-11&limit=20": {
@@ -6722,7 +6722,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749660380208,
+    "expiry": 1749666292320,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=200": {
@@ -12355,7 +12355,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749660380495,
+    "expiry": 1749666292603,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-11&limit=20": {
@@ -12371,7 +12371,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749660380482,
+    "expiry": 1749666292580,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=400": {
@@ -17707,7 +17707,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749660380728,
+    "expiry": 1749666292812,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-11&limit=20": {
@@ -17723,7 +17723,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749660380698,
+    "expiry": 1749666292827,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-10&limit=20": {
@@ -18411,7 +18411,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661281698,
+    "expiry": 1749669888063,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-12&limit=20": {
@@ -18427,7 +18427,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661281708,
+    "expiry": 1749669888002,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-13&limit=20": {
@@ -18443,7 +18443,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661282442,
+    "expiry": 1749669894506,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-14&limit=20": {
@@ -18459,7 +18459,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661283324,
+    "expiry": 1749669673139,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-13&limit=20": {
@@ -18475,7 +18475,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661282450,
+    "expiry": 1749669894480,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-14&limit=20": {
@@ -18491,7 +18491,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661283340,
+    "expiry": 1749669673103,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-15&limit=20": {
@@ -18507,7 +18507,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661284604,
+    "expiry": 1749669594379,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-15&limit=20": {
@@ -18523,7 +18523,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661284599,
+    "expiry": 1749669594370,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-12&limit=20": {
@@ -18539,7 +18539,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661282041,
+    "expiry": 1749669888343,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-16&limit=20": {
@@ -18571,7 +18571,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661282029,
+    "expiry": 1749669888327,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-16&limit=20": {
@@ -18603,7 +18603,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661282665,
+    "expiry": 1749669894743,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-13&limit=20": {
@@ -18619,7 +18619,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661282693,
+    "expiry": 1749669894756,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-15&limit=20": {
@@ -18635,7 +18635,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661284852,
+    "expiry": 1749669594627,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-14&limit=20": {
@@ -18651,7 +18651,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661283550,
+    "expiry": 1749669673443,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-14&limit=20": {
@@ -18667,7 +18667,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661283575,
+    "expiry": 1749669673423,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-15&limit=20": {
@@ -18683,7 +18683,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661284816,
+    "expiry": 1749669594619,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-12&limit=20": {
@@ -18699,7 +18699,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661282259,
+    "expiry": 1749669888599,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-16&limit=20": {
@@ -18747,7 +18747,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661282249,
+    "expiry": 1749669888572,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-13&limit=20": {
@@ -18763,7 +18763,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661283189,
+    "expiry": 1749669895015,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-13&limit=20": {
@@ -18779,7 +18779,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661283180,
+    "expiry": 1749669895002,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-14&limit=20": {
@@ -18795,7 +18795,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661283810,
+    "expiry": 1749669673709,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-14&limit=20": {
@@ -18811,7 +18811,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661283775,
+    "expiry": 1749669673728,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-15&limit=20": {
@@ -18827,7 +18827,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661285062,
+    "expiry": 1749669594861,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-15&limit=20": {
@@ -18843,7 +18843,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749661285086,
+    "expiry": 1749669594878,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-16&limit=20": {
@@ -20081,7 +20081,7 @@
         "season": 2021
       }
     },
-    "expiry": 1749662079924,
+    "expiry": 1749665261152,
     "ttl": 1800
   },
   "/api/highlightly/matches?leagueId=2486&season=2021&limit=100": {
@@ -24705,7 +24705,7 @@
         "season": 2024
       }
     },
-    "expiry": 1749660898081,
+    "expiry": 1749665265444,
     "ttl": 1800
   },
   "/api/highlightly/matches?leagueId=2486&season=2024&limit=100": {
@@ -32358,7 +32358,7 @@
         "name": "Inter"
       }
     },
-    "expiry": 1749655040807,
+    "expiry": 1749670713219,
     "ttl": 7200
   },
   "/api/highlightly/statistics/1169965796?": {
@@ -32694,7 +32694,7 @@
         ]
       }
     ],
-    "expiry": 1749649904876,
+    "expiry": 1749664113355,
     "ttl": 600
   },
   "/api/highlightly/matches/1169965796?": {
@@ -34338,7 +34338,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749651441211,
+    "expiry": 1749667113523,
     "ttl": 3600
   },
   "/api/highlightly/head-2-head?teamIdOne=73119&teamIdTwo=430539": {
@@ -38286,7 +38286,7 @@
         "season": 2024
       }
     },
-    "expiry": 1749661996743,
+    "expiry": 1749665271874,
     "ttl": 1800
   },
   "/api/highlightly/teams/73119?": {
@@ -38480,7 +38480,7 @@
         "season": 2025
       }
     },
-    "expiry": 1749661909245,
+    "expiry": 1749666960434,
     "ttl": 1800
   },
   "/api/highlightly/leagues?leagueName=arsenal&limit=10": {
@@ -45469,7 +45469,7 @@
         "season": 2024
       }
     },
-    "expiry": 1749660999804,
+    "expiry": 1749662900014,
     "ttl": 1800
   },
   "/api/highlightly/matches?leagueId=4188&season=2024&limit=100": {
@@ -62084,7 +62084,7 @@
   },
   "/api/highlightly/statistics/1124750464?": {
     "data": [],
-    "expiry": 1749660724551,
+    "expiry": 1749666945055,
     "ttl": 600
   },
   "/api/highlightly/highlights?matchId=1124750464&limit=20": {
@@ -62100,7 +62100,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749663724831,
+    "expiry": 1749667350134,
     "ttl": 3600
   },
   "/api/highlightly/standings?leagueId=13549&season=2024": {
@@ -72205,6 +72205,580 @@
       }
     ],
     "expiry": 1749747222862,
+    "ttl": 86400
+  },
+  "/api/highlightly/matches?leagueId=13549&date=2025-06-11&limit=20": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 20
+      }
+    },
+    "expiry": 1749666293037,
+    "ttl": 300
+  },
+  "/api/highlightly/matches?leagueId=13549&date=2025-06-12&limit=20": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 20
+      }
+    },
+    "expiry": 1749669888808,
+    "ttl": 3600
+  },
+  "/api/highlightly/matches?leagueId=13549&date=2025-06-13&limit=20": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 20
+      }
+    },
+    "expiry": 1749669895259,
+    "ttl": 3600
+  },
+  "/api/highlightly/matches?leagueId=13549&date=2025-06-14&limit=20": {
+    "data": {
+      "data": [],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 0,
+        "offset": 0,
+        "limit": 20
+      }
+    },
+    "expiry": 1749669673998,
+    "ttl": 3600
+  },
+  "/api/highlightly/matches?leagueId=13549&date=2025-06-15&limit=20": {
+    "data": {
+      "data": [
+        {
+          "id": 1124753017,
+          "round": "Group Stage - 1",
+          "date": "2025-06-15T22:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": null,
+            "score": {
+              "current": null,
+              "penalties": null
+            },
+            "description": "Not started"
+          },
+          "awayTeam": {
+            "id": 181196,
+            "logo": "https://highlightly.net/soccer/images/teams/181196.png",
+            "name": "FC Porto"
+          },
+          "homeTeam": {
+            "id": 103755,
+            "logo": "https://highlightly.net/soccer/images/teams/103755.png",
+            "name": "Palmeiras"
+          },
+          "league": {
+            "id": 13549,
+            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
+            "name": "FIFA Club World Cup",
+            "season": 2025
+          }
+        },
+        {
+          "id": 1124752166,
+          "round": "Group Stage - 1",
+          "date": "2025-06-15T19:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": null,
+            "score": {
+              "current": null,
+              "penalties": null
+            },
+            "description": "Not started"
+          },
+          "awayTeam": {
+            "id": 451814,
+            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
+            "name": "Atletico Madrid"
+          },
+          "homeTeam": {
+            "id": 73119,
+            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+            "name": "Paris Saint Germain"
+          },
+          "league": {
+            "id": 13549,
+            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
+            "name": "FIFA Club World Cup",
+            "season": 2025
+          }
+        },
+        {
+          "id": 1124751315,
+          "round": "Group Stage - 1",
+          "date": "2025-06-15T16:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": null,
+            "score": {
+              "current": null,
+              "penalties": null
+            },
+            "description": "Not started"
+          },
+          "awayTeam": {
+            "id": 2159771,
+            "logo": "https://highlightly.net/soccer/images/teams/2159771.png",
+            "name": "Auckland City"
+          },
+          "homeTeam": {
+            "id": 134391,
+            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
+            "name": "Bayern Munich"
+          },
+          "league": {
+            "id": 13549,
+            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
+            "name": "FIFA Club World Cup",
+            "season": 2025
+          }
+        },
+        {
+          "id": 1124750464,
+          "round": "Group Stage - 1",
+          "date": "2025-06-15T00:00:00.000Z",
+          "country": {
+            "code": "World",
+            "name": "World",
+            "logo": "https://highlightly.net/soccer/images/countries/World.png"
+          },
+          "state": {
+            "clock": null,
+            "score": {
+              "current": null,
+              "penalties": null
+            },
+            "description": "Not started"
+          },
+          "awayTeam": {
+            "id": 8143152,
+            "logo": "https://highlightly.net/soccer/images/teams/8143152.png",
+            "name": "Inter Miami"
+          },
+          "homeTeam": {
+            "id": 1342811,
+            "logo": "https://highlightly.net/soccer/images/teams/1342811.png",
+            "name": "Al Ahly"
+          },
+          "league": {
+            "id": 13549,
+            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
+            "name": "FIFA Club World Cup",
+            "season": 2025
+          }
+        }
+      ],
+      "plan": {
+        "tier": "PRO",
+        "message": "All data available with current plan."
+      },
+      "pagination": {
+        "totalCount": 4,
+        "offset": 0,
+        "limit": 20
+      }
+    },
+    "expiry": 1749669595098,
+    "ttl": 3600
+  },
+  "/api/highlightly/head-2-head?teamIdOne=1342811&teamIdTwo=8143152": {
+    "data": [],
+    "expiry": 1749752745302,
+    "ttl": 86400
+  },
+  "/api/highlightly/last-five-games?teamId=8143152": {
+    "data": [
+      {
+        "id": 1128814840,
+        "round": "Regular Season - 25",
+        "date": "2025-05-31T23:30:00.000Z",
+        "country": {
+          "code": "US",
+          "name": "USA",
+          "logo": "https://highlightly.net/soccer/images/countries/US.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "5 - 1",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 1373447,
+          "logo": "https://highlightly.net/soccer/images/teams/1373447.png",
+          "name": "Columbus Crew"
+        },
+        "homeTeam": {
+          "id": 8143152,
+          "logo": "https://highlightly.net/soccer/images/teams/8143152.png",
+          "name": "Inter Miami"
+        },
+        "league": {
+          "id": 216087,
+          "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
+          "name": "Major League Soccer",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1128803777,
+        "round": "Regular Season - 24",
+        "date": "2025-05-28T23:30:00.000Z",
+        "country": {
+          "code": "US",
+          "name": "USA",
+          "logo": "https://highlightly.net/soccer/images/countries/US.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "4 - 2",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 1374298,
+          "logo": "https://highlightly.net/soccer/images/teams/1374298.png",
+          "name": "Montreal Impact"
+        },
+        "homeTeam": {
+          "id": 8143152,
+          "logo": "https://highlightly.net/soccer/images/teams/8143152.png",
+          "name": "Inter Miami"
+        },
+        "league": {
+          "id": 216087,
+          "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
+          "name": "Major League Soccer",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1128793565,
+        "round": "Regular Season - 22",
+        "date": "2025-05-24T23:30:00.000Z",
+        "country": {
+          "code": "US",
+          "name": "USA",
+          "logo": "https://highlightly.net/soccer/images/countries/US.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "3 - 3",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 8143152,
+          "logo": "https://highlightly.net/soccer/images/teams/8143152.png",
+          "name": "Inter Miami"
+        },
+        "homeTeam": {
+          "id": 1361533,
+          "logo": "https://highlightly.net/soccer/images/teams/1361533.png",
+          "name": "Philadelphia Union"
+        },
+        "league": {
+          "id": 216087,
+          "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
+          "name": "Major League Soccer",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1128787608,
+        "round": "Regular Season - 21",
+        "date": "2025-05-18T23:00:00.000Z",
+        "country": {
+          "code": "US",
+          "name": "USA",
+          "logo": "https://highlightly.net/soccer/images/countries/US.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "0 - 3",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 1360682,
+          "logo": "https://highlightly.net/soccer/images/teams/1360682.png",
+          "name": "Orlando City SC"
+        },
+        "homeTeam": {
+          "id": 8143152,
+          "logo": "https://highlightly.net/soccer/images/teams/8143152.png",
+          "name": "Inter Miami"
+        },
+        "league": {
+          "id": 216087,
+          "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
+          "name": "Major League Soccer",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1128776545,
+        "round": "Regular Season - 20",
+        "date": "2025-05-15T02:30:00.000Z",
+        "country": {
+          "code": "US",
+          "name": "USA",
+          "logo": "https://highlightly.net/soccer/images/countries/US.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "3 - 3",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 8143152,
+          "logo": "https://highlightly.net/soccer/images/teams/8143152.png",
+          "name": "Inter Miami"
+        },
+        "homeTeam": {
+          "id": 1358980,
+          "logo": "https://highlightly.net/soccer/images/teams/1358980.png",
+          "name": "San Jose Earthquakes"
+        },
+        "league": {
+          "id": 216087,
+          "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
+          "name": "Major League Soccer",
+          "season": 2025
+        }
+      }
+    ],
+    "expiry": 1749752745339,
+    "ttl": 86400
+  },
+  "/api/highlightly/last-five-games?teamId=1342811": {
+    "data": [
+      {
+        "id": 1171909480,
+        "round": "Club Friendlies 3",
+        "date": "2025-06-08T21:00:00.000Z",
+        "country": {
+          "code": "World",
+          "name": "World",
+          "logo": "https://highlightly.net/soccer/images/countries/World.png"
+        },
+        "state": {
+          "clock": 120,
+          "score": {
+            "current": "1 - 1",
+            "penalties": "3 - 5"
+          },
+          "description": "Finished after penalties"
+        },
+        "awayTeam": {
+          "id": 1951276,
+          "logo": "https://highlightly.net/soccer/images/teams/1951276.png",
+          "name": "Pachuca"
+        },
+        "homeTeam": {
+          "id": 1342811,
+          "logo": "https://highlightly.net/soccer/images/teams/1342811.png",
+          "name": "Al Ahly"
+        },
+        "league": {
+          "id": 568401,
+          "logo": "https://highlightly.net/soccer/images/leagues/568401.png",
+          "name": "Friendlies Clubs",
+          "season": 2025
+        }
+      },
+      {
+        "id": 1158027117,
+        "round": "Championship Round - 8",
+        "date": "2025-05-28T17:00:00.000Z",
+        "country": {
+          "code": "EG",
+          "name": "Egypt",
+          "logo": "https://highlightly.net/soccer/images/countries/EG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "6 - 0",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 13392120,
+          "logo": "https://highlightly.net/soccer/images/teams/13392120.png",
+          "name": "Pharco"
+        },
+        "homeTeam": {
+          "id": 1342811,
+          "logo": "https://highlightly.net/soccer/images/teams/1342811.png",
+          "name": "Al Ahly"
+        },
+        "league": {
+          "id": 199067,
+          "logo": "https://highlightly.net/soccer/images/leagues/199067.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      },
+      {
+        "id": 1158022011,
+        "round": "Championship Round - 7",
+        "date": "2025-05-17T17:00:00.000Z",
+        "country": {
+          "code": "EG",
+          "name": "Egypt",
+          "logo": "https://highlightly.net/soccer/images/countries/EG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "2 - 1",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 13250854,
+          "logo": "https://highlightly.net/soccer/images/teams/13250854.png",
+          "name": "National Bank of Egypt"
+        },
+        "homeTeam": {
+          "id": 1342811,
+          "logo": "https://highlightly.net/soccer/images/teams/1342811.png",
+          "name": "Al Ahly"
+        },
+        "league": {
+          "id": 199067,
+          "logo": "https://highlightly.net/soccer/images/leagues/199067.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      },
+      {
+        "id": 1158018607,
+        "round": "Championship Round - 6",
+        "date": "2025-05-13T14:00:00.000Z",
+        "country": {
+          "code": "EG",
+          "name": "Egypt",
+          "logo": "https://highlightly.net/soccer/images/countries/EG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "0 - 1",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 1342811,
+          "logo": "https://highlightly.net/soccer/images/teams/1342811.png",
+          "name": "Al Ahly"
+        },
+        "homeTeam": {
+          "id": 12468785,
+          "logo": "https://highlightly.net/soccer/images/teams/12468785.png",
+          "name": "Ceramica Cleopatra"
+        },
+        "league": {
+          "id": 199067,
+          "logo": "https://highlightly.net/soccer/images/leagues/199067.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      },
+      {
+        "id": 1158014352,
+        "round": "Championship Round - 5",
+        "date": "2025-05-08T17:00:00.000Z",
+        "country": {
+          "code": "EG",
+          "name": "Egypt",
+          "logo": "https://highlightly.net/soccer/images/countries/EG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "4 - 2",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 878165,
+          "logo": "https://highlightly.net/soccer/images/teams/878165.png",
+          "name": "AL Masry"
+        },
+        "homeTeam": {
+          "id": 1342811,
+          "logo": "https://highlightly.net/soccer/images/teams/1342811.png",
+          "name": "Al Ahly"
+        },
+        "league": {
+          "id": 199067,
+          "logo": "https://highlightly.net/soccer/images/leagues/199067.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      }
+    ],
+    "expiry": 1749752745376,
     "ttl": 86400
   }
 }

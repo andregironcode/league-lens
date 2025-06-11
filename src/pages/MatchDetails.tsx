@@ -15,6 +15,7 @@ import ScorelineTimeline from '@/components/match-details/ScorelineTimeline';
 import MatchStatistics from '@/components/match-details/MatchStatistics';
 import TeamLineups from '@/components/match-details/TeamLineups';
 import HighlightsCarousel from '@/components/match-details/HighlightsCarousel';
+import ScorelineBanner, { TimingState } from '@/components/match-details/ScorelineBanner';
 
 // Helper component for displaying a single player
 const PlayerDisplay = ({ player }: { player: Player }) => (
@@ -94,6 +95,7 @@ const MatchDetails = () => {
   const [h2hData, setH2hData] = useState<Match[]>([]);
   const [formAndH2hLoading, setFormAndH2hLoading] = useState(true);
   const [videoLoadError, setVideoLoadError] = useState(false);
+  const [timing, setTiming] = useState<TimingState>({ state: 'unknown' });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -313,18 +315,150 @@ const MatchDetails = () => {
     fetchMatchAndHighlights();
   }, [id, toast]);
 
-  const getMatchTiming = () => {
-    if (!match) return { status: 'unknown' };
+  /**
+   * Compute timing state fully trusting Highlightly API fields.
+   * No mapping/transformation – we simply read what is available.
+   * 
+   * NOTE: The Highlightly API provides timestamps in UTC format (with Z suffix)
+   * We properly parse this to ensure accurate time calculations regardless of user's timezone.
+   */
+  const computeTiming = (m: EnhancedMatchHighlight): TimingState => {
+    if (!m) return { state: 'unknown' };
+
+    // Prefer API fixture status if present
+    const rawStatus = (m.fixture as any)?.status?.short ?? '';
+
+    // Get the raw kickoff time from the API (fully trust API data)
+    // Fix for the "+1 hour away" bug - ensure proper UTC handling
+    const kickoffTs = (() => {
+      try {
+        // Log raw values for debugging
+        console.log('[MatchDetails] Raw match data for timing:', {
+          date: m.date,
+          timestamp: (m.fixture as any)?.timestamp,
+          fixture: m.fixture,
+          status: (m.fixture as any)?.status
+        });
+
+        // IMPORTANT: First, check for valid status codes that override time calculations
+        if (rawStatus === 'FT') {
+          // Match is finished - no need for precise timestamp
+          return Date.now() - 90 * 60 * 1000; // Set to 90 minutes ago for fullTime state
+        }
+        
+        const liveCodes = ['1H', 'HT', '2H', 'ET', 'P', 'LIVE'];
+        if (liveCodes.includes(rawStatus)) {
+          // Match is live - use current time minus elapsed minutes if available
+          const elapsed = (m.fixture as any)?.status?.elapsed ?? 0;
+          return Date.now() - (elapsed * 60 * 1000);
+        }
+
+        // For upcoming matches, calculate precise kickoff time
+        // First choice: Use fixture timestamp if available (typically in UTC seconds)
+        if ((m.fixture as any)?.timestamp) {
+          const timestamp = ((m.fixture as any).timestamp as number);
+          // Safety check - validate timestamp is reasonable (after 2020, before 2030)
+          if (timestamp > 1577836800 && timestamp < 1893456000) { // 2020-01-01 to 2030-01-01
+            return timestamp * 1000; // Convert seconds to milliseconds
+          } else {
+            console.warn('[MatchDetails] Invalid timestamp detected:', timestamp);
+          }
+        }
+        
+        // Second choice: Parse ISO date string
+        if (m.date) {
+          // The API should provide dates in ISO8601 UTC format (with Z suffix)
+          // But we need to handle various formats safely
+          let dateStr = m.date;
+          
+          // Fix common issues with API date format
+          // Remove any extra quotes that might be in the date string
+          dateStr = dateStr.replace(/\"/g, '');
+          
+          // Ensure UTC timezone indicator (Z)
+          if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+            dateStr = `${dateStr}Z`;
+          }
+          
+          const parsedDate = new Date(dateStr);
+          
+          // Validate the parsed date (should be between 2020-2030)
+          if (!isNaN(parsedDate.getTime()) && 
+              parsedDate.getFullYear() >= 2020 && 
+              parsedDate.getFullYear() <= 2030) {
+            return parsedDate.getTime();
+          } else {
+            console.warn('[MatchDetails] Invalid date parsed:', dateStr, parsedDate);
+          }
+        }
+        
+        // Final fallback: If all attempts failed, return a reasonable time
+        console.warn('[MatchDetails] Unable to determine match time, using fallback');
+        return Date.now() + 24 * 60 * 60 * 1000; // Default to 1 day in the future
+      } catch (err) {
+        console.error('[MatchDetails] Error calculating kickoff time:', err);
+        // Safe fallback in case of any errors
+        return Date.now() + 24 * 60 * 60 * 1000; // Default to 1 day in the future
+      }
+    })();
     
-    const now = new Date();
-    const matchDate = new Date(match.date);
-    const diffMs = now.getTime() - matchDate.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    // Current time in UTC milliseconds for consistent comparison
+    const now = Date.now();
+    const diffMs = kickoffTs - now;
     
-    if (diffMinutes < -60) return { status: 'preview' };
-    if (diffMinutes >= -60 && diffMinutes < 0) return { status: 'imminent' };
-    return { status: 'fullTime' };
+    // Log timestamps for debugging
+    console.log('[MatchDetails] Time calculation:', {
+      kickoffTs,
+      now,
+      diffMs,
+      diffMinutes: Math.floor(diffMs / (60 * 1000)),
+      kickoffTime: new Date(kickoffTs).toISOString(),
+      nowTime: new Date(now).toISOString(),
+      rawStatus
+    });
+
+    // Status-based state determination
+    if (rawStatus === 'FT') {
+      return { state: 'fullTime' };
+    }
+
+    // LIVE codes encountered in Highlightly
+    const liveCodes = ['1H', 'HT', '2H', 'ET', 'P', 'LIVE'];
+    if (liveCodes.includes(rawStatus)) {
+      const elapsedLabel = (m.fixture as any)?.status?.elapsed
+        ? `${(m.fixture as any).status.elapsed}′`
+        : rawStatus;
+      return { state: 'live', elapsedLabel };
+    }
+
+    // Not started yet (NS / TBD)
+    if (rawStatus === 'NS' || rawStatus === 'TBD' || diffMs > 0) {
+      // Apply reasonable limits to diffMs to prevent absurd countdown displays
+      const cappedDiffMs = Math.min(diffMs, 7 * 24 * 60 * 60 * 1000); // Cap at 7 days
+      
+      if (cappedDiffMs > 60 * 60 * 1000) {
+        return { state: 'preview', startsIn: cappedDiffMs };
+      }
+      return { state: 'imminent', startsIn: cappedDiffMs };
+    }
+
+    return { state: 'unknown' };
   };
+
+  // Re-evaluate timing every 30 s for live/preview states
+  useEffect(() => {
+    if (!match) return;
+    setTiming(computeTiming(match));
+
+    const interval = setInterval(() => {
+      setTiming(computeTiming(match));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [match]);
+
+  const isFullTime = timing.state === 'fullTime';
+  const isLive     = timing.state === 'live';
+  const isPreMatch = timing.state === 'preview' || timing.state === 'imminent';
 
   const handleGoBack = () => navigate(-1);
 
@@ -371,10 +505,6 @@ const MatchDetails = () => {
     );
   }
 
-  const { status } = getMatchTiming();
-  const isFullTime = status === 'fullTime';
-  // You can define other states like isPreview, isImminent if you build out those views
-  
   return (
     <main className="min-h-screen bg-black text-white font-sans">
       <Header />
@@ -386,180 +516,145 @@ const MatchDetails = () => {
           </button>
         </div>
         
-        {/* We will focus on the FullTime view as requested */}
-        {isFullTime ? (
-          <div className="mb-8 w-full space-y-6">
-            {/* Teams and Final Score - Main Box */}
-            <div 
-              className="rounded-3xl overflow-hidden p-6 relative"
-              style={{
-                background: 'linear-gradient(15deg, #000000 0%, #000000 60%, #1F1F1F 100%)',
-                border: '1px solid #1B1B1B',
-              }}
-            >
-              <div className="absolute top-4 left-4 flex items-center gap-3">
-                <img src={match.competition.logo} alt={match.competition.name} className="w-5 h-5 object-contain rounded-full bg-white p-0.5" />
-                <div className="flex-1 min-w-0"><div className="text-sm font-medium text-white truncate">{match.competition.name}</div></div>
+        {/* Scoreline banner (shows countdown / live clock / final score) */}
+        <div className="mb-8 w-full space-y-6">
+          <div 
+            className="rounded-3xl overflow-hidden p-6 relative"
+            style={{
+              background: 'linear-gradient(15deg, #000000 0%, #000000 60%, #1F1F1F 100%)',
+              border: '1px solid #1B1B1B',
+            }}
+          >
+            <div className="absolute top-4 left-4 flex items-center gap-3">
+              <img src={match.competition.logo} alt={match.competition.name} className="w-5 h-5 object-contain rounded-full bg-white p-0.5" />
+              <div className="flex-1 min-w-0"><div className="text-sm font-medium text-white truncate">{match.competition.name}</div></div>
+            </div>
+            <div className="absolute top-4 right-4">
+              <button onClick={handleShare} className="relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-white/10">
+                <Share2 className="h-4 w-4 text-white" />
+              </button>
+            </div>
+
+            <ScorelineBanner match={match} timing={timing} />
+
+            {/* Show timeline during live or after FT if events exist */}
+            {(isLive || isFullTime) && match.events && match.events.length > 0 && (
+              <ScorelineTimeline 
+                homeTeam={match.homeTeam} 
+                awayTeam={match.awayTeam} 
+                matchEvents={match.events} 
+                matchDate={match.date}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Tabs / rest of page – always present, but hide sections with missing data */}
+        {/* TAB NAVIGATION */}
+        <div className="flex justify-center gap-6" style={{ backgroundColor: '#000000' }}>
+          {[
+            { key: 'home',    label: 'Home',    always: true },
+            { key: 'lineups', label: 'Lineups', available: !!match.lineups?.homeTeam },
+            { key: 'stats',   label: 'Stats',   available: Array.isArray(match.statistics) && match.statistics.length > 0 },
+            { key: 'standings', label: 'Standings', always: true },
+          ]
+            .filter(t => t.always || t.available)
+            .map(tab => (
+              <button 
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`relative px-4 py-3 text-sm font-medium text-white transition-all duration-200 focus:outline-none ${
+                  activeTab === tab.key ? '' : 'hover:opacity-70'
+                }`}
+                style={{ backgroundColor: '#000000' }}
+              >
+                <span className="tracking-wide">{tab.label}</span>
+                {activeTab === tab.key && (
+                  <div 
+                    className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full"
+                    style={{ backgroundColor: '#F7CC45' }}
+                  />
+                )}
+              </button>
+          ))}
+        </div>
+
+        {/* TAB CONTENT */}
+        <div className="pt-2">
+          {activeTab === 'home' && (
+            <div className="space-y-6">
+              {/* Highlights */}
+              <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+                <HighlightsCarousel highlights={videoHighlightsList} loading={highlightsLoading} />
               </div>
-              <div className="absolute top-4 right-4">
-                <button onClick={handleShare} className="relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-white/10">
-                  <Share2 className="h-4 w-4 text-white" />
-                </button>
-              </div>
-              <div className="flex flex-col items-center justify-center mt-12 mb-6">
-                <div className="flex items-center justify-center mb-6 w-full">
-                  <div className="text-center flex-1">
-                    <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-20 h-20 object-contain mx-auto mb-3" />
-                    <div className="text-white font-medium text-lg">{match.homeTeam.name}</div>
-                  </div>
-                  <div className="text-center px-8">
-                    <div className="font-bold mb-2" style={{ color: '#FF4C4C', fontSize: '16px' }}>FULL TIME</div>
-                    <div className="text-center font-bold mb-2" style={{ color: '#FFFFFF' }}>
-                      {(() => {
-                        const scoreText = match.score?.current || 
-                         (match.score?.home !== undefined && match.score?.away !== undefined 
-                           ? `${match.score.home} - ${match.score.away}` 
-                           : '0 - 0');
-                        
-                        // Split the score to style numbers and dash separately
-                        const parts = scoreText.split(' - ');
-                        if (parts.length === 2) {
-                          return (
-                            <>
-                              <span style={{ fontSize: '45px' }}>{parts[0]}</span>
-                              <span style={{ fontSize: '48px' }}> - </span>
-                              <span style={{ fontSize: '45px' }}>{parts[1]}</span>
-                            </>
-                          );
-                        }
-                        return <span style={{ fontSize: '45px' }}>{scoreText}</span>;
-                      })()}
-                    </div>
-                    {/* Show penalty scores if available */}
-                    {match.score?.penalties && (
-                      <div className="text-gray-400 text-sm mb-3">
-                        ({match.score.penalties})
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-center flex-1">
-                    <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-20 h-20 object-contain mx-auto mb-3" />
-                    <div className="text-white font-medium text-lg">{match.awayTeam.name}</div>
-                  </div>
-                </div>
-                
-                <ScorelineTimeline 
-                  homeTeam={match.homeTeam} 
-                  awayTeam={match.awayTeam} 
-                  matchEvents={match.events || []} 
-                  matchDate={match.date}
+              {/* Form & H2H */}
+              <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+                <TeamFormStats 
+                  homeMatches={homeTeamForm}
+                  awayMatches={awayTeamForm}
+                  homeTeamId={match.homeTeam.id}
+                  homeTeamName={match.homeTeam.name}
+                  awayTeamId={match.awayTeam.id}
+                  awayTeamName={match.awayTeam.name}
+                />
+                <HeadToHeadStats 
+                  matches={h2hData} 
+                  homeTeamId={match.homeTeam.id} 
+                  homeTeamName={match.homeTeam.name}
+                  awayTeamId={match.awayTeam.id}
+                  awayTeamName={match.awayTeam.name}
                 />
               </div>
             </div>
+          )}
 
-            {/* TAB NAVIGATION */}
-            <div className="flex justify-center gap-6" style={{ backgroundColor: '#000000' }}>
-              {[
-                { key: 'home', label: 'Home' },
-                { key: 'lineups', label: 'Lineups' },
-                { key: 'stats', label: 'Stats' },
-                { key: 'standings', label: 'Standings' },
-              ].map(tab => (
-                <button 
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`relative px-4 py-3 text-sm font-medium text-white transition-all duration-200 focus:outline-none ${
-                    activeTab === tab.key
-                      ? ''
-                      : 'hover:opacity-70'
-                  }`}
-                  style={{ backgroundColor: '#000000' }}
-                >
-                  <span className="tracking-wide">{tab.label}</span>
-                  {activeTab === tab.key && (
-                    <div 
-                      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full"
-                      style={{ backgroundColor: '#F7CC45' }}
-                    />
-                  )}
-                </button>
-              ))}
+          {activeTab === 'lineups' && match.lineups?.homeTeam && (
+            <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+              <TeamLineups lineups={match.lineups} />
             </div>
-            
-            {/* TAB CONTENT */}
-            <div className="pt-2">
-              {activeTab === 'home' && (
-                <div className="space-y-6">
-                  {/* Highlights Section */}
-                  <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    <HighlightsCarousel highlights={videoHighlightsList} loading={highlightsLoading} />
-                  </div>
+          )}
 
-                  {/* Form and H2H Section */}
-                  <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    
-                    {/* Last 5 Matches */}
-                    <TeamFormStats 
-                      homeMatches={homeTeamForm}
-                      awayMatches={awayTeamForm}
-                      homeTeamId={match.homeTeam.id}
-                      homeTeamName={match.homeTeam.name}
-                      awayTeamId={match.awayTeam.id}
-                      awayTeamName={match.awayTeam.name}
-                    />
+          {activeTab === 'stats' && Array.isArray(match.statistics) && match.statistics.length > 0 && (
+            <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+              <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH STATISTICS</h4>
+              <MatchStatistics statistics={match.statistics} homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
+            </div>
+          )}
 
-                    {/* Head to Head */}
-                    <HeadToHeadStats 
-                      matches={h2hData} 
-                      homeTeamId={match.homeTeam.id} 
-                      homeTeamName={match.homeTeam.name}
-                      awayTeamId={match.awayTeam.id}
-                      awayTeamName={match.awayTeam.name}
-                    />
-                  </div>
-                </div>
-              )}
+          {activeTab === 'standings' && (
+            <div className="space-y-8">
+              {/* Standings */}
+              <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+                <h4 className="text-lg font-semibold mb-6 text-center text-white">LEAGUE STANDINGS</h4>
+                {standingsLoading ? (
+                  <div className="text-center py-8"><div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div></div>
+                ) : (
+                  <StandingsTable standings={standings} homeTeamId={match.homeTeam.id} awayTeamId={match.awayTeam.id} />
+                )}
+              </div>
 
-              {activeTab === 'lineups' && (
+              {/* Timeline (events) – show if available */}
+              {match.events && match.events.length > 0 && (
                 <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                  <TeamLineups 
-                    lineups={match.lineups} 
-                  />
-                </div>
-              )}
-
-              {activeTab === 'stats' && (
-                <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                  <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH STATISTICS</h4>
-                  <MatchStatistics statistics={match.statistics || []} homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
-                </div>
-              )}
-
-              {activeTab === 'standings' && (
-                <div className="space-y-8">
-                  {/* Standings Section */}
-                  <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    <h4 className="text-lg font-semibold mb-6 text-center text-white">LEAGUE STANDINGS</h4>
-                    {standingsLoading ? (
-                      <div className="text-center py-8"><div className="w-8 h-8 border-l-4 border-white/80 rounded-full animate-spin mx-auto"></div></div>
-                    ) : (
-                      <StandingsTable standings={standings} homeTeamId={match.homeTeam.id} awayTeamId={match.awayTeam.id} />
-                    )}
-                  </div>
-
-                  {/* Timeline Section */}
-                  <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                    <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH TIMELINE</h4>
-                    <MatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchEvents={match.events || []} />
-                  </div>
+                  <h4 className="text-lg font-semibold mb-6 text-center text-white">MATCH TIMELINE</h4>
+                  <MatchTimeline homeTeam={match.homeTeam} awayTeam={match.awayTeam} matchEvents={match.events} />
                 </div>
               )}
             </div>
-          </div>
-        ) : (
+          )}
+        </div>
+        {/* End Tab content */}
+
+        {/* If nothing else matches (e.g. still loading pre-match data) */}
+        {isPreMatch && (
           <div className="text-center py-20">
-            <h2 className="text-xl font-bold">Match Status: {status}</h2>
-            <p className="text-gray-400 mt-2">This view is not yet implemented. Only the 'Full-Time' view has been built as requested.</p>
+            <h2 className="text-xl font-bold">Match has not started yet.</h2>
+          </div>
+        )}
+
+        {!isPreMatch && !isFullTime && !isLive && (
+          <div className="text-center py-20">
+            <h2 className="text-xl font-bold">This view is not yet implemented.</h2>
           </div>
         )}
       </div>

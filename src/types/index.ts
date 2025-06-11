@@ -189,6 +189,15 @@ export interface EnhancedMatchHighlight extends MatchHighlight {
   statistics?: TeamStatistics[];
   events?: MatchEvent[];
   status?: { short?: string; long?: string; elapsed?: number };
+  fixture?: {
+    date?: string;
+    timestamp?: number;
+    status?: { short?: string; long?: string; elapsed?: number };
+    teams?: {
+      home?: MatchTeam;
+      away?: MatchTeam;
+    };
+  };
 }
 
 export interface LeagueWithMatches {
