@@ -68,6 +68,17 @@ const formatCountdown = (ms: number) => {
 };
 
 const ScorelineBanner: React.FC<ScorelineBannerProps> = ({ match, timing }) => {
+  // Use the provided timing state, but for demonstration, we could also determine it from match.state
+  // using getMatchStatusFromState(match) if timing is not provided or unreliable
+  
+  // Log state information for debugging
+  console.log('[ScorelineBanner] Match state:', {
+    matchId: match.id,
+    stateDescription: match.state?.description,
+    stateClock: match.state?.clock,
+    providedTiming: timing,
+  });
+  
   const isPreMatch = timing.state === 'preview' || timing.state === 'imminent';
   const isLive = timing.state === 'live';
   const isFullTime = timing.state === 'fullTime';

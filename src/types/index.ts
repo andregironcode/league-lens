@@ -199,6 +199,15 @@ export interface EnhancedMatchHighlight extends MatchHighlight {
   statistics?: TeamStatistics[];
   events?: MatchEvent[];
   status?: { short?: string; long?: string; elapsed?: number };
+  // New state object from Highlightly API
+  state?: {
+    description?: string;
+    clock?: number;
+    score?: {
+      current?: string;
+      penalties?: string | null;
+    };
+  };
 }
 
 export interface LeagueWithMatches {
