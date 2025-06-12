@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Match } from '@/types';
 
@@ -28,6 +28,7 @@ interface MatchCardProps {
 }
 
 const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosition = 'top' }) => {
+  const navigate = useNavigate();
   const getStatusString = (status: any): string => {
     if (typeof status === 'string') return status.toLowerCase();
     if (typeof status === 'object' && status !== null) return status.long?.toLowerCase() || status.short?.toLowerCase() || '';
@@ -35,13 +36,25 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
   };
 
   const statusString = getStatusString(match.status);
-  // Get status description from various API formats
+  // Get status description from state object (Highlightly API format)
   let stateDescription = '';
-  // Direct status.description format
-  if (match.status && typeof match.status === 'object' && 'description' in match.status) {
+  
+  // Check for state.description (latest API format)
+  if (match.state?.description) {
+    stateDescription = match.state.description.toLowerCase();
+  }
+  // Fallback to older formats if needed
+  else if (match.status && typeof match.status === 'object' && 'description' in match.status) {
     stateDescription = (match.status.description as string)?.toLowerCase() || '';
   }
-  const isFinished = statusString.includes('finished') || statusString.includes('ft') || stateDescription.includes('finished');
+  
+  const isFinished = 
+    stateDescription.includes('finished') || 
+    stateDescription.includes('full time') || 
+    stateDescription.includes('ft') || 
+    statusString.includes('finished') || 
+    statusString.includes('ft') || 
+    (match.state?.clock && match.state.clock >= 90);
 
   const formatMatchTime = (dateString: string) => format(new Date(dateString), 'HH:mm');
   const formatMatchDate = (dateString: string) => format(new Date(dateString), 'MMM dd');
@@ -60,10 +73,13 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-1">
           {match.homeTeam?.id ? (
-            <Link 
-              to={`/team/${match.homeTeam.id}`}
-              onClick={(e) => e.stopPropagation()} 
-              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            <div 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate(`/team/${match.homeTeam.id}`);
+              }} 
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <img 
                 src={match.homeTeam?.logo || '/placeholder-team.png'} 
@@ -73,9 +89,9 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
               <span className="text-white text-sm font-medium truncate">
                 {match.homeTeam?.name}
               </span>
-            </Link>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center space-x-3">
               <img 
                 src={match.homeTeam?.logo || '/placeholder-team.png'} 
                 alt={match.homeTeam?.name} 
@@ -84,7 +100,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
               <span className="text-white text-sm font-medium truncate">
                 {match.homeTeam?.name}
               </span>
-            </>
+            </div>
           )}
         </div>
         
@@ -102,10 +118,13 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
         
         <div className="flex items-center space-x-3 flex-1 justify-end">
           {match.awayTeam?.id ? (
-            <Link 
-              to={`/team/${match.awayTeam.id}`}
-              onClick={(e) => e.stopPropagation()} 
-              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            <div 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate(`/team/${match.awayTeam.id}`);
+              }} 
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <span className="text-white text-sm font-medium truncate text-right">
                 {match.awayTeam?.name}
@@ -115,9 +134,9 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
                 alt={match.awayTeam?.name} 
                 className="w-8 h-8 object-contain"
               />
-            </Link>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center space-x-3">
               <span className="text-white text-sm font-medium truncate text-right">
                 {match.awayTeam?.name}
               </span>
@@ -126,7 +145,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
                 alt={match.awayTeam?.name} 
                 className="w-8 h-8 object-contain"
               />
-            </>
+            </div>
           )}
         </div>
       </div>

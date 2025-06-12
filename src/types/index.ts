@@ -29,7 +29,8 @@ export interface Match {
   time?: string;
   timestamp?: number;
   timezone?: string;
-  status?: string | { short?: string; long?: string; elapsed?: number }; // Support both string and object format
+  // Original status fields (keeping for backward compatibility)
+  status?: string | { short?: string; long?: string; elapsed?: number };
   fixture?: {
     status?: { short?: string; long?: string; elapsed?: number };
     date?: string;
@@ -37,6 +38,15 @@ export interface Match {
     timestamp?: number;
     score?: FixtureScore;
     events?: MatchEvent[];
+  };
+  // New state object from Highlightly API
+  state?: {
+    description?: string;
+    clock?: number;
+    score?: {
+      current?: string;
+      penalties?: string | null;
+    };
   };
   league?: {
     id: string | number;

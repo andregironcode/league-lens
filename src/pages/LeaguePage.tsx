@@ -177,10 +177,10 @@ const LeaguePage: React.FC = () => {
 
           // Set selected season if not already set
           if (!selectedSeason && leagueData.seasons && leagueData.seasons.length > 0) {
-            // Find current season or default to first
-            const currentSeasonData = currentLeagueData.seasons.find((s: any) => s.current);
-            const selectedSeasonData = currentSeasonData || currentLeagueData.seasons[0];
-            setSelectedSeason(selectedSeasonData.season.toString());
+            // Sort seasons by year (newest first) and select the most recent one
+            const sortedSeasons = [...leagueData.seasons].sort((a, b) => b.season - a.season);
+            const mostRecentSeason = sortedSeasons[0];
+            setSelectedSeason(mostRecentSeason.season.toString());
           }
         } else {
           throw new Error('Invalid league data received from API');

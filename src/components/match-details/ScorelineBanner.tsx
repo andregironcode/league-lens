@@ -9,6 +9,46 @@ export type TimingState =
   | { state: 'fullTime' }
   | { state: 'unknown' };
 
+// Helper function to determine match status from state object
+export const getMatchStatusFromState = (match: EnhancedMatchHighlight) => {
+  const stateDescription = match.state?.description?.toLowerCase();
+  const stateClock = match.state?.clock;
+  
+  if (
+    stateDescription === 'live' || 
+    stateDescription === 'in play' || 
+    (!!stateClock && stateClock > 0 && stateClock < 90 && stateDescription !== 'finished')
+  ) {
+    return 'live';
+  }
+  
+  if (
+    stateDescription === 'finished' ||
+    stateDescription === 'full time' ||
+    stateDescription === 'ft' ||
+    (!!stateClock && stateClock >= 90)
+  ) {
+    return 'fullTime';
+  }
+  
+  // For upcoming matches, check how soon they start
+  const now = new Date().getTime();
+  const matchDate = new Date(match.date).getTime();
+  const timeDiff = matchDate - now;
+  
+  // If match starts in less than 20 minutes, consider it imminent
+  if (timeDiff > 0 && timeDiff < 20 * 60 * 1000) {
+    return { state: 'imminent', startsIn: timeDiff };
+  }
+  
+  // If match is in the future but not imminent
+  if (timeDiff > 0) {
+    return { state: 'preview', startsIn: timeDiff };
+  }
+  
+  return { state: 'unknown' };
+};
+
 interface ScorelineBannerProps {
   match: EnhancedMatchHighlight;
   timing: TimingState;

@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import type { Match } from '@/types';
 import LiveBadge from './LiveBadge';
 
+// List of possible match status descriptions from the API for reference
+const API_STATUS = {
+  LIVE: ['Live', 'In Play'],
+  FINISHED: ['Finished', 'Full Time', 'FT'],
+  UPCOMING: ['Not Started', 'Scheduled', 'TBD']
+};
+
 interface MatchRowProps {
   match: Match;
 }
@@ -71,11 +78,40 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
   
-  // Determine match status from fixture status or fallback to match status
-  const fixtureStatus = match.fixture?.status?.short;
-  const isLive = fixtureStatus === 'LIVE' || match.status === 'live';
-  const isFinished = fixtureStatus === 'FT' || match.status === 'finished';
+  // Determine match status from state.description and state.clock (API provides status in 'state' object)
+  const stateDescription = match.state?.description;
+  const stateClock = match.state?.clock;
+  
+  // Debug match status values
+  console.log(`[MatchRow] Match ID ${match.id} status values:`, {
+    matchId: match.id,
+    stateDescription,
+    stateClock,
+    stateObject: match.state,
+    date: match.date,
+    scorePresent: !!match.score
+  });
+  
+  // Updated logic based on actual API response format
+  const isLive = 
+    stateDescription === 'Live' || 
+    stateDescription === 'In Play' || 
+    (!!stateClock && stateClock < 90 && stateDescription !== 'Finished');
+    
+  const isFinished = 
+    stateDescription === 'Finished' || 
+    stateDescription === 'Full Time' || 
+    stateDescription === 'FT' || 
+    (!!stateClock && stateClock >= 90 && stateDescription !== 'Live' && stateDescription !== 'In Play');
+    
   const isUpcoming = !isLive && !isFinished;
+  
+  // Log the determined status for debugging
+  console.log(`[MatchRow] Match ID ${match.id} determined status:`, {
+    isLive,
+    isFinished,
+    isUpcoming
+  });
 
   // Format kickoff time from fixture date or match date
   const formatKickoffTime = (dateString: string): string => {
@@ -152,7 +188,7 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
         {/* Home Team */}
         <div className="flex items-center space-x-2 min-w-0 flex-1">
           <img 
-            src={getTeamLogo(match.homeTeam.name, match.homeTeam.logo, match.homeTeam.id)} 
+            src={getTeamLogo(match.homeTeam.name, match.homeTeam.logo, String(match.homeTeam.id))} 
             alt={match.homeTeam.name}
             className="w-6 h-6 object-contain flex-shrink-0"
             loading="lazy"
@@ -183,7 +219,7 @@ const MatchRow: React.FC<MatchRowProps> = ({ match }) => {
             {match.awayTeam.name}
           </span>
           <img 
-            src={getTeamLogo(match.awayTeam.name, match.awayTeam.logo, match.awayTeam.id)} 
+            src={getTeamLogo(match.awayTeam.name, match.awayTeam.logo, String(match.awayTeam.id))} 
             alt={match.awayTeam.name}
             className="w-6 h-6 object-contain flex-shrink-0"
             loading="lazy"
