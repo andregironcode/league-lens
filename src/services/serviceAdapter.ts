@@ -169,17 +169,19 @@ export const serviceAdapter = {
 
   /**
    * Get team details
+   * @param teamId The team ID
+   * @param season Optional season parameter (e.g., '2023', '2022')
    */
-  async getTeamDetails(teamId: string): Promise<TeamDetails | null> {
+  async getTeamDetails(teamId: string, season?: string): Promise<TeamDetails | null> {
     switch (activeService) {
       case 'mock':
-        return mockService.getTeamDetails(teamId);
+        return mockService.getTeamDetails(teamId, season);
       case 'supabase':
-        return supabaseService.getTeamDetails(teamId);
+        return supabaseService.getTeamDetails(teamId, season);
       case 'highlightly':
-        return highlightlyService.getTeamDetails(teamId);
+        return highlightlyService.getTeamDetails(teamId, season);
       default:
-        return mockService.getTeamDetails(teamId);
+        return mockService.getTeamDetails(teamId, season);
     }
   },
 
@@ -457,7 +459,7 @@ export const {
   getLeagueHighlights: serviceAdapter.getLeagueHighlights.bind(serviceAdapter),
   getMatchById: (id: string) => serviceAdapter.getMatchById(id),
   getTeamHighlights: (teamId: string) => serviceAdapter.getTeamHighlights(teamId),
-  getTeamDetails: (teamId: string) => serviceAdapter.getTeamDetails(teamId),
+  getTeamDetails: (teamId: string, season?: string) => serviceAdapter.getTeamDetails(teamId, season),
   searchHighlights: (query: string) => serviceAdapter.searchHighlights(query),
   searchEntities: serviceAdapter.searchEntities.bind(serviceAdapter),
   getRecentMatchesForTopLeagues: () => serviceAdapter.getRecentMatchesForTopLeagues(),

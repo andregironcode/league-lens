@@ -432,8 +432,10 @@ export const highlightlyService = {
   /**
    * Get team details with enhanced data directly from API
    * Including complete match data with scorelines and league standings
+   * @param teamId The team ID
+   * @param season Optional season parameter (e.g., '2023', '2022')
    */
-  async getTeamDetails(teamId: string): Promise<TeamDetails | null> {
+  async getTeamDetails(teamId: string, season?: string): Promise<TeamDetails | null> {
     console.log(`[Highlightly] Fetching team details for ${teamId} from API`);
     
     try {

@@ -324,7 +324,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749738900904,
+    "expiry": 1749741901228,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-12&season=2025": {
@@ -340,7 +340,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749738900510,
+    "expiry": 1749741900869,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-12&season=2025": {
@@ -356,7 +356,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749738900529,
+    "expiry": 1749741900858,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-12&season=2025": {
@@ -372,7 +372,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749738900897,
+    "expiry": 1749741901220,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-12&season=2025": {
@@ -388,7 +388,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749738901237,
+    "expiry": 1749741901634,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-12&season=2025": {
@@ -404,7 +404,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749738901313,
+    "expiry": 1749741901585,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-13&season=2025": {
@@ -516,7 +516,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741425204,
+    "expiry": 1749744000631,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=119924&season=2025&limit=20": {
@@ -532,7 +532,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741425231,
+    "expiry": 1749744000617,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=115669&season=2025&limit=20": {
@@ -548,7 +548,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741425237,
+    "expiry": 1749744000673,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=2486&season=2025&limit=20": {
@@ -564,7 +564,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741425570,
+    "expiry": 1749744001044,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=52695&season=2025&limit=20": {
@@ -580,7 +580,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741425584,
+    "expiry": 1749744001027,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=67162&season=2025&limit=20": {
@@ -596,7 +596,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741425611,
+    "expiry": 1749744001062,
     "ttl": 3600
   },
   "/api/highlightly/leagues/3337?": {
@@ -12323,7 +12323,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749738130597,
+    "expiry": 1749741939530,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-12&limit=20": {
@@ -12339,7 +12339,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749738130638,
+    "expiry": 1749741939412,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=400": {
@@ -17675,7 +17675,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749738131554,
+    "expiry": 1749741939778,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-12&limit=20": {
@@ -17691,7 +17691,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749738131559,
+    "expiry": 1749741939749,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-12&limit=20": {
@@ -17707,7 +17707,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749738131784,
+    "expiry": 1749741940038,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-12&limit=20": {
@@ -17723,7 +17723,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749738131796,
+    "expiry": 1749741940067,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=13549&date=2025-06-12&limit=20": {
@@ -17739,7 +17739,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749738132046,
+    "expiry": 1749741940288,
     "ttl": 300
   },
   "/api/highlightly/standings?leagueId=2486&season=2024": {
@@ -18946,7 +18946,7 @@
         "season": 2024
       }
     },
-    "expiry": 1749739640603,
+    "expiry": 1749743432231,
     "ttl": 1800
   },
   "/api/highlightly/matches?leagueId=2486&season=2024&limit=100": {
@@ -25290,5 +25290,918 @@
     ],
     "expiry": 1749824245414,
     "ttl": 86400
+  },
+  "/api/highlightly/teams/34824?": {
+    "data": [
+      {
+        "id": 34824,
+        "logo": "https://highlightly.net/soccer/images/teams/34824.png",
+        "name": "Liverpool"
+      }
+    ],
+    "expiry": 1749782057636,
+    "ttl": 43200
+  },
+  "/api/highlightly/teams/statistics/34824?fromDate=2025-05-13": {
+    "data": [
+      {
+        "leagueId": 33973,
+        "season": 2024,
+        "leagueName": "Premier League",
+        "home": {
+          "games": {
+            "played": 1,
+            "wins": 0,
+            "loses": 0,
+            "draws": 1
+          },
+          "goals": {
+            "scored": 1,
+            "received": 1
+          }
+        },
+        "away": {
+          "games": {
+            "played": 1,
+            "wins": 0,
+            "loses": 1,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 2,
+            "received": 3
+          }
+        },
+        "total": {
+          "games": {
+            "played": 2,
+            "wins": 0,
+            "loses": 1,
+            "draws": 1
+          },
+          "goals": {
+            "scored": 3,
+            "received": 4
+          }
+        }
+      }
+    ],
+    "expiry": 1749782057702,
+    "ttl": 43200
+  },
+  "/api/highlightly/last-five-games?teamId=34824": {
+    "data": [
+      {
+        "id": 1028345780,
+        "round": "Regular Season - 38",
+        "date": "2025-05-25T15:00:00.000Z",
+        "country": {
+          "code": "GB-ENG",
+          "name": "England",
+          "logo": "https://highlightly.net/soccer/images/countries/GB-ENG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "1 - 1",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 45036,
+          "logo": "https://highlightly.net/soccer/images/teams/45036.png",
+          "name": "Crystal Palace"
+        },
+        "homeTeam": {
+          "id": 34824,
+          "logo": "https://highlightly.net/soccer/images/teams/34824.png",
+          "name": "Liverpool"
+        },
+        "league": {
+          "id": 33973,
+          "logo": "https://highlightly.net/soccer/images/leagues/33973.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      },
+      {
+        "id": 1028337270,
+        "round": "Regular Season - 37",
+        "date": "2025-05-19T19:00:00.000Z",
+        "country": {
+          "code": "GB-ENG",
+          "name": "England",
+          "logo": "https://highlightly.net/soccer/images/countries/GB-ENG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "3 - 2",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 34824,
+          "logo": "https://highlightly.net/soccer/images/teams/34824.png",
+          "name": "Liverpool"
+        },
+        "homeTeam": {
+          "id": 44185,
+          "logo": "https://highlightly.net/soccer/images/teams/44185.png",
+          "name": "Brighton"
+        },
+        "league": {
+          "id": 33973,
+          "logo": "https://highlightly.net/soccer/images/leagues/33973.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      },
+      {
+        "id": 1028328760,
+        "round": "Regular Season - 36",
+        "date": "2025-05-11T15:30:00.000Z",
+        "country": {
+          "code": "GB-ENG",
+          "name": "England",
+          "logo": "https://highlightly.net/soccer/images/countries/GB-ENG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "2 - 2",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 36526,
+          "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+          "name": "Arsenal"
+        },
+        "homeTeam": {
+          "id": 34824,
+          "logo": "https://highlightly.net/soccer/images/teams/34824.png",
+          "name": "Liverpool"
+        },
+        "league": {
+          "id": 33973,
+          "logo": "https://highlightly.net/soccer/images/leagues/33973.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      },
+      {
+        "id": 1028321101,
+        "round": "Regular Season - 35",
+        "date": "2025-05-04T15:30:00.000Z",
+        "country": {
+          "code": "GB-ENG",
+          "name": "England",
+          "logo": "https://highlightly.net/soccer/images/countries/GB-ENG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "3 - 1",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 34824,
+          "logo": "https://highlightly.net/soccer/images/teams/34824.png",
+          "name": "Liverpool"
+        },
+        "homeTeam": {
+          "id": 42483,
+          "logo": "https://highlightly.net/soccer/images/teams/42483.png",
+          "name": "Chelsea"
+        },
+        "league": {
+          "id": 33973,
+          "logo": "https://highlightly.net/soccer/images/leagues/33973.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      },
+      {
+        "id": 1028312591,
+        "round": "Regular Season - 34",
+        "date": "2025-04-27T15:30:00.000Z",
+        "country": {
+          "code": "GB-ENG",
+          "name": "England",
+          "logo": "https://highlightly.net/soccer/images/countries/GB-ENG.svg"
+        },
+        "state": {
+          "clock": 90,
+          "score": {
+            "current": "5 - 1",
+            "penalties": null
+          },
+          "description": "Finished"
+        },
+        "awayTeam": {
+          "id": 40781,
+          "logo": "https://highlightly.net/soccer/images/teams/40781.png",
+          "name": "Tottenham"
+        },
+        "homeTeam": {
+          "id": 34824,
+          "logo": "https://highlightly.net/soccer/images/teams/34824.png",
+          "name": "Liverpool"
+        },
+        "league": {
+          "id": 33973,
+          "logo": "https://highlightly.net/soccer/images/leagues/33973.png",
+          "name": "Premier League",
+          "season": 2024
+        }
+      }
+    ],
+    "expiry": 1749825257714,
+    "ttl": 86400
+  },
+  "/api/highlightly/standings?leagueId=33973&season=2024": {
+    "data": {
+      "groups": [
+        {
+          "name": "Premier League",
+          "standings": [
+            {
+              "away": {
+                "wins": 11,
+                "draws": 5,
+                "games": 19,
+                "loses": 3,
+                "scoredGoals": 44,
+                "receivedGoals": 25
+              },
+              "home": {
+                "wins": 14,
+                "draws": 3,
+                "games": 18,
+                "loses": 1,
+                "scoredGoals": 41,
+                "receivedGoals": 15
+              },
+              "team": {
+                "id": 34824,
+                "logo": "https://highlightly.net/soccer/images/teams/34824.png",
+                "name": "Liverpool"
+              },
+              "total": {
+                "wins": 25,
+                "draws": 8,
+                "games": 37,
+                "loses": 4,
+                "scoredGoals": 85,
+                "receivedGoals": 40
+              },
+              "points": 83,
+              "position": 1
+            },
+            {
+              "away": {
+                "wins": 8,
+                "draws": 8,
+                "games": 18,
+                "loses": 2,
+                "scoredGoals": 32,
+                "receivedGoals": 16
+              },
+              "home": {
+                "wins": 11,
+                "draws": 6,
+                "games": 19,
+                "loses": 2,
+                "scoredGoals": 35,
+                "receivedGoals": 17
+              },
+              "team": {
+                "id": 36526,
+                "logo": "https://highlightly.net/soccer/images/teams/36526.png",
+                "name": "Arsenal"
+              },
+              "total": {
+                "wins": 19,
+                "draws": 14,
+                "games": 37,
+                "loses": 4,
+                "scoredGoals": 67,
+                "receivedGoals": 33
+              },
+              "points": 71,
+              "position": 2
+            },
+            {
+              "away": {
+                "wins": 7,
+                "draws": 5,
+                "games": 18,
+                "loses": 6,
+                "scoredGoals": 27,
+                "receivedGoals": 21
+              },
+              "home": {
+                "wins": 13,
+                "draws": 3,
+                "games": 19,
+                "loses": 3,
+                "scoredGoals": 43,
+                "receivedGoals": 23
+              },
+              "team": {
+                "id": 43334,
+                "logo": "https://highlightly.net/soccer/images/teams/43334.png",
+                "name": "Manchester City"
+              },
+              "total": {
+                "wins": 20,
+                "draws": 8,
+                "games": 37,
+                "loses": 9,
+                "scoredGoals": 70,
+                "receivedGoals": 44
+              },
+              "points": 68,
+              "position": 3
+            },
+            {
+              "away": {
+                "wins": 8,
+                "draws": 4,
+                "games": 19,
+                "loses": 7,
+                "scoredGoals": 28,
+                "receivedGoals": 27
+              },
+              "home": {
+                "wins": 12,
+                "draws": 2,
+                "games": 18,
+                "loses": 4,
+                "scoredGoals": 40,
+                "receivedGoals": 19
+              },
+              "team": {
+                "id": 29718,
+                "logo": "https://highlightly.net/soccer/images/teams/29718.png",
+                "name": "Newcastle"
+              },
+              "total": {
+                "wins": 20,
+                "draws": 6,
+                "games": 37,
+                "loses": 11,
+                "scoredGoals": 68,
+                "receivedGoals": 46
+              },
+              "points": 66,
+              "position": 4
+            },
+            {
+              "away": {
+                "wins": 7,
+                "draws": 4,
+                "games": 18,
+                "loses": 7,
+                "scoredGoals": 28,
+                "receivedGoals": 25
+              },
+              "home": {
+                "wins": 12,
+                "draws": 5,
+                "games": 19,
+                "loses": 2,
+                "scoredGoals": 35,
+                "receivedGoals": 18
+              },
+              "team": {
+                "id": 42483,
+                "logo": "https://highlightly.net/soccer/images/teams/42483.png",
+                "name": "Chelsea"
+              },
+              "total": {
+                "wins": 19,
+                "draws": 9,
+                "games": 37,
+                "loses": 9,
+                "scoredGoals": 63,
+                "receivedGoals": 43
+              },
+              "points": 66,
+              "position": 5
+            },
+            {
+              "away": {
+                "wins": 8,
+                "draws": 2,
+                "games": 18,
+                "loses": 8,
+                "scoredGoals": 24,
+                "receivedGoals": 29
+              },
+              "home": {
+                "wins": 11,
+                "draws": 7,
+                "games": 19,
+                "loses": 1,
+                "scoredGoals": 34,
+                "receivedGoals": 20
+              },
+              "team": {
+                "id": 56950,
+                "logo": "https://highlightly.net/soccer/images/teams/56950.png",
+                "name": "Aston Villa"
+              },
+              "total": {
+                "wins": 19,
+                "draws": 9,
+                "games": 37,
+                "loses": 9,
+                "scoredGoals": 58,
+                "receivedGoals": 49
+              },
+              "points": 66,
+              "position": 6
+            },
+            {
+              "away": {
+                "wins": 10,
+                "draws": 3,
+                "games": 19,
+                "loses": 6,
+                "scoredGoals": 32,
+                "receivedGoals": 30
+              },
+              "home": {
+                "wins": 9,
+                "draws": 5,
+                "games": 18,
+                "loses": 4,
+                "scoredGoals": 26,
+                "receivedGoals": 15
+              },
+              "team": {
+                "id": 56099,
+                "logo": "https://highlightly.net/soccer/images/teams/56099.png",
+                "name": "Nottingham Forest"
+              },
+              "total": {
+                "wins": 19,
+                "draws": 8,
+                "games": 37,
+                "loses": 10,
+                "scoredGoals": 58,
+                "receivedGoals": 45
+              },
+              "points": 65,
+              "position": 7
+            },
+            {
+              "away": {
+                "wins": 7,
+                "draws": 5,
+                "games": 18,
+                "loses": 6,
+                "scoredGoals": 32,
+                "receivedGoals": 32
+              },
+              "home": {
+                "wins": 8,
+                "draws": 8,
+                "games": 19,
+                "loses": 3,
+                "scoredGoals": 30,
+                "receivedGoals": 26
+              },
+              "team": {
+                "id": 44185,
+                "logo": "https://highlightly.net/soccer/images/teams/44185.png",
+                "name": "Brighton"
+              },
+              "total": {
+                "wins": 15,
+                "draws": 13,
+                "games": 37,
+                "loses": 9,
+                "scoredGoals": 62,
+                "receivedGoals": 58
+              },
+              "points": 58,
+              "position": 8
+            },
+            {
+              "away": {
+                "wins": 7,
+                "draws": 3,
+                "games": 18,
+                "loses": 8,
+                "scoredGoals": 25,
+                "receivedGoals": 21
+              },
+              "home": {
+                "wins": 9,
+                "draws": 4,
+                "games": 19,
+                "loses": 6,
+                "scoredGoals": 40,
+                "receivedGoals": 35
+              },
+              "team": {
+                "id": 47589,
+                "logo": "https://highlightly.net/soccer/images/teams/47589.png",
+                "name": "Brentford"
+              },
+              "total": {
+                "wins": 16,
+                "draws": 7,
+                "games": 37,
+                "loses": 14,
+                "scoredGoals": 65,
+                "receivedGoals": 56
+              },
+              "points": 55,
+              "position": 9
+            },
+            {
+              "away": {
+                "wins": 8,
+                "draws": 4,
+                "games": 19,
+                "loses": 7,
+                "scoredGoals": 27,
+                "receivedGoals": 24
+              },
+              "home": {
+                "wins": 7,
+                "draws": 5,
+                "games": 18,
+                "loses": 6,
+                "scoredGoals": 27,
+                "receivedGoals": 28
+              },
+              "team": {
+                "id": 31420,
+                "logo": "https://highlightly.net/soccer/images/teams/31420.png",
+                "name": "Fulham"
+              },
+              "total": {
+                "wins": 15,
+                "draws": 9,
+                "games": 37,
+                "loses": 13,
+                "scoredGoals": 54,
+                "receivedGoals": 52
+              },
+              "points": 54,
+              "position": 10
+            },
+            {
+              "away": {
+                "wins": 7,
+                "draws": 7,
+                "games": 19,
+                "loses": 5,
+                "scoredGoals": 35,
+                "receivedGoals": 30
+              },
+              "home": {
+                "wins": 7,
+                "draws": 4,
+                "games": 18,
+                "loses": 7,
+                "scoredGoals": 21,
+                "receivedGoals": 16
+              },
+              "team": {
+                "id": 30569,
+                "logo": "https://highlightly.net/soccer/images/teams/30569.png",
+                "name": "Bournemouth"
+              },
+              "total": {
+                "wins": 14,
+                "draws": 11,
+                "games": 37,
+                "loses": 12,
+                "scoredGoals": 56,
+                "receivedGoals": 46
+              },
+              "points": 53,
+              "position": 11
+            },
+            {
+              "away": {
+                "wins": 7,
+                "draws": 6,
+                "games": 18,
+                "loses": 5,
+                "scoredGoals": 26,
+                "receivedGoals": 24
+              },
+              "home": {
+                "wins": 6,
+                "draws": 7,
+                "games": 19,
+                "loses": 6,
+                "scoredGoals": 24,
+                "receivedGoals": 26
+              },
+              "team": {
+                "id": 45036,
+                "logo": "https://highlightly.net/soccer/images/teams/45036.png",
+                "name": "Crystal Palace"
+              },
+              "total": {
+                "wins": 13,
+                "draws": 13,
+                "games": 37,
+                "loses": 11,
+                "scoredGoals": 50,
+                "receivedGoals": 50
+              },
+              "points": 52,
+              "position": 12
+            },
+            {
+              "away": {
+                "wins": 5,
+                "draws": 6,
+                "games": 18,
+                "loses": 7,
+                "scoredGoals": 15,
+                "receivedGoals": 21
+              },
+              "home": {
+                "wins": 5,
+                "draws": 9,
+                "games": 19,
+                "loses": 5,
+                "scoredGoals": 26,
+                "receivedGoals": 23
+              },
+              "team": {
+                "id": 39079,
+                "logo": "https://highlightly.net/soccer/images/teams/39079.png",
+                "name": "Everton"
+              },
+              "total": {
+                "wins": 10,
+                "draws": 15,
+                "games": 37,
+                "loses": 12,
+                "scoredGoals": 41,
+                "receivedGoals": 44
+              },
+              "points": 45,
+              "position": 13
+            },
+            {
+              "away": {
+                "wins": 6,
+                "draws": 3,
+                "games": 19,
+                "loses": 10,
+                "scoredGoals": 27,
+                "receivedGoals": 37
+              },
+              "home": {
+                "wins": 6,
+                "draws": 2,
+                "games": 18,
+                "loses": 10,
+                "scoredGoals": 26,
+                "receivedGoals": 31
+              },
+              "team": {
+                "id": 33973,
+                "logo": "https://highlightly.net/soccer/images/teams/33973.png",
+                "name": "Wolves"
+              },
+              "total": {
+                "wins": 12,
+                "draws": 5,
+                "games": 37,
+                "loses": 20,
+                "scoredGoals": 53,
+                "receivedGoals": 68
+              },
+              "points": 41,
+              "position": 14
+            },
+            {
+              "away": {
+                "wins": 5,
+                "draws": 5,
+                "games": 18,
+                "loses": 8,
+                "scoredGoals": 20,
+                "receivedGoals": 27
+              },
+              "home": {
+                "wins": 5,
+                "draws": 5,
+                "games": 19,
+                "loses": 9,
+                "scoredGoals": 23,
+                "receivedGoals": 34
+              },
+              "team": {
+                "id": 41632,
+                "logo": "https://highlightly.net/soccer/images/teams/41632.png",
+                "name": "West Ham"
+              },
+              "total": {
+                "wins": 10,
+                "draws": 10,
+                "games": 37,
+                "loses": 17,
+                "scoredGoals": 43,
+                "receivedGoals": 61
+              },
+              "points": 40,
+              "position": 15
+            },
+            {
+              "away": {
+                "wins": 4,
+                "draws": 6,
+                "games": 19,
+                "loses": 9,
+                "scoredGoals": 21,
+                "receivedGoals": 26
+              },
+              "home": {
+                "wins": 6,
+                "draws": 3,
+                "games": 18,
+                "loses": 9,
+                "scoredGoals": 21,
+                "receivedGoals": 28
+              },
+              "team": {
+                "id": 28867,
+                "logo": "https://highlightly.net/soccer/images/teams/28867.png",
+                "name": "Manchester United"
+              },
+              "total": {
+                "wins": 10,
+                "draws": 9,
+                "games": 37,
+                "loses": 18,
+                "scoredGoals": 42,
+                "receivedGoals": 54
+              },
+              "points": 39,
+              "position": 16
+            },
+            {
+              "away": {
+                "wins": 5,
+                "draws": 2,
+                "games": 19,
+                "loses": 12,
+                "scoredGoals": 29,
+                "receivedGoals": 30
+              },
+              "home": {
+                "wins": 6,
+                "draws": 3,
+                "games": 18,
+                "loses": 9,
+                "scoredGoals": 34,
+                "receivedGoals": 31
+              },
+              "team": {
+                "id": 40781,
+                "logo": "https://highlightly.net/soccer/images/teams/40781.png",
+                "name": "Tottenham"
+              },
+              "total": {
+                "wins": 11,
+                "draws": 5,
+                "games": 37,
+                "loses": 21,
+                "scoredGoals": 63,
+                "receivedGoals": 61
+              },
+              "points": 38,
+              "position": 17
+            },
+            {
+              "away": {
+                "wins": 2,
+                "draws": 4,
+                "games": 18,
+                "loses": 12,
+                "scoredGoals": 18,
+                "receivedGoals": 44
+              },
+              "home": {
+                "wins": 4,
+                "draws": 3,
+                "games": 19,
+                "loses": 12,
+                "scoredGoals": 15,
+                "receivedGoals": 34
+              },
+              "team": {
+                "id": 39930,
+                "logo": "https://highlightly.net/soccer/images/teams/39930.png",
+                "name": "Leicester"
+              },
+              "total": {
+                "wins": 6,
+                "draws": 7,
+                "games": 37,
+                "loses": 24,
+                "scoredGoals": 33,
+                "receivedGoals": 78
+              },
+              "points": 25,
+              "position": 18
+            },
+            {
+              "away": {
+                "wins": 3,
+                "draws": 6,
+                "games": 19,
+                "loses": 10,
+                "scoredGoals": 22,
+                "receivedGoals": 38
+              },
+              "home": {
+                "wins": 1,
+                "draws": 4,
+                "games": 18,
+                "loses": 13,
+                "scoredGoals": 13,
+                "receivedGoals": 41
+              },
+              "team": {
+                "id": 49291,
+                "logo": "https://highlightly.net/soccer/images/teams/49291.png",
+                "name": "Ipswich"
+              },
+              "total": {
+                "wins": 4,
+                "draws": 10,
+                "games": 37,
+                "loses": 23,
+                "scoredGoals": 35,
+                "receivedGoals": 79
+              },
+              "points": 22,
+              "position": 19
+            },
+            {
+              "away": {
+                "wins": 1,
+                "draws": 3,
+                "games": 19,
+                "loses": 15,
+                "scoredGoals": 13,
+                "receivedGoals": 39
+              },
+              "home": {
+                "wins": 1,
+                "draws": 3,
+                "games": 18,
+                "loses": 14,
+                "scoredGoals": 12,
+                "receivedGoals": 45
+              },
+              "team": {
+                "id": 35675,
+                "logo": "https://highlightly.net/soccer/images/teams/35675.png",
+                "name": "Southampton"
+              },
+              "total": {
+                "wins": 2,
+                "draws": 6,
+                "games": 37,
+                "loses": 29,
+                "scoredGoals": 25,
+                "receivedGoals": 84
+              },
+              "points": 12,
+              "position": 20
+            }
+          ]
+        }
+      ],
+      "league": {
+        "id": 33973,
+        "logo": "https://highlightly.net/soccer/images/leagues/33973.png",
+        "name": "Premier League",
+        "season": 2024
+      }
+    },
+    "expiry": 1749742766567,
+    "ttl": 1800
   }
 }
