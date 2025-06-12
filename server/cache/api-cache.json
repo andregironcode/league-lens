@@ -228,7 +228,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741423249,
+    "expiry": 1749747600756,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-11&season=2025": {
@@ -244,7 +244,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741423286,
+    "expiry": 1749747600759,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-11&season=2025": {
@@ -260,7 +260,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741423286,
+    "expiry": 1749747600743,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-11&season=2025": {
@@ -276,7 +276,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741423627,
+    "expiry": 1749747601143,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-11&season=2025": {
@@ -292,7 +292,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741423653,
+    "expiry": 1749747601096,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-11&season=2025": {
@@ -308,7 +308,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741423654,
+    "expiry": 1749747601106,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-12&season=2025": {
@@ -324,7 +324,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749743401041,
+    "expiry": 1749756001169,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-12&season=2025": {
@@ -340,7 +340,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749743400696,
+    "expiry": 1749756000822,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-12&season=2025": {
@@ -356,7 +356,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749743400689,
+    "expiry": 1749756000791,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-12&season=2025": {
@@ -372,7 +372,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749743401049,
+    "expiry": 1749756001176,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-12&season=2025": {
@@ -388,7 +388,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749743401381,
+    "expiry": 1749756001567,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-12&season=2025": {
@@ -404,7 +404,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749743401373,
+    "expiry": 1749756001571,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-13&season=2025": {
@@ -420,7 +420,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741424698,
+    "expiry": 1749747602349,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-13&season=2025": {
@@ -436,7 +436,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741424711,
+    "expiry": 1749747602298,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-13&season=2025": {
@@ -452,7 +452,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741424731,
+    "expiry": 1749747602307,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-13&season=2025": {
@@ -468,7 +468,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741425057,
+    "expiry": 1749747602676,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-13&season=2025": {
@@ -484,7 +484,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741425079,
+    "expiry": 1749747602691,
     "ttl": 3600
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-13&season=2025": {
@@ -500,7 +500,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741425089,
+    "expiry": 1749747602683,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=33973&season=2025&limit=20": {
@@ -516,7 +516,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749744000631,
+    "expiry": 1749747600765,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=119924&season=2025&limit=20": {
@@ -532,7 +532,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749744000617,
+    "expiry": 1749747600722,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=115669&season=2025&limit=20": {
@@ -548,7 +548,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749744000673,
+    "expiry": 1749747600754,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=2486&season=2025&limit=20": {
@@ -564,7 +564,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749744001044,
+    "expiry": 1749747601081,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=52695&season=2025&limit=20": {
@@ -580,7 +580,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749744001027,
+    "expiry": 1749747601129,
     "ttl": 3600
   },
   "/api/highlightly/highlights?leagueId=67162&season=2025&limit=20": {
@@ -596,7 +596,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749744001062,
+    "expiry": 1749747601139,
     "ttl": 3600
   },
   "/api/highlightly/leagues/3337?": {
@@ -12323,7 +12323,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749743464001,
+    "expiry": 1749744063522,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-12&limit=20": {
@@ -12339,7 +12339,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749743463954,
+    "expiry": 1749744063493,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=400": {
@@ -17675,7 +17675,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749743464266,
+    "expiry": 1749744063791,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-12&limit=20": {
@@ -17691,7 +17691,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749743464316,
+    "expiry": 1749744063762,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-12&limit=20": {
@@ -17707,7 +17707,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749743464569,
+    "expiry": 1749744064047,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-12&limit=20": {
@@ -17723,7 +17723,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749743464641,
+    "expiry": 1749744064038,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=13549&date=2025-06-12&limit=20": {
@@ -17739,7 +17739,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749743464877,
+    "expiry": 1749744064287,
     "ttl": 300
   },
   "/api/highlightly/standings?leagueId=2486&season=2024": {
@@ -18946,7 +18946,7 @@
         "season": 2024
       }
     },
-    "expiry": 1749743432231,
+    "expiry": 1749745528052,
     "ttl": 1800
   },
   "/api/highlightly/matches?leagueId=2486&season=2024&limit=100": {
@@ -26202,6 +26202,200 @@
       }
     },
     "expiry": 1749742766567,
+    "ttl": 1800
+  },
+  "/api/highlightly/teams/73119?": {
+    "data": [
+      {
+        "id": 73119,
+        "logo": "https://highlightly.net/soccer/images/teams/73119.png",
+        "name": "Paris Saint Germain"
+      }
+    ],
+    "expiry": 1749786974009,
+    "ttl": 43200
+  },
+  "/api/highlightly/teams/statistics/73119?fromDate=2025-05-13": {
+    "data": [
+      {
+        "leagueId": 13549,
+        "season": 2025,
+        "leagueName": "FIFA Club World Cup",
+        "home": {
+          "games": {
+            "played": 0,
+            "wins": 0,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 0,
+            "received": 0
+          }
+        },
+        "away": {
+          "games": {
+            "played": 0,
+            "wins": 0,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 0,
+            "received": 0
+          }
+        },
+        "total": {
+          "games": {
+            "played": 0,
+            "wins": 0,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 0,
+            "received": 0
+          }
+        }
+      },
+      {
+        "leagueId": 2486,
+        "season": 2024,
+        "leagueName": "UEFA Champions League",
+        "home": {
+          "games": {
+            "played": 1,
+            "wins": 1,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 5,
+            "received": 0
+          }
+        },
+        "away": {
+          "games": {
+            "played": 0,
+            "wins": 0,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 0,
+            "received": 0
+          }
+        },
+        "total": {
+          "games": {
+            "played": 1,
+            "wins": 1,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 5,
+            "received": 0
+          }
+        }
+      },
+      {
+        "leagueId": 56950,
+        "season": 2024,
+        "leagueName": "Coupe de France",
+        "home": {
+          "games": {
+            "played": 1,
+            "wins": 1,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 3,
+            "received": 0
+          }
+        },
+        "away": {
+          "games": {
+            "played": 0,
+            "wins": 0,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 0,
+            "received": 0
+          }
+        },
+        "total": {
+          "games": {
+            "played": 1,
+            "wins": 1,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 3,
+            "received": 0
+          }
+        }
+      },
+      {
+        "leagueId": 52695,
+        "season": 2024,
+        "leagueName": "Ligue 1",
+        "home": {
+          "games": {
+            "played": 1,
+            "wins": 1,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 3,
+            "received": 1
+          }
+        },
+        "away": {
+          "games": {
+            "played": 0,
+            "wins": 0,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 0,
+            "received": 0
+          }
+        },
+        "total": {
+          "games": {
+            "played": 1,
+            "wins": 1,
+            "loses": 0,
+            "draws": 0
+          },
+          "goals": {
+            "scored": 3,
+            "received": 1
+          }
+        }
+      }
+    ],
+    "expiry": 1749786974047,
+    "ttl": 43200
+  },
+  "/api/highlightly/standings?leagueId=13549&season=2025": {
+    "data": {
+      "groups": [],
+      "league": {
+        "id": 13549,
+        "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
+        "name": "FIFA Club World Cup",
+        "season": 2025
+      }
+    },
+    "expiry": 1749745574171,
     "ttl": 1800
   }
 }
