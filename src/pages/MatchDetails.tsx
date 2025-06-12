@@ -551,6 +551,11 @@ const MatchDetails = () => {
 
             <ScorelineBanner match={match} timing={timing} />
 
+            {/* Highlights Carousel - Now positioned between scoreline and timeline */}
+            <div className="my-6">
+              <HighlightsCarousel highlights={videoHighlightsList} loading={highlightsLoading} />
+            </div>
+
             {/* Show timeline during live or after FT if events exist */}
             {(() => {
               // Execute this debugging code as part of the rendering
@@ -613,11 +618,7 @@ const MatchDetails = () => {
         <div className="pt-2">
           {activeTab === 'home' && (
             <div className="space-y-6">
-              {/* Highlights */}
-              <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-                <HighlightsCarousel highlights={videoHighlightsList} loading={highlightsLoading} />
-              </div>
-              {/* Form & H2H */}
+              {/* Form & H2H - Highlights removed from this tab */}
               <div className="rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
                 <TeamFormStats 
                   homeMatches={homeTeamForm}

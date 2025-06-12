@@ -76,7 +76,8 @@ const HighlightsCarousel: React.FC<HighlightsCarouselProps> = ({ highlights, loa
         const videoId = url.includes('youtu.be') 
           ? url.split('/').pop()?.split('?')[0]
           : new URL(url).searchParams.get('v');
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+        // Add autoplay=1 and mute=1 parameters for auto-playing with sound muted
+        return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1` : null;
       }
       
       // Return null for other sources - we'll handle them as external links
@@ -191,32 +192,7 @@ const HighlightsCarousel: React.FC<HighlightsCarouselProps> = ({ highlights, loa
         </div>
       </div>
 
-      {/* Pill-shaped Selectors */}
-      {highlights.length > 1 && (
-        <div className="flex justify-center items-center mt-6 gap-1">
-          {highlights.map((_, index) => (
-            <div
-              key={index}
-              onClick={() => handleManualChange(index)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleManualChange(index);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              className="transition-all duration-300 cursor-pointer"
-              style={{ 
-                width: index === currentIndex ? '40px' : '20px',
-                height: '20px',
-                backgroundColor: index === currentIndex ? '#F7CC45' : '#4B4B4B',
-                borderRadius: '999px',
-              }}
-              aria-label={`Go to highlight ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
+      {/* Pills removed as requested - only arrows remain for navigation */}
 
 
     </div>
