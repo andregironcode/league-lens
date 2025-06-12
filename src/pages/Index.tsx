@@ -109,62 +109,36 @@ const Index: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header />
+    <>
+      <section className="mb-12">
+        {loading ? (
+          <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
+        ) : (
+          <HeroCarousel 
+            highlights={featuredHighlights} 
+            // Make sure the HeroCarousel component accepts these props or update it accordingly
+          />
+        )}
+      </section>
+
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white">Recent Matches</h1>
+      </div>
       
-      <main className="flex-1 pb-10 pt-16 md:pt-20">
-        <section className="container mx-auto px-4 mb-12">
-          {loading ? (
-            <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
-          ) : (
-            <HeroCarousel 
-              highlights={featuredHighlights} 
-              featuredMatches={featuredMatches} 
-            />
-          )}
-        </section>
+      <div className="mb-8">
+        <DateSelector onDateChange={handleDateChange} />
+      </div>
 
-        <div className="container mx-auto px-4 sm:px-6 mt-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">Recent Matches</h1>
-          </div>
-          
-          <div className="mb-8">
-            <DateSelector onDateChange={handleDateChange} />
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-8 mb-8">
-            <div className="flex-1 min-w-0 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-              <MatchFeedByLeague 
-                leaguesWithMatches={recentMatches}
-                loading={matchesLoading}
-                selectedLeagueIds={[]}
-                onLeagueSelect={() => {}}
-                selectedCountryCode={null}
-              />
-            </div>
-
-            <div className="lg:w-80 flex-shrink-0 rounded-3xl p-6" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-              <div className="lg:sticky lg:top-24">
-                <TopLeaguesFilter
-                  selectedLeagueId={null}
-                  onLeagueSelect={() => {}}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-[#111111] border-t border-[#1B1B1B] py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center text-gray-400">
-            <p>&copy; 2024 League Lens. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <div className="rounded-3xl p-6 mb-8" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
+        <MatchFeedByLeague 
+          leaguesWithMatches={recentMatches}
+          loading={matchesLoading}
+          selectedLeagueIds={[]}
+          onLeagueSelect={() => {}}
+          selectedCountryCode={null}
+        />
+      </div>
+    </>
   );
 };
 

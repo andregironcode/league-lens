@@ -324,7 +324,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741901228,
+    "expiry": 1749743401041,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=119924&date=2025-06-12&season=2025": {
@@ -340,7 +340,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741900869,
+    "expiry": 1749743400696,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-12&season=2025": {
@@ -356,7 +356,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741900858,
+    "expiry": 1749743400689,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-12&season=2025": {
@@ -372,7 +372,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741901220,
+    "expiry": 1749743401049,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-12&season=2025": {
@@ -388,7 +388,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741901634,
+    "expiry": 1749743401381,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=2486&date=2025-06-12&season=2025": {
@@ -404,7 +404,7 @@
         "limit": 100
       }
     },
-    "expiry": 1749741901585,
+    "expiry": 1749743401373,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-13&season=2025": {
@@ -12323,7 +12323,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741939530,
+    "expiry": 1749743464001,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=33973&date=2025-06-12&limit=20": {
@@ -12339,7 +12339,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741939412,
+    "expiry": 1749743463954,
     "ttl": 300
   },
   "/api/highlightly/leagues?limit=100&offset=400": {
@@ -17675,7 +17675,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741939778,
+    "expiry": 1749743464266,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=115669&date=2025-06-12&limit=20": {
@@ -17691,7 +17691,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741939749,
+    "expiry": 1749743464316,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=52695&date=2025-06-12&limit=20": {
@@ -17707,7 +17707,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741940038,
+    "expiry": 1749743464569,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=67162&date=2025-06-12&limit=20": {
@@ -17723,7 +17723,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741940067,
+    "expiry": 1749743464641,
     "ttl": 300
   },
   "/api/highlightly/matches?leagueId=13549&date=2025-06-12&limit=20": {
@@ -17739,7 +17739,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741940288,
+    "expiry": 1749743464877,
     "ttl": 300
   },
   "/api/highlightly/standings?leagueId=2486&season=2024": {
@@ -22621,7 +22621,7 @@
         "substituted": null
       }
     ],
-    "expiry": 1749739292754,
+    "expiry": 1749743710218,
     "ttl": 600
   },
   "/api/highlightly/lineups/1169965796?": {
@@ -23224,7 +23224,7 @@
         ]
       }
     ],
-    "expiry": 1749739292904,
+    "expiry": 1749743710317,
     "ttl": 600
   },
   "/api/highlightly/matches/1169965796?": {
@@ -24862,7 +24862,7 @@
         "limit": 20
       }
     },
-    "expiry": 1749741445133,
+    "expiry": 1749746710472,
     "ttl": 3600
   },
   "/api/highlightly/head-2-head?teamIdOne=73119&teamIdTwo=430539": {
