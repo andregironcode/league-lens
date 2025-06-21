@@ -14,12 +14,28 @@ interface MatchFeedByLeagueProps {
   selectedCountryCode?: string | null;
 }
 
-// Priority league IDs as specified by the user
+// Priority league IDs - All leagues from database with correct Highlightly API IDs
 const PRIORITY_LEAGUE_IDS = [
-  '2486', '3337', '4188', '5890', '11847', '13549', 
-  '8443', '33973', '52695', '67162', '119924', '16102',
-  '115669', // Serie A (Italy)
-  '1635' // FIFA World Cup
+  // Big 5 European Leagues (Priority)
+  '33973',  // Premier League
+  '119924', // La Liga
+  '115669', // Serie A
+  '67162',  // Bundesliga
+  '52695',  // Ligue 1
+  
+  // Major International Club Competitions
+  '2486',   // UEFA Champions League
+  '3337',   // UEFA Europa League
+  '11847',  // CONMEBOL Libertadores
+  
+  // International Tournaments
+  '4188',   // Euro Championship
+  '8443',   // Copa America
+  '13549',  // FIFA Club World Cup
+  
+  // Additional Popular Leagues
+  '34824',  // Championship (EFL)
+  '16102'   // AFC Cup
 ];
 
 // Helper function to get league priority based on exact ID matching

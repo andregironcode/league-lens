@@ -5,6 +5,7 @@ import TeamPage from '@/pages/TeamPage';
 import LeaguePage from '@/pages/LeaguePage';
 import LeaguesPage from '@/pages/LeaguesPage';
 import NotFound from '@/pages/NotFound';
+
 import MainLayout from '@/components/layout/MainLayout';
 import './App.css';
 

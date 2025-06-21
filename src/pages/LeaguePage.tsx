@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Trophy, Calendar, Clock, MapPin, Target, Users, BarChart2, Share2, Plus, Minus } from 'lucide-react';
 import Header from '@/components/Header';
-import { highlightlyClient } from '@/integrations/highlightly/client';
+import { supabaseDataService } from '@/services/supabaseDataService';
 import { League, Match, StandingsRow, TeamStatistics, LeagueStatistics } from '@/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -22,17 +22,23 @@ export const getMatchScore = (match: any) => {
     return { home: isNaN(home) ? 0 : home, away: isNaN(away) ? 0 : away };
   }
   
-  // Fallback to other possible formats
+  // Handle our Supabase data format (most common case now)
   if (match.score && typeof match.score === 'object') {
+    if (typeof match.score.home === 'number' && typeof match.score.away === 'number') {
+      return { home: match.score.home || 0, away: match.score.away || 0 };
+    }
+    // Handle string-based scores
     if (match.score.fulltime) {
       const [home, away] = match.score.fulltime.split('-').map((s: string) => parseInt(s.trim(), 10));
       return { home: isNaN(home) ? 0 : home, away: isNaN(away) ? 0 : away };
     }
-    // Handle numeric score properties if they exist
-    if (typeof match.score.home === 'number' && typeof match.score.away === 'number') {
-      return { home: match.score.home || 0, away: match.score.away || 0 };
-    }
   }
+  
+  // Fallback: try to get scores directly from match object
+  if (typeof match.home_score === 'number' && typeof match.away_score === 'number') {
+    return { home: match.home_score || 0, away: match.away_score || 0 };
+  }
+  
   return { home: 0, away: 0 };
 };
 
@@ -146,7 +152,7 @@ const LeaguePage: React.FC = () => {
         setError(null);
 
         // Fetch league details
-        const response = await highlightlyClient.getLeagueById(leagueId);
+        const response = await supabaseDataService.getLeagueById(leagueId);
         console.log('[LeaguePage] Raw league details from API:', response);
 
         // Handle different response formats
@@ -165,11 +171,11 @@ const LeaguePage: React.FC = () => {
             name: currentLeagueData.name,
             logo: currentLeagueData.logo,
             country: currentLeagueData.country,
-            seasons: currentLeagueData.seasons.map((s: any) => ({
+            seasons: currentLeagueData.seasons ? currentLeagueData.seasons.map((s: any) => ({
               season: s.season,
               startDate: s.start,
               endDate: s.end
-            })),
+            })) : [{ season: 2024, startDate: '2024-08-01', endDate: '2025-05-31' }],
             highlights: [] // Initialize empty highlights array
           };
 
@@ -204,68 +210,22 @@ const LeaguePage: React.FC = () => {
         setStandingsLoading(true);
         setMatchesLoading(true);
 
-        // Fetch standings
-        try {
-          const standingsResponse = await highlightlyClient.getStandings({
-            leagueId: league.id,
-            season: selectedSeason
-          });
-          
-          console.log('[LeaguePage] Standings API response:', standingsResponse);
-          
-          // Handle all possible API response formats
-          if (standingsResponse?.groups && standingsResponse.groups.length > 0) {
-            // Format 1: Nested in groups array with standings property
-            if (standingsResponse.groups[0].standings && Array.isArray(standingsResponse.groups[0].standings)) {
-              setStandings(standingsResponse.groups[0].standings);
-            } 
-            // Format 2: Each group might have a table property instead of standings
-            else if (standingsResponse.groups[0].table && Array.isArray(standingsResponse.groups[0].table)) {
-              setStandings(standingsResponse.groups[0].table);
-            }
-            // Format 3: Try other groups if first group has no standings
-            else {
-              const anyGroupWithStandings = standingsResponse.groups.find(g => Array.isArray(g.standings) || Array.isArray(g.table));
-              if (anyGroupWithStandings) {
-                setStandings(anyGroupWithStandings.standings || anyGroupWithStandings.table);
-              } else {
-                setStandings([]);
-              }
-            }
-          } 
-          // Format 4: Direct standings array in response
-          else if (standingsResponse?.standings && Array.isArray(standingsResponse.standings)) {
-            setStandings(standingsResponse.standings);
-          }
-          // Format 5: Direct league property with standings array
-          else if (standingsResponse?.league?.standings && Array.isArray(standingsResponse.league.standings)) {
-            setStandings(standingsResponse.league.standings);
-          }
-          // Format 6: Response might be an array directly
-          else if (Array.isArray(standingsResponse)) {
-            setStandings(standingsResponse);
-          }
-          else {
-            // No valid standings data found in any recognized format
-            console.warn('[LeaguePage] Standings data format not recognized:', standingsResponse);
-            setStandings([]);
-          }
-        } catch (standingsErr) {
-          console.error('[LeaguePage] Error fetching standings:', standingsErr);
-        } finally {
-          setStandingsLoading(false);
-        }
+              // Get standings from Supabase
+      try {
+        const standingsData = await supabaseDataService.getStandingsForLeague(leagueId, selectedSeason);
+        setStandings(standingsData);
+        console.log(`[LeaguePage] Loaded ${standingsData.length} teams in standings`);
+      } catch (error) {
+        console.error('[LeaguePage] Error loading standings:', error);
+        setStandings([]);
+      }
+      setStandingsLoading(false);
 
         // Fetch matches
         try {
-          const matchesResponse = await highlightlyClient.getMatches({
-            leagueId: league.id,
-            season: selectedSeason,
-            limit: '100' // Get more matches to categorize them
-          });
+          const matches = await supabaseDataService.getMatchesForLeague(league.id, selectedSeason);
 
-          if (matchesResponse?.data && Array.isArray(matchesResponse.data)) {
-            const matches = matchesResponse.data;
+          if (matches && Array.isArray(matches)) {
             const now = new Date();
             const today = format(now, 'yyyy-MM-dd');
 
@@ -289,11 +249,15 @@ const LeaguePage: React.FC = () => {
               const matchDate = new Date(match.date);
               const statusStr = match.status?.toLowerCase() || '';
               const stateDesc = match.state?.description?.toLowerCase() || '';
+              // Prioritize status over date - if status says finished, it's a past match
               const isFinished = statusStr.includes('finished') || 
                                statusStr.includes('ft') ||
                                stateDesc.includes('finished') ||
-                               matchDate < now;
-              return isFinished;
+                               statusStr === 'finished' ||
+                               statusStr === 'ft';
+              // If no clear status, fall back to date comparison
+              const isPastByDate = !isFinished && matchDate < now;
+              return isFinished || isPastByDate;
             }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             setTodaysMatches(todayMatches);

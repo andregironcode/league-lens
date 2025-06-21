@@ -46,8 +46,8 @@ export default async function handler(req, res) {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': HIGHLIGHTLY_API_KEY,
-        'x-rapidapi-key': HIGHLIGHTLY_API_KEY
+        'x-rapidapi-key': HIGHLIGHTLY_API_KEY,
+        'x-rapidapi-host': 'football-highlights-api.p.rapidapi.com'
       },
       body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
     });

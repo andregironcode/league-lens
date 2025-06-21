@@ -183,19 +183,19 @@ const HeroCarousel = ({
         <div className="flex flex-col lg:flex-row items-center gap-8 w-full max-w-7xl mx-auto mt-4">
           <div className="w-full lg:w-[40%] self-center order-2 lg:order-1 lg:pl-10">
             <div className="flex justify-center items-center mb-6">
-              <div onClick={e => handleNavigateToTeam(currentHighlight.homeTeam.id, e)} className="cursor-pointer transition-transform duration-200 hover:scale-110">
-                <img src={currentHighlight.homeTeam.logo} alt={currentHighlight.homeTeam.name} className="w-16 h-16 object-contain" onError={e => {
+              <div onClick={e => handleNavigateToTeam(currentHighlight.homeTeam?.id || 'unknown', e)} className="cursor-pointer transition-transform duration-200 hover:scale-110">
+                <img src={currentHighlight.homeTeam?.logo || "https://www.sofascore.com/static/images/placeholders/team.svg"} alt={currentHighlight.homeTeam?.name || 'Home Team'} className="w-16 h-16 object-contain" onError={e => {
                 const target = e.target as HTMLImageElement;
                 target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
               }} />
               </div>
               
               <div className="text-white text-4xl font-bold mx-8">
-                {currentHighlight.score.home} - {currentHighlight.score.away}
+                {currentHighlight.score?.home || 0} - {currentHighlight.score?.away || 0}
               </div>
               
-              <div onClick={e => handleNavigateToTeam(currentHighlight.awayTeam.id, e)} className="cursor-pointer transition-transform duration-200 hover:scale-110">
-                <img src={currentHighlight.awayTeam.logo} alt={currentHighlight.awayTeam.name} className="w-16 h-16 object-contain" onError={e => {
+              <div onClick={e => handleNavigateToTeam(currentHighlight.awayTeam?.id || 'unknown', e)} className="cursor-pointer transition-transform duration-200 hover:scale-110">
+                <img src={currentHighlight.awayTeam?.logo || "https://www.sofascore.com/static/images/placeholders/team.svg"} alt={currentHighlight.awayTeam?.name || 'Away Team'} className="w-16 h-16 object-contain" onError={e => {
                 const target = e.target as HTMLImageElement;
                 target.src = "https://www.sofascore.com/static/images/placeholders/team.svg";
               }} />
@@ -204,12 +204,12 @@ const HeroCarousel = ({
             
             <div className="relative overflow-hidden max-w-full px-4">
               <h1 id="match-title" className={`text-xl md:text-2xl font-bold text-white mb-4 text-center whitespace-nowrap overflow-hidden text-ellipsis ${isScrolling ? 'animate-marquee' : ''}`}>
-                <span onClick={e => handleNavigateToTeam(currentHighlight.homeTeam.id, e)} className="cursor-pointer hover:text-[#FFC30B] transition-colors">
-                  {getShortTeamName(currentHighlight.homeTeam.name)}
+                <span onClick={e => handleNavigateToTeam(currentHighlight.homeTeam?.id || 'unknown', e)} className="cursor-pointer hover:text-[#FFC30B] transition-colors">
+                  {getShortTeamName(currentHighlight.homeTeam?.name || 'Home Team')}
                 </span>
                 {" vs "}
-                <span onClick={e => handleNavigateToTeam(currentHighlight.awayTeam.id, e)} className="cursor-pointer hover:text-[#FFC30B] transition-colors">
-                  {getShortTeamName(currentHighlight.awayTeam.name)}
+                <span onClick={e => handleNavigateToTeam(currentHighlight.awayTeam?.id || 'unknown', e)} className="cursor-pointer hover:text-[#FFC30B] transition-colors">
+                  {getShortTeamName(currentHighlight.awayTeam?.name || 'Away Team')}
                 </span>
               </h1>
             </div>
@@ -217,8 +217,8 @@ const HeroCarousel = ({
             <div className="flex items-center justify-center mb-4">
               <p className="text-white/70">2 hours ago</p>
               <span className="mx-2 text-white/40">•</span>
-              <p className="text-white/70 hover:text-[#FFC30B] cursor-pointer transition-colors" onClick={e => handleNavigateToLeague(currentHighlight.competition.id, e)}>
-                {currentHighlight.competition.name}
+              <p className="text-white/70 hover:text-[#FFC30B] cursor-pointer transition-colors" onClick={e => handleNavigateToLeague(currentHighlight.competition?.id || 'unknown', e)}>
+                {currentHighlight.competition?.name || 'League'}
               </p>
             </div>
             

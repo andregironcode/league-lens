@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MatchHighlight, LeagueWithMatches, Match } from '@/types';
-import { serviceAdapter } from '@/services/serviceAdapter';
+import { supabaseDataService } from '@/services/supabaseDataService';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
@@ -23,7 +23,7 @@ const Index: React.FC = () => {
       setMatchesLoading(true);
       setError(null);
       console.log(`[Index] Fetching matches for date: ${date}`);
-      const matchesData = await serviceAdapter.getMatchesForDate(date);
+      const matchesData = await supabaseDataService.getMatchesForDate(date);
       console.log(`[Index] Received ${matchesData.length} leagues with matches for ${date}:`, matchesData);
       setRecentMatches(matchesData);
       
@@ -44,13 +44,10 @@ const Index: React.FC = () => {
       try {
         setLoading(true);
         
-        // Fetch featured matches with highlights for the hero carousel
-        const featuredMatchesData = await serviceAdapter.getLast5FeaturedMatches();
-        setFeaturedMatches(featuredMatchesData);
-        
-        // Also fetch regular highlights as fallback
-        const highlightsData = await serviceAdapter.getRecommendedHighlights();
+        // Fetch featured highlights for the hero carousel - now from Supabase!
+        const highlightsData = await supabaseDataService.getRecentHighlights(10);
         setFeaturedHighlights(highlightsData);
+        setFeaturedMatches([]); // We now get highlights directly instead of featured matches
       } catch (err) {
         console.error('[Index] Error loading highlights or featured matches:', err);
         setError('Failed to load featured content.');
@@ -64,7 +61,7 @@ const Index: React.FC = () => {
       const todayDate = dates[7]; // Middle of 14-day range (7 days past + today + 6 days future)
       console.log(`[Index] Using today's date: ${todayDate} (position 7 in 14-day range)`);
       
-      serviceAdapter.getMatchesForDate(todayDate)
+      supabaseDataService.getMatchesForDate(todayDate)
         .then(leaguesWithMatches => {
           console.log(`[Index] Received ${leaguesWithMatches.length} leagues with matches for ${todayDate}`);
           

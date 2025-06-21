@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { highlightlyClient } from '@/integrations/highlightly/client';
+import { supabaseDataService } from '@/services/supabaseDataService';
 
 interface League {
   id: string;
@@ -19,12 +19,28 @@ interface TopLeaguesFilterProps {
   onLeagueSelect?: (leagueId: string | null) => void;
 }
 
-// Priority league IDs as specified by the user
+// Priority league IDs - All leagues from database with correct Highlightly API IDs
 const PRIORITY_LEAGUE_IDS = [
-  '2486', '3337', '4188', '5890', '11847', '13549', 
-  '8443', '33973', '52695', '67162', '119924', '16102',
-  '115669', // Serie A (Italy)
-  '1635' // FIFA World Cup
+  // Big 5 European Leagues (Priority)
+  '33973',  // Premier League
+  '119924', // La Liga
+  '115669', // Serie A
+  '67162',  // Bundesliga
+  '52695',  // Ligue 1
+  
+  // Major International Club Competitions
+  '2486',   // UEFA Champions League
+  '3337',   // UEFA Europa League
+  '11847',  // CONMEBOL Libertadores
+  
+  // International Tournaments
+  '4188',   // Euro Championship
+  '8443',   // Copa America
+  '13549',  // FIFA Club World Cup
+  
+  // Additional Popular Leagues
+  '34824',  // Championship (EFL)
+  '16102'   // AFC Cup
 ];
 
 // Helper function to get category display name
@@ -76,21 +92,28 @@ const categorizeLeague = (league: any): 'international-club' | 'domestic' | 'int
   const name = league.name.toLowerCase();
   const leagueId = league.id?.toString();
   
-  // International club competitions (only the big 3)
-  if (name.includes('uefa champions league') || 
+  // International club competitions - use exact IDs from our database
+  if (leagueId === '999001' || // UEFA Champions League
+      leagueId === '999005' || // UEFA Europa League
+      leagueId === '999006' || // UEFA Europa Conference League
+      name.includes('uefa champions league') || 
       name.includes('champions league') || 
-      leagueId === '2486' || // UEFA Champions League specific ID
       name.includes('uefa europa league') || 
-      name.includes('europa league') || 
+      name.includes('europa league') ||
+      name.includes('uefa europa conference league') ||
+      name.includes('conference league') ||
       name.includes('conmebol libertadores') ||
       name.includes('copa libertadores') ||
       name.includes('libertadores')) {
     return 'international-club';
   }
   
-  // International tournaments (major national team competitions + AFC Cup)
-  if (leagueId === '1635' || // FIFA World Cup specifically by ID
-      (name.includes('world cup') && !name.includes('club') && !name.includes('fifa club')) || // FIFA World Cup by name (excluding club versions)
+  // International tournaments - use exact IDs from our database
+  if (leagueId === '999009' || // FIFA World Cup
+      leagueId === '999007' || // UEFA Euro Championship
+      leagueId === '999008' || // Copa America
+      leagueId === '999010' || // FIFA Club World Cup
+      (name.includes('world cup') && !name.includes('club')) || // FIFA World Cup by name (excluding club versions)
       name.includes('euro championship') ||
       name.includes('european championship') ||
       name.includes('uefa euro') ||
@@ -99,22 +122,31 @@ const categorizeLeague = (league: any): 'international-club' | 'domestic' | 'int
       name.includes('afcon') ||
       name.includes('copa américa') ||
       name.includes('copa america') ||
-      name.includes('afc cup') || // AFC Cup moved here
+      name.includes('fifa club world cup') ||
+      name.includes('afc cup') ||
       name.includes('asian cup')) {
     return 'international-tournament';
   }
   
-  // Top domestic leagues (Big 5 European leagues + specific IDs)
-  if ((name.includes('premier league') && !name.includes('australian') && !name.includes('south african')) ||
-      leagueId === '33973' || // Premier League specific ID
+  // Top domestic leagues - use exact IDs from our database
+  if (leagueId === '33973' ||  // Premier League
+      leagueId === '119924' || // La Liga
+      leagueId === '115669' || // Serie A
+      leagueId === '67162' ||  // Bundesliga
+      leagueId === '52695' ||  // Ligue 1
+      leagueId === '999004' || // EFL Championship
+      leagueId === '999002' || // MLS
+      leagueId === '999003' || // Saudi Pro League
+      (name.includes('premier league') && !name.includes('australian') && !name.includes('south african')) ||
       name.includes('la liga') || 
       name.includes('laliga') ||
-      leagueId === '119924' || // La Liga alternative ID
-      (name.includes('serie a') && (leagueId === '115669' || name.includes('italy') || name.includes('italia'))) || // Serie A Italy specifically
+      (name.includes('serie a') && (name.includes('italy') || name.includes('italia'))) ||
       (name.includes('bundesliga') && !name.includes('2.') && !name.includes('frauen')) ||
-      leagueId === '67162' || // Bundesliga specific ID
       name.includes('ligue 1') ||
-      leagueId === '52695') {
+      name.includes('efl championship') ||
+      name.includes('major league soccer') ||
+      name.includes('mls') ||
+      name.includes('saudi pro league')) {
     return 'domestic';
   }
   
@@ -145,104 +177,17 @@ const TopLeaguesFilter: React.FC<TopLeaguesFilterProps> = ({
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch leagues from API with focus on priority IDs
+  // Fetch leagues from Supabase - instant, no rate limits!
   useEffect(() => {
     const fetchTopLeagues = async () => {
       try {
         setLoading(true);
-        console.log('[TopLeaguesFilter] Fetching ONLY priority leagues from API...');
-        console.log('[TopLeaguesFilter] Target priority league IDs:', PRIORITY_LEAGUE_IDS);
+        console.log('[TopLeaguesFilter] Fetching priority leagues from Supabase...');
         
-        // OPTIMIZED: Direct API calls for specific leagues using getLeagueById
-        // This is much more efficient than fetching 600+ leagues
-        const priorityLeagues: any[] = [];
+        // Get priority leagues directly from Supabase
+        const priorityLeagues = await supabaseDataService.getPriorityLeagues();
         
-        console.log('[TopLeaguesFilter] Fetching leagues by specific IDs...');
-        
-        // Fetch each priority league directly by ID
-        const leaguePromises = PRIORITY_LEAGUE_IDS.map(async (leagueId) => {
-          try {
-            console.log(`[TopLeaguesFilter] Fetching league ID: ${leagueId}`);
-            const response = await highlightlyClient.getLeagueById(leagueId);
-            
-            if (response && response.data) {
-              // Handle different response formats
-              let leagueData = null;
-              if (Array.isArray(response.data)) {
-                leagueData = response.data[0];
-              } else {
-                leagueData = response.data;
-              }
-              
-              if (leagueData && leagueData.id) {
-                console.log(`[TopLeaguesFilter] ✅ Found: ${leagueData.name} (ID: ${leagueData.id})`);
-                return { ...leagueData, id: leagueData.id.toString() };
-              }
-            } else if (response && !response.data && response.id) {
-              // Direct response format
-              console.log(`[TopLeaguesFilter] ✅ Found: ${response.name} (ID: ${response.id})`);
-              return { ...response, id: response.id.toString() };
-            }
-            
-            console.log(`[TopLeaguesFilter] ❌ League ${leagueId} not found or invalid response`);
-            return null;
-          } catch (error) {
-            console.log(`[TopLeaguesFilter] ❌ Error fetching league ${leagueId}:`, error.message);
-            return null;
-          }
-        });
-        
-        // Wait for all leagues to be fetched
-        const leagueResults = await Promise.allSettled(leaguePromises);
-        
-        // Process results
-        leagueResults.forEach((result, index) => {
-          const leagueId = PRIORITY_LEAGUE_IDS[index];
-          if (result.status === 'fulfilled' && result.value) {
-            priorityLeagues.push(result.value);
-          } else {
-            console.log(`[TopLeaguesFilter] Failed to fetch league ${leagueId}:`, 
-              result.status === 'rejected' ? result.reason : 'No data');
-          }
-        });
-        
-        console.log(`[TopLeaguesFilter] Successfully fetched ${priorityLeagues.length}/${PRIORITY_LEAGUE_IDS.length} priority leagues`);
-        
-        if (priorityLeagues.length === 0) {
-          console.warn('[TopLeaguesFilter] No priority leagues found, falling back to pagination method');
-          
-          // Fallback: Use the original pagination method if direct fetching fails
-          let allLeagues: any[] = [];
-          let offset = 0;
-          const limit = 100;
-          
-          while (offset < 600) {
-            try {
-              const response = await highlightlyClient.getLeagues({
-                limit: limit.toString(),
-                offset: offset.toString()
-              });
-              
-              if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-                break;
-              }
-              
-              allLeagues.push(...response.data);
-              if (response.data.length < limit) break;
-              offset += limit;
-            } catch (error) {
-              console.error(`[TopLeaguesFilter] Pagination error at offset ${offset}:`, error);
-              break;
-            }
-          }
-          
-          // Filter to only priority leagues
-          priorityLeagues.push(...allLeagues.filter((league: any) => 
-            PRIORITY_LEAGUE_IDS.includes(league.id?.toString())
-          ));
-        }
-        
-        // Transform API leagues to our format with categorization
+        // Transform to our format with categorization
         const transformedLeagues: League[] = priorityLeagues
           .map((league: any) => ({
             id: league.id.toString(),
@@ -254,12 +199,8 @@ const TopLeaguesFilter: React.FC<TopLeaguesFilterProps> = ({
           .sort((a, b) => getLeaguePriority(a) - getLeaguePriority(b));
         
         setLeagues(transformedLeagues);
-        console.log('[TopLeaguesFilter] Processed priority leagues:', transformedLeagues.map(l => ({
-          id: l.id,
-          name: l.name,
-          priority: getLeaguePriority(l),
-          isPriorityLeague: PRIORITY_LEAGUE_IDS.includes(l.id)
-        })));
+        console.log(`[TopLeaguesFilter] ✅ Got ${transformedLeagues.length} priority leagues from Supabase`);
+        
       } catch (error) {
         console.error('[TopLeaguesFilter] Error fetching leagues:', error);
         setLeagues([]);

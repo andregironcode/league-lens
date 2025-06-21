@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Eye, Share2, Shirt, BarChart4, MapPin, Bell, Target, RefreshCw, Square, Users, Video, BarChart2, Goal, Replace, Info, Home, Trophy } from 'lucide-react';
 import Header from '@/components/Header';
-import { getMatchById, getStandingsForLeague, getLastFiveGames, getHeadToHead, getHighlightsForMatch } from '@/services/serviceAdapter';
+import { supabaseDataService } from '@/services/supabaseDataService';
+import { getStandingsForLeague, getLastFiveGames, getHeadToHead } from '@/services/serviceAdapter';
 import { MatchHighlight, EnhancedMatchHighlight, Player, Match, MatchEvent, StandingsRow } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
@@ -112,7 +113,7 @@ const MatchDetails = () => {
       setStandingsLoading(true);
 
       try {
-        const matchData = await getMatchById(id);
+        const matchData = await supabaseDataService.getMatchById(id);
         setMatch(matchData);
 
         if (matchData?.videoUrl) {
@@ -229,7 +230,7 @@ const MatchDetails = () => {
         if (matchData) {
           setHighlightsLoading(true);
           try {
-            const highlightsData = await getHighlightsForMatch(id);
+            const highlightsData = await supabaseDataService.getHighlightsForMatch(id);
             setVideoHighlightsList(highlightsData);
             console.log(`[MatchDetails] Highlights fetched:`, highlightsData.length, 'highlights');
           } catch (highlightsError) {
@@ -256,6 +257,14 @@ const MatchDetails = () => {
             awayTeamName: matchData?.awayTeam?.name
           });
           
+          // Use stored H2H data if available, otherwise fetch from API
+          const storedH2HData = matchData?.headToHead;
+          console.log(`[MatchDetails] H2H data check:`, {
+            hasStoredH2H: !!storedH2HData,
+            storedH2HMatches: storedH2HData?.matches?.length || 0,
+            totalMatches: storedH2HData?.totalMatches || 0
+          });
+          
           if (!homeTeamId || !awayTeamId) {
             console.warn(`[MatchDetails] Missing team IDs - Home: ${homeTeamId}, Away: ${awayTeamId}`);
             console.warn(`[MatchDetails] Skipping form and H2H data fetch`);
@@ -263,7 +272,8 @@ const MatchDetails = () => {
             setAwayTeamForm([]);
             setH2hData([]);
           } else {
-            const [homeForm, awayForm, h2h] = await Promise.all([
+            // Fetch form data and use stored H2H data if available
+            const [homeForm, awayForm] = await Promise.all([
               getLastFiveGames(homeTeamId).catch(err => {
                 console.log(`[MatchDetails] Home team form not available:`, err.message);
                 return [];
@@ -271,17 +281,27 @@ const MatchDetails = () => {
               getLastFiveGames(awayTeamId).catch(err => {
                 console.log(`[MatchDetails] Away team form not available:`, err.message);
                 return [];
-              }),
-              getHeadToHead(homeTeamId, awayTeamId).catch(err => {
+              })
+            ]);
+            
+            // Use stored H2H data or fetch from API as fallback
+            let h2h = [];
+            if (storedH2HData && storedH2HData.matches && storedH2HData.matches.length > 0) {
+              console.log(`[MatchDetails] Using stored H2H data with ${storedH2HData.matches.length} matches`);
+              h2h = storedH2HData.matches;
+            } else {
+              console.log(`[MatchDetails] No stored H2H data, fetching from API...`);
+              h2h = await getHeadToHead(homeTeamId, awayTeamId).catch(err => {
                 console.log(`[MatchDetails] Head-to-head data not available:`, err.message);
                 return [];
-              }),
-            ]);
+              });
+            }
             
             console.log(`[MatchDetails] Form data results:`, {
               homeFormGames: homeForm.length,
               awayFormGames: awayForm.length,
-              h2hGames: h2h.length
+              h2hGames: h2h.length,
+              h2hSource: storedH2HData && storedH2HData.matches?.length > 0 ? 'database' : 'api'
             });
             
             setHomeTeamForm(homeForm);
@@ -540,8 +560,18 @@ const MatchDetails = () => {
             }}
           >
             <div className="absolute top-4 left-4 flex items-center gap-3">
-              <img src={match.competition.logo} alt={match.competition.name} className="w-5 h-5 object-contain rounded-full bg-white p-0.5" />
-              <div className="flex-1 min-w-0"><div className="text-sm font-medium text-white truncate">{match.competition.name}</div></div>
+              {match.competition?.logo ? (
+                <img src={match.competition.logo} alt={match.competition.name || 'League'} className="w-5 h-5 object-contain rounded-full bg-white p-0.5" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
+                  <span className="text-xs text-white">⚽</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-white truncate">
+                  {match.competition?.name || 'Football Match'}
+                </div>
+              </div>
             </div>
             <div className="absolute top-4 right-4">
               <button onClick={handleShare} className="relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-white/20 hover:bg-white/10">
