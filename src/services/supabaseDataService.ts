@@ -448,6 +448,17 @@ class SupabaseDataService {
         console.error('[SupabaseData] Error fetching events:', eventsError);
       }
 
+      // Fetch statistics for this match
+      const { data: statistics, error: statisticsError } = await supabase
+        .from('match_statistics')
+        .select('*')
+        .eq('match_id', matchId)
+        .maybeSingle();
+
+      if (statisticsError) {
+        console.error('[SupabaseData] Error fetching statistics:', statisticsError);
+      }
+
       // Process lineups into expected format
       let processedLineups = null;
       if (lineups && lineups.length > 0) {
@@ -522,15 +533,54 @@ class SupabaseDataService {
       // Process events into expected format
       let processedEvents = null;
       if (events && events.length > 0) {
-        processedEvents = events.map(event => ({
-          id: event.id,
-          minute: event.minute,
-          addedTime: event.added_time,
-          type: event.event_type,
-          player: event.player_name,
-          team: event.team_id === match.home_team_id ? match.home_team.name : match.away_team.name,
-          description: event.description
-        }));
+        processedEvents = events.map(event => {
+          // Extract data from api_data if main columns are null
+          const apiData = event.api_data || {};
+          const minute = event.minute || (apiData.time ? parseInt(apiData.time, 10) : 0);
+          const playerName = event.player_name || apiData.player || 'Unknown Player';
+          const assist = apiData.assist;
+          const substituted = apiData.substituted;
+          
+          return {
+            id: event.id,
+            minute: minute,
+            addedTime: event.added_time || 0,
+            type: event.event_type,
+            player: playerName,
+            player_name: playerName, // Add both formats for compatibility
+            assist: assist,
+            substituted: substituted,
+            team: event.team_id === match.home_team_id ? match.home_team.name : match.away_team.name,
+            team_id: event.team_id,
+            description: event.description || apiData.type
+          };
+        });
+      }
+
+      // Process statistics into expected format
+      let processedStatistics = null;
+      if (statistics && statistics.statistics) {
+        const statsData = statistics.statistics;
+        if (statsData.home && statsData.away) {
+          processedStatistics = [
+            {
+              team: {
+                id: match.home_team.id,
+                name: match.home_team.name,
+                logo: match.home_team.logo
+              },
+              statistics: statsData.home.statistics || []
+            },
+            {
+              team: {
+                id: match.away_team.id,
+                name: match.away_team.name,
+                logo: match.away_team.logo
+              },
+              statistics: statsData.away.statistics || []
+            }
+          ];
+        }
       }
 
       // Transform to expected format
@@ -566,12 +616,14 @@ class SupabaseDataService {
         hasEvents: match.has_events,
         // Add the actual lineups and events data
         lineups: processedLineups,
-        events: processedEvents
+        events: processedEvents,
+        statistics: processedStatistics
       };
 
       console.log(`[SupabaseData] Found match: ${match.home_team.name} vs ${match.away_team.name}`);
       console.log(`[SupabaseData] Lineups: ${processedLineups ? 'Available' : 'None'}`);
       console.log(`[SupabaseData] Events: ${processedEvents ? processedEvents.length : 0}`);
+      console.log(`[SupabaseData] Statistics: ${processedStatistics ? 'Available' : 'None'}`);
       
       return transformedMatch;
 

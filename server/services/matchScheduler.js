@@ -287,25 +287,53 @@ class MatchScheduler {
           }
 
           // Fetch lineups from API
-          const lineupData = await this.callHighlightlyAPI('lineups', {
-            matchId: match.id
-          });
+          const lineupData = await this.callHighlightlyAPI(`lineups/${match.id}`);
 
-          if (lineupData?.data) {
-            const lineupRecord = {
-              match_id: match.id,
-              home_lineup: lineupData.data.home || null,
-              away_lineup: lineupData.data.away || null,
-              api_data: lineupData.data
-            };
+          if (lineupData) {
+            // Home team lineup
+            if (lineupData.homeTeam) {
+              const homeLineup = lineupData.homeTeam;
+              const homeLineupRecord = {
+                match_id: match.id,
+                team_id: match.home_team_id,
+                formation: homeLineup.formation || null,
+                players: homeLineup.initialLineup || [],
+                substitutes: homeLineup.substitutes || [],
+                coach: homeLineup.coach || null,
+                api_data: homeLineup
+              };
 
-            const { error: lineupError } = await supabase
-              .from('match_lineups')
-              .upsert(lineupRecord, { onConflict: 'match_id' });
+              const { error: homeLineupError } = await supabase
+                .from('match_lineups')
+                .upsert(homeLineupRecord, { onConflict: 'match_id,team_id' });
 
-            if (!lineupError) {
-              lineupsUpdated++;
+              if (!homeLineupError) {
+                lineupsUpdated++;
+              }
             }
+
+            // Away team lineup
+            if (lineupData.awayTeam) {
+              const awayLineup = lineupData.awayTeam;
+              const awayLineupRecord = {
+                match_id: match.id,
+                team_id: match.away_team_id,
+                formation: awayLineup.formation || null,
+                players: awayLineup.initialLineup || [],
+                substitutes: awayLineup.substitutes || [],
+                coach: awayLineup.coach || null,
+                api_data: awayLineup
+              };
+
+              const { error: awayLineupError } = await supabase
+                .from('match_lineups')
+                .upsert(awayLineupRecord, { onConflict: 'match_id,team_id' });
+
+              if (!awayLineupError) {
+                lineupsUpdated++;
+              }
+            }
+            console.log(`[MatchScheduler] ✅ Lineups updated for match ${match.id}`);
           }
 
           await new Promise(resolve => setTimeout(resolve, 300));
@@ -395,65 +423,237 @@ class MatchScheduler {
     this.status.postMatchSync.lastRun = new Date();
 
     try {
-      // Find recently finished matches (last 2 hours)
-      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+      // Find recently finished matches (last 6 hours to catch more matches)
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
       
       const { data: finishedMatches, error } = await supabase
         .from('matches')
         .select('*')
-        .eq('status', 'Finished')
-        .gte('updated_at', twoHoursAgo.toISOString());
+        .in('status', ['Finished', 'Match Finished', 'FT', 'Full Time'])
+        .gte('updated_at', sixHoursAgo.toISOString());
 
       if (error) {
         throw new Error(`Failed to fetch finished matches: ${error.message}`);
       }
 
       let statsUpdated = 0;
+      let highlightsUpdated = 0;
+      let lineupsUpdated = 0;
+      let eventsUpdated = 0;
+
+      console.log(`[MatchScheduler] Processing ${finishedMatches.length} finished matches for post-match data...`);
 
       for (const match of finishedMatches) {
         try {
-          // Check if we already have detailed stats
+          console.log(`[MatchScheduler] Processing match ${match.id}...`);
+
+          // 4. FETCH MATCH EVENTS
+          const { data: existingEvents } = await supabase
+            .from('match_events')
+            .select('id')
+            .eq('match_id', match.id)
+            .limit(1);
+
+          if (!existingEvents || existingEvents.length === 0) {
+            try {
+              const eventsData = await this.callHighlightlyAPI(`events/${match.id}`);
+
+              if (eventsData && Array.isArray(eventsData) && eventsData.length > 0) {
+                for (const event of eventsData) {
+                  const eventRecord = {
+                    match_id: match.id,
+                    team_id: event.team?.id || null,
+                    player_id: null,
+                    player_name: event.player || null,
+                    event_type: event.type || 'Unknown',
+                    minute: event.time || null,
+                    added_time: 0,
+                    description: event.assist ? `Assist: ${event.assist}` : null,
+                    api_data: event
+                  };
+
+                  const { error: eventError } = await supabase
+                    .from('match_events')
+                    .insert(eventRecord);
+
+                  if (!eventError) {
+                    eventsUpdated++;
+                  }
+                }
+                console.log(`[MatchScheduler] ✅ Events updated for match ${match.id}`);
+              }
+            } catch (error) {
+              console.error(`[MatchScheduler] Error fetching events for match ${match.id}:`, error.message);
+            }
+          }
+
+          // 1. FETCH MATCH STATISTICS (moved after events)
           const { data: existingStats } = await supabase
             .from('match_statistics')
             .select('id')
             .eq('match_id', match.id)
             .limit(1);
 
-          if (existingStats && existingStats.length > 0) {
-            continue; // Already have stats
-          }
+          if (!existingStats || existingStats.length === 0) {
+            try {
+              const statsData = await this.callHighlightlyAPI(`statistics/${match.id}`);
 
-          // Fetch match statistics
-          const statsData = await this.callHighlightlyAPI('statistics', {
-            matchId: match.id
-          });
+              if (statsData && Array.isArray(statsData) && statsData.length >= 2) {
+                const statsRecord = {
+                  match_id: match.id,
+                  statistics: {
+                    home: statsData[0] || null,
+                    away: statsData[1] || null,
+                    raw_data: statsData
+                  }
+                };
 
-          if (statsData?.data) {
-            const statsRecord = {
-              match_id: match.id,
-              home_stats: statsData.data.home || null,
-              away_stats: statsData.data.away || null,
-              api_data: statsData.data
-            };
+                const { error: statsError } = await supabase
+                  .from('match_statistics')
+                  .upsert(statsRecord, { onConflict: 'match_id' });
 
-            const { error: statsError } = await supabase
-              .from('match_statistics')
-              .upsert(statsRecord, { onConflict: 'match_id' });
-
-            if (!statsError) {
-              statsUpdated++;
+                if (!statsError) {
+                  statsUpdated++;
+                  console.log(`[MatchScheduler] ✅ Statistics updated for match ${match.id}`);
+                }
+              }
+            } catch (error) {
+              console.error(`[MatchScheduler] Error fetching statistics for match ${match.id}:`, error.message);
             }
           }
 
-          await new Promise(resolve => setTimeout(resolve, 400));
+          // 2. FETCH HIGHLIGHTS
+          const { data: existingHighlights } = await supabase
+            .from('highlights')
+            .select('id')
+            .eq('match_id', match.id)
+            .limit(1);
+
+          if (!existingHighlights || existingHighlights.length === 0) {
+            try {
+              const highlightsData = await this.callHighlightlyAPI('highlights', {
+                matchId: match.id
+              });
+
+              if (highlightsData?.data && Array.isArray(highlightsData.data) && highlightsData.data.length > 0) {
+                for (const highlight of highlightsData.data) {
+                  const highlightRecord = {
+                    id: highlight.id || `${match.id}_${Date.now()}`,
+                    match_id: match.id,
+                    title: highlight.title || `${match.home_team_name || 'Home'} vs ${match.away_team_name || 'Away'} - Highlights`,
+                    url: highlight.url || highlight.videoUrl || '',
+                    thumbnail: highlight.thumbnail || highlight.thumbnailUrl || '',
+                    duration: highlight.duration || null,
+                    embed_url: highlight.embedUrl || highlight.embed_url || '',
+                    views: highlight.views || 0,
+                    quality: highlight.quality || 'HD',
+                    api_data: highlight
+                  };
+
+                  const { error: highlightError } = await supabase
+                    .from('highlights')
+                    .upsert(highlightRecord, { onConflict: 'id' });
+
+                  if (!highlightError) {
+                    highlightsUpdated++;
+                  }
+                }
+                console.log(`[MatchScheduler] ✅ Highlights updated for match ${match.id}`);
+              } else {
+                console.log(`[MatchScheduler] ⚠️ No highlights available for match ${match.id}`);
+              }
+            } catch (error) {
+              console.error(`[MatchScheduler] Error fetching highlights for match ${match.id}:`, error.message);
+            }
+          }
+
+          // 3. FETCH LINEUPS (if not already fetched)
+          const { data: existingLineups } = await supabase
+            .from('match_lineups')
+            .select('id')
+            .eq('match_id', match.id)
+            .limit(1);
+
+          if (!existingLineups || existingLineups.length === 0) {
+            try {
+              const lineupData = await this.callHighlightlyAPI(`lineups/${match.id}`);
+
+              if (lineupData) {
+                // Home team lineup
+                if (lineupData.homeTeam) {
+                  const homeLineup = lineupData.homeTeam;
+                  const homeLineupRecord = {
+                    match_id: match.id,
+                    team_id: match.home_team_id,
+                    formation: homeLineup.formation || null,
+                    players: homeLineup.initialLineup || [],
+                    substitutes: homeLineup.substitutes || [],
+                    coach: homeLineup.coach || null,
+                    api_data: homeLineup
+                  };
+
+                  const { error: homeLineupError } = await supabase
+                    .from('match_lineups')
+                    .upsert(homeLineupRecord, { onConflict: 'match_id,team_id' });
+
+                  if (!homeLineupError) {
+                    lineupsUpdated++;
+                  }
+                }
+
+                // Away team lineup
+                if (lineupData.awayTeam) {
+                  const awayLineup = lineupData.awayTeam;
+                  const awayLineupRecord = {
+                    match_id: match.id,
+                    team_id: match.away_team_id,
+                    formation: awayLineup.formation || null,
+                    players: awayLineup.initialLineup || [],
+                    substitutes: awayLineup.substitutes || [],
+                    coach: awayLineup.coach || null,
+                    api_data: awayLineup
+                  };
+
+                  const { error: awayLineupError } = await supabase
+                    .from('match_lineups')
+                    .upsert(awayLineupRecord, { onConflict: 'match_id,team_id' });
+
+                  if (!awayLineupError) {
+                    lineupsUpdated++;
+                  }
+                }
+                console.log(`[MatchScheduler] ✅ Lineups updated for match ${match.id}`);
+              }
+            } catch (error) {
+              console.error(`[MatchScheduler] Error fetching lineups for match ${match.id}:`, error.message);
+            }
+          }
+
+          // Update match flags
+          await supabase
+            .from('matches')
+            .update({
+              has_highlights: true,
+              has_lineups: true,
+              has_events: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', match.id);
+
+          // Rate limiting delay
+          await new Promise(resolve => setTimeout(resolve, 500));
 
         } catch (error) {
-          console.error(`[MatchScheduler] Error fetching stats for match ${match.id}:`, error.message);
+          console.error(`[MatchScheduler] Error processing match ${match.id}:`, error.message);
         }
       }
 
       if (finishedMatches.length > 0) {
-        console.log(`[MatchScheduler] Post-match sync complete: ${statsUpdated} match statistics updated`);
+        console.log(`[MatchScheduler] Post-match sync complete:`);
+        console.log(`  - Statistics: ${statsUpdated} updated`);
+        console.log(`  - Highlights: ${highlightsUpdated} updated`);
+        console.log(`  - Lineups: ${lineupsUpdated} updated`);
+        console.log(`  - Events: ${eventsUpdated} updated`);
       }
       this.status.postMatchSync.status = 'success';
       this.status.postMatchSync.errors = 0;
