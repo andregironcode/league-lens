@@ -39,65 +39,67 @@ const parseEventTime = (timeString: string): { minute: number; displayTime: stri
 const getScorelineEventsFromAPI = (matchEvents: any[], homeTeam: any, awayTeam: any): ScorelineEvent[] => {
   if (!matchEvents || !Array.isArray(matchEvents)) return [];
   
+  console.log(`[ScorelineTimeline] Processing ${matchEvents.length} events for scoreline...`);
+  console.log(`[ScorelineTimeline] Home team:`, { id: homeTeam?.id, name: homeTeam?.name });
+  console.log(`[ScorelineTimeline] Away team:`, { id: awayTeam?.id, name: awayTeam?.name });
+  console.log(`[ScorelineTimeline] Sample event structure:`, matchEvents[0]);
+  
   return matchEvents
     .map((event: any, index: number): ScorelineEvent | null => {
       try {
         let eventType: ScorelineEvent['type'];
-        const apiType = event.type?.toLowerCase() || '';
+        const apiType = event.type?.toLowerCase() || event.event_type?.toLowerCase() || '';
         
         // Only process key events: goals, cards, and substitutions
-        if (apiType.includes('goal') || apiType === 'goal') {
+        if (apiType.includes('goal') && !apiType.includes('own')) {
           eventType = 'goal';
-        } else if (apiType.includes('penalty') || apiType === 'penalty') {
+        } else if (apiType.includes('penalty')) {
           eventType = 'penalty';
         } else if (apiType.includes('own') && apiType.includes('goal')) {
           eventType = 'own_goal';
-        } else if (apiType.includes('yellow') || apiType === 'yellow card') {
+        } else if (apiType.includes('yellow')) {
           eventType = 'yellow_card';
-        } else if (apiType.includes('red') || apiType === 'red card') {
+        } else if (apiType.includes('red')) {
           eventType = 'red_card';
-        } else if (apiType.includes('substitution') || apiType === 'subst') {
+        } else if (apiType.includes('substitution')) {
           eventType = 'substitution';
         } else {
           return null; // Skip other events (VAR, fouls, etc.)
         }
         
-        // Determine which team this event belongs to using the same logic as MatchTimeline
+        // Determine which team this event belongs to - use our database structure
         let team: 'home' | 'away' = 'home'; // default to home
         
-        if (event.team && event.team.id) {
-          const eventTeamId = Number(event.team.id);
-          const homeTeamId = Number(homeTeam?.id);
-          const awayTeamId = Number(awayTeam?.id);
-          
-          console.log(`[ScorelineTimeline] Event analysis:`, {
-            eventPlayer: event.player,
-            eventTeamId,
-            eventTeamName: event.team.name,
-            homeTeamId,
-            homeTeamName: homeTeam?.name,
-            awayTeamId,
-            awayTeamName: awayTeam?.name,
-            isEventHomeTeam: eventTeamId === homeTeamId,
-            isEventAwayTeam: eventTeamId === awayTeamId
-          });
-          
-                  if (eventTeamId === homeTeamId) {
+        // Our database stores team_id directly, not nested in team object
+        const eventTeamId = Number(event.team_id);
+        const homeTeamId = Number(homeTeam?.id);
+        const awayTeamId = Number(awayTeam?.id);
+        
+        console.log(`[ScorelineTimeline] Event analysis:`, {
+          eventPlayer: event.player_name || event.player,
+          eventType: apiType,
+          eventTeamId,
+          homeTeamId,
+          awayTeamId,
+          isEventHomeTeam: eventTeamId === homeTeamId,
+          isEventAwayTeam: eventTeamId === awayTeamId
+        });
+        
+        if (eventTeamId === homeTeamId) {
           team = 'home';
-          console.log(`[ScorelineTimeline] ✅ ${event.player} (${event.team.name}) -> HOME side (left)`);
+          console.log(`[ScorelineTimeline] ✅ ${event.player_name || event.player} -> HOME side (left)`);
         } else if (eventTeamId === awayTeamId) {
           team = 'away';
-          console.log(`[ScorelineTimeline] ✅ ${event.player} (${event.team.name}) -> AWAY side (right)`);
+          console.log(`[ScorelineTimeline] ✅ ${event.player_name || event.player} -> AWAY side (right)`);
         } else {
-            console.warn(`[ScorelineTimeline] ⚠️  Unknown team for ${event.player}:`, {
-              eventTeamId,
-              homeTeamId,
-              awayTeamId
-            });
-          }
+          console.warn(`[ScorelineTimeline] ⚠️  Unknown team for ${event.player_name || event.player}:`, {
+            eventTeamId,
+            homeTeamId,
+            awayTeamId
+          });
         }
         
-        const playerName = event.player || 'Unknown Player';
+        const playerName = event.player_name || event.player || 'Unknown Player';
         const playerOut = event.substituted || undefined;
         const assist = event.assist || undefined;
         
@@ -109,12 +111,14 @@ const getScorelineEventsFromAPI = (matchEvents: any[], homeTeam: any, awayTeam: 
         } else if (eventType === 'yellow_card' || eventType === 'red_card') {
           description = 'Card shown';
         } else {
-          description = event.detail || 'Match event';
+          description = event.description || event.detail || 'Match event';
         }
         
-        const timeData = parseEventTime(event.time || '0');
+        // Use minute field from our database, fallback to time field
+        const eventTime = event.minute || event.time || '0';
+        const timeData = parseEventTime(eventTime.toString());
         
-        return {
+        const processedEvent = {
           id: `scoreline-event-${index}`,
           minute: timeData.minute,
           time: timeData.displayTime,
@@ -125,6 +129,9 @@ const getScorelineEventsFromAPI = (matchEvents: any[], homeTeam: any, awayTeam: 
           assist,
           description
         };
+        
+        console.log(`[ScorelineTimeline] Processed event:`, processedEvent);
+        return processedEvent;
       } catch (err) {
         console.error('Error processing scoreline event:', event, err);
         return null;
@@ -240,6 +247,8 @@ const ScorelineTimeline: React.FC<{
     );
   }
 
+  console.log(`[ScorelineTimeline] Rendering ${events.length} processed events`);
+
   return (
     <div className="space-y-4">
       {/* Scoreline Events with Key Events Design */}
@@ -271,6 +280,9 @@ const ScorelineTimeline: React.FC<{
                           <div className="text-gray-200 text-sm font-medium truncate">
                             {event.player}
                           </div>
+                          <div className="text-blue-400 text-xs truncate mt-[2px]">
+                            {getEventLabel(event.type)}
+                          </div>
                           {event.assist && (
                             <div className="text-gray-400 text-xs truncate mt-[5px]">
                               Assist: {event.assist}
@@ -281,11 +293,6 @@ const ScorelineTimeline: React.FC<{
                               Out: {event.playerOut}
                             </div>
                           )}
-                        </div>
-                        
-                        {/* Time */}
-                        <div className="text-white text-xs font-bold flex-shrink-0 min-w-[40px] text-center mr-1">
-                          {event.time}
                         </div>
                         
                         {/* Event Icon (closest to center) */}
@@ -305,19 +312,17 @@ const ScorelineTimeline: React.FC<{
                         style={{ borderRadius: '18px' }}
                       >
                         {/* Event Icon (closest to center) */}
-                        <div className="flex items-center justify-center flex-shrink-0 mr-1">
+                        <div className="flex items-center justify-center flex-shrink-0 mr-2">
                           {getEventIcon(event.type)}
-                        </div>
-                        
-                        {/* Time */}
-                        <div className="text-white text-xs font-bold flex-shrink-0 min-w-[40px] text-center mr-2">
-                          {event.time}
                         </div>
                         
                         {/* Player info (farthest from center) */}
                         <div className="flex-1 min-w-0">
                           <div className="text-gray-200 text-sm font-medium truncate">
                             {event.player}
+                          </div>
+                          <div className="text-red-400 text-xs truncate mt-[2px]">
+                            {getEventLabel(event.type)}
                           </div>
                           {event.assist && (
                             <div className="text-gray-400 text-xs truncate mt-[5px]">

@@ -126,10 +126,10 @@ const LeagueDetails: React.FC<LeagueDetailsProps> = ({ league, onBack }) => {
         } else if (Array.isArray(response)) {
           standingsData = response;
           console.log(`[LeaguePage] Using direct array response`);
-        } else if (response.data && Array.isArray(response.data)) {
+        } else if (response?.data && Array.isArray(response.data)) {
           standingsData = response.data;
           console.log(`[LeaguePage] Using response.data array`);
-        } else if (response.league && response.league.standings) {
+        } else if (response?.league?.standings) {
           standingsData = response.league.standings[0] || []; // First group of standings
           console.log(`[LeaguePage] Using response.league.standings[0]`);
         } else {

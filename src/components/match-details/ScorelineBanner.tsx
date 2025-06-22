@@ -111,8 +111,11 @@ const ScorelineBanner: React.FC<ScorelineBannerProps> = ({ match, timing }) => {
     <div className="flex items-center justify-center mb-6 w-full">
       {/* Home */}
       <div className="text-center flex-1">
-        <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-20 h-20 object-contain mx-auto mb-3" />
-        <div className="text-white font-medium text-lg truncate px-1">{match.homeTeam.name}</div>
+        <img src={match?.homeTeam?.logo || '/icons/default.svg'} 
+                   alt={match?.homeTeam?.name || 'Home Team'} 
+                   className="w-20 h-20 object-contain mx-auto mb-3"
+                   onError={(e) => { e.currentTarget.src = '/icons/default.svg'; }} />
+        <div className="text-white font-medium text-lg truncate px-1">{match?.homeTeam?.name || 'Home Team'}</div>
       </div>
 
       {/* Centre */}
@@ -141,8 +144,11 @@ const ScorelineBanner: React.FC<ScorelineBannerProps> = ({ match, timing }) => {
 
       {/* Away */}
       <div className="text-center flex-1">
-        <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-20 h-20 object-contain mx-auto mb-3" />
-        <div className="text-white font-medium text-lg truncate px-1">{match.awayTeam.name}</div>
+        <img src={match?.awayTeam?.logo || '/icons/default.svg'} 
+                   alt={match?.awayTeam?.name || 'Away Team'} 
+                   className="w-20 h-20 object-contain mx-auto mb-3"
+                   onError={(e) => { e.currentTarget.src = '/icons/default.svg'; }} />
+        <div className="text-white font-medium text-lg truncate px-1">{match?.awayTeam?.name || 'Away Team'}</div>
       </div>
     </div>
   );

@@ -427,6 +427,112 @@ class SupabaseDataService {
         return null;
       }
 
+      // Fetch lineups for this match
+      const { data: lineups, error: lineupsError } = await supabase
+        .from('match_lineups')
+        .select('*')
+        .eq('match_id', matchId);
+
+      if (lineupsError) {
+        console.error('[SupabaseData] Error fetching lineups:', lineupsError);
+      }
+
+      // Fetch events for this match
+      const { data: events, error: eventsError } = await supabase
+        .from('match_events')
+        .select('*')
+        .eq('match_id', matchId)
+        .order('minute', { ascending: true });
+
+      if (eventsError) {
+        console.error('[SupabaseData] Error fetching events:', eventsError);
+      }
+
+      // Process lineups into expected format
+      let processedLineups = null;
+      if (lineups && lineups.length > 0) {
+        const homeLineup = lineups.find(l => l.team_id === match.home_team_id);
+        const awayLineup = lineups.find(l => l.team_id === match.away_team_id);
+        
+        // Helper function to process lineup data
+        const processLineupData = (lineupData: any) => {
+          if (!lineupData || !lineupData.players) return [];
+          
+          // Check if players is already organized (nested arrays) or flat
+          if (Array.isArray(lineupData.players) && lineupData.players.length > 0) {
+            // If first element is an array, it's already organized by position
+            if (Array.isArray(lineupData.players[0])) {
+              console.log('[SupabaseData] Lineup already organized by formation');
+              return lineupData.players;
+            } else {
+              // If it's a flat array, organize by formation
+              console.log('[SupabaseData] Organizing flat lineup by formation');
+              const formation = lineupData.formation || '4-4-2';
+              const formationParts = formation.split('-').map(n => parseInt(n, 10));
+              const result = [];
+              let playerIndex = 0;
+              
+              // Goalkeeper (always 1)
+              if (lineupData.players.length > 0) {
+                result.push([lineupData.players[0]]);
+                playerIndex = 1;
+              }
+              
+              // Field players by formation
+              for (const lineSize of formationParts) {
+                const line = [];
+                for (let i = 0; i < lineSize && playerIndex < lineupData.players.length; i++) {
+                  line.push(lineupData.players[playerIndex]);
+                  playerIndex++;
+                }
+                if (line.length > 0) {
+                  result.push(line);
+                }
+              }
+              
+              return result;
+            }
+          }
+          
+          return [];
+        };
+        
+        if (homeLineup || awayLineup) {
+          processedLineups = {
+            homeTeam: homeLineup ? {
+              id: match.home_team.id,
+              name: match.home_team.name,
+              logo: match.home_team.logo,
+              formation: homeLineup.formation,
+              initialLineup: processLineupData(homeLineup),
+              substitutes: homeLineup.substitutes || []
+            } : null,
+            awayTeam: awayLineup ? {
+              id: match.away_team.id,
+              name: match.away_team.name,
+              logo: match.away_team.logo,
+              formation: awayLineup.formation,
+              initialLineup: processLineupData(awayLineup),
+              substitutes: awayLineup.substitutes || []
+            } : null
+          };
+        }
+      }
+
+      // Process events into expected format
+      let processedEvents = null;
+      if (events && events.length > 0) {
+        processedEvents = events.map(event => ({
+          id: event.id,
+          minute: event.minute,
+          addedTime: event.added_time,
+          type: event.event_type,
+          player: event.player_name,
+          team: event.team_id === match.home_team_id ? match.home_team.name : match.away_team.name,
+          description: event.description
+        }));
+      }
+
       // Transform to expected format
       const transformedMatch = {
         id: match.id,
@@ -457,10 +563,16 @@ class SupabaseDataService {
         season: match.season,
         hasHighlights: match.has_highlights,
         hasLineups: match.has_lineups,
-        hasEvents: match.has_events
+        hasEvents: match.has_events,
+        // Add the actual lineups and events data
+        lineups: processedLineups,
+        events: processedEvents
       };
 
       console.log(`[SupabaseData] Found match: ${match.home_team.name} vs ${match.away_team.name}`);
+      console.log(`[SupabaseData] Lineups: ${processedLineups ? 'Available' : 'None'}`);
+      console.log(`[SupabaseData] Events: ${processedEvents ? processedEvents.length : 0}`);
+      
       return transformedMatch;
 
     } catch (error) {

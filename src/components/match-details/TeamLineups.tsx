@@ -12,11 +12,11 @@ const PlayerRow: React.FC<{ player: Player }> = ({ player }) => (
     <div 
       className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white"
     >
-      {player.number}
+      {player.number || '?'}
     </div>
     <div>
-      <div className="font-semibold text-white text-base leading-tight">{player.name}</div>
-      <p className="text-sm font-normal text-gray-400">{player.position}</p>
+      <div className="font-semibold text-white text-base leading-tight">{player.name || 'Unknown Player'}</div>
+      <p className="text-sm font-normal text-gray-400">{player.position || 'Unknown'}</p>
     </div>
   </div>
 );
@@ -38,7 +38,7 @@ const FullLineupDisplay: React.FC<{
   }
 
   // Flatten the initial lineup for a single list view
-  const starters = lineup.initialLineup.flat();
+  const starters = lineup.initialLineup.flat().filter(player => player && player.name);
 
   return (
     <div className="space-y-6 mt-4">
@@ -67,16 +67,16 @@ const FullLineupDisplay: React.FC<{
         <div className="space-y-4 min-h-[400px] flex flex-col justify-around relative z-10 p-2">
           {lineup.initialLineup.map((row: Player[], rowIndex: number) => (
             <div key={rowIndex} className="flex justify-around items-center w-full">
-              {row.map((player: Player) => (
-                <div key={player.number} className="text-center w-24 flex-shrink-0">
+              {row.filter(player => player && player.name).map((player: Player) => (
+                <div key={player.number || Math.random()} className="text-center w-24 flex-shrink-0">
                   <div 
                     className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg mx-auto shadow-xl"
                     style={{ border: '3px solid rgba(255, 255, 255, 0.8)' }}
                   >
-                    {player.number}
+                    {player.number || '?'}
                   </div>
                   <p className="text-white text-sm font-medium mt-1.5 bg-black/70 px-2 py-1 rounded-full truncate">
-                    {player.name.split(' ').pop()}
+                    {player.name ? player.name.split(' ').pop() : 'Unknown'}
                   </p>
                 </div>
               ))}
@@ -93,8 +93,8 @@ const FullLineupDisplay: React.FC<{
       {/* Starters List */}
       <div className="space-y-3">
         <h3 className="text-xl font-bold text-white">Starting XI</h3>
-        {starters.map((player) => (
-          <PlayerRow key={`starter-${player.number}`} player={player} />
+        {starters.map((player, index) => (
+          <PlayerRow key={`starter-${player.number || index}`} player={player} />
         ))}
       </div>
 
@@ -109,9 +109,11 @@ const FullLineupDisplay: React.FC<{
         </button>
         {subsOpen && (
           <div className="space-y-2 pt-2">
-            {lineup.substitutes?.length > 0 ? lineup.substitutes.map((player) => (
-              <PlayerRow key={`sub-${player.number}`} player={player} />
-            )) : <p className="text-gray-400">No substitutes listed.</p>}
+            {lineup.substitutes?.length > 0 ? lineup.substitutes
+              .filter(player => player && player.name)
+              .map((player, index) => (
+                <PlayerRow key={`sub-${player.number || index}`} player={player} />
+              )) : <p className="text-gray-400">No substitutes listed.</p>}
           </div>
         )}
       </div>
@@ -147,7 +149,7 @@ const TeamLineups: React.FC<TeamLineupsProps> = ({ lineups }) => {
               : 'border-b-4 border-transparent text-gray-400 hover:text-white'
           }`}
         >
-          <img src={homeTeam.logo} alt={homeTeam.name} className="w-8 h-8"/>
+          <img src={homeTeam.logo || '/public/teams/default.png'} alt={homeTeam.name} className="w-8 h-8"/>
           <span>{homeTeam.name}</span>
         </button>
         {/* Away Tab */}
@@ -159,7 +161,7 @@ const TeamLineups: React.FC<TeamLineupsProps> = ({ lineups }) => {
               : 'border-b-4 border-transparent text-gray-400 hover:text-white'
           }`}
         >
-          <img src={awayTeam.logo} alt={awayTeam.name} className="w-8 h-8"/>
+          <img src={awayTeam.logo || '/public/teams/default.png'} alt={awayTeam.name} className="w-8 h-8"/>
           <span>{awayTeam.name}</span>
         </button>
       </div>

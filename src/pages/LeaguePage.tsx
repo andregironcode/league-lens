@@ -265,7 +265,7 @@ const LeaguePage: React.FC = () => {
             setPastMatches(past);
 
             // Calculate league statistics from match data
-            if (past.length > 0) {
+            if (past && Array.isArray(past) && past.length > 0) {
               let homeWins = 0;
               let awayWins = 0;
               let draws = 0;
@@ -273,7 +273,8 @@ const LeaguePage: React.FC = () => {
               let biggestWin: Match | null = null;
               let maxGoalDifference = -1;
 
-              past.forEach(match => {
+              (past || []).forEach(match => {
+                if (!match) return;
                 const score = getMatchScore(match);
                 if (score.home > score.away) homeWins++;
                 else if (score.away > score.home) awayWins++;
@@ -290,14 +291,16 @@ const LeaguePage: React.FC = () => {
                 }
               });
 
-              const totalGoals = past.reduce((sum, match) => {
+              const totalGoals = (past || []).reduce((sum, match) => {
+                if (!match) return sum;
                 const score = getMatchScore(match);
                 return sum + score.home + score.away;
               }, 0);
 
               // Calculate most frequent scorelines
               const scorelineMap = new Map<string, number>();
-              past.forEach(match => {
+              (past || []).forEach(match => {
+                if (!match) return;
                 const score = getMatchScore(match);
                 const scoreline = `${score.home}-${score.away}`;
                 scorelineMap.set(scoreline, (scorelineMap.get(scoreline) || 0) + 1);

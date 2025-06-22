@@ -560,8 +560,9 @@ const MatchDetails = () => {
             }}
           >
             <div className="absolute top-4 left-4 flex items-center gap-3">
-              {match.competition?.logo ? (
-                <img src={match.competition.logo} alt={match.competition.name || 'League'} className="w-5 h-5 object-contain rounded-full bg-white p-0.5" />
+              {(match?.competition?.logo) ? (
+                <img src={match.competition.logo} alt={match.competition?.name || 'League'} className="w-5 h-5 object-contain rounded-full bg-white p-0.5" 
+                     onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
                 <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
                   <span className="text-xs text-white">⚽</span>
@@ -579,7 +580,7 @@ const MatchDetails = () => {
               </button>
             </div>
 
-            <ScorelineBanner match={match} timing={timing} />
+            {match && <ScorelineBanner match={match} timing={timing} />}
 
             {/* Highlights Carousel - Now positioned between scoreline and timeline */}
             <div className="my-6">
