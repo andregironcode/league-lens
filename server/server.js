@@ -6,9 +6,13 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import cron from 'node-cron';
 import { getFromCache, setInCache, clearCache, getCacheStats } from './cache.js';
+import MatchScheduler from './services/matchScheduler.js';
 
 // Initialize environment variables
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
+
+// Initialize match scheduler
+const matchScheduler = new MatchScheduler();
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 3001;
@@ -192,11 +196,84 @@ app.use((req, res, next) => {
 // Health check endpoint with cache stats
 app.get('/api/health', async (req, res) => {
   const stats = await getCacheStats();
+  const schedulerStatus = matchScheduler.getStatus();
   res.json({ 
     status: 'ok', 
     message: 'Highlightly API Proxy Server is running',
-    cache: stats
+    cache: stats,
+    scheduler: schedulerStatus
   });
+});
+
+// Manual trigger for fetching upcoming matches (for testing)
+app.post('/api/admin/fetch-matches', async (req, res) => {
+  try {
+    console.log('[Server] Manual fetch triggered by admin...');
+    
+    // Force trigger the fetchUpcomingMatches method
+    await matchScheduler.fetchUpcomingMatches();
+    
+    res.json({ 
+      success: true, 
+      message: 'Match fetch completed',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('[Server] Manual fetch failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Match scheduler endpoints
+app.get('/api/scheduler/status', (req, res) => {
+  const status = matchScheduler.getStatus();
+  res.json(status);
+});
+
+app.post('/api/scheduler/start', async (req, res) => {
+  try {
+    matchScheduler.start();
+    res.json({ message: 'Match scheduler started successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to start match scheduler', details: error.message });
+  }
+});
+
+app.post('/api/scheduler/stop', (req, res) => {
+  matchScheduler.stop();
+  res.json({ message: 'Match scheduler stopped' });
+});
+
+// Upcoming matches endpoint for the frontend
+app.get('/api/upcoming-matches', async (req, res) => {
+  try {
+    const cacheKey = '/api/upcoming-matches';
+    const cachedData = await getFromCache(cacheKey);
+
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+
+    // This will be populated by the match scheduler
+    // For now, return empty data structure
+    const upcomingData = {
+      leagues: [],
+      lastUpdated: new Date().toISOString(),
+      scheduler: matchScheduler.getStatus()
+    };
+
+    // Cache for 30 minutes
+    await setInCache(cacheKey, upcomingData, 1800);
+    res.json(upcomingData);
+
+  } catch (error) {
+    console.error('[API] Error fetching upcoming matches:', error);
+    res.status(500).json({ error: 'Failed to fetch upcoming matches' });
+  }
 });
 
 // Cache management endpoints
@@ -323,10 +400,19 @@ cron.schedule('0 0 * * *', () => {
 });
 
 // Start the server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Highlightly API Proxy Server running on port ${PORT}`);
   console.log(`API URL: ${HIGHLIGHTLY_API_URL}`);
   console.log(`API Key: ${HIGHLIGHTLY_API_KEY ? '✓ Configured' : '✗ Missing'}`);
+  
+  // Initialize match scheduler
+  try {
+    console.log('[Server] Starting match scheduler...');
+    matchScheduler.start();
+    console.log('[Server] ✅ Match scheduler started successfully');
+  } catch (error) {
+    console.error('[Server] ❌ Failed to start match scheduler:', error);
+  }
   
   // Initial cache warming
   setTimeout(() => {

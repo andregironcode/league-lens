@@ -1,94 +1,34 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { MatchHighlight, LeagueWithMatches, Match } from '@/types';
+import React, { useState, useEffect } from 'react';
+import { MatchHighlight } from '@/types';
 import { supabaseDataService } from '@/services/supabaseDataService';
-import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
-import MatchFeedByLeague from '@/components/match-feed/MatchFeedByLeague';
-import TopLeaguesFilter from '@/components/TopLeaguesFilter';
-import DateSelector from '@/components/DateSelector';
-import { formatDateForAPI, getCurrentDateCET, get14DayDateRange } from '@/utils/dateUtils';
+import UpcomingMatches from '@/components/UpcomingMatches';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
-  const [featuredMatches, setFeaturedMatches] = useState<Match[]>([]);
-  const [recentMatches, setRecentMatches] = useState<LeagueWithMatches[]>([]);
-  const [selectedLeagueIds, setSelectedLeagueIds] = useState<string[]>([]);
-  const [selectedTopLeagueId, setSelectedTopLeagueId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [matchesLoading, setMatchesLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const fetchMatchesForDate = useCallback(async (date: string) => {
-    try {
-      setMatchesLoading(true);
-      setError(null);
-      console.log(`[Index] Fetching matches for date: ${date}`);
-      const matchesData = await supabaseDataService.getMatchesForDate(date);
-      console.log(`[Index] Received ${matchesData.length} leagues with matches for ${date}:`, matchesData);
-      setRecentMatches(matchesData);
-      
-      // If no matches found, provide helpful logging
-      if (matchesData.length === 0) {
-        console.warn(`[Index] No matches found for ${date}. This might be normal if the date is during off-season or if no games were scheduled.`);
-      }
-    } catch (err) {
-      console.error(`[Index] Error loading matches for date ${date}:`, err);
-      setError('Failed to load matches for the selected date.');
-    } finally {
-      setMatchesLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         setLoading(true);
         
-        // Fetch featured highlights for the hero carousel - now from Supabase!
+        // Fetch featured highlights for the hero carousel
         const highlightsData = await supabaseDataService.getRecentHighlights(10);
         setFeaturedHighlights(highlightsData);
-        setFeaturedMatches([]); // We now get highlights directly instead of featured matches
       } catch (err) {
-        console.error('[Index] Error loading highlights or featured matches:', err);
+        console.error('[Index] Error loading highlights:', err);
         setError('Failed to load featured content.');
       } finally {
         setLoading(false);
       }
-      
-      console.log(`[Index] Fetching matches for today's date`);
-      
-      const { dates } = get14DayDateRange();
-      const todayDate = dates[7]; // Middle of 14-day range (7 days past + today + 6 days future)
-      console.log(`[Index] Using today's date: ${todayDate} (position 7 in 14-day range)`);
-      
-      supabaseDataService.getMatchesForDate(todayDate)
-        .then(leaguesWithMatches => {
-          console.log(`[Index] Received ${leaguesWithMatches.length} leagues with matches for ${todayDate}`);
-          
-          if (leaguesWithMatches.length === 0) {
-            console.warn(`[Index] No matches found for ${todayDate}. This might be during off-season or a rest day.`);
-            console.warn(`[Index] Try using DateSlider to select different dates from the 14-day range`);
-          }
-          
-          setRecentMatches(leaguesWithMatches);
-        })
-        .catch(error => {
-          console.error('[Index] Error fetching matches:', error);
-          setRecentMatches([]);
-        })
-        .finally(() => {
-          setMatchesLoading(false);
-        });
     };
 
     loadInitialData();
   }, []);
-
-  const handleDateChange = (date: string) => {
-    fetchMatchesForDate(date);
-  };
   
-  if (error && !matchesLoading) {
+  if (error && !loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-center">
         <div>
@@ -111,32 +51,16 @@ const Index: React.FC = () => {
         {loading ? (
           <div className="w-full h-[50vh] max-h-[550px] bg-gray-800 rounded-lg animate-pulse"></div>
         ) : (
-          <HeroCarousel 
-            highlights={featuredHighlights} 
-            // Make sure the HeroCarousel component accepts these props or update it accordingly
-          />
+          <HeroCarousel highlights={featuredHighlights} />
         )}
       </section>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Recent Matches</h1>
-      </div>
-      
-      <div className="mb-8">
-        <DateSelector onDateChange={handleDateChange} />
-      </div>
-
-      <div className="rounded-3xl p-6 mb-8" style={{ backgroundColor: '#000000', border: '1px solid #1B1B1B' }}>
-        <MatchFeedByLeague 
-          leaguesWithMatches={recentMatches}
-          loading={matchesLoading}
-          selectedLeagueIds={[]}
-          onLeagueSelect={() => {}}
-          selectedCountryCode={null}
-        />
+      {/* Upcoming Matches Section - Shows both upcoming and recent matches */}
+      <div className="mb-12">
+        <UpcomingMatches />
       </div>
     </>
   );
 };
 
-export default Index;
+export default Index; 

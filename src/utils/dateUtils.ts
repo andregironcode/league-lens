@@ -35,6 +35,43 @@ export function formatDateForAPI(date: Date): string {
 }
 
 /**
+ * Format date for display (e.g., "June 22, 2025")
+ */
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
+/**
+ * Check if a date is today
+ */
+export function isToday(date: Date): boolean {
+  const today = new Date();
+  return date.toDateString() === today.toDateString();
+}
+
+/**
+ * Check if a date is tomorrow
+ */
+export function isTomorrow(date: Date): boolean {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return date.toDateString() === tomorrow.toDateString();
+}
+
+/**
+ * Check if a date is yesterday
+ */
+export function isYesterday(date: Date): boolean {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return date.toDateString() === yesterday.toDateString();
+}
+
+/**
  * Get date range for matches considering football calendar
  * June 2025: Off-season for most leagues, so we look at recent completed season
  * Returns array of date strings in YYYY-MM-DD format
