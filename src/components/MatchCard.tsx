@@ -50,15 +50,21 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
     stateDescription = (match.status.description as string)?.toLowerCase() || '';
   }
   
+  const matchDate = match.date || match.utc_date || match.match_date || '';
+  
+  // Check if match is in the past based on date
+  const isPastMatch = matchDate ? new Date(matchDate) < new Date() : false;
+  
   const isFinished = 
+    isPastMatch || // If match date is in the past, it's finished
     stateDescription.includes('finished') || 
     stateDescription.includes('full time') || 
     stateDescription.includes('ft') || 
     statusString.includes('finished') || 
     statusString.includes('ft') || 
+    statusString.includes('match finished') ||
+    statusString === 'ft' ||
     (match.state?.clock && match.state.clock >= 90);
-
-  const matchDate = match.date || match.utc_date || match.match_date || '';
   const formatMatchTime = (dateString: string) => {
     try {
       return format(new Date(dateString), 'HH:mm');
@@ -126,7 +132,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
             </div>
           ) : (
             <div className="text-gray-400 text-sm">
-              {formatMatchTime(match.date)}
+              {formatMatchTime(matchDate)}
             </div>
           )}
         </div>

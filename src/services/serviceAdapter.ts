@@ -34,6 +34,42 @@ export const serviceAdapter = {
   getActiveService(): ServiceType {
     return activeService;
   },
+  
+  /**
+   * Get live matches with real-time data
+   */
+  async getLiveMatches(options?: { bypassCache?: boolean }): Promise<Match[]> {
+    switch (activeService) {
+      case 'highlightly':
+        // Fetch live matches with cache bypass for real-time data
+        return highlightlyService.getLiveMatches(options);
+      case 'supabase':
+        // For now, fall back to regular matches
+        console.log('[ServiceAdapter] Real-time live matches not yet implemented for supabase');
+        return [];
+      case 'mock':
+      default:
+        // Mock service doesn't support live matches
+        return [];
+    }
+  },
+  
+  /**
+   * Get match details with real-time option
+   */
+  async getMatchDetails(matchId: string, options?: { realTime?: boolean }): Promise<Match | null> {
+    switch (activeService) {
+      case 'highlightly':
+        return highlightlyService.getMatchDetails(matchId, options);
+      case 'supabase':
+        // Supabase could potentially use real-time subscriptions here
+        console.log('[ServiceAdapter] Real-time match details not yet implemented for supabase');
+        return supabaseService.getMatchDetails(matchId);
+      case 'mock':
+      default:
+        return null;
+    }
+  },
 
   /**
    * Get recommended highlights
@@ -414,9 +450,14 @@ export const serviceAdapter = {
     const serviceName = this.getActiveService();
     switch (serviceName) {
       case 'highlightly':
-        return highlightlyService.getLastFiveGames(teamId);
+        try {
+          return await highlightlyService.getLastFiveGames(teamId);
+        } catch (error) {
+          console.warn('[ServiceAdapter] Highlightly failed, falling back to Supabase:', error);
+          return supabaseDataService.getLastFiveGames(teamId);
+        }
       default:
-        return mockService.getLastFiveGames(teamId);
+        return supabaseDataService.getLastFiveGames(teamId);
     }
   },
 
@@ -424,9 +465,14 @@ export const serviceAdapter = {
     const serviceName = this.getActiveService();
     switch (serviceName) {
       case 'highlightly':
-        return highlightlyService.getHeadToHead(teamId1, teamId2);
+        try {
+          return await highlightlyService.getHeadToHead(teamId1, teamId2);
+        } catch (error) {
+          console.warn('[ServiceAdapter] Highlightly failed, falling back to Supabase:', error);
+          return supabaseDataService.getHeadToHead(teamId1, teamId2);
+        }
       default:
-        return mockService.getHeadToHead(teamId1, teamId2);
+        return supabaseDataService.getHeadToHead(teamId1, teamId2);
     }
   },
 };

@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LEAGUE_PRIORITIES } from '@/utils/leaguePriority';
+import { useWebSocket, getWebSocketUrl } from '@/hooks/useWebSocket';
 
 interface FeedData {
   matches: Match[];
@@ -25,6 +26,9 @@ const EnhancedMatchFeed: React.FC = () => {
   const [feedData, setFeedData] = useState<FeedData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // WebSocket connection for real-time updates
+  const { isConnected, subscribe, on } = useWebSocket(getWebSocketUrl());
 
   useEffect(() => {
     const fetchFeedData = async () => {
@@ -48,18 +52,95 @@ const EnhancedMatchFeed: React.FC = () => {
 
     fetchFeedData();
     
-    // Refresh every minute for live matches
-    const interval = setInterval(fetchFeedData, 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+    // Dynamic refresh based on whether we have live matches
+    let interval: NodeJS.Timeout;
+    
+    const setupInterval = () => {
+      // Check if we have any live matches
+      const hasLiveMatches = feedData?.matches?.some(match => {
+        const status = match.status?.toLowerCase() || '';
+        return status.includes('live') || status.includes('half') || status.includes('1h') || status.includes('2h');
+      });
+      
+      // Use shorter interval for live matches
+      const refreshInterval = hasLiveMatches ? 10000 : 60000; // 10s for live, 60s otherwise
+      console.log(`[EnhancedMatchFeed] Setting refresh interval to ${refreshInterval}ms (live: ${hasLiveMatches})`);
+      
+      interval = setInterval(fetchFeedData, refreshInterval);
+    };
+    
+    setupInterval();
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [feedData]);
+  
+  // Subscribe to WebSocket updates
+  useEffect(() => {
+    if (!isConnected) return;
+    
+    // Subscribe to live match updates
+    subscribe(undefined, undefined, 'live');
+    
+    // Handle match updates
+    const unsubscribeMatchUpdate = on('match:update', (message) => {
+      console.log('[EnhancedMatchFeed] Received match update:', message.matchId);
+      
+      // Update the specific match in feedData
+      setFeedData(prev => {
+        if (!prev) return prev;
+        
+        const updatedMatches = prev.matches.map(match => 
+          match.id === message.matchId ? { ...match, ...message.data } : match
+        );
+        
+        return {
+          ...prev,
+          matches: updatedMatches,
+          lastUpdated: new Date().toISOString()
+        };
+      });
+    });
+    
+    // Handle new live matches
+    const unsubscribeMatchLive = on('match:live', (message) => {
+      console.log('[EnhancedMatchFeed] Match went live:', message.matchId);
+      // Trigger a full refresh to get the latest data
+      const fetchFeedData = async () => {
+        try {
+          const response = await fetch('/api/feed/matches');
+          if (response.ok) {
+            const data: FeedData = await response.json();
+            setFeedData(data);
+          }
+        } catch (err) {
+          console.error('[EnhancedMatchFeed] Error refreshing on live match:', err);
+        }
+      };
+      fetchFeedData();
+    });
+    
+    return () => {
+      unsubscribeMatchUpdate();
+      unsubscribeMatchLive();
+    };
+  }, [isConnected, subscribe, on]);
 
   const formatMatchDate = (dateString: string) => {
     try {
       const date = parseISO(dateString);
+      const now = new Date();
+      
+      // Check if the date is actually valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date:', dateString);
+        return dateString;
+      }
+      
       if (isToday(date)) return 'Today';
       if (isTomorrow(date)) return 'Tomorrow';
       
-      const now = new Date();
       const yesterday = new Date(now);
       yesterday.setDate(now.getDate() - 1);
       
@@ -69,7 +150,8 @@ const EnhancedMatchFeed: React.FC = () => {
       
       // For dates far in the past or future, show full date
       return format(date, 'EEE, MMM d, yyyy');
-    } catch {
+    } catch (error) {
+      console.error('Error formatting date:', dateString, error);
       return dateString;
     }
   };
@@ -206,7 +288,7 @@ const EnhancedMatchFeed: React.FC = () => {
                         {/* Time and League */}
                         <div className="flex items-center space-x-4 min-w-0 flex-shrink-0">
                           <div className="text-sm text-gray-400 font-medium w-16">
-                            {match.utc_date ? format(parseISO(match.utc_date), 'HH:mm') : 'TBD'}
+                            {match.utc_date || match.match_date ? format(parseISO(match.utc_date || match.match_date), 'HH:mm') : 'TBD'}
                           </div>
                           
                           <div className="flex items-center space-x-2">

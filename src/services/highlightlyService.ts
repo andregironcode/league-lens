@@ -724,11 +724,37 @@ export const highlightlyService = {
   },
 
   /**
+   * Get live matches with real-time data
+   */
+  async getLiveMatches(options?: { bypassCache?: boolean }): Promise<Match[]> {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await highlightlyClient.getMatchesByDate(today, {
+        live: 'true',
+        ...(options?.bypassCache && { bypassCache: true })
+      });
+      
+      // Filter for actually live matches
+      return (response || []).filter(match => {
+        const status = (match.status || '').toLowerCase();
+        return status.includes('live') || 
+               status.includes('1h') || 
+               status.includes('2h') || 
+               status.includes('half');
+      });
+    } catch (error) {
+      console.error('Error fetching live matches from Highlightly:', error);
+      return [];
+    }
+  },
+
+  /**
    * Get match details - trusting API response
    */
-  async getMatchDetails(matchId: string): Promise<Match | null> {
+  async getMatchDetails(matchId: string, options?: { realTime?: boolean }): Promise<Match | null> {
     try {
-      const response = await highlightlyClient.getMatchById(matchId);
+      const requestOptions = options?.realTime ? { bypassCache: true, realTime: true } : undefined;
+      const response = await highlightlyClient.getMatchById(matchId, requestOptions);
       return Array.isArray(response) && response.length > 0 ? response[0] : response;
     } catch (error) {
       console.error('Error fetching match details from Highlightly:', error);

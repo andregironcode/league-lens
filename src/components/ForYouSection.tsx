@@ -42,10 +42,20 @@ const ForYouSection: React.FC = () => {
 
     fetchForYouMatches();
     
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchForYouMatches, 5 * 60 * 1000);
+    // Dynamic refresh - more frequent for recent matches
+    const hasRecentMatches = matches.some(match => {
+      const matchDate = new Date(match.utc_date || match.match_date || match.date);
+      const hoursSinceMatch = (Date.now() - matchDate.getTime()) / (1000 * 60 * 60);
+      return hoursSinceMatch < 24; // Match within last 24 hours
+    });
+    
+    // Refresh every 30 seconds for recent matches, 5 minutes otherwise
+    const refreshInterval = hasRecentMatches ? 30 * 1000 : 5 * 60 * 1000;
+    console.log(`[ForYouSection] Setting refresh interval to ${refreshInterval}ms (recent: ${hasRecentMatches})`);
+    
+    const interval = setInterval(fetchForYouMatches, refreshInterval);
     return () => clearInterval(interval);
-  }, []);
+  }, [matches]);
 
   if (loading) {
     return (
@@ -96,10 +106,13 @@ const ForYouSection: React.FC = () => {
               <MatchCard 
                 match={{
                   ...match,
-                  date: match.utc_date || match.match_date,
-                  homeTeam: match.home_team,
-                  awayTeam: match.away_team,
-                  league: match.league || { name: 'League', logo: '' }
+                  date: match.utc_date || match.match_date || match.date,
+                  homeTeam: match.home_team || match.homeTeam || { id: match.home_team_id, name: 'TBD', logo: '' },
+                  awayTeam: match.away_team || match.awayTeam || { id: match.away_team_id, name: 'TBD', logo: '' },
+                  league: match.league || { name: 'League', logo: '' },
+                  status: match.status || match.state || {},
+                  state: match.state || {},
+                  score: match.home_score && match.away_score ? { home: match.home_score, away: match.away_score } : match.score
                 } as any} 
                 showLeague={true}
                 className={index === 0 ? 'border-[#FFC30B]' : ''}

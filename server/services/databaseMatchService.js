@@ -123,19 +123,34 @@ class DatabaseMatchService {
       }
 
       // Transform matches to expected format
-      const transformedMatches = matches.map(match => ({
-        id: parseInt(match.id) || match.id,
-        competition_id: parseInt(match.league_id) || match.league_id,
-        home_team: match.home_team || { id: match.home_team_id, name: 'Unknown', logo: '/teams/default.png' },
-        away_team: match.away_team || { id: match.away_team_id, name: 'Unknown', logo: '/teams/default.png' },
-        home_score: match.home_score,
-        away_score: match.away_score,
-        utc_date: match.api_data?.date || match.match_date,
-        match_date: match.match_date,
-        status: match.status,
-        venue: match.venue,
-        league: match.leagues
-      }));
+      const transformedMatches = matches.map(match => {
+        // Ensure we have a valid date
+        const matchDate = match.match_date || match.api_data?.date;
+        const dateObj = matchDate ? new Date(matchDate) : null;
+        
+        // Create ISO date string with time if available
+        let utcDate = matchDate;
+        if (dateObj && match.api_data?.time) {
+          const [hours, minutes] = match.api_data.time.split(':');
+          dateObj.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
+          utcDate = dateObj.toISOString();
+        }
+        
+        return {
+          id: parseInt(match.id) || match.id,
+          competition_id: parseInt(match.league_id) || match.league_id,
+          home_team: match.home_team || { id: match.home_team_id, name: 'Unknown', logo: '/teams/default.png' },
+          away_team: match.away_team || { id: match.away_team_id, name: 'Unknown', logo: '/teams/default.png' },
+          home_score: match.home_score,
+          away_score: match.away_score,
+          utc_date: utcDate,
+          match_date: match.match_date,
+          date: utcDate, // Add date field for consistency
+          status: match.status,
+          venue: match.venue,
+          league: match.leagues
+        };
+      });
 
       // Get top 8 leagues with upcoming games
       // If no upcoming games, just get leagues with any matches in the range
@@ -224,22 +239,37 @@ class DatabaseMatchService {
       }
 
       // Transform matches
-      const transformedMatches = matches.map(match => ({
-        id: parseInt(match.id) || match.id,
-        competition_id: parseInt(match.league_id) || match.league_id,
-        home_team_id: parseInt(match.home_team_id) || match.home_team_id,
-        away_team_id: parseInt(match.away_team_id) || match.away_team_id,
-        home_team: match.home_team || { id: match.home_team_id, name: 'Unknown', logo: '/teams/default.png' },
-        away_team: match.away_team || { id: match.away_team_id, name: 'Unknown', logo: '/teams/default.png' },
-        home_score: match.home_score,
-        away_score: match.away_score,
-        utc_date: match.api_data?.date || match.match_date,
-        match_date: match.match_date,
-        status: match.status,
-        venue: match.venue,
-        stage: match.round,
-        league: match.leagues
-      }));
+      const transformedMatches = matches.map(match => {
+        // Ensure we have a valid date
+        const matchDate = match.match_date || match.api_data?.date;
+        const dateObj = matchDate ? new Date(matchDate) : null;
+        
+        // Create ISO date string with time if available
+        let utcDate = matchDate;
+        if (dateObj && match.api_data?.time) {
+          const [hours, minutes] = match.api_data.time.split(':');
+          dateObj.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
+          utcDate = dateObj.toISOString();
+        }
+        
+        return {
+          id: parseInt(match.id) || match.id,
+          competition_id: parseInt(match.league_id) || match.league_id,
+          home_team_id: parseInt(match.home_team_id) || match.home_team_id,
+          away_team_id: parseInt(match.away_team_id) || match.away_team_id,
+          home_team: match.home_team || { id: match.home_team_id, name: 'Unknown', logo: '/teams/default.png' },
+          away_team: match.away_team || { id: match.away_team_id, name: 'Unknown', logo: '/teams/default.png' },
+          home_score: match.home_score,
+          away_score: match.away_score,
+          utc_date: utcDate,
+          match_date: match.match_date,
+          date: utcDate, // Add date field for consistency
+          status: match.status,
+          venue: match.venue,
+          stage: match.round,
+          league: match.leagues
+        };
+      });
 
       // Fetch standings for all leagues
       const leagueIds = [...new Set(transformedMatches.map(m => m.competition_id))];

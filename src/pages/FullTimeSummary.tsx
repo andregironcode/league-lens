@@ -706,7 +706,8 @@ const MatchStatsChart: React.FC<{ homeTeam: any; awayTeam: any; matchStatistics?
     if (youtubeMatch) {
       const videoId = youtubeMatch[1];
       console.log('[FullTimeSummary] YouTube video ID:', videoId);
-      return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`;
+      // Use youtube-nocookie.com for better privacy and fewer restrictions
+      return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1`;
     }
     
     // For other video URLs, try to use them directly
@@ -1883,14 +1884,19 @@ const FullTimeSummary: React.FC = () => {
           <h4 className="text-lg font-semibold mb-4 text-center text-white">MATCH HIGHLIGHTS</h4>
           
             {match.videoUrl && isValidVideoUrl(match.videoUrl) ? (
-              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+              <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
                 <iframe
                   src={getVideoEmbedUrl(match.videoUrl)}
                   title={`${match.homeTeam.name} vs ${match.awayTeam.name} Highlights`}
                   className="w-full h-full"
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error('[FullTimeSummary] Video embed error:', e);
+                  }}
                 />
               </div>
             ) : (

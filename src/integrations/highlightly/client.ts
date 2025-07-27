@@ -13,6 +13,23 @@
  * - Smart TTL based on data type
  */
 
+// Rate limiting tracking
+const rateLimitInfo = {
+  isLimited: false,
+  resetTime: 0,
+  requestCount: 0,
+  windowStart: Date.now(),
+  requestsPerWindow: 100, // Estimated API limit
+  windowDuration: 60000 // 1 minute window
+};
+
+// Request queue for managing rate limits
+const requestQueue: Array<{
+  execute: () => Promise<any>;
+  priority: number;
+}> = [];
+let isProcessingQueue = false;
+
 // Use our local proxy server URL for development and Vercel API for production
 const isDevelopment = import.meta.env.DEV;
 const PROXY_URL = isDevelopment 
@@ -91,13 +108,22 @@ function isCacheValid<T>(cacheKey: string): boolean {
 /**
  * Get data from cache
  */
-function getFromCache<T>(cacheKey: string): T | null {
-  if (isCacheValid<T>(cacheKey)) {
-    const entry = cache[cacheKey];
+function getFromCache<T>(cacheKey: string, allowStale = false): T | null {
+  const entry = cache[cacheKey];
+  if (!entry) return null;
+  
+  const isValid = isCacheValid<T>(cacheKey);
+  
+  if (isValid) {
     const remainingTTL = Math.round((entry.ttl - (Date.now() - entry.timestamp)) / 1000);
     console.log(`[Highlightly] Cache HIT for ${cacheKey} (${remainingTTL}s remaining)`);
     return entry.data;
+  } else if (allowStale) {
+    const age = Math.round((Date.now() - entry.timestamp) / 1000);
+    console.log(`[Highlightly] Returning STALE cache for ${cacheKey} (${age}s old)`);
+    return entry.data;
   }
+  
   return null;
 }
 
@@ -153,17 +179,33 @@ function clearCache(cacheKey?: string): void {
  * Handle API rate limiting with exponential backoff
  */
 async function handleRateLimit(retryCount: number): Promise<void> {
-  // Exponential backoff: 2s, 4s, 8s, 16s, etc.
-  const delay = Math.pow(2, retryCount + 1) * 1000;
-  console.log(`[Highlightly] Rate limited! Retrying in ${delay}ms (attempt ${retryCount + 1})`);
+  // Smart backoff with jitter to avoid thundering herd
+  const baseDelay = Math.min(Math.pow(2, retryCount) * 500, 30000); // Start at 500ms, cap at 30s
+  const jitter = Math.random() * 500; // Add 0-500ms random jitter
+  const delay = baseDelay + jitter;
+  console.log(`[Highlightly] Rate limited! Retrying in ${Math.round(delay)}ms (attempt ${retryCount + 1})`);
+  
+  // Update rate limit info
+  rateLimitInfo.isLimited = true;
+  rateLimitInfo.resetTime = Date.now() + delay;
   
   return new Promise(resolve => setTimeout(resolve, delay));
+}
+
+interface RequestOptions {
+  bypassCache?: boolean;
+  realTime?: boolean;
 }
 
 /**
  * Make a request to the Highlightly API with caching, deduplication, and rate limit handling
  */
-async function apiRequest<T>(endpoint: string, params: Record<string, string> = {}, retryCount = 0): Promise<T> {
+async function apiRequest<T>(
+  endpoint: string, 
+  params: Record<string, string> = {}, 
+  retryCount = 0,
+  options: RequestOptions = {}
+): Promise<T> {
   // Build query string from params
   const queryParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -179,9 +221,11 @@ async function apiRequest<T>(endpoint: string, params: Record<string, string> = 
     return pendingRequests.get(cacheKey);
   }
   
-  // Check cache first
-  const cachedData = getFromCache<T>(cacheKey);
-  if (cachedData) return cachedData;
+  // Skip cache for real-time requests
+  if (!options.bypassCache && !options.realTime) {
+    const cachedData = getFromCache<T>(cacheKey);
+    if (cachedData) return cachedData;
+  }
   
   // Build full URL
   const url = `${PROXY_URL}${endpoint}?${queryParams.toString()}`;
@@ -189,9 +233,19 @@ async function apiRequest<T>(endpoint: string, params: Record<string, string> = 
   // Create and store the request promise
   const requestPromise = (async (): Promise<T> => {
     try {
-      console.log(`[Highlightly] Fetching ${url}`);
+      console.log(`[Highlightly] Fetching ${url}${options.realTime ? ' (real-time)' : ''}`);
       
-      const response = await fetch(url, { headers });
+      // Add cache control headers for real-time
+      const fetchHeaders = {
+        ...headers,
+        ...(options.realTime && {
+          'Cache-Control': 'no-cache',
+          'X-Bypass-Cache': 'true',
+          'X-Real-Time': 'true'
+        })
+      };
+      
+      const response = await fetch(url, { headers: fetchHeaders });
       
       // Log the response status for debugging
       console.log(`[Highlightly] Response status: ${response.status} ${response.statusText}`);
@@ -204,13 +258,45 @@ async function apiRequest<T>(endpoint: string, params: Record<string, string> = 
       
       // Handle rate limiting
       if (response.status === 429) {
-        if (retryCount < 3) { // Max 3 retry attempts
-          await handleRateLimit(retryCount);
+        // Extract rate limit headers if available
+        const retryAfter = response.headers.get('Retry-After');
+        const rateLimitReset = response.headers.get('X-RateLimit-Reset');
+        const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining');
+        
+        if (rateLimitRemaining) {
+          console.log(`[Highlightly] Rate limit remaining: ${rateLimitRemaining}`);
+        }
+        
+        if (retryCount < 10) { // Increase max retries to 10
+          let waitTime = 0;
+          if (retryAfter) {
+            waitTime = parseInt(retryAfter) * 1000;
+            console.log(`[Highlightly] Server says retry after ${waitTime}ms`);
+          } else if (rateLimitReset) {
+            waitTime = Math.max(0, parseInt(rateLimitReset) * 1000 - Date.now());
+            console.log(`[Highlightly] Rate limit resets at ${new Date(parseInt(rateLimitReset) * 1000).toISOString()}`);
+          } else {
+            // Use our smart backoff
+            await handleRateLimit(retryCount);
+            pendingRequests.delete(cacheKey);
+            return apiRequest<T>(endpoint, params, retryCount + 1, options);
+          }
+          
+          if (waitTime > 0) {
+            await new Promise(resolve => setTimeout(resolve, Math.min(waitTime, 60000))); // Cap wait at 60s
+          }
+          
           // Remove from pending requests before retry
           pendingRequests.delete(cacheKey);
           return apiRequest<T>(endpoint, params, retryCount + 1);
         } else {
           console.error(`[Highlightly] Rate limit exceeded after ${retryCount} retries`);
+          // Return cached data if available as last resort
+          const staleData = getFromCache<T>(cacheKey, true);
+          if (staleData) {
+            console.log(`[Highlightly] Returning stale cached data for ${endpoint}`);
+            return staleData;
+          }
           throw new Error(`Rate limit exceeded: too many requests to Highlightly API`);
         }
       }
@@ -364,10 +450,20 @@ export const highlightlyClient = {
   },
   
   /**
+   * Get matches by date
+   */
+  async getMatchesByDate(date: string, params?: { live?: string; [key: string]: any }, options?: RequestOptions) {
+    return apiRequest<any[]>('/matches', { 
+      date,
+      ...params 
+    }, 0, options);
+  },
+
+  /**
    * Get match by ID
    */
-  async getMatchById(matchId: string) {
-    return apiRequest<any>(`/matches/${matchId}`);
+  async getMatchById(matchId: string, options?: RequestOptions) {
+    return apiRequest<any>(`/matches/${matchId}`, {}, 0, options);
   },
   
   /**

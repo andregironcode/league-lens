@@ -523,6 +523,9 @@ export const supabaseService = {
   // Removed transformTableRows and transformFixtures - trust API responses directly
 };
 
+// Import real-time methods from supabaseDataService
+import { supabaseDataService } from './supabaseDataService';
+
 // Export functions individually for easier importing
 export const {
   getRecommendedHighlights,
@@ -530,13 +533,25 @@ export const {
   getMatchById,
   getTeamHighlights,
   getTeamDetails,
-  searchHighlights
+  searchHighlights,
+  // Add real-time methods
+  subscribeToMatch,
+  subscribeToLiveMatches,
+  subscribeToMatchEvents,
+  unsubscribe,
+  unsubscribeAll
 } = {
   // Map the functions to match the original service signatures
   getRecommendedHighlights: supabaseService.getRecommendedHighlights.bind(supabaseService),
   getLeagueHighlights: supabaseService.getLeagueHighlights.bind(supabaseService),
   getMatchById: (id: string) => supabaseService.getMatchHighlightById(id),
   getTeamHighlights: (teamId: string) => supabaseService.getMatchHighlightsByTeam(teamId),
+  // Real-time methods from supabaseDataService
+  subscribeToMatch: supabaseDataService.subscribeToMatch.bind(supabaseDataService),
+  subscribeToLiveMatches: supabaseDataService.subscribeToLiveMatches.bind(supabaseDataService),
+  subscribeToMatchEvents: supabaseDataService.subscribeToMatchEvents.bind(supabaseDataService),
+  unsubscribe: supabaseDataService.unsubscribe.bind(supabaseDataService),
+  unsubscribeAll: supabaseDataService.unsubscribeAll.bind(supabaseDataService),
   getTeamDetails: (teamId: string) => supabaseService.getTeamDetails(teamId),
   searchHighlights: (query: string) => supabaseService.searchHighlights(query)
 };

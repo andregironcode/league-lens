@@ -11,20 +11,35 @@ let memoryCache = {};
 const getCacheTTL = (endpoint) => {
   const endpointLower = endpoint.toLowerCase();
   
+  // LIVE matches should have minimal or no caching
+  if (endpointLower.includes('/matches') && endpointLower.includes('live=true')) {
+    return 0; // No caching for live matches
+  }
+  
+  // In-progress matches need very short cache
+  if (endpointLower.includes('/matches') && endpointLower.includes('status=live')) {
+    return 10; // 10 seconds max for live matches
+  }
+  
+  // Head-to-head and last five games - short cache for recent data
+  if (endpointLower.includes('/head-2-head') || endpointLower.includes('/last-five-games')) {
+    return 300; // 5 minutes
+  }
+  
   // Live match data - very short cache
   if (endpointLower.includes('/matches') && endpointLower.includes('date=')) {
     const today = new Date().toISOString().split('T')[0];
     if (endpointLower.includes(today)) {
-      return 300; // 5 minutes for today's matches (live data)
+      return 30; // 30 seconds for today's matches
     }
     return 3600; // 1 hour for past/future matches
   }
   
   // Highlights - medium cache
-  if (endpointLower.includes('/highlights')) return 3600; // 1 hour
+  if (endpointLower.includes('/highlights')) return 1800; // 30 minutes
   
   // Standings - dynamic cache
-  if (endpointLower.includes('/standings')) return 1800; // 30 minutes
+  if (endpointLower.includes('/standings')) return 900; // 15 minutes
   
   // Static league info - long cache
   if (endpointLower.includes('/leagues/') && !endpointLower.includes('matches')) {
@@ -34,16 +49,23 @@ const getCacheTTL = (endpoint) => {
   // Team info - medium-long cache
   if (endpointLower.includes('/teams/')) return 43200; // 12 hours
   
-  // Statistics and events - short cache
+  // Statistics and events - very short cache for live data
   if (endpointLower.includes('/statistics') || endpointLower.includes('/events')) {
-    return 600; // 10 minutes
+    return 15; // 15 seconds for live match events
   }
   
-  // Lineups - medium cache
-  if (endpointLower.includes('/lineups')) return 7200; // 2 hours
+  // Lineups - short cache
+  if (endpointLower.includes('/lineups')) return 300; // 5 minutes
   
   // Default cache
   return 86400; // 24 hours
+};
+
+// Add cache bypass header support
+export const shouldBypassCache = (req) => {
+  return req.headers['x-bypass-cache'] === 'true' || 
+         req.query.live === 'true' ||
+         req.headers['cache-control'] === 'no-cache';
 };
 
 // Ensure cache directory exists
@@ -83,17 +105,28 @@ const writeCache = async (data) => {
   }
 };
 
-export const getFromCache = async (key) => {
+export const getFromCache = async (key, allowStale = false) => {
   const cache = await readCache();
   const cachedItem = cache[key];
-
-  if (cachedItem && Date.now() < cachedItem.expiry) {
+  
+  if (!cachedItem) {
+    console.log(`[Cache] MISS for key: ${key}`);
+    return null;
+  }
+  
+  const isExpired = Date.now() >= cachedItem.expiry;
+  
+  if (!isExpired) {
     const remainingTTL = Math.round((cachedItem.expiry - Date.now()) / 1000);
     console.log(`[Cache] HIT for key: ${key} (${remainingTTL}s remaining)`);
     return cachedItem.data;
+  } else if (allowStale) {
+    const ageInSeconds = Math.round((Date.now() - cachedItem.expiry) / 1000);
+    console.log(`[Cache] STALE HIT for key: ${key} (expired ${ageInSeconds}s ago)`);
+    return cachedItem.data;
   }
-
-  console.log(`[Cache] MISS for key: ${key}`);
+  
+  console.log(`[Cache] MISS for key: ${key} (expired)`);
   return null;
 };
 

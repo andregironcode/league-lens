@@ -5,11 +5,13 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import cron from 'node-cron';
-import { getFromCache, setInCache, clearCache, getCacheStats } from './cache.js';
+import { createServer } from 'http';
+import { getFromCache, setInCache, clearCache, getCacheStats, shouldBypassCache } from './cache.js';
 import MatchScheduler from './services/matchScheduler.js';
 import EnhancedMatchScheduler from './services/enhancedMatchScheduler.js';
 import MatchService from './services/matchService.js';
 import DatabaseMatchService from './services/databaseMatchService.js';
+import MatchWebSocketServer from './websocket.js';
 
 // Initialize environment variables
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
@@ -40,20 +42,85 @@ const topLeaguesConfig = [
   { id: '2486', name: 'UEFA Champions League' },
 ];
 
-const callHighlightlyApi = async (path) => {
+// Rate limit tracking
+const rateLimitState = {
+    retryAfter: 0,
+    lastRequest: 0,
+    requestCount: 0,
+    windowStart: Date.now()
+};
+
+const callHighlightlyApi = async (path, retryCount = 0) => {
     const requestUrl = `${HIGHLIGHTLY_API_URL}/${path}`;
+    
+    // Check if we need to wait before making request
+    const now = Date.now();
+    if (rateLimitState.retryAfter > now) {
+        const waitTime = rateLimitState.retryAfter - now;
+        console.log(`[API] Rate limited - waiting ${waitTime}ms before request`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    // Add small delay between requests to avoid hitting rate limits
+    const timeSinceLastRequest = now - rateLimitState.lastRequest;
+    if (timeSinceLastRequest < 100) {
+        await new Promise(resolve => setTimeout(resolve, 100 - timeSinceLastRequest));
+    }
+    
     try {
         console.log(`[API] Calling: ${requestUrl}`);
+        rateLimitState.lastRequest = Date.now();
+        
         const response = await axios.get(requestUrl, {
             headers: {
                 'x-api-key': HIGHLIGHTLY_API_KEY,
                 'x-rapidapi-key': HIGHLIGHTLY_API_KEY,
+                'User-Agent': 'LeagueLens/1.0',
             },
             timeout: 30000,
+            validateStatus: status => status < 500 // Don't throw on 4xx errors
         });
+        
+        // Handle rate limiting
+        if (response.status === 429) {
+            const retryAfter = response.headers['retry-after'];
+            const rateLimitReset = response.headers['x-ratelimit-reset'];
+            
+            let waitTime = 1000; // Default 1 second
+            
+            if (retryAfter) {
+                waitTime = parseInt(retryAfter) * 1000;
+            } else if (rateLimitReset) {
+                waitTime = Math.max(0, parseInt(rateLimitReset) * 1000 - Date.now());
+            } else {
+                // Exponential backoff
+                waitTime = Math.min(Math.pow(2, retryCount) * 1000, 30000);
+            }
+            
+            rateLimitState.retryAfter = Date.now() + waitTime;
+            
+            if (retryCount < 5) {
+                console.log(`[API] Rate limited (429) - retrying after ${waitTime}ms (attempt ${retryCount + 1})`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+                return callHighlightlyApi(path, retryCount + 1);
+            } else {
+                console.error(`[API] Rate limit exceeded after ${retryCount} retries`);
+                return null;
+            }
+        }
+        
+        if (response.status >= 400) {
+            console.error(`[API] Error ${response.status}: ${response.statusText}`);
+            return null;
+        }
+        
         return response.data;
     } catch (error) {
-        console.error(`[API] Error fetching ${requestUrl}:`, error.message);
+        if (error.code === 'ECONNABORTED') {
+            console.error(`[API] Request timeout for ${requestUrl}`);
+        } else {
+            console.error(`[API] Error fetching ${requestUrl}:`, error.message);
+        }
         return null;
     }
 };
@@ -189,8 +256,14 @@ const warmUpCache = async () => {
   }
 };
 
-// Middleware
-app.use(cors());
+// Middleware with enhanced CORS configuration
+app.use(cors({
+  origin: process.env.VITE_APP_URL || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Bypass-Cache', 'X-Real-Time', 'Cache-Control'],
+  exposedHeaders: ['X-Cache', 'X-Rate-Limit-Remaining', 'X-Rate-Limit-Reset', 'Retry-After']
+}));
 app.use(express.json());
 
 // Logging middleware
@@ -337,13 +410,22 @@ app.post('/api/cache/clear', async (req, res) => {
   res.json({ message: 'Cache cleared' });
 });
 
-// Proxy middleware for Highlightly API
+// Proxy middleware for Highlightly API with enhanced rate limit handling
 app.use('/api/highlightly', async (req, res) => {
   const cacheKey = req.originalUrl;
-  const cachedData = await getFromCache(cacheKey);
-
-  if (cachedData) {
-    return res.json(cachedData);
+  
+  // Check if we should bypass cache
+  const bypassCache = shouldBypassCache(req);
+  
+  // Check cache first unless bypassed
+  if (!bypassCache) {
+    const cachedData = await getFromCache(cacheKey);
+    if (cachedData) {
+      res.set('X-Cache', 'HIT');
+      return res.json(cachedData);
+    }
+  } else {
+    console.log(`[Proxy] Bypassing cache for ${req.url}`);
   }
 
   // Parse the URL to separate path from query string
@@ -351,51 +433,28 @@ app.use('/api/highlightly', async (req, res) => {
   const pathPart = urlParts[0].replace(/^\/?/, '');
   const queryPart = urlParts.length > 1 ? `?${urlParts[1]}` : '';
   
-  // Construct the full URL to the Highlightly API
-  const requestUrl = pathPart ? `${HIGHLIGHTLY_API_URL}/${pathPart}${queryPart}` : HIGHLIGHTLY_API_URL;
+  // Use our enhanced API call function
+  const data = await callHighlightlyApi(`${pathPart}${queryPart}`);
   
-  try {
-    console.log(`[Proxy] ${req.url} -> ${requestUrl}`);
-    
-    // Prepare headers for Highlightly API
-    const headers = {
-      'Content-Type': 'application/json',
-      'x-api-key': HIGHLIGHTLY_API_KEY,
-      'x-rapidapi-key': HIGHLIGHTLY_API_KEY
-    };
-    
-    const response = await axios({
-      method: req.method,
-      url: requestUrl,
-      headers,
-      data: req.method !== 'GET' ? req.body : undefined,
-      timeout: 30000,
-    });
-    
-    // Store with smart TTL
-    await setInCache(cacheKey, response.data);
-
-    res.status(response.status).json(response.data);
-  } catch (error) {
-    console.error('[Proxy] Error:', error.message);
-    
-    if (error.response) {
-      res.status(error.response.status).json({
-        error: true,
-        message: `Highlightly API returned ${error.response.status}: ${error.message}`,
-        details: error.response.data
-      });
-    } else if (error.request) {
-      res.status(502).json({
-        error: true,
-        message: 'No response received from the Highlightly API',
-        details: error.message
-      });
+  if (data) {
+    // Store with smart TTL (unless cache bypass)
+    if (!bypassCache) {
+      await setInCache(cacheKey, data);
+    }
+    res.set('X-Cache', bypassCache ? 'BYPASS' : 'MISS');
+    res.json(data);
+  } else {
+    // Check if we have stale data as fallback
+    const staleData = await getFromCache(cacheKey, true); // Allow expired cache
+    if (staleData) {
+      console.log(`[Proxy] Returning stale cache for ${req.url} due to API failure`);
+      res.set('X-Cache', 'STALE');
+      res.json(staleData);
     } else {
-      res.status(500).json({
+      res.status(503).json({
         error: true,
-        message: 'Error setting up the request',
-        details: error.message
+        message: 'Service temporarily unavailable - API rate limited',
+        retry_after: Math.ceil((rateLimitState.retryAfter - Date.now()) / 1000)
       });
     }
   }
@@ -444,11 +503,18 @@ cron.schedule('0 0 * * *', () => {
   timezone: "Europe/Paris"
 });
 
+// Create HTTP server for both Express and WebSocket
+const server = createServer(app);
+
+// Initialize WebSocket server
+const wsServer = new MatchWebSocketServer(server);
+
 // Start the server
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   console.log(`Highlightly API Proxy Server running on port ${PORT}`);
   console.log(`API URL: ${HIGHLIGHTLY_API_URL}`);
   console.log(`API Key: ${HIGHLIGHTLY_API_KEY ? '✓ Configured' : '✗ Missing'}`);
+  console.log(`WebSocket Server: ✓ Active`);
   
   // Initialize enhanced match scheduler
   try {

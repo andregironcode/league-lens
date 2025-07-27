@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, MessageCircle, Globe, Flame, Play } from 'lucide-react';
 import { MatchHighlight } from '@/types';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 interface HeroCarouselProps {
@@ -132,6 +132,10 @@ const HeroCarousel = ({
     return () => clearTimeout(timer);
   }, [currentIndex]);
   const getYoutubeVideoId = (url: string): string => {
+    if (!url || typeof url !== 'string') {
+      console.warn('[HeroCarousel] Invalid video URL:', url);
+      return '';
+    }
     const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/i;
     const match = url.match(regex);
     return match ? match[1] : '';
@@ -233,7 +237,23 @@ const HeroCarousel = ({
           </div>
 
           <div className="w-full lg:w-[60%] aspect-video rounded-lg overflow-hidden shadow-xl order-1 lg:order-2 lg:pr-10">
-            <iframe src={`https://www.youtube.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1`} title={currentHighlight.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" className="w-full h-full"></iframe>
+            {currentHighlight.videoUrl && getYoutubeVideoId(currentHighlight.videoUrl) ? (
+              <iframe 
+                src={`https://www.youtube-nocookie.com/embed/${getYoutubeVideoId(currentHighlight.videoUrl)}?autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`} 
+                title={currentHighlight.title} 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+                <div className="text-center">
+                  <Play className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400">Video unavailable</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

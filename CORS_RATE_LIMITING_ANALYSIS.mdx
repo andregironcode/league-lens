@@ -1,0 +1,593 @@
+# CORS and Rate Limiting Analysis for League Lens
+
+## Executive Summary
+
+After analyzing the League Lens codebase, I've identified several critical issues preventing real-time data display:
+
+1. **Aggressive Caching**: Both server and client implement multi-layer caching that prevents real-time updates
+2. **Rate Limiting Protection**: Overly conservative rate limiting strategies delay API responses
+3. **CORS Configuration**: Basic CORS setup without fine-tuning for real-time data
+4. **Data Freshness**: No WebSocket or SSE implementation for live updates
+5. **Proxy Bottlenecks**: Local proxy server adds latency and caching layers
+
+## Critical Issues Found
+
+### 1. Server-Side Caching (server/cache.js)
+
+The server implements aggressive caching that blocks real-time updates:
+
+```javascript
+// Current implementation in server/cache.js
+const getCacheTTL = (endpoint) => {
+  // Live match data - still cached for 5 minutes!
+  if (endpointLower.includes('/matches') && endpointLower.includes('date=')) {
+    const today = new Date().toISOString().split('T')[0];
+    if (endpointLower.includes(today)) {
+      return 300; // 5 minutes for today's matches (TOO LONG for live data!)
+    }
+    return 3600; // 1 hour for past/future matches
+  }
+  // ...
+};
+```
+
+**Recommendation**: Implement cache bypass for live matches:
+
+```javascript
+// Enhanced cache.js with real-time support
+const getCacheTTL = (endpoint) => {
+  const endpointLower = endpoint.toLowerCase();
+  
+  // LIVE matches should have minimal or no caching
+  if (endpointLower.includes('/matches') && endpointLower.includes('live=true')) {
+    return 0; // No caching for live matches
+  }
+  
+  // In-progress matches need very short cache
+  if (endpointLower.includes('/matches') && endpointLower.includes('status=live')) {
+    return 10; // 10 seconds max for live matches
+  }
+  
+  // Today's matches with dynamic cache based on match status
+  if (endpointLower.includes('/matches') && endpointLower.includes('date=')) {
+    const today = new Date().toISOString().split('T')[0];
+    if (endpointLower.includes(today)) {
+      return 30; // 30 seconds for today's matches
+    }
+    return 3600; // 1 hour for past/future matches
+  }
+  
+  // Events and statistics need real-time updates
+  if (endpointLower.includes('/events') || endpointLower.includes('/statistics')) {
+    return 15; // 15 seconds for live match events
+  }
+  
+  return 86400; // Default 24 hours for static data
+};
+
+// Add cache bypass header support
+export const shouldBypassCache = (req) => {
+  return req.headers['x-bypass-cache'] === 'true' || 
+         req.query.live === 'true' ||
+         req.headers['cache-control'] === 'no-cache';
+};
+```
+
+### 2. Client-Side Caching (src/integrations/highlightly/client.ts)
+
+The client also implements aggressive caching:
+
+```javascript
+// Current implementation
+const getCacheDuration = (endpoint: string): number => {
+  if (endpointLower.includes('/matches') && endpointLower.includes('date=')) {
+    const today = new Date().toISOString().split('T')[0];
+    if (endpointLower.includes(today)) {
+      return 5 * 60 * 1000; // 5 minutes for today's matches
+    }
+  }
+  // ...
+};
+```
+
+**Recommendation**: Add real-time mode and cache control:
+
+```javascript
+// Enhanced client with real-time support
+interface RequestOptions {
+  bypassCache?: boolean;
+  realTime?: boolean;
+}
+
+async function apiRequest<T>(
+  endpoint: string, 
+  params: Record<string, string> = {}, 
+  options: RequestOptions = {},
+  retryCount = 0
+): Promise<T> {
+  const cacheKey = `${endpoint}:${queryParams.toString()}`;
+  
+  // Skip cache for real-time requests
+  if (!options.bypassCache && !options.realTime) {
+    const cachedData = getFromCache<T>(cacheKey);
+    if (cachedData) return cachedData;
+  }
+  
+  // Add cache control headers for real-time
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.realTime && {
+      'Cache-Control': 'no-cache',
+      'X-Bypass-Cache': 'true'
+    })
+  };
+  
+  // For live data, use shorter cache durations
+  const cacheDuration = options.realTime ? 10000 : getCacheDuration(endpoint);
+  
+  // ... rest of implementation
+}
+
+// Add WebSocket support for real-time updates
+export class LiveDataManager {
+  private ws: WebSocket | null = null;
+  private reconnectInterval: number = 5000;
+  private listeners: Map<string, Set<(data: any) => void>> = new Map();
+  
+  connect(url: string) {
+    this.ws = new WebSocket(url);
+    
+    this.ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const listeners = this.listeners.get(data.type) || new Set();
+      listeners.forEach(listener => listener(data.payload));
+    };
+    
+    this.ws.onclose = () => {
+      setTimeout(() => this.connect(url), this.reconnectInterval);
+    };
+  }
+  
+  subscribe(type: string, callback: (data: any) => void) {
+    if (!this.listeners.has(type)) {
+      this.listeners.set(type, new Set());
+    }
+    this.listeners.get(type)!.add(callback);
+  }
+  
+  unsubscribe(type: string, callback: (data: any) => void) {
+    this.listeners.get(type)?.delete(callback);
+  }
+}
+```
+
+### 3. Rate Limiting Issues (server/server.js)
+
+Current rate limiting is too conservative:
+
+```javascript
+// Current implementation
+const rateLimitState = {
+    retryAfter: 0,
+    lastRequest: 0,
+    requestCount: 0,
+    windowStart: Date.now()
+};
+
+// Add small delay between requests (100ms is too conservative)
+const timeSinceLastRequest = now - rateLimitState.lastRequest;
+if (timeSinceLastRequest < 100) {
+    await new Promise(resolve => setTimeout(resolve, 100 - timeSinceLastRequest));
+}
+```
+
+**Recommendation**: Implement adaptive rate limiting:
+
+```javascript
+// Enhanced rate limiting with priority queues
+class AdaptiveRateLimiter {
+  private queues: Map<string, PriorityQueue> = new Map();
+  private limits: Map<string, RateLimit> = new Map();
+  
+  constructor() {
+    // Different limits for different endpoints
+    this.limits.set('live', { requests: 50, window: 1000 }); // 50 req/sec for live
+    this.limits.set('matches', { requests: 30, window: 1000 }); // 30 req/sec
+    this.limits.set('default', { requests: 10, window: 1000 }); // 10 req/sec
+  }
+  
+  async execute(endpoint: string, fn: () => Promise<any>, priority: number = 0) {
+    const queueType = this.getQueueType(endpoint);
+    const queue = this.getOrCreateQueue(queueType);
+    
+    return new Promise((resolve, reject) => {
+      queue.enqueue({
+        fn,
+        resolve,
+        reject,
+        priority,
+        timestamp: Date.now()
+      });
+      
+      this.processQueue(queueType);
+    });
+  }
+  
+  private getQueueType(endpoint: string): string {
+    if (endpoint.includes('/events') || endpoint.includes('live')) return 'live';
+    if (endpoint.includes('/matches')) return 'matches';
+    return 'default';
+  }
+  
+  private async processQueue(queueType: string) {
+    const queue = this.queues.get(queueType);
+    const limit = this.limits.get(queueType) || this.limits.get('default')!;
+    
+    if (!queue || queue.processing) return;
+    
+    queue.processing = true;
+    
+    while (!queue.isEmpty()) {
+      const item = queue.dequeue();
+      
+      // Check rate limit
+      const now = Date.now();
+      const windowStart = now - limit.window;
+      
+      // Remove old requests from window
+      queue.requests = queue.requests.filter(t => t > windowStart);
+      
+      if (queue.requests.length < limit.requests) {
+        queue.requests.push(now);
+        
+        try {
+          const result = await item.fn();
+          item.resolve(result);
+        } catch (error) {
+          item.reject(error);
+        }
+      } else {
+        // Wait until next window
+        const oldestRequest = queue.requests[0];
+        const waitTime = limit.window - (now - oldestRequest) + 1;
+        
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        queue.enqueue(item); // Re-enqueue
+      }
+    }
+    
+    queue.processing = false;
+  }
+}
+```
+
+### 4. CORS Configuration (server/server.js)
+
+Current CORS setup is too basic:
+
+```javascript
+// Current implementation
+app.use(cors());
+```
+
+**Recommendation**: Enhanced CORS for real-time data:
+
+```javascript
+// Enhanced CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow specific origins in production
+    const allowedOrigins = [
+      'http://localhost:8080',
+      'http://localhost:3000',
+      'https://league-lens.com',
+      'https://app.league-lens.com'
+    ];
+    
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow cookies for auth
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Bypass-Cache', 
+    'X-Real-Time',
+    'X-Request-ID',
+    'Cache-Control'
+  ],
+  exposedHeaders: [
+    'X-RateLimit-Limit',
+    'X-RateLimit-Remaining', 
+    'X-RateLimit-Reset',
+    'X-Cache',
+    'X-Response-Time'
+  ],
+  maxAge: 86400 // Cache preflight for 24 hours
+};
+
+app.use(cors(corsOptions));
+
+// Add middleware for real-time requests
+app.use((req, res, next) => {
+  // Track response time
+  const startTime = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    res.set('X-Response-Time', `${duration}ms`);
+  });
+  
+  // Set cache headers for real-time endpoints
+  if (req.headers['x-real-time'] === 'true' || req.path.includes('/live')) {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+  
+  next();
+});
+```
+
+### 5. Proxy Configuration (vite.config.ts)
+
+Current proxy setup lacks optimization:
+
+```typescript
+// Current implementation
+proxy: {
+  '/api': {
+    target: 'http://localhost:3001',
+    changeOrigin: true,
+    secure: false,
+  }
+}
+```
+
+**Recommendation**: Enhanced proxy with WebSocket support:
+
+```typescript
+// Enhanced Vite configuration
+export default defineConfig(({ mode }) => ({
+  server: {
+    host: "::",
+    port: 8080,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+        ws: true, // Enable WebSocket proxy
+        configure: (proxy, options) => {
+          // Add error handling
+          proxy.on('error', (err, req, res) => {
+            console.error('Proxy error:', err);
+            res.writeHead(500, {
+              'Content-Type': 'text/plain'
+            });
+            res.end('Proxy error: ' + err.message);
+          });
+          
+          // Add response interceptor for debugging
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            const key = 'x-cache';
+            proxyRes.headers[key] = proxyRes.headers[key] || 'MISS';
+            
+            // Log slow requests
+            const responseTime = proxyRes.headers['x-response-time'];
+            if (responseTime && parseInt(responseTime) > 1000) {
+              console.warn(`Slow API response: ${req.url} took ${responseTime}`);
+            }
+          });
+        }
+      },
+      '/ws': {
+        target: 'ws://localhost:3001',
+        ws: true,
+        changeOrigin: true
+      }
+    },
+    // Add HTTP/2 support for better multiplexing
+    https: mode === 'production' ? {
+      http2: true
+    } : false
+  },
+  // ... rest of config
+}));
+```
+
+### 6. Component Refresh Intervals
+
+Current components use static refresh intervals:
+
+```typescript
+// EnhancedMatchFeed.tsx
+const interval = setInterval(fetchFeedData, 60 * 1000); // 1 minute is too long
+
+// ForYouSection.tsx  
+const interval = setInterval(fetchForYouMatches, 5 * 60 * 1000); // 5 minutes!
+```
+
+**Recommendation**: Dynamic refresh based on match status:
+
+```typescript
+// Enhanced component with dynamic refresh
+const EnhancedMatchFeed: React.FC = () => {
+  const [refreshInterval, setRefreshInterval] = useState(60000);
+  
+  useEffect(() => {
+    const fetchFeedData = async () => {
+      try {
+        const response = await fetch('/api/feed/matches', {
+          headers: {
+            'X-Real-Time': hasLiveMatches ? 'true' : 'false'
+          }
+        });
+        
+        const data: FeedData = await response.json();
+        setFeedData(data);
+        
+        // Adjust refresh rate based on live matches
+        const hasLive = data.matches.some(m => 
+          m.status?.toLowerCase().includes('live') ||
+          m.status?.toLowerCase().includes('half')
+        );
+        
+        setRefreshInterval(hasLive ? 10000 : 60000); // 10s for live, 60s otherwise
+      } catch (err) {
+        console.error('Error fetching feed:', err);
+      }
+    };
+    
+    fetchFeedData();
+    const interval = setInterval(fetchFeedData, refreshInterval);
+    
+    return () => clearInterval(interval);
+  }, [refreshInterval]);
+  
+  // ... rest of component
+};
+```
+
+### 7. Database Service Optimization
+
+Add real-time query support to supabaseDataService.ts:
+
+```typescript
+// Enhanced Supabase service with real-time subscriptions
+class SupabaseDataService {
+  private subscriptions: Map<string, RealtimeChannel> = new Map();
+  
+  // Subscribe to live match updates
+  subscribeToLiveMatches(callback: (match: any) => void): () => void {
+    const channel = supabase
+      .channel('live-matches')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+          filter: 'status=eq.Live'
+        },
+        (payload) => {
+          console.log('[SupabaseData] Live match update:', payload);
+          callback(payload.new);
+        }
+      )
+      .subscribe();
+    
+    this.subscriptions.set('live-matches', channel);
+    
+    // Return unsubscribe function
+    return () => {
+      channel.unsubscribe();
+      this.subscriptions.delete('live-matches');
+    };
+  }
+  
+  // Get matches with real-time flag
+  async getMatchesForDate(date: string, realTime: boolean = false): Promise<any[]> {
+    const query = supabase
+      .from('matches')
+      .select(`
+        id,
+        match_date,
+        match_time,
+        status,
+        home_score,
+        away_score,
+        // ... rest of fields
+      `)
+      .eq('match_date', date);
+    
+    // For real-time queries, bypass RLS cache
+    if (realTime) {
+      query.headers = {
+        'Prefer': 'return=representation',
+        'Cache-Control': 'no-cache'
+      };
+    }
+    
+    const { data, error } = await query;
+    
+    // ... rest of implementation
+  }
+}
+```
+
+## Implementation Priority
+
+1. **Immediate (Critical for real-time)**:
+   - Reduce cache TTLs for live matches to 10-30 seconds
+   - Add cache bypass headers for live data requests
+   - Implement dynamic refresh intervals in components
+
+2. **Short-term (Performance)**:
+   - Implement adaptive rate limiting with priority queues
+   - Add WebSocket support for live match updates
+   - Enhance CORS configuration with proper headers
+
+3. **Medium-term (Architecture)**:
+   - Implement Server-Sent Events (SSE) for match updates
+   - Add Redis for distributed caching
+   - Implement edge caching with proper invalidation
+
+## Testing Recommendations
+
+```bash
+# Test cache bypass
+curl -H "X-Bypass-Cache: true" http://localhost:3001/api/feed/matches
+
+# Test CORS headers
+curl -H "Origin: http://localhost:8080" -I http://localhost:3001/api/feed/matches
+
+# Monitor rate limiting
+curl -H "X-Real-Time: true" http://localhost:3001/api/matches?live=true
+
+# Test WebSocket connection
+wscat -c ws://localhost:3001/ws
+```
+
+## Monitoring Setup
+
+```javascript
+// Add monitoring middleware
+app.use((req, res, next) => {
+  const metrics = {
+    timestamp: new Date().toISOString(),
+    path: req.path,
+    method: req.method,
+    headers: req.headers,
+    cacheStatus: res.get('X-Cache'),
+    responseTime: 0
+  };
+  
+  const startTime = Date.now();
+  
+  res.on('finish', () => {
+    metrics.responseTime = Date.now() - startTime;
+    
+    // Log slow requests
+    if (metrics.responseTime > 1000) {
+      console.warn('[SLOW REQUEST]', metrics);
+    }
+    
+    // Send to monitoring service
+    // monitoringService.track('api_request', metrics);
+  });
+  
+  next();
+});
+```
+
+## Conclusion
+
+The current implementation prioritizes API conservation over real-time data delivery. By implementing these changes progressively, you can achieve true real-time updates while maintaining reasonable API usage. Start with cache TTL adjustments and dynamic refresh intervals for immediate improvements, then move to architectural changes for long-term scalability.

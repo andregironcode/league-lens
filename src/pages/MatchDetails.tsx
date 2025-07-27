@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Eye, Share2, Shirt, BarChart4, MapPin, Bell, Target, RefreshCw, Square, Users, Video, BarChart2, Goal, Replace, Info, Home, Trophy } from 'lucide-react';
 import Header from '@/components/Header';
 import { supabaseDataService } from '@/services/supabaseDataService';
-import { getStandingsForLeague, getLastFiveGames, getHeadToHead } from '@/services/serviceAdapter';
+import { getStandingsForLeague, getLastFiveGames, getHeadToHead, getMatchById } from '@/services/serviceAdapter';
 import { MatchHighlight, EnhancedMatchHighlight, Player, Match, MatchEvent, StandingsRow } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
@@ -113,8 +113,30 @@ const MatchDetails = () => {
       setStandingsLoading(true);
 
       try {
+        // First get cached data from database
         const matchData = await supabaseDataService.getMatchById(id);
         setMatch(matchData);
+        
+        // If match is recent or live, try to get fresh data from API
+        if (matchData) {
+          const matchDate = new Date(matchData.date);
+          const now = new Date();
+          const hoursSinceMatch = (now - matchDate) / (1000 * 60 * 60);
+          
+          // If match is within last 24 hours or upcoming, fetch fresh data
+          if (hoursSinceMatch < 24 || matchDate > now) {
+            console.log('[MatchDetails] Fetching fresh data from API for recent/upcoming match');
+            try {
+              const freshData = await getMatchById(id); // This uses serviceAdapter
+              if (freshData) {
+                console.log('[MatchDetails] Got fresh match data from API');
+                setMatch(freshData);
+              }
+            } catch (error) {
+              console.log('[MatchDetails] Could not fetch fresh data, using cached:', error);
+            }
+          }
+        }
 
         if (matchData?.videoUrl) {
           // This seems to be for a single primary highlight, keeping logic

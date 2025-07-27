@@ -10,6 +10,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 class SupabaseDataService {
+  private subscriptions: Map<string, any> = new Map();
   
   /**
    * Get recent matches with full team and league information
@@ -400,6 +401,70 @@ class SupabaseDataService {
   }
 
   /**
+   * Get last five games for a team
+   */
+  async getLastFiveGames(teamId: string): Promise<any[]> {
+    console.log(`[SupabaseData] Fetching last 5 games for team ${teamId}`);
+    
+    try {
+      const { data: matches, error } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          home_team:teams!matches_home_team_id_fkey(id, name, logo),
+          away_team:teams!matches_away_team_id_fkey(id, name, logo),
+          league:leagues!matches_league_id_fkey(id, name, logo)
+        `)
+        .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+        .not('status', 'eq', 'Not Started')
+        .order('match_date', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('[SupabaseData] Error fetching last 5 games:', error);
+        return [];
+      }
+
+      return matches || [];
+    } catch (error) {
+      console.error('[SupabaseData] Error in getLastFiveGames:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get head to head matches between two teams
+   */
+  async getHeadToHead(teamId1: string, teamId2: string): Promise<any[]> {
+    console.log(`[SupabaseData] Fetching H2H for teams ${teamId1} vs ${teamId2}`);
+    
+    try {
+      const { data: matches, error } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          home_team:teams!matches_home_team_id_fkey(id, name, logo),
+          away_team:teams!matches_away_team_id_fkey(id, name, logo),
+          league:leagues!matches_league_id_fkey(id, name, logo)
+        `)
+        .or(`and(home_team_id.eq.${teamId1},away_team_id.eq.${teamId2}),and(home_team_id.eq.${teamId2},away_team_id.eq.${teamId1})`)
+        .not('status', 'eq', 'Not Started')
+        .order('match_date', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('[SupabaseData] Error fetching H2H:', error);
+        return [];
+      }
+
+      return matches || [];
+    } catch (error) {
+      console.error('[SupabaseData] Error in getHeadToHead:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get match by ID with full details
    */
   async getMatchById(matchId: string): Promise<any | null> {
@@ -604,6 +669,11 @@ class SupabaseDataService {
           away: match.away_score
         },
         league: {
+          id: match.league.id,
+          name: match.league.name,
+          logo: match.league.logo
+        },
+        competition: {
           id: match.league.id,
           name: match.league.name,
           logo: match.league.logo
@@ -813,6 +883,102 @@ class SupabaseDataService {
       teamForm: status.find(s => s.table_name === 'team_form')?.last_sync,
       highlights: status.find(s => s.table_name === 'highlights')?.last_sync
     };
+  }
+  
+  /**
+   * Subscribe to real-time match updates
+   */
+  subscribeToMatch(matchId: string, callback: (payload: any) => void) {
+    const channel = supabase
+      .channel(`match:${matchId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+          filter: `id=eq.${matchId}`
+        },
+        (payload) => {
+          console.log('[SupabaseData] Match update:', payload);
+          callback(payload);
+        }
+      )
+      .subscribe();
+    
+    this.subscriptions.set(`match:${matchId}`, channel);
+    return channel;
+  }
+  
+  /**
+   * Subscribe to real-time updates for live matches
+   */
+  subscribeToLiveMatches(callback: (payload: any) => void) {
+    const channel = supabase
+      .channel('live-matches')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+          filter: "status=in.(LIVE,1H,2H,HT)"
+        },
+        (payload) => {
+          console.log('[SupabaseData] Live match update:', payload);
+          callback(payload);
+        }
+      )
+      .subscribe();
+    
+    this.subscriptions.set('live-matches', channel);
+    return channel;
+  }
+  
+  /**
+   * Subscribe to match events (goals, cards, etc.)
+   */
+  subscribeToMatchEvents(matchId: string, callback: (payload: any) => void) {
+    const channel = supabase
+      .channel(`match-events:${matchId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'match_events',
+          filter: `match_id=eq.${matchId}`
+        },
+        (payload) => {
+          console.log('[SupabaseData] New match event:', payload);
+          callback(payload);
+        }
+      )
+      .subscribe();
+    
+    this.subscriptions.set(`match-events:${matchId}`, channel);
+    return channel;
+  }
+  
+  /**
+   * Unsubscribe from a specific channel
+   */
+  unsubscribe(key: string) {
+    const channel = this.subscriptions.get(key);
+    if (channel) {
+      supabase.removeChannel(channel);
+      this.subscriptions.delete(key);
+    }
+  }
+  
+  /**
+   * Unsubscribe from all channels
+   */
+  unsubscribeAll() {
+    this.subscriptions.forEach((channel) => {
+      supabase.removeChannel(channel);
+    });
+    this.subscriptions.clear();
   }
 }
 
