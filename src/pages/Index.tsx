@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { MatchHighlight } from '@/types';
 import { supabaseDataService } from '@/services/supabaseDataService';
 import HeroCarousel from '@/components/HeroCarousel';
-import UpcomingMatches from '@/components/UpcomingMatches';
+import EnhancedMatchFeed from '@/components/EnhancedMatchFeed';
+import ForYouSection from '@/components/ForYouSection';
 
 const Index: React.FC = () => {
   const [featuredHighlights, setFeaturedHighlights] = useState<MatchHighlight[]>([]);
@@ -55,9 +56,14 @@ const Index: React.FC = () => {
         )}
       </section>
 
-      {/* Upcoming Matches Section - Shows both upcoming and recent matches */}
+      {/* For You Section - Top matches based on importance */}
       <div className="mb-12">
-        <UpcomingMatches />
+        <ForYouSection />
+      </div>
+
+      {/* Match Feed Section - Shows matches from top 8 leagues (-1 to +5 days) */}
+      <div className="mb-12">
+        <EnhancedMatchFeed />
       </div>
     </>
   );

@@ -7,12 +7,18 @@ import { dirname, join } from 'path';
 import cron from 'node-cron';
 import { getFromCache, setInCache, clearCache, getCacheStats } from './cache.js';
 import MatchScheduler from './services/matchScheduler.js';
+import EnhancedMatchScheduler from './services/enhancedMatchScheduler.js';
+import MatchService from './services/matchService.js';
+import DatabaseMatchService from './services/databaseMatchService.js';
 
 // Initialize environment variables
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
 
-// Initialize match scheduler
+// Initialize match schedulers
 const matchScheduler = new MatchScheduler();
+const enhancedMatchScheduler = new EnhancedMatchScheduler();
+const matchService = new MatchService();
+const databaseMatchService = new DatabaseMatchService();
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 3001;
@@ -248,27 +254,66 @@ app.post('/api/scheduler/stop', (req, res) => {
   res.json({ message: 'Match scheduler stopped' });
 });
 
-// Upcoming matches endpoint for the frontend
-app.get('/api/upcoming-matches', async (req, res) => {
+// Main feed endpoint - shows matches from -1 to +5 days for top 8 leagues
+app.get('/api/feed/matches', async (req, res) => {
   try {
-    const cacheKey = '/api/upcoming-matches';
+    const cacheKey = '/api/feed/matches';
     const cachedData = await getFromCache(cacheKey);
 
     if (cachedData) {
       return res.json(cachedData);
     }
 
-    // This will be populated by the match scheduler
-    // For now, return empty data structure
-    const upcomingData = {
-      leagues: [],
-      lastUpdated: new Date().toISOString(),
-      scheduler: matchScheduler.getStatus()
-    };
+    // Use database service to avoid API rate limits
+    const feedData = await databaseMatchService.getTopLeaguesMatches();
+    
+    // Cache for 5 minutes
+    await setInCache(cacheKey, feedData, 300);
+    res.json(feedData);
 
+  } catch (error) {
+    console.error('[API] Error fetching feed matches:', error);
+    res.status(500).json({ error: 'Failed to fetch feed matches' });
+  }
+});
+
+// For You section endpoint - top 5 weighted matches from last 7 days
+app.get('/api/for-you/matches', async (req, res) => {
+  try {
+    const cacheKey = '/api/for-you/matches';
+    const cachedData = await getFromCache(cacheKey);
+
+    if (cachedData) {
+      return res.json(cachedData);
+    }
+
+    // Use database service to avoid API rate limits
+    const forYouData = await databaseMatchService.getForYouMatches();
+    
     // Cache for 30 minutes
-    await setInCache(cacheKey, upcomingData, 1800);
-    res.json(upcomingData);
+    await setInCache(cacheKey, forYouData, 1800);
+    res.json(forYouData);
+
+  } catch (error) {
+    console.error('[API] Error fetching for you matches:', error);
+    res.status(500).json({ error: 'Failed to fetch for you matches' });
+  }
+});
+
+// Legacy upcoming matches endpoint for backward compatibility
+app.get('/api/upcoming-matches', async (req, res) => {
+  try {
+    const feedData = await databaseMatchService.getTopLeaguesMatches();
+    const upcomingMatches = feedData.matches.filter(match => 
+      new Date(match.utc_date || match.date) >= new Date()
+    );
+    
+    res.json({
+      matches: upcomingMatches,
+      leagues: feedData.leagues,
+      lastUpdated: feedData.lastUpdated,
+      scheduler: enhancedMatchScheduler.getStatus()
+    });
 
   } catch (error) {
     console.error('[API] Error fetching upcoming matches:', error);
@@ -405,13 +450,13 @@ app.listen(PORT, async () => {
   console.log(`API URL: ${HIGHLIGHTLY_API_URL}`);
   console.log(`API Key: ${HIGHLIGHTLY_API_KEY ? '✓ Configured' : '✗ Missing'}`);
   
-  // Initialize match scheduler
+  // Initialize enhanced match scheduler
   try {
-    console.log('[Server] Starting match scheduler...');
-    matchScheduler.start();
-    console.log('[Server] ✅ Match scheduler started successfully');
+    console.log('[Server] Starting enhanced match scheduler...');
+    enhancedMatchScheduler.start();
+    console.log('[Server] ✅ Enhanced match scheduler started successfully');
   } catch (error) {
-    console.error('[Server] ❌ Failed to start match scheduler:', error);
+    console.error('[Server] ❌ Failed to start enhanced match scheduler:', error);
   }
   
   // Initial cache warming

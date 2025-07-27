@@ -1,602 +1,195 @@
 {
-  "/api/highlightly/leagues/115669": {
-    "data": [
-      {
-        "id": 115669,
-        "logo": "https://highlightly.net/soccer/images/leagues/115669.png",
-        "name": "Serie A",
-        "seasons": [
-          {
-            "season": 2020
+  "/api/for-you/matches": {
+    "data": {
+      "matches": [
+        {
+          "id": 1177316734,
+          "competition_id": 2486,
+          "home_team_id": 483301,
+          "away_team_id": 1859368,
+          "home_team": {
+            "id": "483301",
+            "logo": "https://highlightly.net/soccer/images/teams/483301.png",
+            "name": "Plzen"
           },
-          {
-            "season": 2023
+          "away_team": {
+            "id": "1859368",
+            "logo": "https://highlightly.net/soccer/images/teams/1859368.png",
+            "name": "Servette FC"
           },
-          {
-            "season": 2019
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22T17:00:00.000Z",
+          "match_date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           },
-          {
-            "season": 2022
-          },
-          {
-            "season": 2024
-          },
-          {
-            "season": 2021
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
           }
-        ],
-        "country": {
-          "code": "IT",
-          "name": "Italy",
-          "logo": "https://highlightly.net/soccer/images/countries/IT.svg"
-        }
-      }
-    ],
-    "expiry": 1750693708419,
-    "ttl": 86400
-  },
-  "/api/highlightly/leagues/67162": {
-    "data": [
-      {
-        "id": 67162,
-        "logo": "https://highlightly.net/soccer/images/leagues/67162.png",
-        "name": "Bundesliga",
-        "seasons": [
-          {
-            "season": 2020
+        },
+        {
+          "id": 1196034479,
+          "competition_id": 2486,
+          "home_team_id": 568401,
+          "away_team_id": 509682,
+          "home_team": {
+            "id": "568401",
+            "logo": "https://highlightly.net/soccer/images/teams/568401.png",
+            "name": "Lincoln Red Imps FC"
           },
-          {
-            "season": 2019
+          "away_team": {
+            "id": "509682",
+            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
+            "name": "FK Crvena Zvezda"
           },
-          {
-            "season": 2024
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22T16:00:00.000Z",
+          "match_date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           },
-          {
-            "season": 2022
-          },
-          {
-            "season": 2023
-          },
-          {
-            "season": 2021
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
           }
-        ],
-        "country": {
-          "code": "DE",
-          "name": "Germany",
-          "logo": "https://highlightly.net/soccer/images/countries/DE.svg"
-        }
-      }
-    ],
-    "expiry": 1750693708426,
-    "ttl": 86400
-  },
-  "/api/highlightly/leagues/33973": {
-    "data": [
-      {
-        "id": 33973,
-        "logo": "https://highlightly.net/soccer/images/leagues/33973.png",
-        "name": "Premier League",
-        "seasons": [
-          {
-            "season": 2019
+        },
+        {
+          "id": 1196037883,
+          "competition_id": 2486,
+          "home_team_id": 3937510,
+          "away_team_id": 487556,
+          "home_team": {
+            "id": "3937510",
+            "logo": "https://highlightly.net/soccer/images/teams/3937510.png",
+            "name": "Hamrun Spartans"
           },
-          {
-            "season": 2024
+          "away_team": {
+            "id": "487556",
+            "logo": "https://highlightly.net/soccer/images/teams/487556.png",
+            "name": "Dynamo Kyiv"
           },
-          {
-            "season": 2020
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22T17:00:00.000Z",
+          "match_date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           },
-          {
-            "season": 2021
-          },
-          {
-            "season": 2022
-          },
-          {
-            "season": 2023
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
           }
-        ],
-        "country": {
-          "code": "GB-ENG",
-          "name": "England",
-          "logo": "https://highlightly.net/soccer/images/countries/GB-ENG.svg"
-        }
-      }
-    ],
-    "expiry": 1750693708433,
-    "ttl": 86400
-  },
-  "/api/highlightly/leagues/119924": {
-    "data": [
-      {
-        "id": 119924,
-        "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-        "name": "La Liga",
-        "seasons": [
-          {
-            "season": 2019
+        },
+        {
+          "id": 1177318436,
+          "competition_id": 2486,
+          "home_team_id": 219491,
+          "away_team_id": 525851,
+          "home_team": {
+            "id": "219491",
+            "logo": "https://highlightly.net/soccer/images/teams/219491.png",
+            "name": "Rangers"
           },
-          {
-            "season": 2020
+          "away_team": {
+            "id": "525851",
+            "logo": "https://highlightly.net/soccer/images/teams/525851.png",
+            "name": "Panathinaikos"
           },
-          {
-            "season": 2024
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22T18:45:00.000Z",
+          "match_date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           },
-          {
-            "season": 2022
-          },
-          {
-            "season": 2023
-          },
-          {
-            "season": 2021
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
           }
-        ],
-        "country": {
-          "code": "ES",
-          "name": "Spain",
-          "logo": "https://highlightly.net/soccer/images/countries/ES.svg"
-        }
-      }
-    ],
-    "expiry": 1750693708435,
-    "ttl": 86400
-  },
-  "/api/highlightly/leagues/52695": {
-    "data": [
-      {
-        "id": 52695,
-        "logo": "https://highlightly.net/soccer/images/leagues/52695.png",
-        "name": "Ligue 1",
-        "seasons": [
-          {
-            "season": 2023
+        },
+        {
+          "id": 1196036181,
+          "competition_id": 2486,
+          "home_team_id": 3540944,
+          "away_team_id": 319909,
+          "home_team": {
+            "id": "3540944",
+            "logo": "https://highlightly.net/soccer/images/teams/3540944.png",
+            "name": "Rīgas FS"
           },
-          {
-            "season": 2024
+          "away_team": {
+            "id": "319909",
+            "logo": "https://highlightly.net/soccer/images/teams/319909.png",
+            "name": "Malmo FF"
           },
-          {
-            "season": 2020
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22T17:00:00.000Z",
+          "match_date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           },
-          {
-            "season": 2021
-          },
-          {
-            "season": 2022
-          },
-          {
-            "season": 2019
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
           }
-        ],
-        "country": {
-          "code": "FR",
-          "name": "France",
-          "logo": "https://highlightly.net/soccer/images/countries/FR.svg"
         }
-      }
-    ],
-    "expiry": 1750693708846,
-    "ttl": 86400
-  },
-  "/api/highlightly/leagues/2486": {
-    "data": [
-      {
-        "id": 2486,
-        "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-        "name": "UEFA Champions League",
-        "seasons": [
-          {
-            "season": 2021
-          },
-          {
-            "season": 2024
-          },
-          {
-            "season": 2023
-          },
-          {
-            "season": 2019
-          },
-          {
-            "season": 2020
-          },
-          {
-            "season": 2022
-          }
-        ],
-        "country": {
-          "code": "World",
-          "name": "World",
-          "logo": "https://highlightly.net/soccer/images/countries/World.png"
-        }
-      }
-    ],
-    "expiry": 1750693708858,
-    "ttl": 86400
-  },
-  "/api/highlightly/matches?leagueId=119924&date=2025-06-21&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
+      ],
+      "dateRange": {
+        "start": "2025-07-19",
+        "end": "2025-07-27"
       },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
+      "lastUpdated": "2025-07-27T07:56:22.803Z"
     },
-    "expiry": 1750610909064,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=33973&date=2025-06-21&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610909076,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=115669&date=2025-06-21&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610909292,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=67162&date=2025-06-21&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610909658,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=52695&date=2025-06-21&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610909663,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=2486&date=2025-06-21&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610909673,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=119924&date=2025-06-22&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750607610050,
-    "ttl": 300
-  },
-  "/api/highlightly/matches?leagueId=33973&date=2025-06-22&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750607610075,
-    "ttl": 300
-  },
-  "/api/highlightly/matches?leagueId=115669&date=2025-06-22&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750607610078,
-    "ttl": 300
-  },
-  "/api/highlightly/matches?leagueId=52695&date=2025-06-22&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750607610526,
-    "ttl": 300
-  },
-  "/api/highlightly/matches?leagueId=67162&date=2025-06-22&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750607610530,
-    "ttl": 300
-  },
-  "/api/highlightly/matches?leagueId=2486&date=2025-06-22&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750607610533,
-    "ttl": 300
-  },
-  "/api/highlightly/matches?leagueId=115669&date=2025-06-23&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610910926,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=33973&date=2025-06-23&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610910930,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=119924&date=2025-06-23&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610910939,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=52695&date=2025-06-23&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610911328,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=2486&date=2025-06-23&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610911335,
-    "ttl": 3600
-  },
-  "/api/highlightly/matches?leagueId=67162&date=2025-06-23&season=2025": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 100
-      }
-    },
-    "expiry": 1750610911336,
-    "ttl": 3600
-  },
-  "/api/highlightly/highlights?leagueId=115669&season=2025&limit=20": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 20
-      }
-    },
-    "expiry": 1750610911522,
-    "ttl": 3600
-  },
-  "/api/highlightly/highlights?leagueId=33973&season=2025&limit=20": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 20
-      }
-    },
-    "expiry": 1750610911540,
-    "ttl": 3600
-  },
-  "/api/highlightly/highlights?leagueId=119924&season=2025&limit=20": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 20
-      }
-    },
-    "expiry": 1750610911548,
-    "ttl": 3600
-  },
-  "/api/highlightly/highlights?leagueId=52695&season=2025&limit=20": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 20
-      }
-    },
-    "expiry": 1750610911922,
-    "ttl": 3600
-  },
-  "/api/highlightly/highlights?leagueId=67162&season=2025&limit=20": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 20
-      }
-    },
-    "expiry": 1750610911936,
-    "ttl": 3600
-  },
-  "/api/highlightly/highlights?leagueId=2486&season=2025&limit=20": {
-    "data": {
-      "data": [],
-      "plan": {
-        "tier": "PRO",
-        "message": "All data available with current plan."
-      },
-      "pagination": {
-        "totalCount": 0,
-        "offset": 0,
-        "limit": 20
-      }
-    },
-    "expiry": 1750610911966,
-    "ttl": 3600
+    "expiry": 1753604782803,
+    "ttl": 1800
   }
 }

@@ -25,9 +25,11 @@ interface MatchCardProps {
   match: Match;
   showDate?: boolean;
   datePosition?: 'top' | 'bottom';
+  showLeague?: boolean;
+  className?: string;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosition = 'top' }) => {
+const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosition = 'top', showLeague = false, className = '' }) => {
   const navigate = useNavigate();
   const getStatusString = (status: any): string => {
     if (typeof status === 'string') return status.toLowerCase();
@@ -56,18 +58,31 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
     statusString.includes('ft') || 
     (match.state?.clock && match.state.clock >= 90);
 
-  const formatMatchTime = (dateString: string) => format(new Date(dateString), 'HH:mm');
-  const formatMatchDate = (dateString: string) => format(new Date(dateString), 'MMM dd');
+  const matchDate = match.date || match.utc_date || match.match_date || '';
+  const formatMatchTime = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'HH:mm');
+    } catch {
+      return 'TBD';
+    }
+  };
+  const formatMatchDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd');
+    } catch {
+      return '';
+    }
+  };
   const scoreData = getMatchScore(match);
 
   return (
     <Link 
       to={`/match/${match.id}`} 
-      className="block bg-gray-900/50 rounded-md p-4 hover:bg-gray-800/50 transition-colors"
+      className={`block bg-gray-900/50 rounded-md p-4 hover:bg-gray-800/50 transition-colors ${className}`}
     >
       {showDate && datePosition === 'top' && (
         <div className="text-xs text-gray-400 mb-2">
-          {formatMatchDate(match.date)} • {formatMatchTime(match.date)}
+          {formatMatchDate(matchDate)} • {formatMatchTime(matchDate)}
         </div>
       )}
       <div className="flex items-center justify-between">
@@ -152,7 +167,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
       
       {showDate && datePosition === 'bottom' && (
         <div className="text-xs text-gray-400 mt-2 text-center">
-          {formatMatchDate(match.date)} • {formatMatchTime(match.date)}
+          {formatMatchDate(matchDate)} • {formatMatchTime(matchDate)}
         </div>
       )}
       
