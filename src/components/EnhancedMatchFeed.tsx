@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Match, League } from '@/types';
 import { Clock, Calendar, Trophy, MapPin, Play } from 'lucide-react';
 import { formatDistanceToNow, format, isToday, isTomorrow, parseISO } from 'date-fns';
@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LEAGUE_PRIORITIES } from '@/utils/leaguePriority';
 import { useWebSocket, getWebSocketUrl } from '@/hooks/useWebSocket';
+import { managedFetch } from '@/utils/apiRequestManager';
+import { useSmartPolling } from '@/hooks/useSmartPolling';
 
 interface FeedData {
   matches: Match[];
@@ -30,51 +32,46 @@ const EnhancedMatchFeed: React.FC = () => {
   // WebSocket connection for real-time updates
   const { isConnected, subscribe, on } = useWebSocket(getWebSocketUrl());
 
-  useEffect(() => {
-    const fetchFeedData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/feed/matches');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch feed data');
-        }
-        
-        const data: FeedData = await response.json();
-        setFeedData(data);
-      } catch (err) {
-        console.error('Error fetching feed:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load matches');
-      } finally {
-        setLoading(false);
+  // Memoized fetch function to prevent recreating
+  const fetchFeedData = useCallback(async () => {
+    try {
+      const response = await managedFetch('/api/feed/matches');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch feed data');
       }
-    };
+      
+      const data: FeedData = await response.json();
+      setFeedData(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching feed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load matches');
+    }
+  }, []);
 
-    fetchFeedData();
-    
-    // Dynamic refresh based on whether we have live matches
-    let interval: NodeJS.Timeout;
-    
-    const setupInterval = () => {
-      // Check if we have any live matches
-      const hasLiveMatches = feedData?.matches?.some(match => {
-        const status = match.status?.toLowerCase() || '';
-        return status.includes('live') || status.includes('half') || status.includes('1h') || status.includes('2h');
-      });
-      
-      // Use shorter interval for live matches
-      const refreshInterval = hasLiveMatches ? 10000 : 60000; // 10s for live, 60s otherwise
-      console.log(`[EnhancedMatchFeed] Setting refresh interval to ${refreshInterval}ms (live: ${hasLiveMatches})`);
-      
-      interval = setInterval(fetchFeedData, refreshInterval);
-    };
-    
-    setupInterval();
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [feedData]);
+  // Initial fetch
+  useEffect(() => {
+    setLoading(true);
+    fetchFeedData().finally(() => setLoading(false));
+  }, []); // Only run once on mount
+
+  // Smart polling with server update avoidance
+  const hasLiveMatches = useMemo(() => {
+    return feedData?.matches?.some(match => {
+      const status = match.status?.toLowerCase() || '';
+      return status.includes('live') || status.includes('half') || status.includes('1h') || status.includes('2h');
+    }) || false;
+  }, [feedData?.matches]);
+
+  const refreshInterval = hasLiveMatches ? 10000 : 60000; // 10s for live, 60s otherwise
+
+  useSmartPolling({
+    enabled: !!feedData,
+    interval: refreshInterval,
+    onFetch: fetchFeedData,
+    avoidServerUpdates: true
+  });
   
   // Subscribe to WebSocket updates
   useEffect(() => {
@@ -219,8 +216,13 @@ const EnhancedMatchFeed: React.FC = () => {
     );
   }
 
-  const groupedMatches = groupMatchesByDate(feedData.matches);
-  const dateGroups = Object.keys(groupedMatches);
+  // Memoize grouped matches to prevent recalculation
+  const groupedMatches = useMemo(() => {
+    if (!feedData?.matches) return {};
+    return groupMatchesByDate(feedData.matches);
+  }, [feedData?.matches]);
+  
+  const dateGroups = useMemo(() => Object.keys(groupedMatches), [groupedMatches]);
 
   return (
     <div className="mb-12">

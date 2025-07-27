@@ -1,4 +1,202 @@
 {
+  "/api/for-you/matches": {
+    "data": {
+      "matches": [
+        {
+          "id": 1177316734,
+          "competition_id": 2486,
+          "home_team_id": 483301,
+          "away_team_id": 1859368,
+          "home_team": {
+            "id": "483301",
+            "logo": "https://highlightly.net/soccer/images/teams/483301.png",
+            "name": "Plzen"
+          },
+          "away_team": {
+            "id": "1859368",
+            "logo": "https://highlightly.net/soccer/images/teams/1859368.png",
+            "name": "Servette FC"
+          },
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22",
+          "match_date": "2025-07-22",
+          "date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          },
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        },
+        {
+          "id": 1196034479,
+          "competition_id": 2486,
+          "home_team_id": 568401,
+          "away_team_id": 509682,
+          "home_team": {
+            "id": "568401",
+            "logo": "https://highlightly.net/soccer/images/teams/568401.png",
+            "name": "Lincoln Red Imps FC"
+          },
+          "away_team": {
+            "id": "509682",
+            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
+            "name": "FK Crvena Zvezda"
+          },
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22",
+          "match_date": "2025-07-22",
+          "date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          },
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        },
+        {
+          "id": 1196037883,
+          "competition_id": 2486,
+          "home_team_id": 3937510,
+          "away_team_id": 487556,
+          "home_team": {
+            "id": "3937510",
+            "logo": "https://highlightly.net/soccer/images/teams/3937510.png",
+            "name": "Hamrun Spartans"
+          },
+          "away_team": {
+            "id": "487556",
+            "logo": "https://highlightly.net/soccer/images/teams/487556.png",
+            "name": "Dynamo Kyiv"
+          },
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22",
+          "match_date": "2025-07-22",
+          "date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          },
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        },
+        {
+          "id": 1177318436,
+          "competition_id": 2486,
+          "home_team_id": 219491,
+          "away_team_id": 525851,
+          "home_team": {
+            "id": "219491",
+            "logo": "https://highlightly.net/soccer/images/teams/219491.png",
+            "name": "Rangers"
+          },
+          "away_team": {
+            "id": "525851",
+            "logo": "https://highlightly.net/soccer/images/teams/525851.png",
+            "name": "Panathinaikos"
+          },
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22",
+          "match_date": "2025-07-22",
+          "date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          },
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        },
+        {
+          "id": 1196036181,
+          "competition_id": 2486,
+          "home_team_id": 3540944,
+          "away_team_id": 319909,
+          "home_team": {
+            "id": "3540944",
+            "logo": "https://highlightly.net/soccer/images/teams/3540944.png",
+            "name": "Rīgas FS"
+          },
+          "away_team": {
+            "id": "319909",
+            "logo": "https://highlightly.net/soccer/images/teams/319909.png",
+            "name": "Malmo FF"
+          },
+          "home_score": null,
+          "away_score": null,
+          "utc_date": "2025-07-22",
+          "match_date": "2025-07-22",
+          "date": "2025-07-22",
+          "status": "Not started",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          },
+          "weight": 59,
+          "weightBreakdown": {
+            "leagueWeight": 35,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        }
+      ],
+      "dateRange": {
+        "start": "2025-07-20",
+        "end": "2025-07-28"
+      },
+      "lastUpdated": "2025-07-27T15:28:48.073Z"
+    },
+    "expiry": 1753631928073,
+    "ttl": 1800
+  },
   "/api/feed/matches": {
     "data": {
       "matches": [
@@ -2649,207 +2847,9 @@
         "start": "2025-07-26",
         "end": "2025-08-02"
       },
-      "lastUpdated": "2025-07-27T15:17:32.698Z"
+      "lastUpdated": "2025-07-27T15:28:48.315Z"
     },
-    "expiry": 1753629752698,
+    "expiry": 1753630428315,
     "ttl": 300
-  },
-  "/api/for-you/matches": {
-    "data": {
-      "matches": [
-        {
-          "id": 1177316734,
-          "competition_id": 2486,
-          "home_team_id": 483301,
-          "away_team_id": 1859368,
-          "home_team": {
-            "id": "483301",
-            "logo": "https://highlightly.net/soccer/images/teams/483301.png",
-            "name": "Plzen"
-          },
-          "away_team": {
-            "id": "1859368",
-            "logo": "https://highlightly.net/soccer/images/teams/1859368.png",
-            "name": "Servette FC"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        },
-        {
-          "id": 1196034479,
-          "competition_id": 2486,
-          "home_team_id": 568401,
-          "away_team_id": 509682,
-          "home_team": {
-            "id": "568401",
-            "logo": "https://highlightly.net/soccer/images/teams/568401.png",
-            "name": "Lincoln Red Imps FC"
-          },
-          "away_team": {
-            "id": "509682",
-            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
-            "name": "FK Crvena Zvezda"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        },
-        {
-          "id": 1196037883,
-          "competition_id": 2486,
-          "home_team_id": 3937510,
-          "away_team_id": 487556,
-          "home_team": {
-            "id": "3937510",
-            "logo": "https://highlightly.net/soccer/images/teams/3937510.png",
-            "name": "Hamrun Spartans"
-          },
-          "away_team": {
-            "id": "487556",
-            "logo": "https://highlightly.net/soccer/images/teams/487556.png",
-            "name": "Dynamo Kyiv"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        },
-        {
-          "id": 1177318436,
-          "competition_id": 2486,
-          "home_team_id": 219491,
-          "away_team_id": 525851,
-          "home_team": {
-            "id": "219491",
-            "logo": "https://highlightly.net/soccer/images/teams/219491.png",
-            "name": "Rangers"
-          },
-          "away_team": {
-            "id": "525851",
-            "logo": "https://highlightly.net/soccer/images/teams/525851.png",
-            "name": "Panathinaikos"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        },
-        {
-          "id": 1196036181,
-          "competition_id": 2486,
-          "home_team_id": 3540944,
-          "away_team_id": 319909,
-          "home_team": {
-            "id": "3540944",
-            "logo": "https://highlightly.net/soccer/images/teams/3540944.png",
-            "name": "Rīgas FS"
-          },
-          "away_team": {
-            "id": "319909",
-            "logo": "https://highlightly.net/soccer/images/teams/319909.png",
-            "name": "Malmo FF"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        }
-      ],
-      "dateRange": {
-        "start": "2025-07-20",
-        "end": "2025-07-28"
-      },
-      "lastUpdated": "2025-07-27T15:17:32.676Z"
-    },
-    "expiry": 1753631252676,
-    "ttl": 1800
   }
 }

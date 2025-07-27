@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Match } from '@/types';
 import MatchCard from './MatchCard';
 import { Loader2, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { managedFetch } from '@/utils/apiRequestManager';
+import { useSmartPolling } from '@/hooks/useSmartPolling';
 
 interface ForYouMatch extends Match {
   weight: number;
@@ -20,42 +22,47 @@ const ForYouSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchForYouMatches = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/for-you/matches');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch For You matches');
-        }
-        
-        const data = await response.json();
-        setMatches(data.matches || []);
-      } catch (err) {
-        console.error('Error fetching For You matches:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load matches');
-      } finally {
-        setLoading(false);
+  // Memoized fetch function
+  const fetchForYouMatches = useCallback(async () => {
+    try {
+      const response = await managedFetch('/api/for-you/matches');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch For You matches');
       }
-    };
+      
+      const data = await response.json();
+      setMatches(data.matches || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching For You matches:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load matches');
+    }
+  }, []);
 
-    fetchForYouMatches();
-    
-    // Dynamic refresh - more frequent for recent matches
-    const hasRecentMatches = matches.some(match => {
+  // Initial fetch
+  useEffect(() => {
+    setLoading(true);
+    fetchForYouMatches().finally(() => setLoading(false));
+  }, []); // Only on mount
+
+  // Smart polling
+  const hasRecentMatches = useMemo(() => {
+    return matches.some(match => {
       const matchDate = new Date(match.utc_date || match.match_date || match.date);
       const hoursSinceMatch = (Date.now() - matchDate.getTime()) / (1000 * 60 * 60);
       return hoursSinceMatch < 24; // Match within last 24 hours
     });
-    
-    // Refresh every 30 seconds for recent matches, 5 minutes otherwise
-    const refreshInterval = hasRecentMatches ? 30 * 1000 : 5 * 60 * 1000;
-    console.log(`[ForYouSection] Setting refresh interval to ${refreshInterval}ms (recent: ${hasRecentMatches})`);
-    
-    const interval = setInterval(fetchForYouMatches, refreshInterval);
-    return () => clearInterval(interval);
   }, [matches]);
+
+  const refreshInterval = hasRecentMatches ? 30 * 1000 : 5 * 60 * 1000;
+
+  useSmartPolling({
+    enabled: matches.length > 0,
+    interval: refreshInterval,
+    onFetch: fetchForYouMatches,
+    avoidServerUpdates: true
+  });
 
   if (loading) {
     return (

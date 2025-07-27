@@ -188,4 +188,4 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, showDate = true, datePosit
   );
 };
 
-export default MatchCard; 
+export default React.memo(MatchCard); 
