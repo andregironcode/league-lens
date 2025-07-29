@@ -441,11 +441,6 @@ export const serviceAdapter = {
     }
   },
 
-  async getMatchDetails(matchId: string): Promise<MatchHighlight | null> {
-    // Implementation needed
-    throw new Error('Method not implemented');
-  },
-
   async getLastFiveGames(teamId: string): Promise<Match[]> {
     const serviceName = this.getActiveService();
     switch (serviceName) {

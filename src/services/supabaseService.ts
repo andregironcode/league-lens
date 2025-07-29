@@ -534,6 +534,7 @@ export const {
   getTeamHighlights,
   getTeamDetails,
   searchHighlights,
+  getMatchDetails,
   // Add real-time methods
   subscribeToMatch,
   subscribeToLiveMatches,
@@ -546,6 +547,7 @@ export const {
   getLeagueHighlights: supabaseService.getLeagueHighlights.bind(supabaseService),
   getMatchById: (id: string) => supabaseService.getMatchHighlightById(id),
   getTeamHighlights: (teamId: string) => supabaseService.getMatchHighlightsByTeam(teamId),
+  getMatchDetails: (matchId: string) => supabaseDataService.getMatchDetails(matchId),
   // Real-time methods from supabaseDataService
   subscribeToMatch: supabaseDataService.subscribeToMatch.bind(supabaseDataService),
   subscribeToLiveMatches: supabaseDataService.subscribeToLiveMatches.bind(supabaseDataService),
