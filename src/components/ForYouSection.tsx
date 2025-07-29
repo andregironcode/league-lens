@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Match } from '@/types';
 import MatchCard from './MatchCard';
 import { Loader2, Sparkles } from 'lucide-react';

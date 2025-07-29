@@ -258,7 +258,24 @@ const warmUpCache = async () => {
 
 // Middleware with enhanced CORS configuration
 app.use(cors({
-  origin: process.env.VITE_APP_URL || 'http://localhost:5173',
+  origin: function(origin, callback) {
+    // Allow requests from these origins
+    const allowedOrigins = [
+      'http://localhost:8080',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      process.env.VITE_APP_URL
+    ].filter(Boolean);
+    
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all origins in development
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Bypass-Cache', 'X-Real-Time', 'Cache-Control'],

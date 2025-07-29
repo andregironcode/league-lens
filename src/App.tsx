@@ -7,11 +7,13 @@ import LeaguesPage from '@/pages/LeaguesPage';
 import NotFound from '@/pages/NotFound';
 
 import MainLayout from '@/components/layout/MainLayout';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import './App.css';
 
 function App() {
   return (
-    <Router>
+    <ErrorBoundary>
+      <Router>
       <Routes>
         <Route path="/" element={
           <MainLayout>
@@ -45,6 +47,7 @@ function App() {
         } />
       </Routes>
     </Router>
+    </ErrorBoundary>
   );
 }
 

@@ -75,54 +75,47 @@ const EnhancedMatchFeed: React.FC = () => {
   
   // Subscribe to WebSocket updates
   useEffect(() => {
-    if (!isConnected) return;
+    // Initialize cleanup functions
+    let unsubscribeMatchUpdate: (() => void) | undefined;
+    let unsubscribeMatchLive: (() => void) | undefined;
     
-    // Subscribe to live match updates
-    subscribe(undefined, undefined, 'live');
-    
-    // Handle match updates
-    const unsubscribeMatchUpdate = on('match:update', (message) => {
-      console.log('[EnhancedMatchFeed] Received match update:', message.matchId);
+    if (isConnected) {
+      // Subscribe to live match updates
+      subscribe(undefined, undefined, 'live');
       
-      // Update the specific match in feedData
-      setFeedData(prev => {
-        if (!prev) return prev;
+      // Handle match updates
+      unsubscribeMatchUpdate = on('match:update', (message) => {
+        console.log('[EnhancedMatchFeed] Received match update:', message.matchId);
         
-        const updatedMatches = prev.matches.map(match => 
-          match.id === message.matchId ? { ...match, ...message.data } : match
-        );
-        
-        return {
-          ...prev,
-          matches: updatedMatches,
-          lastUpdated: new Date().toISOString()
-        };
+        // Update the specific match in feedData
+        setFeedData(prev => {
+          if (!prev) return prev;
+          
+          const updatedMatches = prev.matches.map(match => 
+            match.id === message.matchId ? { ...match, ...message.data } : match
+          );
+          
+          return {
+            ...prev,
+            matches: updatedMatches,
+            lastUpdated: new Date().toISOString()
+          };
+        });
       });
-    });
-    
-    // Handle new live matches
-    const unsubscribeMatchLive = on('match:live', (message) => {
-      console.log('[EnhancedMatchFeed] Match went live:', message.matchId);
-      // Trigger a full refresh to get the latest data
-      const fetchFeedData = async () => {
-        try {
-          const response = await fetch('/api/feed/matches');
-          if (response.ok) {
-            const data: FeedData = await response.json();
-            setFeedData(data);
-          }
-        } catch (err) {
-          console.error('[EnhancedMatchFeed] Error refreshing on live match:', err);
-        }
-      };
-      fetchFeedData();
-    });
+      
+      // Handle new live matches
+      unsubscribeMatchLive = on('match:live', (message) => {
+        console.log('[EnhancedMatchFeed] Match went live:', message.matchId);
+        // Trigger a full refresh to get the latest data
+        fetchFeedData();
+      });
+    }
     
     return () => {
-      unsubscribeMatchUpdate();
-      unsubscribeMatchLive();
+      unsubscribeMatchUpdate?.();
+      unsubscribeMatchLive?.();
     };
-  }, [isConnected, subscribe, on]);
+  }, [isConnected, subscribe, on, fetchFeedData]);
 
   const formatMatchDate = (dateString: string) => {
     try {
@@ -185,6 +178,14 @@ const EnhancedMatchFeed: React.FC = () => {
     return groups;
   };
 
+  // Memoize grouped matches to prevent recalculation - MUST be before any conditional returns
+  const groupedMatches = useMemo(() => {
+    if (!feedData?.matches) return {};
+    return groupMatchesByDate(feedData.matches);
+  }, [feedData?.matches]);
+  
+  const dateGroups = useMemo(() => Object.keys(groupedMatches), [groupedMatches]);
+
   if (loading) {
     return (
       <div className="mb-12">
@@ -215,14 +216,6 @@ const EnhancedMatchFeed: React.FC = () => {
       </Card>
     );
   }
-
-  // Memoize grouped matches to prevent recalculation
-  const groupedMatches = useMemo(() => {
-    if (!feedData?.matches) return {};
-    return groupMatchesByDate(feedData.matches);
-  }, [feedData?.matches]);
-  
-  const dateGroups = useMemo(() => Object.keys(groupedMatches), [groupedMatches]);
 
   return (
     <div className="mb-12">
