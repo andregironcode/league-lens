@@ -704,6 +704,51 @@ class SupabaseDataService {
   }
 
   /**
+   * Get standings for a league
+   */
+  async getStandingsForLeague(leagueId: string, season: string = '2024'): Promise<any[]> {
+    console.log(`[SupabaseData] Fetching standings for league ${leagueId}, season ${season}`);
+    
+    try {
+      const { data: standings, error } = await supabase
+        .from('standings')
+        .select(`
+          *,
+          team:teams!standings_team_id_fkey(id, name, logo)
+        `)
+        .eq('league_id', leagueId)
+        .eq('season', season)
+        .order('position', { ascending: true });
+
+      if (error) {
+        console.error('[SupabaseData] Error fetching standings:', error);
+        return [];
+      }
+
+      const transformedStandings = standings?.map((standing: any) => ({
+        position: standing.position,
+        team: standing.team || { id: standing.team_id, name: 'Unknown', logo: '' },
+        played: standing.played,
+        won: standing.won,
+        drawn: standing.drawn,
+        lost: standing.lost,
+        goalsFor: standing.goals_for,
+        goalsAgainst: standing.goals_against,
+        goalDifference: standing.goal_difference,
+        points: standing.points,
+        form: standing.form
+      })) || [];
+
+      console.log(`[SupabaseData] Found ${transformedStandings.length} teams in standings`);
+      return transformedStandings;
+
+    } catch (error) {
+      console.error('[SupabaseData] Error in getStandingsForLeague:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get highlights for a specific match
    */
   async getHighlightsForMatch(matchId: string): Promise<any[]> {
@@ -737,6 +782,78 @@ class SupabaseDataService {
     } catch (error) {
       console.error('[SupabaseData] Error in getHighlightsForMatch:', error);
       return [];
+    }
+  }
+
+  /**
+   * Get team form (last 5 matches)
+   */
+  async getTeamForm(teamId: string): Promise<any[]> {
+    console.log(`[SupabaseData] Fetching team form for ${teamId}`);
+    
+    try {
+      const { data: formData, error } = await supabase
+        .from('team_form')
+        .select('*')
+        .eq('team_id', teamId)
+        .single();
+
+      if (error) {
+        console.error('[SupabaseData] Error fetching team form:', error);
+        return [];
+      }
+
+      // Return the last 5 matches data
+      return formData?.last_5_matches || [];
+
+    } catch (error) {
+      console.error('[SupabaseData] Error in getTeamForm:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get head-to-head matches between two teams
+   */
+  async getHeadToHead(homeTeamId: string, awayTeamId: string): Promise<any> {
+    console.log(`[SupabaseData] Fetching H2H for ${homeTeamId} vs ${awayTeamId}`);
+    
+    try {
+      // First check if we have stored H2H data
+      const { data: h2hData, error: h2hError } = await supabase
+        .from('head_to_head')
+        .select('*')
+        .or(`and(team1_id.eq.${homeTeamId},team2_id.eq.${awayTeamId}),and(team1_id.eq.${awayTeamId},team2_id.eq.${homeTeamId})`)
+        .single();
+
+      if (!h2hError && h2hData) {
+        return { matches: h2hData.matches || [] };
+      }
+
+      // Fallback: Get matches from matches table
+      const { data: matches, error } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          home_team:teams!matches_home_team_id_fkey(id, name, logo),
+          away_team:teams!matches_away_team_id_fkey(id, name, logo),
+          league:leagues!matches_league_id_fkey(id, name, logo)
+        `)
+        .or(`and(home_team_id.eq.${homeTeamId},away_team_id.eq.${awayTeamId}),and(home_team_id.eq.${awayTeamId},away_team_id.eq.${homeTeamId})`)
+        .order('match_date', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('[SupabaseData] Error fetching H2H matches:', error);
+        return { matches: [] };
+      }
+
+      console.log(`[SupabaseData] Found ${matches?.length || 0} H2H matches`);
+      return { matches: matches || [] };
+
+    } catch (error) {
+      console.error('[SupabaseData] Error in getHeadToHead:', error);
+      return { matches: [] };
     }
   }
 

@@ -6,6 +6,7 @@ import { supabaseDataService } from '@/services/supabaseDataService';
 import { getStandingsForLeague, getLastFiveGames, getHeadToHead, getMatchById } from '@/services/serviceAdapter';
 import { MatchHighlight, EnhancedMatchHighlight, Player, Match, MatchEvent, StandingsRow } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
+import { getCurrentDateCET } from '@/utils/dateUtils';
 import { useToast } from "@/hooks/use-toast";
 import { formatSeason } from '../utils/seasonFormatting';
 import StandingsTable from '@/components/StandingsTable';
@@ -117,10 +118,12 @@ const MatchDetails = () => {
         const matchData = await supabaseDataService.getMatchById(id);
         setMatch(matchData);
         
-        // If match is recent or live, try to get fresh data from API
+        // Commented out API calls to prevent rate limiting
+        // We'll rely on the database data which is updated every 15 minutes
+        /*
         if (matchData) {
           const matchDate = new Date(matchData.date);
-          const now = new Date();
+          const now = getCurrentDateCET();
           const hoursSinceMatch = (now - matchDate) / (1000 * 60 * 60);
           
           // If match is within last 24 hours or upcoming, fetch fresh data
@@ -137,6 +140,7 @@ const MatchDetails = () => {
             }
           }
         }
+        */
 
         if (matchData?.videoUrl) {
           // This seems to be for a single primary highlight, keeping logic
@@ -181,7 +185,11 @@ const MatchDetails = () => {
             console.log(`[MatchDetails] Match date: ${matchData.date}`);
             console.log(`[MatchDetails] Calculated season: ${formattedSeason} (API: ${apiSeason})`);
             
-            const standingsResponse = await getStandingsForLeague(competitionId, apiSeason);
+            // Commented out API call to prevent rate limiting
+            // const standingsResponse = await getStandingsForLeague(competitionId, apiSeason);
+            // Fetch standings from database
+            const standingsData = await supabaseDataService.getStandingsForLeague(competitionId, apiSeason);
+            const standingsResponse = standingsData.length > 0 ? { standings: standingsData } : null;
             console.log(`[MatchDetails] Raw standings response:`, standingsResponse);
             
             if (standingsResponse && (standingsResponse.groups || standingsResponse.standings || standingsResponse.data)) {
@@ -215,7 +223,10 @@ const MatchDetails = () => {
               console.log(`[MatchDetails] Season ${apiSeason} not available, trying fallback to ${fallbackSeason}...`);
               
               try {
-                const fallbackResponse = await getStandingsForLeague(competitionId, fallbackSeason);
+                // const fallbackResponse = await getStandingsForLeague(competitionId, fallbackSeason);
+                // Fetch fallback season from database
+                const fallbackData = await supabaseDataService.getStandingsForLeague(competitionId, fallbackSeason);
+                const fallbackResponse = fallbackData.length > 0 ? { standings: fallbackData } : null;
                 console.log(`[MatchDetails] Fallback response:`, fallbackResponse);
                 
                 if (fallbackResponse && (fallbackResponse.groups || fallbackResponse.standings || fallbackResponse.data)) {
@@ -295,6 +306,8 @@ const MatchDetails = () => {
             setH2hData([]);
           } else {
             // Fetch form data and use stored H2H data if available
+            // Commented out API calls to prevent rate limiting
+            /*
             const [homeForm, awayForm] = await Promise.all([
               getLastFiveGames(homeTeamId).catch(err => {
                 console.log(`[MatchDetails] Home team form not available:`, err.message);
@@ -305,6 +318,9 @@ const MatchDetails = () => {
                 return [];
               })
             ]);
+            */
+            const homeForm = [];
+            const awayForm = [];
             
             // Use stored H2H data or fetch from API as fallback
             let h2h = [];
@@ -313,10 +329,12 @@ const MatchDetails = () => {
               h2h = storedH2HData.matches;
             } else {
               console.log(`[MatchDetails] No stored H2H data, fetching from API...`);
-              h2h = await getHeadToHead(homeTeamId, awayTeamId).catch(err => {
-                console.log(`[MatchDetails] Head-to-head data not available:`, err.message);
-                return [];
-              });
+              // Commented out API call to prevent rate limiting
+              // h2h = await getHeadToHead(homeTeamId, awayTeamId).catch(err => {
+              //   console.log(`[MatchDetails] Head-to-head data not available:`, err.message);
+              //   return [];
+              // });
+              h2h = [];
             }
             
             console.log(`[MatchDetails] Form data results:`, {

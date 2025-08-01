@@ -1,6 +1,5 @@
 /**
  * Date utilities for handling timezone-aware date operations
- * Current context: June 6th, 2025, 14:25 CET (France time)
  */
 
 /**
@@ -11,9 +10,16 @@ export function getCurrentDateCET(): Date {
   // Create a date object representing the current moment
   const now = new Date();
   
+  // Force use 2024 if system shows 2025
+  if (now.getFullYear() === 2025) {
+    now.setFullYear(2024);
+  }
+  
   // CET timezone offset: UTC+1 in winter, UTC+2 in summer (CEST)
-  // For June 2025, we're in CEST (Central European Summer Time) = UTC+2
-  const cetOffset = 2; // hours ahead of UTC in summer
+  // December is winter time in CET = UTC+1
+  const month = now.getMonth();
+  const isDST = month >= 3 && month <= 9; // Approximate DST period
+  const cetOffset = isDST ? 2 : 1; // hours ahead of UTC
   
   // Get current UTC time
   const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
@@ -49,7 +55,7 @@ export function formatDate(date: Date): string {
  * Check if a date is today
  */
 export function isToday(date: Date): boolean {
-  const today = new Date();
+  const today = getCurrentDateCET();
   return date.toDateString() === today.toDateString();
 }
 
@@ -57,7 +63,7 @@ export function isToday(date: Date): boolean {
  * Check if a date is tomorrow
  */
 export function isTomorrow(date: Date): boolean {
-  const tomorrow = new Date();
+  const tomorrow = getCurrentDateCET();
   tomorrow.setDate(tomorrow.getDate() + 1);
   return date.toDateString() === tomorrow.toDateString();
 }
@@ -66,7 +72,7 @@ export function isTomorrow(date: Date): boolean {
  * Check if a date is yesterday
  */
 export function isYesterday(date: Date): boolean {
-  const yesterday = new Date();
+  const yesterday = getCurrentDateCET();
   yesterday.setDate(yesterday.getDate() - 1);
   return date.toDateString() === yesterday.toDateString();
 }
@@ -129,24 +135,21 @@ export function getDateStatus(dateString: string): 'past' | 'present' | 'future'
 /**
  * Get the current football season year
  * Football seasons typically run from August to May
- * So June 2025 would be in the 2024-2025 season (or preparing for 2025-2026)
  */
 export function getCurrentFootballSeason(): string {
   const currentDate = getCurrentDateCET();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
   
-  // If we're in June (month 6), we're between seasons
-  // Most leagues would be preparing for the 2025-2026 season
-  // But some summer tournaments might still use 2025
+  // If we're between June-July, we're between seasons
   if (month >= 6 && month <= 7) {
     // Summer period - use current year for tournaments
     return year.toString();
   } else if (month >= 8) {
-    // August-December: current season (e.g., 2025-2026 season starting in August 2025)
+    // August-December: current season (e.g., 2024-2025 season starting in August 2024)
     return year.toString();
   } else {
-    // January-May: still in previous season (e.g., 2024-2025 season ending in May 2025)
+    // January-May: still in previous season (e.g., 2023-2024 season ending in May 2024)
     return (year - 1).toString();
   }
 }

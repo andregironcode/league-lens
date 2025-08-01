@@ -42,13 +42,16 @@ export const highlightlyService = {
    * Get last 5 played matches across ALL leagues with highlights
    */
   async getLast5FeaturedMatches(): Promise<Match[]> {
-    console.log('[Highlightly] Fetching last 5 matches across all leagues');
+    console.log('[Highlightly] Fetching last 5 matches from database');
     
     try {
-      // First try to get recent matches with explicit date range
       // Calculate date range: today and 14 days in the past
       const today = new Date();
-      const twoWeeksAgo = new Date();
+      // Force use 2024 if system shows 2025
+      if (today.getFullYear() === 2025) {
+        today.setFullYear(2024);
+      }
+      const twoWeeksAgo = new Date(today);
       twoWeeksAgo.setDate(today.getDate() - 14);
       
       const todayStr = today.toISOString().split('T')[0];
@@ -56,108 +59,123 @@ export const highlightlyService = {
       
       console.log(`[Highlightly] Fetching matches from ${twoWeeksAgoStr} to ${todayStr}`);
       
-      // First attempt: Get recent matches from the last 14 days
-      // More specific filtering to ensure we get recent matches
-      const response = await highlightlyClient.getMatches({
-        limit: '50', // Increased limit to ensure we find enough matches with highlights
-        date: `${twoWeeksAgoStr},${todayStr}` // Date range format for the API
-      });
+      // Use our database API endpoint
+      const response = await fetch(`/api/database-matches?startDate=${twoWeeksAgoStr}&endDate=${todayStr}&limit=50`);
       
-      if (!response || !response.data || !Array.isArray(response.data)) {
-        console.error('[Highlightly] Invalid API response format:', response);
-        throw new Error('Invalid API response format');
+      if (!response.ok) {
+        console.error('[Highlightly] Database API error:', response.status);
+        throw new Error('Failed to fetch matches from database');
       }
       
-      console.log(`[Highlightly] Received ${response.data.length} matches from API`);
+      const data = await response.json();
       
-      // Debug: Log the first match to see its structure
-      if (response.data.length > 0) {
-        console.log('[Highlightly] First match example:', JSON.stringify(response.data[0], null, 2));
+      if (!data || !data.data || !Array.isArray(data.data)) {
+        console.error('[Highlightly] Invalid database response format:', data);
+        throw new Error('Invalid database response format');
       }
       
-      // Filter matches that have highlights
-      const matchesWithHighlights = response.data.filter(match => {
-        const hasHighlights = !!match.highlights && Array.isArray(match.highlights) && match.highlights.length > 0;
-        return hasHighlights;
+      console.log(`[Highlightly] Received ${data.data.length} matches from database`);
+      
+      // Filter matches that have highlights and are finished
+      const finishedMatchesWithHighlights = data.data.filter(match => {
+        const hasHighlights = match.highlights === true;
+        const isFinished = match.status?.long?.toLowerCase().includes('full') || 
+                          match.status?.long?.toLowerCase().includes('finish') ||
+                          match.status?.description?.toLowerCase().includes('full') ||
+                          match.status?.description?.toLowerCase().includes('finish');
+        return hasHighlights && isFinished;
       });
       
-      console.log(`[Highlightly] Found ${matchesWithHighlights.length} matches with highlights`);
+      console.log(`[Highlightly] Found ${finishedMatchesWithHighlights.length} finished matches with highlights`);
       
       // Sort by date (most recent first)
-      // Use the raw date from API - handle multiple date formats
-      matchesWithHighlights.sort((a, b) => {
-        // Try to extract dates from various possible properties
-        const getDateValue = (match: any): number => {
-          // Try different date properties based on the API structure
-          if (match.date) return new Date(match.date).getTime();
-          if (match.fixture?.date) return new Date(match.fixture.date).getTime();
-          if (match.fixture?.timestamp) return match.fixture.timestamp * 1000;
-          return 0; // Default to 0 if no valid date found
-        };
-        
-        return getDateValue(b) - getDateValue(a); // Descending (newest first)
+      finishedMatchesWithHighlights.sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA; // Descending (newest first)
       });
       
       // Take only the 5 most recent matches with highlights
-      const recentMatches = matchesWithHighlights.slice(0, 5);
+      const recentMatches = finishedMatchesWithHighlights.slice(0, 5);
       
       console.log('[Highlightly] Selected the 5 most recent matches with highlights:');
       recentMatches.forEach((match, idx) => {
-        const date = match.date || match.fixture?.date || 'Unknown date';
-        const homeTeam = match.homeTeam?.name || match.teams?.home?.name || 'Unknown';
-        const awayTeam = match.awayTeam?.name || match.teams?.away?.name || 'Unknown';
+        const date = match.date || 'Unknown date';
+        const homeTeam = match.homeTeam?.name || 'Unknown';
+        const awayTeam = match.awayTeam?.name || 'Unknown';
         console.log(`[Highlightly] ${idx + 1}. ${date}: ${homeTeam} vs ${awayTeam}`);
       });
       
-      // Return the raw match data directly from the API
       return recentMatches;
     } catch (error) {
       console.error('[Highlightly] Error fetching last 5 matches:', error);
       
-      // No mapping allowed - if API fails, return an empty array
+      // Fall back to empty array if database fails
       return [];
     }
   },
 
   /**
    * SUPER OPTIMIZED: Gets all matches for a SINGLE date for top leagues.
-   * Uses batch processing to minimize API calls.
-   * API Calls: 1 batch request (instead of 6+ individual calls)
+   * Now uses database instead of external API
    */
   async getMatchesForDate(date: string): Promise<LeagueWithMatches[]> {
-    console.log(`[Highlightly] OPTIMIZED: Fetching matches for single date: ${date} (batched)`);
+    console.log(`[Highlightly] Fetching matches for date: ${date} from database`);
     
     try {
-      // Use the new batch method to get all leagues' matches in one go
-      const leagueIds = TOP_LEAGUES.map(league => league.id);
-      const matchesResponses = await highlightlyClient.getMatchesForLeagues(
-        leagueIds, 
-        date
-      );
-
-      const leaguesWithMatches: LeagueWithMatches[] = [];
-
-      matchesResponses.forEach((response, index) => {
-        const leagueId = leagueIds[index];
-        const matches = (response as any)?.data || [];
-        
-        console.log(`[Highlightly] League ${leagueId} (${TOP_LEAGUES[index]?.name}) returned ${matches.length} matches for ${date}`);
-        
-        if (matches.length > 0) {
-          const leagueData = LEAGUE_DATA_MAP[leagueId];
-          if (leagueData) {
-            leaguesWithMatches.push({
-              ...leagueData,
-              matches: matches.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()),
-            });
-            console.log(`[Highlightly] Added league ${leagueData.name} with ${matches.length} matches`);
+      // Fetch matches for the specific date from database
+      const response = await fetch(`/api/database-matches?date=${date}&limit=200`);
+      
+      if (!response.ok) {
+        console.error('[Highlightly] Database API error:', response.status);
+        throw new Error('Failed to fetch matches from database');
+      }
+      
+      const data = await response.json();
+      
+      if (!data || !data.data || !Array.isArray(data.data)) {
+        console.error('[Highlightly] Invalid database response format:', data);
+        throw new Error('Invalid database response format');
+      }
+      
+      console.log(`[Highlightly] Received ${data.data.length} matches for ${date}`);
+      
+      // Group matches by league
+      const matchesByLeague: Record<string, any[]> = {};
+      
+      data.data.forEach(match => {
+        const leagueId = match.league?.id || match.competition_id;
+        if (leagueId) {
+          if (!matchesByLeague[leagueId]) {
+            matchesByLeague[leagueId] = [];
           }
-        } else {
-          console.log(`[Highlightly] No matches found for league ${leagueId} (${TOP_LEAGUES[index]?.name}) on ${date}`);
+          matchesByLeague[leagueId].push(match);
         }
       });
       
-      console.log(`[Highlightly] Found ${leaguesWithMatches.length} leagues with matches on ${date} (${matchesResponses.length} API calls)`);
+      // Create LeagueWithMatches array for top leagues
+      const leaguesWithMatches: LeagueWithMatches[] = [];
+      
+      TOP_LEAGUES.forEach(topLeague => {
+        const leagueMatches = matchesByLeague[topLeague.id] || [];
+        
+        if (leagueMatches.length > 0) {
+          const leagueData = LEAGUE_DATA_MAP[topLeague.id];
+          if (leagueData) {
+            leaguesWithMatches.push({
+              ...leagueData,
+              matches: leagueMatches.sort((a: any, b: any) => {
+                const timeA = new Date(`${a.date}T${a.time || '00:00'}`).getTime();
+                const timeB = new Date(`${b.date}T${b.time || '00:00'}`).getTime();
+                return timeA - timeB;
+              }),
+            });
+            console.log(`[Highlightly] Added league ${leagueData.name} with ${leagueMatches.length} matches`);
+          }
+        }
+      });
+      
+      console.log(`[Highlightly] Found ${leaguesWithMatches.length} leagues with matches on ${date}`);
       return leaguesWithMatches;
 
     } catch (error) {
@@ -228,149 +246,77 @@ export const highlightlyService = {
   },
 
   /**
-   * OPTIMIZED: Get match by ID with all related data in one batch
-   * API Calls: 1 batch request (instead of 3+ individual calls)
+   * OPTIMIZED: Get match by ID with all related data from database
    */
   async getMatchById(id: string): Promise<EnhancedMatchHighlight | null> {
-    console.log(`[Highlightly] OPTIMIZED: Fetching complete match details for ID: ${id}`);
+    console.log(`[Highlightly] Fetching match details for ID: ${id} from database`);
     
     try {
-      // Use the new batch method to get all match data at once
-      console.log(`[Highlightly] Fetching complete match details for match ID: ${id}`);
-      const batchResponse = await highlightlyClient.getCompleteMatchDetails(id);
-      const { match: matchDataResponse, lineups, statistics, events } = batchResponse;
+      // First, fetch match data from database
+      const response = await fetch(`/api/database-matches?matchId=${id}&limit=1`);
       
-      console.log(`[Highlightly] Match batch response structure:`, {
-        hasMatchData: Boolean(matchDataResponse),
-        hasLineups: Boolean(lineups),
-        hasStatistics: Boolean(statistics),
-        hasEvents: Boolean(events),
-        eventsCount: events ? (Array.isArray(events) ? events.length : 'not an array') : 'null'
-      });
+      if (!response.ok) {
+        console.error('[Highlightly] Database API error:', response.status);
+        throw new Error('Failed to fetch match from database');
+      }
       
-      if (!matchDataResponse) {
-        console.error(`[Highlightly] No match data found for ID: ${id}`);
+      const data = await response.json();
+      
+      if (!data || !data.data || data.data.length === 0) {
+        console.error('[Highlightly] No match found in database with ID:', id);
         return null;
       }
-
-      // The API returns an array, get the first item
-      const matchData = Array.isArray(matchDataResponse) ? matchDataResponse[0] : matchDataResponse;
       
-      if (!matchData) {
-        console.error(`[Highlightly] No match data in response for ID: ${id}`);
-        return null;
-      }
-
-      console.log(`[Highlightly] Raw match data from API:`, JSON.stringify(matchData, null, 2));
-
-      // Extract teams from events since they're not in the root object
-      const extractTeamsFromEvents = (events: any[]) => {
-        if (!events || !Array.isArray(events)) {
-          console.warn(`[Highlightly] No events found to extract teams from`);
-          return { homeTeam: null, awayTeam: null };
-        }
-
-        const teams = new Map();
-        events.forEach(event => {
-          if (event.team && event.team.id) {
-            teams.set(event.team.id, {
-              id: event.team.id.toString(),
-              name: event.team.name || 'Unknown',
-              logo: event.team.logo || ''
-            });
-          }
-        });
-
-        const teamArray = Array.from(teams.values());
-        console.log(`[Highlightly] Extracted ${teamArray.length} teams from events:`, teamArray);
-
-        return {
-          homeTeam: teamArray[0] || { id: '', name: 'Home', logo: '' },
-          awayTeam: teamArray[1] || { id: '', name: 'Away', logo: '' }
-        };
-      };
-
-      // Calculate score from goal events
-      const calculateScoreFromEvents = (events: any[], homeTeamId: string, awayTeamId: string) => {
-        if (!events || !Array.isArray(events)) {
-          console.warn(`[Highlightly] No events found to calculate score from`);
-          return { current: '0 - 0', home: 0, away: 0 };
-        }
-
-        let homeGoals = 0;
-        let awayGoals = 0;
-
-        events.forEach(event => {
-          if (event.type && event.type.toLowerCase().includes('goal') && !event.type.toLowerCase().includes('own')) {
-            if (event.team && event.team.id) {
-              const teamId = event.team.id.toString();
-              if (teamId === homeTeamId) {
-                homeGoals++;
-              } else if (teamId === awayTeamId) {
-                awayGoals++;
-              }
-            }
-          }
-        });
-
-        console.log(`[Highlightly] Calculated score - Home: ${homeGoals}, Away: ${awayGoals}`);
-        return {
-          current: `${homeGoals} - ${awayGoals}`,
-          home: homeGoals,
-          away: awayGoals
-        };
-      };
-
-      // Prioritize separately fetched events data over any events in the match data
-      const eventsData = events || matchData.events || [];
-      console.log(`[Highlightly] Events data:`, { 
-        fromSeparateCall: Boolean(events), 
-        fromMatchData: Boolean(matchData.events),
-        eventCount: eventsData.length
-      });
+      const matchData = data.data[0];
+      console.log(`[Highlightly] Match data from database:`, matchData);
       
-      // Extract teams from events
-      const { homeTeam, awayTeam } = extractTeamsFromEvents(eventsData);
+      // Extract API data if available
+      const apiData = matchData.api_data || matchData;
+      
+      // Try to fetch additional data from Highlightly API if needed
+      let lineups = null;
+      let statistics = null;
+      let events = apiData.events || [];
+      
+      try {
+        const batchResponse = await highlightlyClient.getCompleteMatchDetails(id);
+        lineups = batchResponse.lineups;
+        statistics = batchResponse.statistics;
+        if (batchResponse.events && batchResponse.events.length > 0) {
+          events = batchResponse.events;
+        }
+      } catch (error) {
+        console.warn(`[Highlightly] Could not fetch additional data from API:`, error);
+      }
+      
+      // Extract teams from database response
+      const homeTeam = matchData.homeTeam || { id: '', name: 'Unknown', logo: '' };
+      const awayTeam = matchData.awayTeam || { id: '', name: 'Unknown', logo: '' };
+      const competition = matchData.league || matchData.competition || { id: '', name: 'Unknown League', logo: '' };
 
-      // Extract competition / league data directly from the API response.
-      // The Highlightly API may return this information in different locations depending on the
-      // endpoint version. We trust the API structure entirely and do **not** map or transform any
-      // field names – only pick the existing league/competition object as-is.
-
-      let competition: any = null;
-
-      if (matchData.league && (matchData.league.id || matchData.league.name)) {
-        competition = matchData.league;
-      } else if (matchData.competition && (matchData.competition.id || matchData.competition.name)) {
-        competition = matchData.competition;
-      } else if (matchData.match && matchData.match.league) {
-        competition = matchData.match.league;
+      // Use score from database
+      const score = matchData.score || { home: 0, away: 0, current: '0 - 0' };
+      if (!score.current) {
+        score.current = `${score.home} - ${score.away}`;
       }
 
-      if (!competition) {
-        console.warn('[Highlightly] No league/competition information found in match response.');
-      } else {
-        console.log('[Highlightly] League information extracted from API:', competition);
-      }
-
-      // Calculate score from events
-      const score = calculateScoreFromEvents(eventsData, homeTeam?.id || '', awayTeam?.id || '');
-
-      // Create enhanced match object from processed data
+      // Create enhanced match object from database data
       const enhancedMatch: EnhancedMatchHighlight = {
         id: matchData.id || id,
-        title: `${homeTeam?.name || 'Home'} vs ${awayTeam?.name || 'Away'}`,
-        thumbnailUrl: matchData.thumbnail || matchData.thumbnailUrl || '',
-        videoUrl: matchData.videoUrl || matchData.video_url || '',
-        duration: matchData.duration || '90:00',
-        views: matchData.views || 0,
+        title: `${homeTeam.name} vs ${awayTeam.name}`,
+        thumbnailUrl: apiData.thumbnail || apiData.thumbnailUrl || '',
+        videoUrl: apiData.videoUrl || apiData.video_url || '',
+        duration: apiData.duration || '90:00',
+        views: apiData.views || 0,
         competition,
-        homeTeam: homeTeam || { id: '', name: 'Home', logo: '' },
-        awayTeam: awayTeam || { id: '', name: 'Away', logo: '' },
-        date: matchData.date || new Date().toISOString(),
-        status: matchData.status || { description: 'Full Time' },
+        homeTeam,
+        awayTeam,
+        date: matchData.date || matchData.match_date || new Date().toISOString(),
+        status: typeof matchData.status === 'object' 
+          ? matchData.status 
+          : { description: matchData.status || 'Full Time', long: matchData.status || 'Full Time' },
         score,
-        events: eventsData,
+        events: events || [],
         statistics: Array.isArray(statistics) ? statistics : [],
         lineups: lineups || undefined
       };

@@ -542,10 +542,10 @@ server.listen(PORT, async () => {
     console.error('[Server] ❌ Failed to start enhanced match scheduler:', error);
   }
   
-  // Initial cache warming
-  setTimeout(() => {
-    warmUpCache();
-  }, 1000); // Delay to let server fully start
+  // Initial cache warming - DISABLED to prevent rate limiting
+  // setTimeout(() => {
+  //   warmUpCache();
+  // }, 1000); // Delay to let server fully start
 });
 
 export default app;

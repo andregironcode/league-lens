@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { createClient } from '@supabase/supabase-js';
-import MatchService from './matchService.js';
+import DatabaseMatchServiceNew from './databaseMatchServiceNew.js';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -17,7 +17,7 @@ class EnhancedMatchScheduler {
   constructor() {
     this.jobs = new Map();
     this.isRunning = false;
-    this.matchService = new MatchService();
+    this.matchService = new DatabaseMatchServiceNew();
     this.completedMatches = new Set(); // Track matches that have all data
     
     this.status = {
@@ -84,41 +84,12 @@ class EnhancedMatchScheduler {
     this.status.dailySync.lastRun = new Date();
 
     try {
-      console.log('[EnhancedMatchScheduler] Starting daily scan for upcoming matches...');
+      console.log('[EnhancedMatchScheduler] Starting daily scan from database...');
       
-      // Get matches for top leagues
+      // Get matches from database via new service
       const matchData = await this.matchService.getTopLeaguesMatches();
       
-      // Store matches in database
-      for (const match of matchData.matches) {
-        const matchRecord = {
-          id: match.id,
-          league_id: match.competition_id,
-          home_team_id: match.home_team?.id || match.homeTeam?.id,
-          away_team_id: match.away_team?.id || match.awayTeam?.id,
-          home_score: match.home_score || null,
-          away_score: match.away_score || null,
-          match_date: match.utc_date || match.date,
-          status: match.status || 'Scheduled',
-          venue: match.venue?.name || null,
-          season: match.season || new Date().getFullYear().toString(),
-          round: match.round || null,
-          has_highlights: false,
-          has_lineups: false,
-          has_events: false,
-          api_data: match
-        };
-
-        const { error } = await supabase
-          .from('matches')
-          .upsert(matchRecord, { onConflict: 'id' });
-
-        if (error) {
-          console.error(`[EnhancedMatchScheduler] Error upserting match ${match.id}:`, error.message);
-        }
-      }
-      
-      console.log(`[EnhancedMatchScheduler] Daily sync complete: ${matchData.matches.length} matches processed`);
+      console.log(`[EnhancedMatchScheduler] Daily sync complete: ${matchData.matches.length} matches retrieved from database`);
       console.log(`[EnhancedMatchScheduler] Active leagues: ${matchData.leagues.map(l => l.name).join(', ')}`);
       
       this.status.dailySync.status = 'success';

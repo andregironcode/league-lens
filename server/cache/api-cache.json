@@ -1,224 +1,51 @@
 {
-  "/api/for-you/matches": {
+  "/database/top-leagues/2024-07-30/2024-08-06": {
     "data": {
-      "matches": [
-        {
-          "id": 1177316734,
-          "competition_id": 2486,
-          "home_team_id": 483301,
-          "away_team_id": 1859368,
-          "home_team": {
-            "id": "483301",
-            "logo": "https://highlightly.net/soccer/images/teams/483301.png",
-            "name": "Plzen"
-          },
-          "away_team": {
-            "id": "1859368",
-            "logo": "https://highlightly.net/soccer/images/teams/1859368.png",
-            "name": "Servette FC"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        },
-        {
-          "id": 1196034479,
-          "competition_id": 2486,
-          "home_team_id": 568401,
-          "away_team_id": 509682,
-          "home_team": {
-            "id": "568401",
-            "logo": "https://highlightly.net/soccer/images/teams/568401.png",
-            "name": "Lincoln Red Imps FC"
-          },
-          "away_team": {
-            "id": "509682",
-            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
-            "name": "FK Crvena Zvezda"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        },
-        {
-          "id": 1196037883,
-          "competition_id": 2486,
-          "home_team_id": 3937510,
-          "away_team_id": 487556,
-          "home_team": {
-            "id": "3937510",
-            "logo": "https://highlightly.net/soccer/images/teams/3937510.png",
-            "name": "Hamrun Spartans"
-          },
-          "away_team": {
-            "id": "487556",
-            "logo": "https://highlightly.net/soccer/images/teams/487556.png",
-            "name": "Dynamo Kyiv"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        },
-        {
-          "id": 1177318436,
-          "competition_id": 2486,
-          "home_team_id": 219491,
-          "away_team_id": 525851,
-          "home_team": {
-            "id": "219491",
-            "logo": "https://highlightly.net/soccer/images/teams/219491.png",
-            "name": "Rangers"
-          },
-          "away_team": {
-            "id": "525851",
-            "logo": "https://highlightly.net/soccer/images/teams/525851.png",
-            "name": "Panathinaikos"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        },
-        {
-          "id": 1196036181,
-          "competition_id": 2486,
-          "home_team_id": 3540944,
-          "away_team_id": 319909,
-          "home_team": {
-            "id": "3540944",
-            "logo": "https://highlightly.net/soccer/images/teams/3540944.png",
-            "name": "Rīgas FS"
-          },
-          "away_team": {
-            "id": "319909",
-            "logo": "https://highlightly.net/soccer/images/teams/319909.png",
-            "name": "Malmo FF"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "stage": "2nd Qualifying Round",
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          },
-          "weight": 59,
-          "weightBreakdown": {
-            "leagueWeight": 35,
-            "stageWeight": 10,
-            "teamWeight": 12,
-            "formWeight": 0,
-            "timeWeight": 2
-          }
-        }
-      ],
+      "matches": [],
+      "leagues": [],
       "dateRange": {
-        "start": "2025-07-21",
-        "end": "2025-07-29"
+        "start": "2024-07-30",
+        "end": "2024-08-06"
       },
-      "lastUpdated": "2025-07-29T11:40:28.195Z"
+      "lastUpdated": "2025-08-01T12:07:43.640Z"
     },
-    "expiry": 1753791028195,
-    "ttl": 1800
+    "expiry": 1754050363640,
+    "ttl": 300
+  },
+  "/database/for-you/2024-07-24/2024-08-01": {
+    "data": {
+      "matches": [],
+      "dateRange": {
+        "start": "2024-07-24",
+        "end": "2024-08-01"
+      },
+      "lastUpdated": "2025-08-01T12:07:43.643Z"
+    },
+    "expiry": 1754050663643,
+    "ttl": 600
   },
   "/api/feed/matches": {
     "data": {
       "matches": [
         {
-          "id": 1177316734,
-          "competition_id": 2486,
+          "id": "1029060620",
+          "competition_id": "2486",
           "home_team": {
-            "id": "483301",
-            "logo": "https://highlightly.net/soccer/images/teams/483301.png",
-            "name": "Plzen"
+            "id": "520745",
+            "logo": "https://highlightly.net/soccer/images/teams/520745.png",
+            "name": "Fenerbahce"
           },
           "away_team": {
-            "id": "1859368",
-            "logo": "https://highlightly.net/soccer/images/teams/1859368.png",
-            "name": "Servette FC"
+            "id": "516490",
+            "logo": "https://highlightly.net/soccer/images/teams/516490.png",
+            "name": "FC Lugano"
           },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
+          "home_score": 2,
+          "away_score": 1,
+          "utc_date": "2024-07-30",
+          "match_date": "2024-07-30",
+          "date": "2024-07-30",
+          "status": "finished",
           "venue": null,
           "league": {
             "id": "2486",
@@ -227,24 +54,50 @@
           }
         },
         {
-          "id": 1196034479,
-          "competition_id": 2486,
+          "id": "1060014043",
+          "competition_id": "2486",
           "home_team": {
+            "id": "302038",
+            "logo": "https://highlightly.net/soccer/images/teams/302038.png",
+            "name": "The New Saints"
+          },
+          "away_team": {
+            "id": "554785",
+            "logo": "https://highlightly.net/soccer/images/teams/554785.png",
+            "name": "Ferencvarosi TC"
+          },
+          "home_score": 1,
+          "away_score": 2,
+          "utc_date": "2024-07-30",
+          "match_date": "2024-07-30",
+          "date": "2024-07-30",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1060005533",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "473940",
+            "logo": "https://highlightly.net/soccer/images/teams/473940.png",
+            "name": "Qarabag"
+          },
+          "away_team": {
             "id": "568401",
             "logo": "https://highlightly.net/soccer/images/teams/568401.png",
             "name": "Lincoln Red Imps FC"
           },
-          "away_team": {
-            "id": "509682",
-            "logo": "https://highlightly.net/soccer/images/teams/509682.png",
-            "name": "FK Crvena Zvezda"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
+          "home_score": 5,
+          "away_score": 0,
+          "utc_date": "2024-07-30",
+          "match_date": "2024-07-30",
+          "date": "2024-07-30",
+          "status": "finished",
           "venue": null,
           "league": {
             "id": "2486",
@@ -253,76 +106,24 @@
           }
         },
         {
-          "id": 1196037883,
-          "competition_id": 2486,
+          "id": "1064167774",
+          "competition_id": "2486",
           "home_team": {
-            "id": "3937510",
-            "logo": "https://highlightly.net/soccer/images/teams/3937510.png",
-            "name": "Hamrun Spartans"
-          },
-          "away_team": {
-            "id": "487556",
-            "logo": "https://highlightly.net/soccer/images/teams/487556.png",
-            "name": "Dynamo Kyiv"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          }
-        },
-        {
-          "id": 1177318436,
-          "competition_id": 2486,
-          "home_team": {
-            "id": "219491",
-            "logo": "https://highlightly.net/soccer/images/teams/219491.png",
-            "name": "Rangers"
-          },
-          "away_team": {
-            "id": "525851",
-            "logo": "https://highlightly.net/soccer/images/teams/525851.png",
-            "name": "Panathinaikos"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          }
-        },
-        {
-          "id": 1196036181,
-          "competition_id": 2486,
-          "home_team": {
-            "id": "3540944",
-            "logo": "https://highlightly.net/soccer/images/teams/3540944.png",
-            "name": "Rīgas FS"
+            "id": "597335",
+            "logo": "https://highlightly.net/soccer/images/teams/597335.png",
+            "name": "KI Klaksvik"
           },
           "away_team": {
             "id": "319909",
             "logo": "https://highlightly.net/soccer/images/teams/319909.png",
             "name": "Malmo FF"
           },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
+          "home_score": 3,
+          "away_score": 2,
+          "utc_date": "2024-07-30",
+          "match_date": "2024-07-30",
+          "date": "2024-07-30",
+          "status": "finished",
           "venue": null,
           "league": {
             "id": "2486",
@@ -331,24 +132,102 @@
           }
         },
         {
-          "id": 1196041287,
-          "competition_id": 2486,
+          "id": "1064162668",
+          "competition_id": "2486",
           "home_team": {
-            "id": "478195",
-            "logo": "https://highlightly.net/soccer/images/teams/478195.png",
-            "name": "HNK Rijeka"
+            "id": "559040",
+            "logo": "https://highlightly.net/soccer/images/teams/559040.png",
+            "name": "Slovan Bratislava"
+          },
+          "away_team": {
+            "id": "3711144",
+            "logo": "https://highlightly.net/soccer/images/teams/3711144.png",
+            "name": "Celje"
+          },
+          "home_score": 5,
+          "away_score": 0,
+          "utc_date": "2024-07-30",
+          "match_date": "2024-07-30",
+          "date": "2024-07-30",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1060007235",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "535212",
+            "logo": "https://highlightly.net/soccer/images/teams/535212.png",
+            "name": "Sparta Praha"
+          },
+          "away_team": {
+            "id": "555636",
+            "logo": "https://highlightly.net/soccer/images/teams/555636.png",
+            "name": "Shamrock Rovers"
+          },
+          "home_score": 4,
+          "away_score": 2,
+          "utc_date": "2024-07-30",
+          "match_date": "2024-07-30",
+          "date": "2024-07-30",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1064166072",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "1933405",
+            "logo": "https://highlightly.net/soccer/images/teams/1933405.png",
+            "name": "Petrocub"
+          },
+          "away_team": {
+            "id": "1912981",
+            "logo": "https://highlightly.net/soccer/images/teams/1912981.png",
+            "name": "Apoel Nicosia"
+          },
+          "home_score": 1,
+          "away_score": 1,
+          "utc_date": "2024-07-30",
+          "match_date": "2024-07-30",
+          "date": "2024-07-30",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1064160966",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "336078",
+            "logo": "https://highlightly.net/soccer/images/teams/336078.png",
+            "name": "Dinamo Minsk"
           },
           "away_team": {
             "id": "482450",
             "logo": "https://highlightly.net/soccer/images/teams/482450.png",
             "name": "Ludogorets"
           },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
+          "home_score": 1,
+          "away_score": 0,
+          "utc_date": "2024-07-31",
+          "match_date": "2024-07-31",
+          "date": "2024-07-31",
+          "status": "finished",
           "venue": null,
           "league": {
             "id": "2486",
@@ -357,1505 +236,127 @@
           }
         },
         {
-          "id": 1177317585,
-          "competition_id": 2486,
+          "id": "1060012341",
+          "competition_id": "2486",
           "home_team": {
-            "id": "2896737",
-            "logo": "https://highlightly.net/soccer/images/teams/2896737.png",
-            "name": "Pafos"
+            "id": "286720",
+            "logo": "https://highlightly.net/soccer/images/teams/286720.png",
+            "name": "Jagiellonia"
           },
           "away_team": {
+            "id": "3297558",
+            "logo": "https://highlightly.net/soccer/images/teams/3297558.png",
+            "name": "Panevėžys"
+          },
+          "home_score": 3,
+          "away_score": 1,
+          "utc_date": "2024-07-31",
+          "match_date": "2024-07-31",
+          "date": "2024-07-31",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1064164370",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "3540944",
+            "logo": "https://highlightly.net/soccer/images/teams/3540944.png",
+            "name": "Rīgas FS"
+          },
+          "away_team": {
+            "id": "279061",
+            "logo": "https://highlightly.net/soccer/images/teams/279061.png",
+            "name": "Bodo/Glimt"
+          },
+          "home_score": 1,
+          "away_score": 3,
+          "utc_date": "2024-07-31",
+          "match_date": "2024-07-31",
+          "date": "2024-07-31",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1064169476",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "2863548",
+            "logo": "https://highlightly.net/soccer/images/teams/2863548.png",
+            "name": "Borac Banja Luka"
+          },
+          "away_team": {
+            "id": "527553",
+            "logo": "https://highlightly.net/soccer/images/teams/527553.png",
+            "name": "PAOK"
+          },
+          "home_score": 0,
+          "away_score": 1,
+          "utc_date": "2024-07-31",
+          "match_date": "2024-07-31",
+          "date": "2024-07-31",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1029062322",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "488407",
+            "logo": "https://highlightly.net/soccer/images/teams/488407.png",
+            "name": "FK Partizan"
+          },
+          "away_team": {
+            "id": "487556",
+            "logo": "https://highlightly.net/soccer/images/teams/487556.png",
+            "name": "Dynamo Kyiv"
+          },
+          "home_score": 0,
+          "away_score": 3,
+          "utc_date": "2024-07-31",
+          "match_date": "2024-07-31",
+          "date": "2024-07-31",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1060010639",
+          "competition_id": "2486",
+          "home_team": {
             "id": "514788",
             "logo": "https://highlightly.net/soccer/images/teams/514788.png",
             "name": "Maccabi Tel Aviv"
           },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-07-22",
-          "match_date": "2025-07-22",
-          "date": "2025-07-22",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "2486",
-            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
-            "name": "UEFA Champions League"
-          }
-        },
-        {
-          "id": "mls-1752937992536-3",
-          "competition_id": "mls-2025",
-          "home_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
           "away_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "home_score": 0,
-          "away_score": 0,
-          "utc_date": "2025-07-20",
-          "match_date": "2025-07-20",
-          "date": "2025-07-20",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "mls-2025",
-            "logo": "https://images.fotmob.com/image_resources/logo/leaguelogo/130.png",
-            "name": "Major League Soccer"
-          }
-        },
-        {
-          "id": "mls-1752937992536-1",
-          "competition_id": "mls-2025",
-          "home_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "away_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "home_score": 0,
-          "away_score": 0,
-          "utc_date": "2025-07-20",
-          "match_date": "2025-07-20",
-          "date": "2025-07-20",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "mls-2025",
-            "logo": "https://images.fotmob.com/image_resources/logo/leaguelogo/130.png",
-            "name": "Major League Soccer"
-          }
-        },
-        {
-          "id": "mls-1752937992536-2",
-          "competition_id": "mls-2025",
-          "home_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "away_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "home_score": 0,
-          "away_score": 0,
-          "utc_date": "2025-07-20",
-          "match_date": "2025-07-20",
-          "date": "2025-07-20",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "mls-2025",
-            "logo": "https://images.fotmob.com/image_resources/logo/leaguelogo/130.png",
-            "name": "Major League Soccer"
-          }
-        },
-        {
-          "id": "friendly-correct-1752938318438-2",
-          "competition_id": "friendlies-2025",
-          "home_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "away_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "home_score": 0,
-          "away_score": 0,
-          "utc_date": "2025-07-19",
-          "match_date": "2025-07-19",
-          "date": "2025-07-19",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "friendlies-2025",
-            "logo": "https://images.fotmob.com/image_resources/logo/leaguelogo/9.png",
-            "name": "Club Friendlies"
-          }
-        },
-        {
-          "id": "friendly-correct-1752938318438-1",
-          "competition_id": "friendlies-2025",
-          "home_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "away_team": {
-            "id": null,
-            "name": "Unknown",
-            "logo": "/teams/default.png"
-          },
-          "home_score": 0,
-          "away_score": 0,
-          "utc_date": "2025-07-19",
-          "match_date": "2025-07-19",
-          "date": "2025-07-19",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "friendlies-2025",
-            "logo": "https://images.fotmob.com/image_resources/logo/leaguelogo/9.png",
-            "name": "Club Friendlies"
-          }
-        },
-        {
-          "id": 1129046312,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1359831",
-            "logo": "https://highlightly.net/soccer/images/teams/1359831.png",
-            "name": "FC Dallas"
-          },
-          "away_team": {
-            "id": "21687668",
-            "logo": null,
-            "name": "San Diego"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-29",
-          "match_date": "2025-06-29",
-          "date": "2025-06-29",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128857390,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1358980",
-            "logo": "https://highlightly.net/soccer/images/teams/1358980.png",
-            "name": "San Jose Earthquakes"
-          },
-          "away_team": {
-            "id": "1366639",
-            "logo": "https://highlightly.net/soccer/images/teams/1366639.png",
-            "name": "Los Angeles Galaxy"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-29",
-          "match_date": "2025-06-29",
-          "date": "2025-06-29",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128855688,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1371745",
-            "logo": "https://highlightly.net/soccer/images/teams/1371745.png",
-            "name": "Sporting Kansas City"
-          },
-          "away_team": {
-            "id": "1367490",
-            "logo": "https://highlightly.net/soccer/images/teams/1367490.png",
-            "name": "Real Salt Lake"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-29",
-          "match_date": "2025-06-29",
-          "date": "2025-06-29",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128854837,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1362384",
-            "logo": "https://highlightly.net/soccer/images/teams/1362384.png",
-            "name": "Houston Dynamo"
-          },
-          "away_team": {
-            "id": "17690521",
-            "logo": "https://highlightly.net/soccer/images/teams/17690521.png",
-            "name": "St. Louis City"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-29",
-          "match_date": "2025-06-29",
-          "date": "2025-06-29",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128853986,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1368341",
-            "logo": "https://highlightly.net/soccer/images/teams/1368341.png",
-            "name": "Chicago Fire"
-          },
-          "away_team": {
-            "id": "15582594",
-            "logo": "https://highlightly.net/soccer/images/teams/15582594.png",
-            "name": "Charlotte"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-29",
-          "match_date": "2025-06-29",
-          "date": "2025-06-29",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128859092,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1373447",
-            "logo": "https://highlightly.net/soccer/images/teams/1373447.png",
-            "name": "Columbus Crew"
-          },
-          "away_team": {
-            "id": "1361533",
-            "logo": "https://highlightly.net/soccer/images/teams/1361533.png",
-            "name": "Philadelphia Union"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-29",
-          "match_date": "2025-06-29",
-          "date": "2025-06-29",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1126866050,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "265445",
-            "logo": "https://highlightly.net/soccer/images/teams/265445.png",
-            "name": "Albirex Niigata"
-          },
-          "away_team": {
-            "id": "258637",
-            "logo": "https://highlightly.net/soccer/images/teams/258637.png",
-            "name": "Machida Zelvia"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-29",
-          "match_date": "2025-06-29",
-          "date": "2025-06-29",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126864348,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "261190",
-            "logo": "https://highlightly.net/soccer/images/teams/261190.png",
-            "name": "Tokyo Verdy"
-          },
-          "away_team": {
-            "id": "250978",
-            "logo": "https://highlightly.net/soccer/images/teams/250978.png",
-            "name": "Kawasaki Frontale"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-29",
-          "match_date": "2025-06-29",
-          "date": "2025-06-29",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1128850582,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1370043",
-            "logo": "https://highlightly.net/soccer/images/teams/1370043.png",
-            "name": "New England Revolution"
-          },
-          "away_team": {
-            "id": "1370894",
-            "logo": "https://highlightly.net/soccer/images/teams/1370894.png",
-            "name": "Colorado Rapids"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1126866901,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "241617",
-            "logo": "https://highlightly.net/soccer/images/teams/241617.png",
-            "name": "Shimizu S-pulse"
-          },
-          "away_team": {
-            "id": "239915",
-            "logo": "https://highlightly.net/soccer/images/teams/239915.png",
-            "name": "Kashiwa Reysol"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126867752,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "257786",
-            "logo": "https://highlightly.net/soccer/images/teams/257786.png",
-            "name": "Kyoto Sanga"
-          },
-          "away_team": {
-            "id": "250127",
-            "logo": "https://highlightly.net/soccer/images/teams/250127.png",
-            "name": "Gamba Osaka"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126863497,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "249276",
-            "logo": "https://highlightly.net/soccer/images/teams/249276.png",
-            "name": "FC Tokyo"
-          },
-          "away_team": {
-            "id": "262041",
-            "logo": "https://highlightly.net/soccer/images/teams/262041.png",
-            "name": "Yokohama FC"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126862646,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "247574",
-            "logo": "https://highlightly.net/soccer/images/teams/247574.png",
-            "name": "Kashima"
-          },
-          "away_team": {
-            "id": "264594",
-            "logo": "https://highlightly.net/soccer/images/teams/264594.png",
-            "name": "Fagiano Okayama"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126869454,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "269700",
-            "logo": "https://highlightly.net/soccer/images/teams/269700.png",
-            "name": "Avispa Fukuoka"
-          },
-          "away_team": {
-            "id": "246723",
-            "logo": "https://highlightly.net/soccer/images/teams/246723.png",
-            "name": "Vissel Kobe"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126868603,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "240766",
-            "logo": "https://highlightly.net/soccer/images/teams/240766.png",
-            "name": "Sanfrecce Hiroshima"
-          },
-          "away_team": {
-            "id": "245872",
-            "logo": "https://highlightly.net/soccer/images/teams/245872.png",
-            "name": "Nagoya Grampus"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1128848880,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "8143152",
-            "logo": "https://highlightly.net/soccer/images/teams/8143152.png",
-            "name": "Inter Miami"
-          },
-          "away_team": {
-            "id": "1369192",
-            "logo": "https://highlightly.net/soccer/images/teams/1369192.png",
-            "name": "Atlanta United FC"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128851433,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1364086",
-            "logo": "https://highlightly.net/soccer/images/teams/1364086.png",
-            "name": "New York Red Bulls"
-          },
-          "away_team": {
-            "id": "1372596",
-            "logo": "https://highlightly.net/soccer/images/teams/1372596.png",
-            "name": "Minnesota United FC"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-28",
-          "match_date": "2025-06-28",
-          "date": "2025-06-28",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1124790461,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "486705",
-            "logo": "https://highlightly.net/soccer/images/teams/486705.png",
-            "name": "Red Bull Salzburg"
-          },
-          "away_team": {
-            "id": "461175",
-            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
-            "name": "Real Madrid"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-27",
-          "match_date": "2025-06-27",
-          "date": "2025-06-27",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1128842072,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1368341",
-            "logo": "https://highlightly.net/soccer/images/teams/1368341.png",
-            "name": "Chicago Fire"
-          },
-          "away_team": {
-            "id": "1361533",
-            "logo": "https://highlightly.net/soccer/images/teams/1361533.png",
-            "name": "Philadelphia Union"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-26",
-          "match_date": "2025-06-26",
-          "date": "2025-06-26",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128846327,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1370894",
-            "logo": "https://highlightly.net/soccer/images/teams/1370894.png",
-            "name": "Colorado Rapids"
-          },
-          "away_team": {
-            "id": "1366639",
-            "logo": "https://highlightly.net/soccer/images/teams/1366639.png",
-            "name": "Los Angeles Galaxy"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-26",
-          "match_date": "2025-06-26",
-          "date": "2025-06-26",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128844625,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1372596",
-            "logo": "https://highlightly.net/soccer/images/teams/1372596.png",
-            "name": "Minnesota United FC"
-          },
-          "away_team": {
-            "id": "1362384",
-            "logo": "https://highlightly.net/soccer/images/teams/1362384.png",
-            "name": "Houston Dynamo"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-26",
-          "match_date": "2025-06-26",
-          "date": "2025-06-26",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128842923,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1359831",
-            "logo": "https://highlightly.net/soccer/images/teams/1359831.png",
-            "name": "FC Dallas"
-          },
-          "away_team": {
-            "id": "1358980",
-            "logo": "https://highlightly.net/soccer/images/teams/1358980.png",
-            "name": "San Jose Earthquakes"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-26",
-          "match_date": "2025-06-26",
-          "date": "2025-06-26",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128838668,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1373447",
-            "logo": "https://highlightly.net/soccer/images/teams/1373447.png",
-            "name": "Columbus Crew"
-          },
-          "away_team": {
-            "id": "1369192",
-            "logo": "https://highlightly.net/soccer/images/teams/1369192.png",
-            "name": "Atlanta United FC"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-25",
-          "match_date": "2025-06-25",
-          "date": "2025-06-25",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1126809033,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "250978",
-            "logo": "https://highlightly.net/soccer/images/teams/250978.png",
-            "name": "Kawasaki Frontale"
-          },
-          "away_team": {
-            "id": "265445",
-            "logo": "https://highlightly.net/soccer/images/teams/265445.png",
-            "name": "Albirex Niigata"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-25",
-          "match_date": "2025-06-25",
-          "date": "2025-06-25",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126809884,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "252680",
-            "logo": "https://highlightly.net/soccer/images/teams/252680.png",
-            "name": "Yokohama F. Marinos"
-          },
-          "away_team": {
-            "id": "249276",
-            "logo": "https://highlightly.net/soccer/images/teams/249276.png",
-            "name": "FC Tokyo"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-25",
-          "match_date": "2025-06-25",
-          "date": "2025-06-25",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1124785355,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "2297633",
-            "logo": "https://highlightly.net/soccer/images/teams/2297633.png",
-            "name": "Mamelodi Sundowns"
-          },
-          "away_team": {
-            "id": "106308",
-            "logo": "https://highlightly.net/soccer/images/teams/106308.png",
-            "name": "Fluminense"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-25",
-          "match_date": "2025-06-25",
-          "date": "2025-06-25",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1124784504,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "141199",
-            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
-            "name": "Borussia Dortmund"
-          },
-          "away_team": {
-            "id": "2355501",
-            "logo": "https://highlightly.net/soccer/images/teams/2355501.png",
-            "name": "Ulsan Hyundai FC"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-25",
-          "match_date": "2025-06-25",
-          "date": "2025-06-25",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1167043462,
-          "competition_id": 19506,
-          "home_team": {
-            "id": "4705963",
-            "logo": "https://highlightly.net/soccer/images/teams/4705963.png",
-            "name": "Canada"
-          },
-          "away_team": {
-            "id": "4391093",
-            "logo": "https://highlightly.net/soccer/images/teams/4391093.png",
-            "name": "El Salvador"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-25",
-          "match_date": "2025-06-25",
-          "date": "2025-06-25",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "19506",
-            "logo": "https://highlightly.net/soccer/images/leagues/19506.png",
-            "name": "CONCACAF Gold Cup"
-          }
-        },
-        {
-          "id": 1128839519,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1374298",
-            "logo": "https://highlightly.net/soccer/images/teams/1374298.png",
-            "name": "Montreal Impact"
-          },
-          "away_team": {
-            "id": "1908726",
-            "logo": "https://highlightly.net/soccer/images/teams/1908726.png",
-            "name": "FC Cincinnati"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-25",
-          "match_date": "2025-06-25",
-          "date": "2025-06-25",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1128840370,
-          "competition_id": 216087,
-          "home_team": {
-            "id": "1370043",
-            "logo": "https://highlightly.net/soccer/images/teams/1370043.png",
-            "name": "New England Revolution"
-          },
-          "away_team": {
-            "id": "8144003",
-            "logo": "https://highlightly.net/soccer/images/teams/8144003.png",
-            "name": "Nashville SC"
-          },
-          "home_score": null,
-          "away_score": null,
-          "utc_date": "2025-06-25",
-          "match_date": "2025-06-25",
-          "date": "2025-06-25",
-          "status": "Not started",
-          "venue": null,
-          "league": {
-            "id": "216087",
-            "logo": "https://highlightly.net/soccer/images/leagues/216087.png",
-            "name": "MLS"
-          }
-        },
-        {
-          "id": 1124777696,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "451814",
-            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
-            "name": "Atletico Madrid"
-          },
-          "away_team": {
-            "id": "102904",
-            "logo": "https://highlightly.net/soccer/images/teams/102904.png",
-            "name": "Botafogo"
-          },
-          "home_score": 1,
-          "away_score": 0,
-          "utc_date": "2025-06-23",
-          "match_date": "2025-06-23",
-          "date": "2025-06-23",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1126857540,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "262041",
-            "logo": "https://highlightly.net/soccer/images/teams/262041.png",
-            "name": "Yokohama FC"
-          },
-          "away_team": {
-            "id": "240766",
-            "logo": "https://highlightly.net/soccer/images/teams/240766.png",
-            "name": "Sanfrecce Hiroshima"
-          },
-          "home_score": 0,
-          "away_score": 4,
-          "utc_date": "2025-06-22",
-          "match_date": "2025-06-22",
-          "date": "2025-06-22",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1167038356,
-          "competition_id": 19506,
-          "home_team": {
-            "id": "20357",
-            "logo": "https://highlightly.net/soccer/images/teams/20357.png",
-            "name": "Saudi Arabia"
-          },
-          "away_team": {
-            "id": "4398752",
-            "logo": "https://highlightly.net/soccer/images/teams/4398752.png",
-            "name": "Trinidad and Tobago"
-          },
-          "home_score": 1,
-          "away_score": 1,
-          "utc_date": "2025-06-22",
-          "match_date": "2025-06-22",
-          "date": "2025-06-22",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "19506",
-            "logo": "https://highlightly.net/soccer/images/leagues/19506.png",
-            "name": "CONCACAF Gold Cup"
-          }
-        },
-        {
-          "id": 1124775994,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "486705",
-            "logo": "https://highlightly.net/soccer/images/teams/486705.png",
-            "name": "Red Bull Salzburg"
-          },
-          "away_team": {
-            "id": "2495916",
-            "logo": "https://highlightly.net/soccer/images/teams/2495916.png",
-            "name": "Al-Hilal Saudi FC"
-          },
-          "home_score": 0,
-          "away_score": 0,
-          "utc_date": "2025-06-22",
-          "match_date": "2025-06-22",
-          "date": "2025-06-22",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1124773441,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "370969",
-            "logo": "https://highlightly.net/soccer/images/teams/370969.png",
-            "name": "River Plate"
-          },
-          "away_team": {
-            "id": "1942766",
-            "logo": "https://highlightly.net/soccer/images/teams/1942766.png",
-            "name": "Monterrey"
-          },
-          "home_score": 0,
-          "away_score": 0,
-          "utc_date": "2025-06-22",
-          "match_date": "2025-06-22",
-          "date": "2025-06-22",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1174705866,
-          "competition_id": 33122,
-          "home_team": {
-            "id": "6969623",
-            "logo": "https://highlightly.net/soccer/images/teams/6969623.png",
-            "name": "Denmark U21"
-          },
-          "away_team": {
-            "id": "6973878",
-            "logo": "https://highlightly.net/soccer/images/teams/6973878.png",
-            "name": "France U21"
-          },
-          "home_score": 2,
-          "away_score": 3,
-          "utc_date": "2025-06-22",
-          "match_date": "2025-06-22",
-          "date": "2025-06-22",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "33122",
-            "logo": "https://highlightly.net/soccer/images/leagues/33122.png",
-            "name": "UEFA U21 Championship"
-          }
-        },
-        {
-          "id": 1124775143,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "461175",
-            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
-            "name": "Real Madrid"
-          },
-          "away_team": {
-            "id": "1951276",
-            "logo": "https://highlightly.net/soccer/images/teams/1951276.png",
-            "name": "Pachuca"
-          },
-          "home_score": 3,
-          "away_score": 1,
-          "utc_date": "2025-06-22",
-          "match_date": "2025-06-22",
-          "date": "2025-06-22",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1167039207,
-          "competition_id": 19506,
-          "home_team": {
-            "id": "2029568",
-            "logo": "https://highlightly.net/soccer/images/teams/2029568.png",
-            "name": "USA"
-          },
-          "away_team": {
-            "id": "2031270",
-            "logo": "https://highlightly.net/soccer/images/teams/2031270.png",
-            "name": "Haiti"
-          },
-          "home_score": 2,
-          "away_score": 1,
-          "utc_date": "2025-06-22",
-          "match_date": "2025-06-22",
-          "date": "2025-06-22",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "19506",
-            "logo": "https://highlightly.net/soccer/images/leagues/19506.png",
-            "name": "CONCACAF Gold Cup"
-          }
-        },
-        {
-          "id": 1124771739,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "430539",
-            "logo": "https://highlightly.net/soccer/images/teams/430539.png",
-            "name": "Inter"
-          },
-          "away_team": {
-            "id": "245021",
-            "logo": "https://highlightly.net/soccer/images/teams/245021.png",
-            "name": "Urawa"
-          },
-          "home_score": 2,
-          "away_score": 1,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1126854987,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "258637",
-            "logo": "https://highlightly.net/soccer/images/teams/258637.png",
-            "name": "Machida Zelvia"
-          },
-          "away_team": {
-            "id": "247574",
-            "logo": "https://highlightly.net/soccer/images/teams/247574.png",
-            "name": "Kashima"
-          },
-          "home_score": 2,
-          "away_score": 1,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1124770888,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "2297633",
-            "logo": "https://highlightly.net/soccer/images/teams/2297633.png",
-            "name": "Mamelodi Sundowns"
-          },
-          "away_team": {
-            "id": "141199",
-            "logo": "https://highlightly.net/soccer/images/teams/141199.png",
-            "name": "Borussia Dortmund"
-          },
-          "home_score": 3,
-          "away_score": 4,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1167035803,
-          "competition_id": 19506,
-          "home_team": {
-            "id": "4392795",
-            "logo": "https://highlightly.net/soccer/images/teams/4392795.png",
-            "name": "Guatemala"
-          },
-          "away_team": {
-            "id": "10145",
-            "logo": "https://highlightly.net/soccer/images/teams/10145.png",
-            "name": "Panama"
+            "id": "476493",
+            "logo": "https://highlightly.net/soccer/images/teams/476493.png",
+            "name": "FCSB"
           },
           "home_score": 0,
           "away_score": 1,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "19506",
-            "logo": "https://highlightly.net/soccer/images/leagues/19506.png",
-            "name": "CONCACAF Gold Cup"
-          }
-        },
-        {
-          "id": 1174703313,
-          "competition_id": 33122,
-          "home_team": {
-            "id": "6992600",
-            "logo": "https://highlightly.net/soccer/images/teams/6992600.png",
-            "name": "Portugal U21"
-          },
-          "away_team": {
-            "id": "6988345",
-            "logo": "https://highlightly.net/soccer/images/teams/6988345.png",
-            "name": "Netherlands U21"
-          },
-          "home_score": 0,
-          "away_score": 1,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "33122",
-            "logo": "https://highlightly.net/soccer/images/leagues/33122.png",
-            "name": "UEFA U21 Championship"
-          }
-        },
-        {
-          "id": 1167036654,
-          "competition_id": 19506,
-          "home_team": {
-            "id": "4706814",
-            "logo": "https://highlightly.net/soccer/images/teams/4706814.png",
-            "name": "Curaçao"
-          },
-          "away_team": {
-            "id": "4705963",
-            "logo": "https://highlightly.net/soccer/images/teams/4705963.png",
-            "name": "Canada"
-          },
-          "home_score": 1,
-          "away_score": 1,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "19506",
-            "logo": "https://highlightly.net/soccer/images/leagues/19506.png",
-            "name": "CONCACAF Gold Cup"
-          }
-        },
-        {
-          "id": 1126860944,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "269700",
-            "logo": "https://highlightly.net/soccer/images/teams/269700.png",
-            "name": "Avispa Fukuoka"
-          },
-          "away_team": {
-            "id": "265445",
-            "logo": "https://highlightly.net/soccer/images/teams/265445.png",
-            "name": "Albirex Niigata"
-          },
-          "home_score": 3,
-          "away_score": 2,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126855838,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "250978",
-            "logo": "https://highlightly.net/soccer/images/teams/250978.png",
-            "name": "Kawasaki Frontale"
-          },
-          "away_team": {
-            "id": "246723",
-            "logo": "https://highlightly.net/soccer/images/teams/246723.png",
-            "name": "Vissel Kobe"
-          },
-          "home_score": 1,
-          "away_score": 2,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1124770037,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "134391",
-            "logo": "https://highlightly.net/soccer/images/teams/134391.png",
-            "name": "Bayern Munich"
-          },
-          "away_team": {
-            "id": "384585",
-            "logo": "https://highlightly.net/soccer/images/teams/384585.png",
-            "name": "Boca Juniors"
-          },
-          "home_score": 2,
-          "away_score": 1,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1126860093,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "248425",
-            "logo": "https://highlightly.net/soccer/images/teams/248425.png",
-            "name": "Cerezo Osaka"
-          },
-          "away_team": {
-            "id": "261190",
-            "logo": "https://highlightly.net/soccer/images/teams/261190.png",
-            "name": "Tokyo Verdy"
-          },
-          "home_score": 2,
-          "away_score": 1,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1124772590,
-          "competition_id": 13549,
-          "home_team": {
-            "id": "106308",
-            "logo": "https://highlightly.net/soccer/images/teams/106308.png",
-            "name": "Fluminense"
-          },
-          "away_team": {
-            "id": "2355501",
-            "logo": "https://highlightly.net/soccer/images/teams/2355501.png",
-            "name": "Ulsan Hyundai FC"
-          },
-          "home_score": 4,
-          "away_score": 2,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "13549",
-            "logo": "https://highlightly.net/soccer/images/leagues/13549.png",
-            "name": "FIFA Club World Cup"
-          }
-        },
-        {
-          "id": 1126858391,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "245872",
-            "logo": "https://highlightly.net/soccer/images/teams/245872.png",
-            "name": "Nagoya Grampus"
-          },
-          "away_team": {
-            "id": "241617",
-            "logo": "https://highlightly.net/soccer/images/teams/241617.png",
-            "name": "Shimizu S-pulse"
-          },
-          "home_score": 1,
-          "away_score": 1,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1126854136,
-          "competition_id": 84182,
-          "home_team": {
-            "id": "239915",
-            "logo": "https://highlightly.net/soccer/images/teams/239915.png",
-            "name": "Kashiwa Reysol"
-          },
-          "away_team": {
-            "id": "257786",
-            "logo": "https://highlightly.net/soccer/images/teams/257786.png",
-            "name": "Kyoto Sanga"
-          },
-          "home_score": 3,
-          "away_score": 3,
-          "utc_date": "2025-06-21",
-          "match_date": "2025-06-21",
-          "date": "2025-06-21",
-          "status": "Finished",
-          "venue": null,
-          "league": {
-            "id": "84182",
-            "logo": "https://highlightly.net/soccer/images/leagues/84182.png",
-            "name": "J1 League"
-          }
-        },
-        {
-          "id": 1169965796,
-          "competition_id": 2486,
-          "home_team": {
-            "id": "73119",
-            "logo": "https://highlightly.net/soccer/images/teams/73119.png",
-            "name": "Paris Saint Germain"
-          },
-          "away_team": {
-            "id": "430539",
-            "logo": "https://highlightly.net/soccer/images/teams/430539.png",
-            "name": "Inter"
-          },
-          "home_score": 5,
-          "away_score": 0,
-          "utc_date": "2025-05-31",
-          "match_date": "2025-05-31",
-          "date": "2025-05-31",
+          "utc_date": "2024-07-31",
+          "match_date": "2024-07-31",
+          "date": "2024-07-31",
           "status": "finished",
           "venue": null,
           "league": {
@@ -1865,413 +366,49 @@
           }
         },
         {
-          "id": 1170856793,
-          "competition_id": 52695,
+          "id": "1060008937",
+          "competition_id": "2486",
           "home_team": {
-            "id": "79927",
-            "logo": "https://highlightly.net/soccer/images/teams/79927.png",
-            "name": "Reims"
+            "id": "338631",
+            "logo": "https://highlightly.net/soccer/images/teams/338631.png",
+            "name": "FC Midtjylland"
           },
           "away_team": {
-            "id": "96096",
-            "logo": "https://highlightly.net/soccer/images/teams/96096.png",
-            "name": "Metz"
+            "id": "599037",
+            "logo": "https://highlightly.net/soccer/images/teams/599037.png",
+            "name": "UE Santa Coloma"
           },
           "home_score": 1,
-          "away_score": 3,
-          "utc_date": "2025-05-29",
-          "match_date": "2025-05-29",
-          "date": "2025-05-29",
+          "away_score": 0,
+          "utc_date": "2024-07-31",
+          "match_date": "2024-07-31",
+          "date": "2024-07-31",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "52695",
-            "logo": "https://highlightly.net/soccer/images/leagues/52695.png",
-            "name": "Ligue 1"
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           }
         },
         {
-          "id": 1170860197,
-          "competition_id": 67162,
+          "id": "1064604337",
+          "competition_id": "3337",
           "home_team": {
-            "id": "1413444",
-            "logo": "https://highlightly.net/soccer/images/teams/1413444.png",
-            "name": "SV Elversberg"
+            "id": "540318",
+            "logo": "https://highlightly.net/soccer/images/teams/540318.png",
+            "name": "Botev Plovdiv"
           },
           "away_team": {
-            "id": "153964",
-            "logo": "https://highlightly.net/soccer/images/teams/153964.png",
-            "name": "FC Heidenheim"
-          },
-          "home_score": 1,
-          "away_score": 2,
-          "utc_date": "2025-05-26",
-          "match_date": "2025-05-26",
-          "date": "2025-05-26",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "67162",
-            "logo": "https://highlightly.net/soccer/images/leagues/67162.png",
-            "name": "Bundesliga"
-          }
-        },
-        {
-          "id": 1028712561,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "452665",
-            "logo": "https://highlightly.net/soccer/images/teams/452665.png",
-            "name": "Athletic Club"
-          },
-          "away_team": {
-            "id": "450963",
-            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
-            "name": "Barcelona"
-          },
-          "home_score": 0,
-          "away_score": 3,
-          "utc_date": "2025-05-25",
-          "match_date": "2025-05-25",
-          "date": "2025-05-25",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028716816,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "466281",
-            "logo": "https://highlightly.net/soccer/images/teams/466281.png",
-            "name": "Girona"
-          },
-          "away_team": {
-            "id": "451814",
-            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
-            "name": "Atletico Madrid"
+            "id": "525851",
+            "logo": "https://highlightly.net/soccer/images/teams/525851.png",
+            "name": "Panathinaikos"
           },
           "home_score": 0,
           "away_score": 4,
-          "utc_date": "2025-05-25",
-          "match_date": "2025-05-25",
-          "date": "2025-05-25",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028719369,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "454367",
-            "logo": "https://highlightly.net/soccer/images/teams/454367.png",
-            "name": "Villarreal"
-          },
-          "away_team": {
-            "id": "456920",
-            "logo": "https://highlightly.net/soccer/images/teams/456920.png",
-            "name": "Sevilla"
-          },
-          "home_score": 4,
-          "away_score": 2,
-          "utc_date": "2025-05-25",
-          "match_date": "2025-05-25",
-          "date": "2025-05-25",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1032218681,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "460324",
-            "logo": "https://highlightly.net/soccer/images/teams/460324.png",
-            "name": "Espanyol"
-          },
-          "away_team": {
-            "id": "455218",
-            "logo": "https://highlightly.net/soccer/images/teams/455218.png",
-            "name": "Las Palmas"
-          },
-          "home_score": 2,
-          "away_score": 0,
-          "utc_date": "2025-05-24",
-          "match_date": "2025-05-24",
-          "date": "2025-05-24",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028714263,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "461175",
-            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
-            "name": "Real Madrid"
-          },
-          "away_team": {
-            "id": "467132",
-            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
-            "name": "Real Sociedad"
-          },
-          "home_score": 2,
-          "away_score": 0,
-          "utc_date": "2025-05-24",
-          "match_date": "2025-05-24",
-          "date": "2025-05-24",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028715114,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "462026",
-            "logo": "https://highlightly.net/soccer/images/teams/462026.png",
-            "name": "Alaves"
-          },
-          "away_team": {
-            "id": "619461",
-            "logo": "https://highlightly.net/soccer/images/teams/619461.png",
-            "name": "Osasuna"
-          },
-          "home_score": 1,
-          "away_score": 1,
-          "utc_date": "2025-05-24",
-          "match_date": "2025-05-24",
-          "date": "2025-05-24",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028715965,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "457771",
-            "logo": "https://highlightly.net/soccer/images/teams/457771.png",
-            "name": "Leganes"
-          },
-          "away_team": {
-            "id": "613504",
-            "logo": "https://highlightly.net/soccer/images/teams/613504.png",
-            "name": "Valladolid"
-          },
-          "home_score": 3,
-          "away_score": 0,
-          "utc_date": "2025-05-24",
-          "match_date": "2025-05-24",
-          "date": "2025-05-24",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028717667,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "465430",
-            "logo": "https://highlightly.net/soccer/images/teams/465430.png",
-            "name": "Getafe"
-          },
-          "away_team": {
-            "id": "458622",
-            "logo": "https://highlightly.net/soccer/images/teams/458622.png",
-            "name": "Celta Vigo"
-          },
-          "home_score": 1,
-          "away_score": 2,
-          "utc_date": "2025-05-24",
-          "match_date": "2025-05-24",
-          "date": "2025-05-24",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028718518,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "620312",
-            "logo": "https://highlightly.net/soccer/images/teams/620312.png",
-            "name": "Rayo Vallecano"
-          },
-          "away_team": {
-            "id": "679882",
-            "logo": "https://highlightly.net/soccer/images/teams/679882.png",
-            "name": "Mallorca"
-          },
-          "home_score": 0,
-          "away_score": 0,
-          "utc_date": "2025-05-24",
-          "match_date": "2025-05-24",
-          "date": "2025-05-24",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1170694252,
-          "competition_id": 34824,
-          "home_team": {
-            "id": "53546",
-            "logo": "https://highlightly.net/soccer/images/teams/53546.png",
-            "name": "Sheffield Utd"
-          },
-          "away_team": {
-            "id": "635630",
-            "logo": "https://highlightly.net/soccer/images/teams/635630.png",
-            "name": "Sunderland"
-          },
-          "home_score": 1,
-          "away_score": 2,
-          "utc_date": "2025-05-24",
-          "match_date": "2025-05-24",
-          "date": "2025-05-24",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "34824",
-            "logo": "https://highlightly.net/soccer/images/leagues/34824.png",
-            "name": "Championship"
-          }
-        },
-        {
-          "id": 1028713412,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "462877",
-            "logo": "https://highlightly.net/soccer/images/teams/462877.png",
-            "name": "Real Betis"
-          },
-          "away_team": {
-            "id": "453516",
-            "logo": "https://highlightly.net/soccer/images/teams/453516.png",
-            "name": "Valencia"
-          },
-          "home_score": 1,
-          "away_score": 1,
-          "utc_date": "2025-05-23",
-          "match_date": "2025-05-23",
-          "date": "2025-05-23",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1170859346,
-          "competition_id": 67162,
-          "home_team": {
-            "id": "153964",
-            "logo": "https://highlightly.net/soccer/images/teams/153964.png",
-            "name": "FC Heidenheim"
-          },
-          "away_team": {
-            "id": "1413444",
-            "logo": "https://highlightly.net/soccer/images/teams/1413444.png",
-            "name": "SV Elversberg"
-          },
-          "home_score": 2,
-          "away_score": 2,
-          "utc_date": "2025-05-22",
-          "match_date": "2025-05-22",
-          "date": "2025-05-22",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "67162",
-            "logo": "https://highlightly.net/soccer/images/leagues/67162.png",
-            "name": "Bundesliga"
-          }
-        },
-        {
-          "id": 1170855942,
-          "competition_id": 52695,
-          "home_team": {
-            "id": "96096",
-            "logo": "https://highlightly.net/soccer/images/teams/96096.png",
-            "name": "Metz"
-          },
-          "away_team": {
-            "id": "79927",
-            "logo": "https://highlightly.net/soccer/images/teams/79927.png",
-            "name": "Reims"
-          },
-          "home_score": 1,
-          "away_score": 1,
-          "utc_date": "2025-05-21",
-          "match_date": "2025-05-21",
-          "date": "2025-05-21",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "52695",
-            "logo": "https://highlightly.net/soccer/images/leagues/52695.png",
-            "name": "Ligue 1"
-          }
-        },
-        {
-          "id": 1170038131,
-          "competition_id": 3337,
-          "home_team": {
-            "id": "40781",
-            "logo": "https://highlightly.net/soccer/images/teams/40781.png",
-            "name": "Tottenham"
-          },
-          "away_team": {
-            "id": "28867",
-            "logo": "https://highlightly.net/soccer/images/teams/28867.png",
-            "name": "Manchester United"
-          },
-          "home_score": 1,
-          "away_score": 0,
-          "utc_date": "2025-05-21",
-          "match_date": "2025-05-21",
-          "date": "2025-05-21",
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
           "status": "finished",
           "venue": null,
           "league": {
@@ -2281,523 +418,445 @@
           }
         },
         {
-          "id": 1032217830,
-          "competition_id": 119924,
+          "id": "1064597529",
+          "competition_id": "3337",
           "home_team": {
-            "id": "619461",
-            "logo": "https://highlightly.net/soccer/images/teams/619461.png",
-            "name": "Osasuna"
+            "id": "317356",
+            "logo": "https://highlightly.net/soccer/images/teams/317356.png",
+            "name": "IF elfsborg"
           },
           "away_team": {
-            "id": "460324",
-            "logo": "https://highlightly.net/soccer/images/teams/460324.png",
-            "name": "Espanyol"
+            "id": "484152",
+            "logo": "https://highlightly.net/soccer/images/teams/484152.png",
+            "name": "Sheriff Tiraspol"
           },
           "home_score": 2,
           "away_score": 0,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
           }
         },
         {
-          "id": 1028704902,
-          "competition_id": 119924,
+          "id": "1029064024",
+          "competition_id": "3337",
           "home_team": {
-            "id": "451814",
-            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
-            "name": "Atletico Madrid"
+            "id": "598186",
+            "logo": "https://highlightly.net/soccer/images/teams/598186.png",
+            "name": "Vojvodina"
           },
           "away_team": {
-            "id": "462877",
-            "logo": "https://highlightly.net/soccer/images/teams/462877.png",
-            "name": "Real Betis"
+            "id": "165878",
+            "logo": "https://highlightly.net/soccer/images/teams/165878.png",
+            "name": "Ajax"
           },
-          "home_score": 4,
-          "away_score": 1,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028705753,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "450963",
-            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
-            "name": "Barcelona"
-          },
-          "away_team": {
-            "id": "454367",
-            "logo": "https://highlightly.net/soccer/images/teams/454367.png",
-            "name": "Villarreal"
-          },
-          "home_score": 2,
+          "home_score": 1,
           "away_score": 3,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
           }
         },
         {
-          "id": 1028706604,
-          "competition_id": 119924,
+          "id": "1029065726",
+          "competition_id": "3337",
           "home_team": {
-            "id": "458622",
-            "logo": "https://highlightly.net/soccer/images/teams/458622.png",
-            "name": "Celta Vigo"
+            "id": "631375",
+            "logo": "https://highlightly.net/soccer/images/teams/631375.png",
+            "name": "Cercle Brugge"
           },
           "away_team": {
-            "id": "620312",
-            "logo": "https://highlightly.net/soccer/images/teams/620312.png",
-            "name": "Rayo Vallecano"
+            "id": "213534",
+            "logo": "https://highlightly.net/soccer/images/teams/213534.png",
+            "name": "Kilmarnock"
           },
           "home_score": 1,
-          "away_score": 2,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "away_score": 0,
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
           }
         },
         {
-          "id": 1028707455,
-          "competition_id": 119924,
+          "id": "1064602635",
+          "competition_id": "3337",
           "home_team": {
-            "id": "453516",
-            "logo": "https://highlightly.net/soccer/images/teams/453516.png",
-            "name": "Valencia"
+            "id": "665415",
+            "logo": "https://highlightly.net/soccer/images/teams/665415.png",
+            "name": "Rapid Vienna"
           },
           "away_team": {
-            "id": "452665",
-            "logo": "https://highlightly.net/soccer/images/teams/452665.png",
-            "name": "Athletic Club"
+            "id": "288422",
+            "logo": "https://highlightly.net/soccer/images/teams/288422.png",
+            "name": "Wisla Krakow"
           },
-          "home_score": 0,
+          "home_score": 6,
           "away_score": 1,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
           }
         },
         {
-          "id": 1028708306,
-          "competition_id": 119924,
+          "id": "1064599231",
+          "competition_id": "3337",
           "home_team": {
-            "id": "679882",
-            "logo": "https://highlightly.net/soccer/images/teams/679882.png",
-            "name": "Mallorca"
+            "id": "850082",
+            "logo": "https://highlightly.net/soccer/images/teams/850082.png",
+            "name": "Trabzonspor"
           },
           "away_team": {
-            "id": "465430",
-            "logo": "https://highlightly.net/soccer/images/teams/465430.png",
-            "name": "Getafe"
+            "id": "3020983",
+            "logo": "https://highlightly.net/soccer/images/teams/3020983.png",
+            "name": "Ružomberok"
           },
           "home_score": 1,
-          "away_score": 2,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "away_score": 0,
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
           }
         },
         {
-          "id": 1028709157,
-          "competition_id": 119924,
+          "id": "1064600933",
+          "competition_id": "3337",
           "home_team": {
-            "id": "467132",
-            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
-            "name": "Real Sociedad"
+            "id": "478195",
+            "logo": "https://highlightly.net/soccer/images/teams/478195.png",
+            "name": "HNK Rijeka"
           },
           "away_team": {
-            "id": "466281",
-            "logo": "https://highlightly.net/soccer/images/teams/466281.png",
-            "name": "Girona"
+            "id": "17049718",
+            "logo": "https://highlightly.net/soccer/images/teams/17049718.png",
+            "name": "Corvinul Hunedoara"
+          },
+          "home_score": 1,
+          "away_score": 0,
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
+          }
+        },
+        {
+          "id": "1029067428",
+          "competition_id": "3337",
+          "home_team": {
+            "id": "1764907",
+            "logo": "https://highlightly.net/soccer/images/teams/1764907.png",
+            "name": "Silkeborg"
+          },
+          "away_team": {
+            "id": "280763",
+            "logo": "https://highlightly.net/soccer/images/teams/280763.png",
+            "name": "Molde"
           },
           "home_score": 3,
           "away_score": 2,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
           }
         },
         {
-          "id": 1028710008,
-          "competition_id": 119924,
+          "id": "1029069130",
+          "competition_id": "3337",
           "home_team": {
-            "id": "456920",
-            "logo": "https://highlightly.net/soccer/images/teams/456920.png",
-            "name": "Sevilla"
+            "id": "3826029",
+            "logo": "https://highlightly.net/soccer/images/teams/3826029.png",
+            "name": "Maccabi Petah Tikva"
           },
           "away_team": {
-            "id": "461175",
-            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
-            "name": "Real Madrid"
+            "id": "185451",
+            "logo": "https://highlightly.net/soccer/images/teams/185451.png",
+            "name": "SC Braga"
           },
           "home_score": 0,
-          "away_score": 2,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "away_score": 5,
+          "utc_date": "2024-08-01",
+          "match_date": "2024-08-01",
+          "date": "2024-08-01",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
           }
         },
         {
-          "id": 1028710859,
-          "competition_id": 119924,
+          "id": "1083908421",
+          "competition_id": "2486",
           "home_team": {
-            "id": "613504",
-            "logo": "https://highlightly.net/soccer/images/teams/613504.png",
-            "name": "Valladolid"
+            "id": "487556",
+            "logo": "https://highlightly.net/soccer/images/teams/487556.png",
+            "name": "Dynamo Kyiv"
           },
           "away_team": {
-            "id": "462026",
-            "logo": "https://highlightly.net/soccer/images/teams/462026.png",
-            "name": "Alaves"
+            "id": "219491",
+            "logo": "https://highlightly.net/soccer/images/teams/219491.png",
+            "name": "Rangers"
           },
-          "home_score": 0,
+          "home_score": 1,
           "away_score": 1,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           }
         },
         {
-          "id": 1028711710,
-          "competition_id": 119924,
+          "id": "1083903315",
+          "competition_id": "2486",
           "home_team": {
-            "id": "455218",
-            "logo": "https://highlightly.net/soccer/images/teams/455218.png",
-            "name": "Las Palmas"
+            "id": "319909",
+            "logo": "https://highlightly.net/soccer/images/teams/319909.png",
+            "name": "Malmo FF"
           },
           "away_team": {
-            "id": "457771",
-            "logo": "https://highlightly.net/soccer/images/teams/457771.png",
-            "name": "Leganes"
+            "id": "527553",
+            "logo": "https://highlightly.net/soccer/images/teams/527553.png",
+            "name": "PAOK"
           },
-          "home_score": 0,
+          "home_score": 2,
+          "away_score": 2,
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1066575253",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "486705",
+            "logo": "https://highlightly.net/soccer/images/teams/486705.png",
+            "name": "Red Bull Salzburg"
+          },
+          "away_team": {
+            "id": "353949",
+            "logo": "https://highlightly.net/soccer/images/teams/353949.png",
+            "name": "Twente"
+          },
+          "home_score": 2,
           "away_score": 1,
-          "utc_date": "2025-05-18",
-          "match_date": "2025-05-18",
-          "date": "2025-05-18",
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           }
         },
         {
-          "id": 1032216979,
-          "competition_id": 119924,
+          "id": "1083899911",
+          "competition_id": "2486",
           "home_team": {
-            "id": "460324",
-            "logo": "https://highlightly.net/soccer/images/teams/460324.png",
-            "name": "Espanyol"
+            "id": "473940",
+            "logo": "https://highlightly.net/soccer/images/teams/473940.png",
+            "name": "Qarabag"
           },
           "away_team": {
-            "id": "450963",
-            "logo": "https://highlightly.net/soccer/images/teams/450963.png",
-            "name": "Barcelona"
+            "id": "482450",
+            "logo": "https://highlightly.net/soccer/images/teams/482450.png",
+            "name": "Ludogorets"
           },
-          "home_score": 0,
+          "home_score": 1,
           "away_score": 2,
-          "utc_date": "2025-05-15",
-          "match_date": "2025-05-15",
-          "date": "2025-05-15",
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           }
         },
         {
-          "id": 1028698094,
-          "competition_id": 119924,
+          "id": "1083905017",
+          "competition_id": "2486",
           "home_team": {
-            "id": "465430",
-            "logo": "https://highlightly.net/soccer/images/teams/465430.png",
-            "name": "Getafe"
+            "id": "338631",
+            "logo": "https://highlightly.net/soccer/images/teams/338631.png",
+            "name": "FC Midtjylland"
           },
           "away_team": {
-            "id": "452665",
-            "logo": "https://highlightly.net/soccer/images/teams/452665.png",
-            "name": "Athletic Club"
-          },
-          "home_score": 0,
-          "away_score": 2,
-          "utc_date": "2025-05-15",
-          "match_date": "2025-05-15",
-          "date": "2025-05-15",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028698945,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "619461",
-            "logo": "https://highlightly.net/soccer/images/teams/619461.png",
-            "name": "Osasuna"
-          },
-          "away_team": {
-            "id": "451814",
-            "logo": "https://highlightly.net/soccer/images/teams/451814.png",
-            "name": "Atletico Madrid"
+            "id": "554785",
+            "logo": "https://highlightly.net/soccer/images/teams/554785.png",
+            "name": "Ferencvarosi TC"
           },
           "home_score": 2,
           "away_score": 0,
-          "utc_date": "2025-05-15",
-          "match_date": "2025-05-15",
-          "date": "2025-05-15",
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           }
         },
         {
-          "id": 1028699796,
-          "competition_id": 119924,
+          "id": "1082234504",
+          "competition_id": "2486",
           "home_team": {
-            "id": "620312",
-            "logo": "https://highlightly.net/soccer/images/teams/620312.png",
-            "name": "Rayo Vallecano"
+            "id": "68013",
+            "logo": "https://highlightly.net/soccer/images/teams/68013.png",
+            "name": "Lille"
           },
           "away_team": {
-            "id": "462877",
-            "logo": "https://highlightly.net/soccer/images/teams/462877.png",
-            "name": "Real Betis"
+            "id": "520745",
+            "logo": "https://highlightly.net/soccer/images/teams/520745.png",
+            "name": "Fenerbahce"
           },
           "home_score": 2,
-          "away_score": 2,
-          "utc_date": "2025-05-15",
-          "match_date": "2025-05-15",
-          "date": "2025-05-15",
+          "away_score": 1,
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
           }
         },
         {
-          "id": 1028697243,
-          "competition_id": 119924,
+          "id": "1084832607",
+          "competition_id": "3337",
           "home_team": {
-            "id": "462026",
-            "logo": "https://highlightly.net/soccer/images/teams/462026.png",
-            "name": "Alaves"
+            "id": "3297558",
+            "logo": "https://highlightly.net/soccer/images/teams/3297558.png",
+            "name": "Panevėžys"
           },
           "away_team": {
-            "id": "453516",
-            "logo": "https://highlightly.net/soccer/images/teams/453516.png",
-            "name": "Valencia"
+            "id": "514788",
+            "logo": "https://highlightly.net/soccer/images/teams/514788.png",
+            "name": "Maccabi Tel Aviv"
+          },
+          "home_score": 1,
+          "away_score": 2,
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
+          }
+        },
+        {
+          "id": "1083901613",
+          "competition_id": "2486",
+          "home_team": {
+            "id": "535212",
+            "logo": "https://highlightly.net/soccer/images/teams/535212.png",
+            "name": "Sparta Praha"
+          },
+          "away_team": {
+            "id": "476493",
+            "logo": "https://highlightly.net/soccer/images/teams/476493.png",
+            "name": "FCSB"
+          },
+          "home_score": 1,
+          "away_score": 1,
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
+          "status": "finished",
+          "venue": null,
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          }
+        },
+        {
+          "id": "1083914378",
+          "competition_id": "3337",
+          "home_team": {
+            "id": "1933405",
+            "logo": "https://highlightly.net/soccer/images/teams/1933405.png",
+            "name": "Petrocub"
+          },
+          "away_team": {
+            "id": "302038",
+            "logo": "https://highlightly.net/soccer/images/teams/302038.png",
+            "name": "The New Saints"
           },
           "home_score": 1,
           "away_score": 0,
-          "utc_date": "2025-05-14",
-          "match_date": "2025-05-14",
-          "date": "2025-05-14",
+          "utc_date": "2024-08-06",
+          "match_date": "2024-08-06",
+          "date": "2024-08-06",
           "status": "finished",
           "venue": null,
           "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028702349,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "461175",
-            "logo": "https://highlightly.net/soccer/images/teams/461175.png",
-            "name": "Real Madrid"
-          },
-          "away_team": {
-            "id": "679882",
-            "logo": "https://highlightly.net/soccer/images/teams/679882.png",
-            "name": "Mallorca"
-          },
-          "home_score": 2,
-          "away_score": 1,
-          "utc_date": "2025-05-14",
-          "match_date": "2025-05-14",
-          "date": "2025-05-14",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028704051,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "454367",
-            "logo": "https://highlightly.net/soccer/images/teams/454367.png",
-            "name": "Villarreal"
-          },
-          "away_team": {
-            "id": "457771",
-            "logo": "https://highlightly.net/soccer/images/teams/457771.png",
-            "name": "Leganes"
-          },
-          "home_score": 3,
-          "away_score": 0,
-          "utc_date": "2025-05-14",
-          "match_date": "2025-05-14",
-          "date": "2025-05-14",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028700647,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "467132",
-            "logo": "https://highlightly.net/soccer/images/teams/467132.png",
-            "name": "Real Sociedad"
-          },
-          "away_team": {
-            "id": "458622",
-            "logo": "https://highlightly.net/soccer/images/teams/458622.png",
-            "name": "Celta Vigo"
-          },
-          "home_score": 0,
-          "away_score": 1,
-          "utc_date": "2025-05-13",
-          "match_date": "2025-05-13",
-          "date": "2025-05-13",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028701498,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "613504",
-            "logo": "https://highlightly.net/soccer/images/teams/613504.png",
-            "name": "Valladolid"
-          },
-          "away_team": {
-            "id": "466281",
-            "logo": "https://highlightly.net/soccer/images/teams/466281.png",
-            "name": "Girona"
-          },
-          "home_score": 0,
-          "away_score": 1,
-          "utc_date": "2025-05-13",
-          "match_date": "2025-05-13",
-          "date": "2025-05-13",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
-          }
-        },
-        {
-          "id": 1028703200,
-          "competition_id": 119924,
-          "home_team": {
-            "id": "456920",
-            "logo": "https://highlightly.net/soccer/images/teams/456920.png",
-            "name": "Sevilla"
-          },
-          "away_team": {
-            "id": "455218",
-            "logo": "https://highlightly.net/soccer/images/teams/455218.png",
-            "name": "Las Palmas"
-          },
-          "home_score": 1,
-          "away_score": 0,
-          "utc_date": "2025-05-13",
-          "match_date": "2025-05-13",
-          "date": "2025-05-13",
-          "status": "finished",
-          "venue": null,
-          "league": {
-            "id": "119924",
-            "logo": "https://highlightly.net/soccer/images/leagues/119924.png",
-            "name": "La Liga"
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
           }
         }
       ],
@@ -2808,48 +867,216 @@
           "tier": 2
         },
         {
-          "id": "mls-2025",
-          "name": "Major League Soccer",
-          "tier": 4
-        },
-        {
-          "id": "friendlies-2025",
-          "name": "Club Friendlies",
-          "tier": 4
-        },
-        {
-          "id": 216087,
-          "name": "MLS",
-          "tier": 4
-        },
-        {
-          "id": 84182,
-          "name": "J1 League",
-          "tier": 4
-        },
-        {
-          "id": 13549,
-          "name": "FIFA Club World Cup",
-          "tier": 4
-        },
-        {
-          "id": 19506,
-          "name": "CONCACAF Gold Cup",
-          "tier": 4
-        },
-        {
-          "id": 33122,
-          "name": "UEFA U21 Championship",
-          "tier": 4
+          "id": 3337,
+          "name": "UEFA Europa League",
+          "tier": 2
         }
       ],
       "dateRange": {
-        "start": "2025-07-27",
-        "end": "2025-08-03"
+        "start": "2024-07-30",
+        "end": "2024-08-06"
       },
-      "lastUpdated": "2025-07-29T11:40:28.426Z"
+      "lastUpdated": "2025-08-01T12:07:53.137Z"
     },
-    "expiry": 1753789528426,
+    "expiry": 1754050373137,
     "ttl": 300
+  },
+  "/api/for-you/matches": {
+    "data": {
+      "matches": [
+        {
+          "id": "1064168625",
+          "competition_id": "2486",
+          "home_team_id": 527553,
+          "away_team_id": 2863548,
+          "home_team": {
+            "id": "527553",
+            "logo": "https://highlightly.net/soccer/images/teams/527553.png",
+            "name": "PAOK"
+          },
+          "away_team": {
+            "id": "2863548",
+            "logo": "https://highlightly.net/soccer/images/teams/2863548.png",
+            "name": "Borac Banja Luka"
+          },
+          "home_score": 3,
+          "away_score": 2,
+          "utc_date": "2024-07-24",
+          "match_date": "2024-07-24",
+          "date": "2024-07-24",
+          "status": "finished",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          },
+          "weight": 39,
+          "weightBreakdown": {
+            "leagueWeight": 15,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        },
+        {
+          "id": "1064160115",
+          "competition_id": "2486",
+          "home_team_id": 482450,
+          "away_team_id": 336078,
+          "home_team": {
+            "id": "482450",
+            "logo": "https://highlightly.net/soccer/images/teams/482450.png",
+            "name": "Ludogorets"
+          },
+          "away_team": {
+            "id": "336078",
+            "logo": "https://highlightly.net/soccer/images/teams/336078.png",
+            "name": "Dinamo Minsk"
+          },
+          "home_score": 2,
+          "away_score": 0,
+          "utc_date": "2024-07-24",
+          "match_date": "2024-07-24",
+          "date": "2024-07-24",
+          "status": "finished",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          },
+          "weight": 39,
+          "weightBreakdown": {
+            "leagueWeight": 15,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        },
+        {
+          "id": "1064161817",
+          "competition_id": "2486",
+          "home_team_id": 3711144,
+          "away_team_id": 559040,
+          "home_team": {
+            "id": "3711144",
+            "logo": "https://highlightly.net/soccer/images/teams/3711144.png",
+            "name": "Celje"
+          },
+          "away_team": {
+            "id": "559040",
+            "logo": "https://highlightly.net/soccer/images/teams/559040.png",
+            "name": "Slovan Bratislava"
+          },
+          "home_score": 1,
+          "away_score": 1,
+          "utc_date": "2024-07-24",
+          "match_date": "2024-07-24",
+          "date": "2024-07-24",
+          "status": "finished",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "2486",
+            "logo": "https://highlightly.net/soccer/images/leagues/2486.png",
+            "name": "UEFA Champions League"
+          },
+          "weight": 39,
+          "weightBreakdown": {
+            "leagueWeight": 15,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        },
+        {
+          "id": "1064603486",
+          "competition_id": "3337",
+          "home_team_id": 525851,
+          "away_team_id": 540318,
+          "home_team": {
+            "id": "525851",
+            "logo": "https://highlightly.net/soccer/images/teams/525851.png",
+            "name": "Panathinaikos"
+          },
+          "away_team": {
+            "id": "540318",
+            "logo": "https://highlightly.net/soccer/images/teams/540318.png",
+            "name": "Botev Plovdiv"
+          },
+          "home_score": 2,
+          "away_score": 1,
+          "utc_date": "2024-07-25",
+          "match_date": "2024-07-25",
+          "date": "2024-07-25",
+          "status": "finished",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
+          },
+          "weight": 39,
+          "weightBreakdown": {
+            "leagueWeight": 15,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        },
+        {
+          "id": "1064596678",
+          "competition_id": "3337",
+          "home_team_id": 484152,
+          "away_team_id": 317356,
+          "home_team": {
+            "id": "484152",
+            "logo": "https://highlightly.net/soccer/images/teams/484152.png",
+            "name": "Sheriff Tiraspol"
+          },
+          "away_team": {
+            "id": "317356",
+            "logo": "https://highlightly.net/soccer/images/teams/317356.png",
+            "name": "IF elfsborg"
+          },
+          "home_score": 0,
+          "away_score": 1,
+          "utc_date": "2024-07-25",
+          "match_date": "2024-07-25",
+          "date": "2024-07-25",
+          "status": "finished",
+          "venue": null,
+          "stage": "2nd Qualifying Round",
+          "league": {
+            "id": "3337",
+            "logo": "https://highlightly.net/soccer/images/leagues/3337.png",
+            "name": "UEFA Europa League"
+          },
+          "weight": 39,
+          "weightBreakdown": {
+            "leagueWeight": 15,
+            "stageWeight": 10,
+            "teamWeight": 12,
+            "formWeight": 0,
+            "timeWeight": 2
+          }
+        }
+      ],
+      "dateRange": {
+        "start": "2024-07-24",
+        "end": "2024-08-01"
+      },
+      "lastUpdated": "2025-08-01T12:07:54.196Z"
+    },
+    "expiry": 1754051874196,
+    "ttl": 1800
   }
 }

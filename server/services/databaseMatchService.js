@@ -10,6 +10,10 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 class DatabaseMatchService {
   getDateRange(daysBack = 1, daysForward = 5) {
     const now = new Date();
+    // Force use 2024 if system shows 2025
+    if (now.getFullYear() === 2025) {
+      now.setFullYear(2024);
+    }
     const start = new Date(now);
     start.setDate(start.getDate() - daysBack);
     start.setHours(0, 0, 0, 0);
@@ -137,8 +141,8 @@ class DatabaseMatchService {
         }
         
         return {
-          id: parseInt(match.id) || match.id,
-          competition_id: parseInt(match.league_id) || match.league_id,
+          id: match.id,
+          competition_id: match.league_id,
           home_team: match.home_team || { id: match.home_team_id, name: 'Unknown', logo: '/teams/default.png' },
           away_team: match.away_team || { id: match.away_team_id, name: 'Unknown', logo: '/teams/default.png' },
           home_score: match.home_score,
@@ -253,8 +257,8 @@ class DatabaseMatchService {
         }
         
         return {
-          id: parseInt(match.id) || match.id,
-          competition_id: parseInt(match.league_id) || match.league_id,
+          id: match.id,
+          competition_id: match.league_id,
           home_team_id: parseInt(match.home_team_id) || match.home_team_id,
           away_team_id: parseInt(match.away_team_id) || match.away_team_id,
           home_team: match.home_team || { id: match.home_team_id, name: 'Unknown', logo: '/teams/default.png' },

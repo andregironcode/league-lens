@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     
     // Highlightly API configuration
     const HIGHLIGHTLY_API_URL = 'https://soccer.highlightly.net';
-    const HIGHLIGHTLY_API_KEY = process.env.HIGHLIGHTLY_API_KEY;
+    const HIGHLIGHTLY_API_KEY = process.env.HIGHLIGHTLY_API_KEY22 || process.env.HIGHLIGHTLY_API_KEY;
     
     const url = `${HIGHLIGHTLY_API_URL}/${fullPath}`;
     
